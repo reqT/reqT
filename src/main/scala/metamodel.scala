@@ -1,0 +1,816 @@
+/****************************************************************     
+**                  _______        
+**                 |__   __|     reqT API  
+**   _ __  ___   __ _ | |        (c) 2011-2013, Lund University  
+**  |  __|/ _ \ / _  || |        http://reqT.org
+**  | |  |  __/| (_| || |   
+**  |_|   \___| \__  ||_|   
+**                 | |      
+**                 |_|      
+** reqT is open source, licensed under the BSD 2-clause license: 
+** http://opensource.org/licenses/bsd-license.php 
+*****************************************************************/
+/*
+in v2.3:
+INPROGRESS: csp
+INPROGRESS: AttrRef integrated with csp
+DONE: Added Integer attributes: Index, Cost, Benefit, Capacity, Urgency
+DONE: Bugfix: in ++ so that it merges attributes of enitites
+DONE: m.ids gives a Vector of strings of ids
+DONE: don't warn if updating attribute with same value
+DONE: idGen: generates sequence of ids; idGen.next(), idGen.set("start","1"), idGen.reset
+DONE: entityToKeyNodeSetPair: Model(Feature("x"), Feature("y"), Feature("z"))
+DONE: Depth First Search: m.depthFirstSearch(Set(Feature("x"), Feature("y")))
+DONE: Restrict on DFS gives separate with traversed relations: m /--> Feature("x")
+DONE: type parameter for External: Feature("hello") has External[Spec]("specfile.txt")
+DONE: type trait implicits for External[T] where T can be Spec, Why, Example, Comment
+DONE: load attributes from all external files: m.loadExternals
+DONE: Model.interpret("Model()") returns Model()
+DONE: Model.load("file-with-my-model.scala") returns Model
+DONE: ModelVector(m1,m2) 
+DONE: ModelVector(m1,m2).merge
+DONE: ModelVector(m1,m2).split(m) == m.split(ModelVector(m1,m2))
+DONE?? ModelFiles("mf1.scala", "mf2.scala").load ****** ModelBuilder ???
+DONE: m1.intersect(m2) == m1 & m2
+DONE: m1.diff(m2) == m1 -- m2 == m1 &~ m2
+DONE: meta-link in HTML generation, <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+DONE: preserving add order of Model contents by changing underlying implementation to LinkedHashMap 
+DONE: m.sorted to sort on keyOrdering
+DONE: indexed access of model elements
+DONE: pretty printing of model with index numbers of each key: m.pp
+DONE: Allowing Submodel[Model] as attributes - is this a good idea??
+
+TODO: ??m.updateIds(id => "prefix."+id) 
+TODO: ??ensure that ids are unique
+TODO: ??flatten Model to insert its submodels??
+
+TODO: ?? Model(Part("name") has Submodel(Model("XX")))  //Submodel extends Attribute[Model]
+TODO: ?? or is Area better than Part??: Model(Area("a1") has Submodel(Model(...))) 
+TODO: ?? add Term entity for generating glossaries
+TODO: ?? case class Paragraph instead of Text with object § with apply that generates Paragraph
+TODO: Clean up code duplication in attribute trait structure
+TODO: Break up long lines to follow scala coding conventions a bit better
+ 
+TODO: m.terms // gives all Model words in strings and prefix names
+TODO: m.strings //gives all strings in attributes or ids
+TODO: m.stringTerms 
+TODO: m.prefixTerms
+
+from v2.2
+DONE: Escape sequence convertion in toScala
+DONE: Newline \n in Attribute values is replaced with <br> in HTML-generation
+DONE: Removed semantic check causing long execution times for large owns-structures 
+DONE: m up Feature("x") == (m / Feature("x").up ++ (m \ Feature("x"))
+DONE: implement new semantic check of owns-relations: m.hasMultiOwners, m.multiOwners
+DONE: implement semantic check missing Specs: m.hasMissingSpecs, m.missingSpecs
+DONE: Ordering of Status and Level: Status(DROPPED) < STATUS(ELICITED)
+DONE: implement check to run all available checks: m.check
+DONE: restrict on sets of entities, can be use eg. to get also relations if an entity has a label: m / (m / Label("aa")).sources
+
+TODO?? new relation "exceeds" for greater than on Prio ??
+
+TODO?? add Database as a Data requirement entity ??? or should DataType be the abstract and Data the concrete type
+
+TODO?? NodeSet use SortedSet/TreeSet instead of Set //started... 
+
+TODO?? Model(State("x") has Spec(""), State("x") transition(Event("a")) State("y")
+
+TODO?? restrict on Reqex; match only on id? 
+
+TODO?? restrict on attributes in assigns??
+ how should this work ??
+var m = Model( 
+  Stakeholder("s") assigns(Prio(5)) to Feature("x"),
+  Stakeholder("s") assigns(Prio(1)) to Feature("y"),
+  Stakeholder("s") assigns(Prio(9)) to Feature("z")
+) 
+m / Prio
+m /+ Prio
+
+*/
+package org.reqt {
+
+  import scala.collection.immutable.{SortedSet, SortedMap, MapLike}
+  import scala.collection.IndexedSeqLike
+  import scala.collection.mutable.LinkedHashMap
+  import scala.language.{implicitConversions, postfixOps}
+  import org.reqt.util._
+
+  trait CanGenerateScala { def toScala: String = toString }  //override with string of code that generates this object
+  trait Default[T] { def default : T }
+  trait Value[T] { def value: T }
+  trait Prefixed { 
+    def productPrefix: String //every case class in Scala has this string member with its class name
+    def prefix = productPrefix //alternative name to avoid confusion with the case class Product
+    def hasEqualPrefix(that: Prefixed): Boolean = this.prefix == that.prefix 
+    def <==>(that: Prefixed): Boolean = hasEqualPrefix(that)
+  } 
+  trait StringValueToScala extends CanGenerateScala with Value[String] with Prefixed {
+    override def toScala: String = prefix + "(" + value.toScala + ")"
+  }
+  trait NodeKind extends Prefixed  
+  trait EntityKind extends NodeKind { val value = "" }
+  trait AttributeKind[T] extends NodeKind with Value[T] with Default[T] with CanGenerateScala { 
+    override def value = default
+    override def toScala = prefix + "(" + default + ")"
+    def apply(v: T): Attribute[T] 
+   //TRIAL*** def make(v: T): Attribute[T] 
+  }
+  trait EdgeKind extends Prefixed 
+
+  abstract class Element extends CanGenerateScala with Prefixed
+  abstract class Concept extends Element 
+  abstract class Structure extends Element 
+  abstract class Node[T] extends Concept with Value[T] {
+    def isAttribute: Boolean = this.isInstanceOf[Attribute[_]]
+    def isEntity: Boolean = this.isInstanceOf[Entity]
+  }
+  abstract class Entity extends Node[String] with StringValueToScala {
+    def id: String = value
+    def has() = Key(this, org.reqt.has())
+    def has(as:Attribute[_] *) = (Key(this, org.reqt.has()), NodeSet(as: _*)) 
+    def owns() = Key(this, org.reqt.owns())
+    def owns(es:Entity *) = if (!es.contains(this)) (Key(this, org.reqt.owns()), NodeSet(es: _*)) else {
+      warn("Entity can not own itself: " + this)
+      (Key(this, org.reqt.owns()), NodeSet())
+    }
+    //construct Key
+    def requires() = Key(this, org.reqt.requires())
+    def requires(es:Entity *) = (Key(this, org.reqt.requires()), NodeSet(es: _*))
+    def excludes() = Key(this, org.reqt.excludes())
+    def excludes(es:Entity *) = (Key(this, org.reqt.excludes()), NodeSet(es: _*))
+    def helps() = Key(this, org.reqt.helps())
+    def helps(es:Entity *) = (Key(this, org.reqt.helps()), NodeSet(es: _*))
+    def hurts() = Key(this, org.reqt.hurts())
+    def hurts(es:Entity *) = (Key(this, org.reqt.hurts()), NodeSet(es: _*))
+    def precedes() = Key(this, org.reqt.precedes())
+    def precedes(es:Entity *) = (Key(this, org.reqt.precedes()), NodeSet(es: _*))
+    def inherits() = Key(this, org.reqt.inherits())
+    def inherits(es:Entity *) = (Key(this, org.reqt.inherits()), NodeSet(es: _*))
+    def deprecates() = Key(this, org.reqt.deprecates())
+    def deprecates(es:Entity *) = (Key(this, org.reqt.deprecates()), NodeSet(es: _*))
+    def assigns[T](a:Attribute[T]) = Key(this, org.reqt.assigns(a))
+    //construct AttrRef
+    def ![T](ak: AttributeKind[T]) = AttrRef[T](this, ak) 
+    def prio = AttrRef(this, org.reqt.Prio)
+    def Prio = AttrRef(this, org.reqt.Prio)
+    def index = AttrRef(this, org.reqt.Index)
+    def Index = AttrRef(this, org.reqt.Index)
+    def cost = AttrRef(this, org.reqt.Cost)
+    def Cost = AttrRef(this, org.reqt.Cost)
+    def benefit = AttrRef(this, org.reqt.Benefit)
+    def Beneft = AttrRef(this, org.reqt.Benefit)
+    def capacity = AttrRef(this, org.reqt.Capacity)
+    def Capacity = AttrRef(this, org.reqt.Capacity)
+    def urgency = AttrRef(this, org.reqt.Urgency)
+    def Urgency = AttrRef(this, org.reqt.Urgency)
+    def spec = AttrRef(this, org.reqt.Spec)
+    def Spec = AttrRef(this, org.reqt.Spec)
+  }  
+
+  case class AttrRef[T](ent: Entity, attrKind: AttributeKind[T]) { 
+    def apply(m: Model) = AttrUpdater(m, this)
+    def :=(v: T): (Key, NodeSet) =  (ent.has, NodeSet(attrKind(v)))
+  }
+  case class AttrUpdater[T](m: Model, ar: AttrRef[T]) {
+    def :=(v: T): Model =  m.updated(ar, v)
+  }
+  abstract class Context extends Entity 
+  case class Product(value: String) extends Context   
+  case object Product extends Context with EntityKind    
+  case class Release(value: String) extends Context 
+  case object Release extends Context with EntityKind  
+  case class Stakeholder(value: String) extends Context 
+  case object Stakeholder extends Context with EntityKind 
+  case class Actor(value: String) extends Context 
+  case object Actor extends Context with EntityKind  
+  case class Resource(value: String) extends Context 
+  case object Resource extends Context with EntityKind  
+  
+  abstract class Requirement extends Entity 
+  case class Req(value: String) extends Requirement
+  case object Req extends Requirement with EntityKind { def apply(): Req = Req(idGen.next()) } 
+  case class Goal(value: String) extends Requirement 
+  case object Goal extends Requirement with EntityKind 
+  case class Feature(value: String) extends Requirement   
+  case object Feature extends Requirement with EntityKind   
+  case class Function(value: String) extends Requirement   
+  case object Function extends Requirement with EntityKind  
+  case class Quality(value: String) extends Requirement   
+  case object Quality extends Requirement with EntityKind   
+  case class Interface(value: String) extends Requirement   
+  case object Interface extends Requirement with EntityKind   
+  case class Design(value: String) extends Requirement   
+  case object Design extends Requirement with EntityKind   
+  
+  abstract class Data extends Requirement
+  case class Class(value: String) extends Requirement   
+  case object Class extends Requirement with EntityKind 
+  case class Member(value: String) extends Requirement   
+  case object Member extends Requirement with EntityKind    
+  
+  abstract class Scenario extends Requirement
+  case class UserStory(value: String) extends Scenario  
+  case object UserStory extends Scenario with EntityKind  
+  case class UseCase(value: String) extends Scenario  
+  case object UseCase extends Scenario with EntityKind   
+  case class Task(value: String) extends Scenario  
+  case object Task extends Scenario with EntityKind  
+  case class VividScenario(value: String) extends Scenario  
+  case object VividScenario extends Scenario with EntityKind  
+  
+  //************** Attributes **************
+  
+  abstract class Attribute[T] extends Node[T] with Default[T] 
+  
+  trait StringAttr extends Attribute[String] with StringValueToScala { val default = "???" }
+  trait LevelAttr extends Attribute[Level] { val default = ELICITED }
+  trait IntAttr extends Attribute[Int] { val default = 0 }
+  
+  case class Gist(value: String) extends StringAttr
+  case object Gist extends StringAttr with AttributeKind[String]  
+  
+  case class Spec(value: String) extends StringAttr
+  case object Spec extends StringAttr with AttributeKind[String] 
+  
+  trait Level extends Ordered[Level] { 
+    def up:Level
+    def down:Level
+    def compare(that: Level) = levelIndex(this) compare levelIndex(that)
+  }
+  case object ELICITED    extends Level { val (up,down) = (SPECIFIED, DROPPED) }
+  case object SPECIFIED   extends Level { val (up,down) = (VALIDATED, DROPPED) } 
+  case object VALIDATED   extends Level { val (up,down) = (PLANNED, SPECIFIED) } 
+  case object PLANNED     extends Level { val (up,down) = (IMPLEMENTED, POSTPONED) }
+  case object IMPLEMENTED extends Level { val (up,down) = (TESTED, FAILED) }
+  case object TESTED      extends Level { val (up,down) = (RELEASED, FAILED) }
+  case object RELEASED    extends Level { val (up,down) = (RELEASED, FAILED) }
+  case object FAILED      extends Level { val (up,down) = (IMPLEMENTED, DROPPED) }
+  case object POSTPONED   extends Level { val (up,down) = (PLANNED, POSTPONED) }
+  case object DROPPED     extends Level { val (up,down) = (ELICITED, DROPPED) }
+  
+  trait CanUpDown extends Value[Level] with Default[Level] { 
+    def up = Status(value.up)
+    def down = Status(value.down)
+    def init = Status(default)
+  }
+  
+  case class Status(value: Level) extends LevelAttr with CanUpDown with Ordered[Status] { 
+    def compare(that: Status) = levelIndex(this.value) compare levelIndex(that.value)
+  }
+  case object Status extends LevelAttr with AttributeKind[Level] with CanUpDown 
+  
+  case class Why(value: String) extends StringAttr   //TODO *** update all below with StringAttr and IntAttr etc.
+  case object Why extends StringAttr with AttributeKind[String] 
+  
+  case class Example(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED EXAMPLE" }
+  case object Example extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED EXAMPLE" }
+  
+  case class Input(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED INPUT" }
+  case object Input extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED INPUT" }
+  
+  case class Output(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED OUTPUT" }
+  case object Output extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED OUTPUT" }
+  
+  case class Trigger(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED TRIGGER" }
+  case object Trigger extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED TRIGGER" }
+  
+  case class Precond(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED PRECONDITION" }
+  case object Precond extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED PRECONDITION" }
+  
+  case class Frequency(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED FREQUENCY" }
+  case object Frequency extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED FREQUENCY" }
+  
+  case class Critical(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED CRITICAL" }
+  case object Critical extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED CRITICAL" }
+  
+  case class Problem(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED PROBLEM" }
+  case object Problem extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED PROBLEM" }
+  
+  case class Prio(value: Int) extends IntAttr 
+  case object Prio extends IntAttr with AttributeKind[Int]  
+  
+  case class Index(value: Int) extends IntAttr 
+  case object Index extends IntAttr with AttributeKind[Int]  
+
+  case class Cost(value: Int) extends IntAttr 
+  case object Cost extends IntAttr with AttributeKind[Int]  
+  
+  case class Benefit(value: Int) extends IntAttr 
+  case object Benefit extends IntAttr with AttributeKind[Int]  
+
+  case class Capacity(value: Int) extends IntAttr 
+  case object Capacity extends IntAttr with AttributeKind[Int]  
+  
+  case class Urgency(value: Int) extends IntAttr 
+  case object Urgency extends IntAttr with AttributeKind[Int]  
+
+  case class Label(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED LABEL" }
+  case object Label extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED LABEL" }
+
+  case class Comment(value: String) extends Attribute[String] with StringValueToScala { val default = "NO COMMENT" }
+  case object Comment extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "NO COMMENT" }
+  
+  case class Image(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED-FILENAME.jpg" }
+  case object Image extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED-FILENAME.jpg" }
+  
+  case class Deprecated(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED LABEL" }
+  case object Deprecated extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED LABEL" }
+
+  case class Submodel(value: Model) extends Attribute[Model] { val default = Model() }
+  case object Submodel extends Attribute[Model] with AttributeKind[Model] { val default = Model() }  
+
+  case class External[T <: Attribute[_]](fileName:String)( implicit makeAttr: AttrFromString[T]) 
+  extends Attribute[String] with StringValueToScala { 
+    val default = "NONAME.scala"
+    val value = fileName
+    val emptyAttr: T = makeAttr("")
+    def fromFile: T = makeAttr(load(fileName))
+    override def prefix = emptyAttr.prefix
+    override def toScala = "External[" + emptyAttr.prefix + "](\"" + fileName + "\")" 
+  }
+  case object External extends Attribute[String] with StringValueToScala with AttributeKind[String] { 
+    val default = "UNDEFINED EXTERNAL" 
+    def apply(s: String) = Spec(default)
+  }
+  
+  trait AttrFromString[T <: Attribute[_]] {
+    def apply(s: String): T 
+  }
+  
+  case object NoAttribute extends Attribute[Unit] { val value = (); val default = () }
+
+  //************** Relations **************
+  
+  abstract class Edge extends Concept 
+  abstract class Relation extends Edge {
+    def kind: Relation
+    def to(es: Entity *): EdgeToNodes = EdgeToNodes(this, NodeSet(es.toSet.asInstanceOf[Set[Node[_]]]))
+    def Product(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Product(id)))
+    def Release(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Release(id)))
+    def Stakeholder(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Stakeholder(id)))
+    def Actor(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Actor(id)))
+    def Resource(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Resource(id)))
+    def Req(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Req(id)))
+    def Goal(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Goal(id)))
+    def Feature(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Feature(id)))
+    def Function(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Function(id)))
+    def Class(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Class(id)))
+    def Member(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Member(id)))
+    def Quality(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Quality(id)))
+    def Interface(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Interface(id)))
+    def Design(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Design(id)))
+    def UserStory(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.UserStory(id)))
+    def UseCase(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.UseCase(id)))
+    def Task(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Task(id)))
+    def VividScenario(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.VividScenario(id)))
+  }
+  
+  abstract class RelationWithoutAttribute extends Relation {
+    override def toScala = prefix
+  }
+  case class owns() extends RelationWithoutAttribute { def kind: Relation = owns } 
+  case object owns extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
+  case class requires() extends RelationWithoutAttribute { def kind: Relation = requires }
+  case object requires extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
+  case class excludes() extends RelationWithoutAttribute { def kind: Relation = excludes }
+  case object excludes extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
+  case class helps() extends RelationWithoutAttribute { def kind: Relation = helps }
+  case object helps extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
+  case class hurts() extends RelationWithoutAttribute { def kind: Relation = hurts }
+  case object hurts extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
+  case class precedes() extends RelationWithoutAttribute { def kind: Relation = precedes }
+  case object precedes extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
+  case class inherits() extends RelationWithoutAttribute { def kind: Relation = inherits }
+  case object inherits extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
+  case class deprecates() extends RelationWithoutAttribute { def kind: Relation = deprecates }
+  case object deprecates extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
+  abstract class RelationWithAttribute[T] extends Relation { 
+    def attribute: Attribute[T]
+    override def toScala: String = prefix + "(" + attribute.toScala + ")"
+  } 
+  case class assigns[T](attribute: Attribute[T]) extends RelationWithAttribute[T] { def kind: Relation = assigns }
+  case object assigns extends RelationWithAttribute[Unit] with EdgeKind { val attribute = NoAttribute; def kind: Relation = this }
+  
+  abstract class AttributeEdge extends Edge {
+    def Gist(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Gist(value)))
+    def Spec(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Spec(value)))
+    def Status(value: Level) = EdgeToNodes(has(), NodeSet(org.reqt.Status(value)))
+    def Why(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Why(value)))
+    def Example(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Example(value)))
+    def Input(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Input(value)))
+    def Output(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Output(value)))
+    def Trigger(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Trigger(value)))
+    def Precond(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Precond(value)))
+    def Frequency(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Frequency(value)))
+    def Critical(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Critical(value)))
+    def Problem(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Problem(value)))
+    def Prio(value: Int) = EdgeToNodes(has(), NodeSet(org.reqt.Prio(value)))
+    def Index(value: Int) = EdgeToNodes(has(), NodeSet(org.reqt.Index(value)))
+    def Cost(value: Int) = EdgeToNodes(has(), NodeSet(org.reqt.Cost(value)))
+    def Benefit(value: Int) = EdgeToNodes(has(), NodeSet(org.reqt.Benefit(value)))
+    def Capacity(value: Int) = EdgeToNodes(has(), NodeSet(org.reqt.Capacity(value)))
+    def Urgency(value: Int) = EdgeToNodes(has(), NodeSet(org.reqt.Urgency(value)))
+    def Submodel(value: Model) = EdgeToNodes(has(), NodeSet(org.reqt.Submodel(value)))
+    def Label(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Label(value)))
+    def Comment(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Comment(value)))
+    def Image(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Image(value)))
+    def Deprecated(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Deprecated(value)))
+    override def toScala = prefix
+ }
+  case class has() extends AttributeEdge 
+  case object has extends AttributeEdge with EdgeKind {
+    def apply(as:Attribute[_] *): EdgeToNodes = EdgeToNodes(has(), NodeSet(as.toSet.asInstanceOf[Set[Node[_]]])) 
+  }
+  
+  case class EdgeToNodes(edge: Edge, nodes: NodeSet) extends Structure //used as argument for addEdgeToNodes
+  
+  //values below used for abstract concept arguments to the restriction method in Model:
+  case object Context extends Context { val value = "" }
+  case object Requirement extends Requirement { val value = "" }
+  case object Scenario extends Scenario { val value = "" }
+  case object Relation extends Relation { def kind: Relation = owns } // TODO check if kind=owns is ok here
+  
+  //******* Structural elements *******
+  
+  case class Key(entity: Entity, edge: Edge) extends Structure {
+    def to(es: Entity *) = edge match {
+      case e: RelationWithAttribute[_] => (this, NodeSet(es: _*))
+      case _ => warn("to-construct only allowed for relation with attribute value" + 
+        "\nNodeSet.empty generated for " + entity + " " + edge)
+        (this, NodeSet.empty)
+    }     
+    override def toScala = entity.toScala + " " + edge.toScala + " "
+  }
+  sealed abstract class SetStructure[T <: Node[_]] extends Structure {
+    def nodes: Set[T]
+    def hasAttribute = nodes.exists(_.isInstanceOf[Attribute[_]])
+    def hasEntity = nodes.exists(_.isInstanceOf[Entity])
+    override def toScala = {
+      val (leftPar, rightPar) = if (nodes.size == 1) ("", "") else ("(\n    ","\n  )")
+      nodes.map(_.toScala).mkString(leftPar, ",\n    ", rightPar)
+    }
+    override def toString = prefix + nodes.map(_.toString).mkString("(", ", ", ")")
+  }
+  case class NodeSet(nodes: Set[Node[_]]) extends SetStructure[Node[_]] {  
+    assert(!(hasAttribute && hasEntity), 
+      "Both Entity and Attribute nodes in the same NodeSet is not allowed")
+    def keyStr(keyOpt: Option[Key] = None) = (keyOpt collect { case k => " of " + k.entity } orElse (Some("")) get)
+    def removeDuplicatePrefixes(keyOpt: Option[Key] = None) = {
+      def removeDup(l:List[Node[_]]):List[Node[_]] = l match {
+        case Nil => Nil
+        case x::Nil => x::Nil
+        case x::xs => 
+          if (xs.exists(_.hasEqualPrefix(x))) 
+            { warn("Duplicate" + keyStr(keyOpt) + " ignored: "+x); removeDup(xs) } 
+          else x::removeDup(xs) 
+      }
+      NodeSet(removeDup(nodes.toList).toSet)
+    }
+    def concatNodes(ns: NodeSet, keyOpt: Option[Key] = None)  = {
+      if (!ns.hasAttribute) NodeSet(nodes ++ ns.nodes)
+      else { //remove duplicates and replace existing attributes
+        val moreNodes = ns.removeDuplicatePrefixes(keyOpt) 
+        val existingAttrNodesRemoved = nodes filterNot { n =>
+          if (n.isAttribute) moreNodes.nodes.exists { n2 => 
+            if (n2.hasEqualPrefix(n) && (n2.value != n.value))
+              { warn("Overwriting attribute " + n + " with " + n2 + keyStr(keyOpt))
+              true }
+            else false
+          }
+          else false
+        }
+        NodeSet(existingAttrNodesRemoved ++ moreNodes.nodes)
+      } 
+    }
+  }
+  object NodeSet {
+    def apply(ns:Node[_]*): NodeSet = empty.concatNodes(NodeSet(ns.toSet))
+    def empty: NodeSet = new NodeSet(SortedSet.empty[Node[_]](org.reqt.nodeOrdering)) 
+      //???why must nodeOrdering above be explicitly passed (or else compile error)??? 
+      //(implicit lookup does not seem to work... why??)
+  }
+
+  //**** ModelVector and ModelFiles for splitting and merging models ***
+  
+  final class ModelVector( val models: IndexedSeq[Model]) 
+      extends IndexedSeq[Model] with IndexedSeqLike[Model, ModelVector] {
+    import scala.collection.mutable.Builder
+    override protected[this] def newBuilder: Builder[Model, ModelVector] = ModelVector.newBuilder 
+    lazy val length: Int = models.length
+
+    def apply(idx: Int): Model = models(idx)
+
+    override def toString = if (isEmpty) "ModelVector()" 
+      else "ModelVector(\n" + models.map(
+        m => "Model(... " + 
+          m.size + " keys; " + 
+          m.entities.size + " entities, " + 
+          m.relations.size + " relations ...)"
+      ).mkString(" ",",\n ","\n") + ")"
+    lazy val merge: Model = reduce(_ ++ _)
+    lazy val overlap: Model = reduce(_ & _)
+    def split(pivot: Model): ModelVector = {
+      val keySeq = models map (_.keySet)
+      val splitSeq = keySeq map (pivot.restrictKeys(_))
+      val allMeregdKeys = merge.keySet
+      val notInSplitSeq = pivot.excludeKeys(allMeregdKeys)
+      if (notInSplitSeq.isEmpty) ModelVector.fromSeq(splitSeq) 
+      else {
+        warn("ModelVector with extra model of overflow keys appended!")
+        ModelVector.fromSeq(splitSeq) ++ ModelVector(notInSplitSeq)
+      }
+    }
+    lazy val checkEmpty = if (models.exists { _ == Model() } ) { 
+      warn("Empty Model in ModelVector."); false 
+    } else true
+    lazy val checkOverlap = if (!overlap.isEmpty) { 
+      warn("Overlapping keys in ModelVector. Try method overlap on ModelVector."); false 
+    } else true
+    def check: Boolean = (models.map(_.check) ++ Seq(checkEmpty, checkOverlap)) reduce(_ & _)       
+    def save(mf: ModelFiles) = mf save this   
+  }
+
+  object ModelVector {
+    import scala.collection.mutable.{Builder, ArrayBuffer}
+    import scala.collection.generic.CanBuildFrom
+    def fromSeq(models: Seq[Model]): ModelVector = new ModelVector(models.toIndexedSeq)
+    def apply(models: Model*) = new ModelVector(models.toIndexedSeq)
+    def newBuilder: Builder[Model, ModelVector] = new ArrayBuffer mapResult fromSeq
+    implicit def canBuildFrom: CanBuildFrom[ModelVector, Model, ModelVector] = new CanBuildFrom[ModelVector, Model, ModelVector] {
+        def apply(): Builder[Model, ModelVector] = newBuilder
+        def apply(from: ModelVector): Builder[Model, ModelVector] = newBuilder
+      }
+  }
+  
+  final class ModelFiles(fileNames: IndexedSeq[String]) extends IndexedSeq[String] with IndexedSeqLike[String, ModelFiles] {
+    import scala.collection.mutable.Builder
+    override protected[this] def newBuilder: Builder[String, ModelFiles] = ModelFiles.newBuilder 
+    lazy val length: Int = fileNames.length
+
+    def apply(idx: Int): String = fileNames(idx)
+    def +(s: String): ModelFiles = this :+ s
+    def load = ModelVector(fileNames map (s => Model.load(s)):_*)
+    def save(mv: ModelVector) {
+      if (mv.size != fileNames.size) 
+        warn("Size of ModelVector == " + mv.size + " is not same as size of ModelFiles == " + fileNames.size)
+      val n = mv.size min fileNames.size
+      for (i <- 0 until n) mv(i).toScala.save(fileNames(i))
+    }
+    override def toString = "ModelFiles(" + fileNames.map(_.toScala).mkString(", ") + ")"
+  }
+  object ModelFiles {
+    import scala.collection.mutable.{Builder, ArrayBuffer}
+    import scala.collection.generic.CanBuildFrom
+    def fromSeq(models: Seq[String]): ModelFiles = new ModelFiles(models.toIndexedSeq)
+    def newBuilder: Builder[String, ModelFiles] = new ArrayBuffer mapResult fromSeq
+    implicit def canBuildFrom: CanBuildFrom[ModelFiles, String, ModelFiles] = new CanBuildFrom[ModelFiles, String, ModelFiles] {
+        def apply(): Builder[String, ModelFiles] = newBuilder
+        def apply(from: ModelFiles): Builder[String, ModelFiles] = newBuilder
+      }  
+    def apply(names: String*): ModelFiles = new ModelFiles(names.toIndexedSeq)
+  }
+  
+  //************** Document generation from Model *************************
+
+  case class Text(paragraphs: List[String]) {
+    def toString(wrapper: Any => String) = paragraphs map wrapper mkString
+  }
+  object Text {
+    def apply(p: String *) = new Text(p.toList)
+  }
+
+  trait DocItem {
+    def title: String 
+    def intro: Text
+    def extractor: Model => Model
+  }
+
+  case class Chapter(
+    title: String = "", 
+    intro: Text = Text(), 
+    extractor: Model => Model = m => Model() 
+  ) extends DocItem
+
+  case class Section (
+    title: String = "", 
+    intro: Text = Text(), 
+    extractor: Model => Model = m => Model() 
+  ) extends DocItem
+
+  case class DocumentTemplate(title: String, intro: Text, items: List[DocItem]) 
+  object DocumentTemplate {
+    def apply(title: String, intro: Text, items: DocItem *) = 
+      new DocumentTemplate(title, intro, items.toList)
+  }
+  
+  trait DocGenerator {  
+    def wrap(pre: Any, post: Any)(s: Any): String = pre.toString + s.toString + post.toString
+    def tabulate(m: Model): String
+    def document(title: String, intro: Text, rest: String): String
+    def chapter(c: Chapter, m: Model): String
+    def section(s: Section, m: Model): String
+    def text(t: Text): String
+    def image(url: String): String 
+    def generate(m: Model, dt: DocumentTemplate): String = 
+      document(dt.title, dt.intro, dt.items collect {
+          case c: Chapter => chapter(c, m) 
+          case s: Section => section(s, m)
+        } mkString  
+      )
+  }
+
+  trait HtmlGenerator extends DocGenerator {
+    def br(s: String): String = s.replaceAllLiterally("\n","<br>")
+    def head = wrap("<head>\n","</head>\n") _
+    def para = wrap("<p>","</p>\n") _
+    def h1 = wrap("<H1>","</H1>\n") _
+    def h2 = wrap("<H2>","</H2>\n") _
+    def h3 = wrap("<H3>","</H3>\n") _
+    def pre = "<!DOCTYPE html>\n<html>"
+    def post = "</html>"
+    def meta = """<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >"""
+    def css = "<link rel=\"stylesheet\" type=\"text/css\" href=\"reqT.css\"> \n"
+    def head(title:String) = "<head>\n" + css + meta + "<title>" + title + "</title>\n</head>\n\n"
+    def text(t: Text): String = t.toString(para)
+    def image(url: String): String = "<p><img src=\"" + url  + "\" alt=\""+ url +"\"></p>\n" 
+    def document(title: String, intro: Text, rest: String): String = pre + head(title) + 
+      "<body>\n" + h1(title) + text(intro) + rest + "</body>" + post 
+    def chapter(c: Chapter, m: Model): String = h2(c.title) + text(c.intro) + "\n" + tabulate(c.extractor(m)) + "\n"
+    def section(s: Section, m: Model): String = h3(s.title) + text(s.intro) + "\n" + tabulate(s.extractor(m)) + "\n"
+    def tabulate(m: Model): String = {
+      def entityDivision = wrap("<div class=\"entity\">\n", "</div>\n") _
+      def nodeTable = wrap("<table class=\"nodelist\">\n","</table>\n") _
+      val thAttr = "<th>Attributes</th><th>Values</th>"
+      val thRel = "<th>Relations</th><th>Destinations</th>"
+      def tr = wrap("  <tr>","  </tr>\n") _
+      def td = wrap("<td>","  </td>") _
+      def tdName = wrap("  <td class=\"name\">","  </td>") _   
+      val result: String = m.sources.toList.sorted map { e =>
+        val select = m / e 
+        val gist = br(select ! Gist getOrElse(""))
+        val img = select ! Image match { case Some(url) => image(url); case None => "" }
+        val heading = "" + h3("<b>" + e.prefix + " " + e.id + ": </b><i>" + gist + "</i>") + "\n"
+        val attr = ( select / has map { case (_,ns) => (ns filterNot( _ <==> Gist)).toList.sorted(nodeOrdering) map { node =>
+            val n: Node[_] = node match { case l: External[_] =>  l.fromFile ; case a => a}
+            "" + tr(tdName(longName(n.prefix) + ":")  + br(td(n.value))) 
+        } mkString("\n")  } ).mkString
+        val rel = ( select \ has map { case (Key(_, edge),ns) => "" + tr(tdName(edge.toScala) + td(ns map ( n => 
+            "" + n.prefix + " "  + n.value)  mkString(", ") )) } ).mkString
+        entityDivision(heading + img +
+          { if (attr != "") nodeTable(tr(thAttr) + attr) else "" } + 
+          { if (rel != "") nodeTable(tr(thRel) + rel) else "" }
+        )
+      } mkString("\n") 
+      result
+    }
+  }
+  
+  //***************************************
+  
+  case class RichString(s: String) {
+    def toScala: String = "" + '\"' + convertEscape + '\"'
+    def decapitalize: String = strUtil.decapitalize(s)
+    def filterEscape: String = strUtil.filterEscapeChar(s)
+    def convertEscape: String = strUtil.escape(s)
+    def save(fileName:String) = saveString(s, fileName) 
+  }
+  
+  object strUtil { //utilities for strings
+    def decapitalize(s:String) = s.take(1).toLowerCase + s.drop(1)
+    def quoteIfString(a:Any):String = a match {
+      case s:String => "\"" + s + "\""
+      case _ => a.toString
+    }
+    def escapeSeq(s:String):String = (for (c <- s) yield c match {
+      case '\b' => '\\'+"b"
+      case '\t' => '\\'+"t"
+      case '\n' => '\\'+"n"
+      case '\f' => '\\'+"f"
+      case '\r' => '\\'+"r"
+      case '\"' => ""+'\\'+'\"'
+      case '\'' => ""+'\\'+ """'"""
+      case '\\' => ""+'\\'+'\\'	
+      case _ => c.toString
+    }).mkString("")
+    def charToUnicodeSeq(c:Char):String = if (c >= ' ') c.toString else {
+      val h = Integer.toHexString(c)
+      val zeroes = ( for (i <- 1 to (4-h.length)) yield "0").mkString("")
+      "\\u" + zeroes + h
+    }
+    def unicodeSeq(s:String):String = 
+      (for (c <- s) yield charToUnicodeSeq(c)).mkString("")
+    def escape(s:String):String = unicodeSeq(escapeSeq(s)) 
+    def filterEscapeChar(s:String) = s.toList.filterNot(_ < ' ').mkString
+    //def lineBreaks(s:String):String =  
+    //	if (!s.contains("//")) s else 
+    //		"(" + s.replaceAll("//","\" +\n      \"//") + "\n    )"
+    def valueToString(v:Any):String = v match {
+      case s:String =>  "\"" + escape(s) + "\""    //lineBreaks(escape(s)) //removed as collide with latex
+      case _ => v.toString
+    }
+    def valueToRawString(v:Any) :String = v match {
+      case s:String =>  "\"\"\"" + s + "\"\"\""
+      case _ => v.toString
+    }
+    def scalaSuffix(s:String):String = if (!s.contains(".")) s + ".scala" else s
+    def latexSuffix(s:String):String = if (!s.contains(".")) s + ".tex" else s
+    def txtSuffix(s:String):String = if (!s.contains(".")) s + ".txt" else s
+    def varPrefix(s:String):String = if (s.contains(".")) "" else  "var " + s + " = "
+    
+  } // end strUtil  
+  
+  object warn {
+    private var warnMe = true
+    private var savedState = List[Boolean]()
+    def on() = {warnMe = true } ; def off() = {warnMe = false }
+    def isOn = warnMe
+    def save() {savedState = warnMe :: savedState} // to enable local change of warn state
+    def restore() {warnMe = savedState.headOption.getOrElse(warnMe); savedState = savedState.drop(1)}
+    def apply(w:String) = if (warnMe) println("--- Warning: " + w)
+  }
+
+  object idGen {
+    var id = "id"
+    var n = 1
+    def next() = { val res = id + n; n +=1; res }
+    def set(newId: String = id, newN: Int = n) { n = newN; id = newId } 
+    def set(newN: Int) { n = newN } 
+    def reset() { set("id",1) }
+  }   
+  
+} //end package org.reqt
+
+  
+package org { 
+  package object reqt {  
+    import scala.language.implicitConversions
+  
+    def keyNodesToScala(key: Key, nodes: NodeSet): String = "" + key.toScala + ( if (key.edge.isInstanceOf[RelationWithAttribute[_]]) "to " else "") + nodes.toScala
+    def keyNodesPairToScala(kns: (Key, NodeSet)): String = "" + keyNodesToScala(kns._1, kns._2)
+    lazy val nameIndex: Map[String, Int] = elementNames.zipWithIndex.toMap.withDefaultValue(-1)
+    lazy val elementNames: List[String] = elementKinds map (_.toString)
+    lazy val elementKinds: List[Element] = nodeKinds ++ egdeKinds
+    lazy val nodeKinds: List[Element] = entityKinds ++ attributeKinds
+    lazy val entityKinds: List[Element] = contextKinds ++ requirementKinds
+    lazy val contextKinds: List[Element] = List(Product, Release, Stakeholder, Actor, Resource)
+    lazy val scenarioKinds: List[Element] = List(UserStory, UseCase, Task, VividScenario)
+    lazy val dataKinds: List[Element] = List(Class, Member)
+    lazy val requirementKinds: List[Element] = List(Req, Goal, Feature, Function, Quality, Interface, Design) ++ scenarioKinds ++ dataKinds
+    lazy val attributeKinds: List[Element] = List(Gist, Spec, Status, Why, Example, Input, Output, Trigger, Precond, Frequency, Critical, Problem, Prio, Index, Cost, Benefit, Capacity, Urgency, Label, Comment, Image, Deprecated, Submodel)
+    lazy val egdeKinds: List[Element] = List(has, owns, requires, excludes, helps, hurts, precedes, inherits, assigns, deprecates)
+    lazy val levelIndex: Map[Level, Int] = Map(DROPPED -> 0, ELICITED -> 1, SPECIFIED -> 2, VALIDATED -> 3, POSTPONED -> 4, PLANNED -> 5, FAILED -> 6, IMPLEMENTED -> 7, TESTED -> 8, RELEASED -> 9)
+    def levelLessThan(l1: Level, l2: Level): Boolean = levelIndex(l1) < levelIndex(l2)
+    implicit val levelOrdering = Ordering.fromLessThan[Level](levelLessThan) 
+    def statusLessThan(s1: Status, s2: Status): Boolean = levelIndex(s1.value) < levelIndex(s2.value)
+    implicit val statusOrdering = Ordering.fromLessThan[Status](statusLessThan) 
+    def elementLessThan (me1:Element, me2:Element): Boolean = {
+      val (nix1, nix2) = (nameIndex(me1.prefix), nameIndex(me2.prefix))
+      if (nix1 == nix2) me1.toScala < me2.toScala
+      else nameIndex(me1.prefix) < nameIndex(me2.prefix)
+    }  
+    implicit val elementOrdering = Ordering.fromLessThan[Element](elementLessThan) 
+    def keyLessThan(k1:Key, k2:Key): Boolean = {
+      if (k1.entity == k2.entity) elementLessThan(k1.edge, k2.edge)
+      else elementLessThan(k1.entity, k2.entity)
+    }
+    implicit val keyOrdering = Ordering.fromLessThan[Key](keyLessThan) 
+    def keyNodeSetLessThan(kns1:(Key, NodeSet), kns2:(Key, NodeSet)): Boolean = keyLessThan(kns1._1, kns2._1)
+    implicit val keyNodeSetOrdering = Ordering.fromLessThan[(Key, NodeSet)](keyNodeSetLessThan)
+    implicit val entityOrdering = Ordering.fromLessThan[Entity]((e1: Entity, e2: Entity) => elementLessThan(e1,e2)) 
+    implicit val nodeOrdering = Ordering.fromLessThan[Node[_]]((n1: Node[_], n2: Node[_]) => elementLessThan(n1,n2)) 
+    implicit val edgeOrdering = Ordering.fromLessThan[Edge]((e1: Edge, e2: Edge) => elementLessThan(e1,e2)) 
+    implicit def stringToRichString(str: String): RichString = RichString(str)
+    implicit def setOfNodesToNodeSet(nodes: Set[Node[_]]):NodeSet = NodeSet(nodes)
+    implicit def nodeSetToSetOfNodes(nodes:NodeSet):Set[Node[_]] = nodes.nodes
+    implicit def entityToKeyNodeSetPair(e: Entity): (Key,NodeSet) = (Key(e, has()), NodeSet(Spec("???")))
+    
+    // Implicits objects allowed for attribute External[T]
+    implicit object specMaker extends AttrFromString[Spec] { def apply(s: String): Spec = Spec(s) }
+    implicit object whyMaker extends AttrFromString[Why] { def apply(s: String): Why = Why(s) }
+    implicit object exampleMaker extends AttrFromString[Example] { def apply(s: String): Example = Example(s) }
+    implicit object commentMaker extends AttrFromString[Comment] { def apply(s: String): Comment = Comment(s) }
+    implicit object modelMaker extends AttrFromString[Submodel] { def apply(s: String): Submodel = Submodel(Model.interpret(s)) }
+    
+    object defaultHtmlGenerator extends HtmlGenerator 
+    lazy val defaultDocumentTemplate = DocumentTemplate(
+      "Requirements Document", 
+      Text("Generated by reqT", "Date: " + ( new java.util.Date ), "<a href=\"http://reqT.org\">reqT.org</a>"),
+      Chapter("Context", Text("A context may include the following external entities: products, releases and stakeholders. "), m => Model()),
+      Section("Stakeholders", Text("The following stakeholders have interest in the requirements:"), m => m / Stakeholder),
+      Section("Products", Text("The following products are modelled:"), m => m / Product),
+      Section("Releases", Text("The following releses are planned:"), m => m / Release),
+      Chapter("Features", Text("A feature is a releasable characteristic of a Product."), m => m / Feature), 
+      Chapter("Other entities", Text("The following other entities are part of this model."), m => m \ Context \ Feature), 
+      Chapter("Undefined destinations", Text("An undefined destination is an entity that is the destination of a relation but is not itself a source, thus having no attributes or relations."), 
+        m => Model.fromEntitySet(m.undefined)) 
+    ) 
+    def longName(s: String) = s match {
+      case "Spec" => "Specification"
+      case "Prio" => "Priority"
+      case "Why" => "Rationale"
+      case _ => s
+    }
+
+  }  //end package object reqT
+}   //end package org
