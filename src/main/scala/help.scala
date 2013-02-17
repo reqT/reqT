@@ -10,10 +10,10 @@
 ** reqT is open source, licensed under the BSD 2-clause license: 
 ** http://opensource.org/licenses/bsd-license.php 
 *****************************************************************/
-package org.reqt {
+package reqt {
   object ? {
     val help = Map(
-      "Model" -> "A Model is a collection of entities."
+      "Model" -> "A Model is a collection of entities, attributes and relationships."
     ).withDefaultValue("Unknown topic")
     def Model = println(help("Model"))
     override def toString = "  Type ? <topic> for help topics: " + help.keys.mkString(",")

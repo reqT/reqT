@@ -11,7 +11,7 @@
 ** http://opensource.org/licenses/bsd-license.php 
 *****************************************************************/
 /*
-in v2.3:
+in v2.3.0:
 INPROGRESS: csp
 INPROGRESS: AttrRef integrated with csp
 DONE: Added Integer attributes: Index, Cost, Benefit, Capacity, Urgency
@@ -88,13 +88,13 @@ m / Prio
 m /+ Prio
 
 */
-package org.reqt {
+package reqt {
 
   import scala.collection.immutable.{SortedSet, SortedMap, MapLike}
   import scala.collection.IndexedSeqLike
   import scala.collection.mutable.LinkedHashMap
   import scala.language.{implicitConversions, postfixOps}
-  import org.reqt.util._
+  import reqt.util._
 
   trait CanGenerateScala { def toScala: String = toString }  //override with string of code that generates this object
   trait Default[T] { def default : T }
@@ -127,45 +127,45 @@ package org.reqt {
   }
   abstract class Entity extends Node[String] with StringValueToScala {
     def id: String = value
-    def has() = Key(this, org.reqt.has())
-    def has(as:Attribute[_] *) = (Key(this, org.reqt.has()), NodeSet(as: _*)) 
-    def owns() = Key(this, org.reqt.owns())
-    def owns(es:Entity *) = if (!es.contains(this)) (Key(this, org.reqt.owns()), NodeSet(es: _*)) else {
+    def has() = Key(this, reqt.has())
+    def has(as:Attribute[_] *) = (Key(this, reqt.has()), NodeSet(as: _*)) 
+    def owns() = Key(this, reqt.owns())
+    def owns(es:Entity *) = if (!es.contains(this)) (Key(this, reqt.owns()), NodeSet(es: _*)) else {
       warn("Entity can not own itself: " + this)
-      (Key(this, org.reqt.owns()), NodeSet())
+      (Key(this, reqt.owns()), NodeSet())
     }
     //construct Key
-    def requires() = Key(this, org.reqt.requires())
-    def requires(es:Entity *) = (Key(this, org.reqt.requires()), NodeSet(es: _*))
-    def excludes() = Key(this, org.reqt.excludes())
-    def excludes(es:Entity *) = (Key(this, org.reqt.excludes()), NodeSet(es: _*))
-    def helps() = Key(this, org.reqt.helps())
-    def helps(es:Entity *) = (Key(this, org.reqt.helps()), NodeSet(es: _*))
-    def hurts() = Key(this, org.reqt.hurts())
-    def hurts(es:Entity *) = (Key(this, org.reqt.hurts()), NodeSet(es: _*))
-    def precedes() = Key(this, org.reqt.precedes())
-    def precedes(es:Entity *) = (Key(this, org.reqt.precedes()), NodeSet(es: _*))
-    def inherits() = Key(this, org.reqt.inherits())
-    def inherits(es:Entity *) = (Key(this, org.reqt.inherits()), NodeSet(es: _*))
-    def deprecates() = Key(this, org.reqt.deprecates())
-    def deprecates(es:Entity *) = (Key(this, org.reqt.deprecates()), NodeSet(es: _*))
-    def assigns[T](a:Attribute[T]) = Key(this, org.reqt.assigns(a))
+    def requires() = Key(this, reqt.requires())
+    def requires(es:Entity *) = (Key(this, reqt.requires()), NodeSet(es: _*))
+    def excludes() = Key(this, reqt.excludes())
+    def excludes(es:Entity *) = (Key(this, reqt.excludes()), NodeSet(es: _*))
+    def helps() = Key(this, reqt.helps())
+    def helps(es:Entity *) = (Key(this, reqt.helps()), NodeSet(es: _*))
+    def hurts() = Key(this, reqt.hurts())
+    def hurts(es:Entity *) = (Key(this, reqt.hurts()), NodeSet(es: _*))
+    def precedes() = Key(this, reqt.precedes())
+    def precedes(es:Entity *) = (Key(this, reqt.precedes()), NodeSet(es: _*))
+    def inherits() = Key(this, reqt.inherits())
+    def inherits(es:Entity *) = (Key(this, reqt.inherits()), NodeSet(es: _*))
+    def deprecates() = Key(this, reqt.deprecates())
+    def deprecates(es:Entity *) = (Key(this, reqt.deprecates()), NodeSet(es: _*))
+    def assigns[T](a:Attribute[T]) = Key(this, reqt.assigns(a))
     //construct AttrRef
     def ![T](ak: AttributeKind[T]) = AttrRef[T](this, ak) 
-    def prio = AttrRef(this, org.reqt.Prio)
-    def Prio = AttrRef(this, org.reqt.Prio)
-    def index = AttrRef(this, org.reqt.Index)
-    def Index = AttrRef(this, org.reqt.Index)
-    def cost = AttrRef(this, org.reqt.Cost)
-    def Cost = AttrRef(this, org.reqt.Cost)
-    def benefit = AttrRef(this, org.reqt.Benefit)
-    def Beneft = AttrRef(this, org.reqt.Benefit)
-    def capacity = AttrRef(this, org.reqt.Capacity)
-    def Capacity = AttrRef(this, org.reqt.Capacity)
-    def urgency = AttrRef(this, org.reqt.Urgency)
-    def Urgency = AttrRef(this, org.reqt.Urgency)
-    def spec = AttrRef(this, org.reqt.Spec)
-    def Spec = AttrRef(this, org.reqt.Spec)
+    def prio = AttrRef(this, reqt.Prio)
+    def Prio = AttrRef(this, reqt.Prio)
+    def index = AttrRef(this, reqt.Index)
+    def Index = AttrRef(this, reqt.Index)
+    def cost = AttrRef(this, reqt.Cost)
+    def Cost = AttrRef(this, reqt.Cost)
+    def benefit = AttrRef(this, reqt.Benefit)
+    def Beneft = AttrRef(this, reqt.Benefit)
+    def capacity = AttrRef(this, reqt.Capacity)
+    def Capacity = AttrRef(this, reqt.Capacity)
+    def urgency = AttrRef(this, reqt.Urgency)
+    def Urgency = AttrRef(this, reqt.Urgency)
+    def spec = AttrRef(this, reqt.Spec)
+    def Spec = AttrRef(this, reqt.Spec)
   }  
 
   case class AttrRef[T](ent: Entity, attrKind: AttributeKind[T]) { 
@@ -346,24 +346,24 @@ package org.reqt {
   abstract class Relation extends Edge {
     def kind: Relation
     def to(es: Entity *): EdgeToNodes = EdgeToNodes(this, NodeSet(es.toSet.asInstanceOf[Set[Node[_]]]))
-    def Product(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Product(id)))
-    def Release(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Release(id)))
-    def Stakeholder(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Stakeholder(id)))
-    def Actor(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Actor(id)))
-    def Resource(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Resource(id)))
-    def Req(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Req(id)))
-    def Goal(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Goal(id)))
-    def Feature(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Feature(id)))
-    def Function(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Function(id)))
-    def Class(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Class(id)))
-    def Member(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Member(id)))
-    def Quality(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Quality(id)))
-    def Interface(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Interface(id)))
-    def Design(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Design(id)))
-    def UserStory(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.UserStory(id)))
-    def UseCase(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.UseCase(id)))
-    def Task(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.Task(id)))
-    def VividScenario(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(org.reqt.VividScenario(id)))
+    def Product(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Product(id)))
+    def Release(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Release(id)))
+    def Stakeholder(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Stakeholder(id)))
+    def Actor(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Actor(id)))
+    def Resource(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Resource(id)))
+    def Req(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Req(id)))
+    def Goal(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Goal(id)))
+    def Feature(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Feature(id)))
+    def Function(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Function(id)))
+    def Class(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Class(id)))
+    def Member(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Member(id)))
+    def Quality(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Quality(id)))
+    def Interface(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Interface(id)))
+    def Design(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Design(id)))
+    def UserStory(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.UserStory(id)))
+    def UseCase(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.UseCase(id)))
+    def Task(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Task(id)))
+    def VividScenario(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.VividScenario(id)))
   }
   
   abstract class RelationWithoutAttribute extends Relation {
@@ -393,29 +393,29 @@ package org.reqt {
   case object assigns extends RelationWithAttribute[Unit] with EdgeKind { val attribute = NoAttribute; def kind: Relation = this }
   
   abstract class AttributeEdge extends Edge {
-    def Gist(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Gist(value)))
-    def Spec(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Spec(value)))
-    def Status(value: Level) = EdgeToNodes(has(), NodeSet(org.reqt.Status(value)))
-    def Why(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Why(value)))
-    def Example(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Example(value)))
-    def Input(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Input(value)))
-    def Output(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Output(value)))
-    def Trigger(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Trigger(value)))
-    def Precond(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Precond(value)))
-    def Frequency(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Frequency(value)))
-    def Critical(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Critical(value)))
-    def Problem(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Problem(value)))
-    def Prio(value: Int) = EdgeToNodes(has(), NodeSet(org.reqt.Prio(value)))
-    def Index(value: Int) = EdgeToNodes(has(), NodeSet(org.reqt.Index(value)))
-    def Cost(value: Int) = EdgeToNodes(has(), NodeSet(org.reqt.Cost(value)))
-    def Benefit(value: Int) = EdgeToNodes(has(), NodeSet(org.reqt.Benefit(value)))
-    def Capacity(value: Int) = EdgeToNodes(has(), NodeSet(org.reqt.Capacity(value)))
-    def Urgency(value: Int) = EdgeToNodes(has(), NodeSet(org.reqt.Urgency(value)))
-    def Submodel(value: Model) = EdgeToNodes(has(), NodeSet(org.reqt.Submodel(value)))
-    def Label(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Label(value)))
-    def Comment(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Comment(value)))
-    def Image(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Image(value)))
-    def Deprecated(value: String) = EdgeToNodes(has(), NodeSet(org.reqt.Deprecated(value)))
+    def Gist(value: String) = EdgeToNodes(has(), NodeSet(reqt.Gist(value)))
+    def Spec(value: String) = EdgeToNodes(has(), NodeSet(reqt.Spec(value)))
+    def Status(value: Level) = EdgeToNodes(has(), NodeSet(reqt.Status(value)))
+    def Why(value: String) = EdgeToNodes(has(), NodeSet(reqt.Why(value)))
+    def Example(value: String) = EdgeToNodes(has(), NodeSet(reqt.Example(value)))
+    def Input(value: String) = EdgeToNodes(has(), NodeSet(reqt.Input(value)))
+    def Output(value: String) = EdgeToNodes(has(), NodeSet(reqt.Output(value)))
+    def Trigger(value: String) = EdgeToNodes(has(), NodeSet(reqt.Trigger(value)))
+    def Precond(value: String) = EdgeToNodes(has(), NodeSet(reqt.Precond(value)))
+    def Frequency(value: String) = EdgeToNodes(has(), NodeSet(reqt.Frequency(value)))
+    def Critical(value: String) = EdgeToNodes(has(), NodeSet(reqt.Critical(value)))
+    def Problem(value: String) = EdgeToNodes(has(), NodeSet(reqt.Problem(value)))
+    def Prio(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Prio(value)))
+    def Index(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Index(value)))
+    def Cost(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Cost(value)))
+    def Benefit(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Benefit(value)))
+    def Capacity(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Capacity(value)))
+    def Urgency(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Urgency(value)))
+    def Submodel(value: Model) = EdgeToNodes(has(), NodeSet(reqt.Submodel(value)))
+    def Label(value: String) = EdgeToNodes(has(), NodeSet(reqt.Label(value)))
+    def Comment(value: String) = EdgeToNodes(has(), NodeSet(reqt.Comment(value)))
+    def Image(value: String) = EdgeToNodes(has(), NodeSet(reqt.Image(value)))
+    def Deprecated(value: String) = EdgeToNodes(has(), NodeSet(reqt.Deprecated(value)))
     override def toScala = prefix
  }
   case class has() extends AttributeEdge 
@@ -486,7 +486,7 @@ package org.reqt {
   }
   object NodeSet {
     def apply(ns:Node[_]*): NodeSet = empty.concatNodes(NodeSet(ns.toSet))
-    def empty: NodeSet = new NodeSet(SortedSet.empty[Node[_]](org.reqt.nodeOrdering)) 
+    def empty: NodeSet = new NodeSet(SortedSet.empty[Node[_]](reqt.nodeOrdering)) 
       //???why must nodeOrdering above be explicitly passed (or else compile error)??? 
       //(implicit lookup does not seem to work... why??)
   }
@@ -739,78 +739,76 @@ package org.reqt {
     def reset() { set("id",1) }
   }   
   
-} //end package org.reqt
+} //end package reqt
 
-  
-package org { 
-  package object reqt {  
-    import scala.language.implicitConversions
-  
-    def keyNodesToScala(key: Key, nodes: NodeSet): String = "" + key.toScala + ( if (key.edge.isInstanceOf[RelationWithAttribute[_]]) "to " else "") + nodes.toScala
-    def keyNodesPairToScala(kns: (Key, NodeSet)): String = "" + keyNodesToScala(kns._1, kns._2)
-    lazy val nameIndex: Map[String, Int] = elementNames.zipWithIndex.toMap.withDefaultValue(-1)
-    lazy val elementNames: List[String] = elementKinds map (_.toString)
-    lazy val elementKinds: List[Element] = nodeKinds ++ egdeKinds
-    lazy val nodeKinds: List[Element] = entityKinds ++ attributeKinds
-    lazy val entityKinds: List[Element] = contextKinds ++ requirementKinds
-    lazy val contextKinds: List[Element] = List(Product, Release, Stakeholder, Actor, Resource)
-    lazy val scenarioKinds: List[Element] = List(UserStory, UseCase, Task, VividScenario)
-    lazy val dataKinds: List[Element] = List(Class, Member)
-    lazy val requirementKinds: List[Element] = List(Req, Goal, Feature, Function, Quality, Interface, Design) ++ scenarioKinds ++ dataKinds
-    lazy val attributeKinds: List[Element] = List(Gist, Spec, Status, Why, Example, Input, Output, Trigger, Precond, Frequency, Critical, Problem, Prio, Index, Cost, Benefit, Capacity, Urgency, Label, Comment, Image, Deprecated, Submodel)
-    lazy val egdeKinds: List[Element] = List(has, owns, requires, excludes, helps, hurts, precedes, inherits, assigns, deprecates)
-    lazy val levelIndex: Map[Level, Int] = Map(DROPPED -> 0, ELICITED -> 1, SPECIFIED -> 2, VALIDATED -> 3, POSTPONED -> 4, PLANNED -> 5, FAILED -> 6, IMPLEMENTED -> 7, TESTED -> 8, RELEASED -> 9)
-    def levelLessThan(l1: Level, l2: Level): Boolean = levelIndex(l1) < levelIndex(l2)
-    implicit val levelOrdering = Ordering.fromLessThan[Level](levelLessThan) 
-    def statusLessThan(s1: Status, s2: Status): Boolean = levelIndex(s1.value) < levelIndex(s2.value)
-    implicit val statusOrdering = Ordering.fromLessThan[Status](statusLessThan) 
-    def elementLessThan (me1:Element, me2:Element): Boolean = {
-      val (nix1, nix2) = (nameIndex(me1.prefix), nameIndex(me2.prefix))
-      if (nix1 == nix2) me1.toScala < me2.toScala
-      else nameIndex(me1.prefix) < nameIndex(me2.prefix)
-    }  
-    implicit val elementOrdering = Ordering.fromLessThan[Element](elementLessThan) 
-    def keyLessThan(k1:Key, k2:Key): Boolean = {
-      if (k1.entity == k2.entity) elementLessThan(k1.edge, k2.edge)
-      else elementLessThan(k1.entity, k2.entity)
-    }
-    implicit val keyOrdering = Ordering.fromLessThan[Key](keyLessThan) 
-    def keyNodeSetLessThan(kns1:(Key, NodeSet), kns2:(Key, NodeSet)): Boolean = keyLessThan(kns1._1, kns2._1)
-    implicit val keyNodeSetOrdering = Ordering.fromLessThan[(Key, NodeSet)](keyNodeSetLessThan)
-    implicit val entityOrdering = Ordering.fromLessThan[Entity]((e1: Entity, e2: Entity) => elementLessThan(e1,e2)) 
-    implicit val nodeOrdering = Ordering.fromLessThan[Node[_]]((n1: Node[_], n2: Node[_]) => elementLessThan(n1,n2)) 
-    implicit val edgeOrdering = Ordering.fromLessThan[Edge]((e1: Edge, e2: Edge) => elementLessThan(e1,e2)) 
-    implicit def stringToRichString(str: String): RichString = RichString(str)
-    implicit def setOfNodesToNodeSet(nodes: Set[Node[_]]):NodeSet = NodeSet(nodes)
-    implicit def nodeSetToSetOfNodes(nodes:NodeSet):Set[Node[_]] = nodes.nodes
-    implicit def entityToKeyNodeSetPair(e: Entity): (Key,NodeSet) = (Key(e, has()), NodeSet(Spec("???")))
-    
-    // Implicits objects allowed for attribute External[T]
-    implicit object specMaker extends AttrFromString[Spec] { def apply(s: String): Spec = Spec(s) }
-    implicit object whyMaker extends AttrFromString[Why] { def apply(s: String): Why = Why(s) }
-    implicit object exampleMaker extends AttrFromString[Example] { def apply(s: String): Example = Example(s) }
-    implicit object commentMaker extends AttrFromString[Comment] { def apply(s: String): Comment = Comment(s) }
-    implicit object modelMaker extends AttrFromString[Submodel] { def apply(s: String): Submodel = Submodel(Model.interpret(s)) }
-    
-    object defaultHtmlGenerator extends HtmlGenerator 
-    lazy val defaultDocumentTemplate = DocumentTemplate(
-      "Requirements Document", 
-      Text("Generated by reqT", "Date: " + ( new java.util.Date ), "<a href=\"http://reqT.org\">reqT.org</a>"),
-      Chapter("Context", Text("A context may include the following external entities: products, releases and stakeholders. "), m => Model()),
-      Section("Stakeholders", Text("The following stakeholders have interest in the requirements:"), m => m / Stakeholder),
-      Section("Products", Text("The following products are modelled:"), m => m / Product),
-      Section("Releases", Text("The following releses are planned:"), m => m / Release),
-      Chapter("Features", Text("A feature is a releasable characteristic of a Product."), m => m / Feature), 
-      Chapter("Other entities", Text("The following other entities are part of this model."), m => m \ Context \ Feature), 
-      Chapter("Undefined destinations", Text("An undefined destination is an entity that is the destination of a relation but is not itself a source, thus having no attributes or relations."), 
-        m => Model.fromEntitySet(m.undefined)) 
-    ) 
-    def longName(s: String) = s match {
-      case "Spec" => "Specification"
-      case "Prio" => "Priority"
-      case "Why" => "Rationale"
-      case _ => s
-    }
+package object reqt {  
+  import scala.language.implicitConversions
 
-  }  //end package object reqT
-}   //end package org
+  def keyNodesToScala(key: Key, nodes: NodeSet): String = "" + key.toScala + ( if (key.edge.isInstanceOf[RelationWithAttribute[_]]) "to " else "") + nodes.toScala
+  def keyNodesPairToScala(kns: (Key, NodeSet)): String = "" + keyNodesToScala(kns._1, kns._2)
+  lazy val nameIndex: Map[String, Int] = elementNames.zipWithIndex.toMap.withDefaultValue(-1)
+  lazy val elementNames: List[String] = elementKinds map (_.toString)
+  lazy val elementKinds: List[Element] = nodeKinds ++ egdeKinds
+  lazy val nodeKinds: List[Element] = entityKinds ++ attributeKinds
+  lazy val entityKinds: List[Element] = contextKinds ++ requirementKinds
+  lazy val contextKinds: List[Element] = List(Product, Release, Stakeholder, Actor, Resource)
+  lazy val scenarioKinds: List[Element] = List(UserStory, UseCase, Task, VividScenario)
+  lazy val dataKinds: List[Element] = List(Class, Member)
+  lazy val requirementKinds: List[Element] = List(Req, Goal, Feature, Function, Quality, Interface, Design) ++ scenarioKinds ++ dataKinds
+  lazy val attributeKinds: List[Element] = List(Gist, Spec, Status, Why, Example, Input, Output, Trigger, Precond, Frequency, Critical, Problem, Prio, Index, Cost, Benefit, Capacity, Urgency, Label, Comment, Image, Deprecated, Submodel)
+  lazy val egdeKinds: List[Element] = List(has, owns, requires, excludes, helps, hurts, precedes, inherits, assigns, deprecates)
+  lazy val levelIndex: Map[Level, Int] = Map(DROPPED -> 0, ELICITED -> 1, SPECIFIED -> 2, VALIDATED -> 3, POSTPONED -> 4, PLANNED -> 5, FAILED -> 6, IMPLEMENTED -> 7, TESTED -> 8, RELEASED -> 9)
+  def levelLessThan(l1: Level, l2: Level): Boolean = levelIndex(l1) < levelIndex(l2)
+  implicit val levelOrdering = Ordering.fromLessThan[Level](levelLessThan) 
+  def statusLessThan(s1: Status, s2: Status): Boolean = levelIndex(s1.value) < levelIndex(s2.value)
+  implicit val statusOrdering = Ordering.fromLessThan[Status](statusLessThan) 
+  def elementLessThan (me1:Element, me2:Element): Boolean = {
+    val (nix1, nix2) = (nameIndex(me1.prefix), nameIndex(me2.prefix))
+    if (nix1 == nix2) me1.toScala < me2.toScala
+    else nameIndex(me1.prefix) < nameIndex(me2.prefix)
+  }  
+  implicit val elementOrdering = Ordering.fromLessThan[Element](elementLessThan) 
+  def keyLessThan(k1:Key, k2:Key): Boolean = {
+    if (k1.entity == k2.entity) elementLessThan(k1.edge, k2.edge)
+    else elementLessThan(k1.entity, k2.entity)
+  }
+  implicit val keyOrdering = Ordering.fromLessThan[Key](keyLessThan) 
+  def keyNodeSetLessThan(kns1:(Key, NodeSet), kns2:(Key, NodeSet)): Boolean = keyLessThan(kns1._1, kns2._1)
+  implicit val keyNodeSetOrdering = Ordering.fromLessThan[(Key, NodeSet)](keyNodeSetLessThan)
+  implicit val entityOrdering = Ordering.fromLessThan[Entity]((e1: Entity, e2: Entity) => elementLessThan(e1,e2)) 
+  implicit val nodeOrdering = Ordering.fromLessThan[Node[_]]((n1: Node[_], n2: Node[_]) => elementLessThan(n1,n2)) 
+  implicit val edgeOrdering = Ordering.fromLessThan[Edge]((e1: Edge, e2: Edge) => elementLessThan(e1,e2)) 
+  implicit def stringToRichString(str: String): RichString = RichString(str)
+  implicit def setOfNodesToNodeSet(nodes: Set[Node[_]]):NodeSet = NodeSet(nodes)
+  implicit def nodeSetToSetOfNodes(nodes:NodeSet):Set[Node[_]] = nodes.nodes
+  implicit def entityToKeyNodeSetPair(e: Entity): (Key,NodeSet) = (Key(e, has()), NodeSet(Spec("???")))
+  
+  // Implicits objects allowed for attribute External[T]
+  implicit object specMaker extends AttrFromString[Spec] { def apply(s: String): Spec = Spec(s) }
+  implicit object whyMaker extends AttrFromString[Why] { def apply(s: String): Why = Why(s) }
+  implicit object exampleMaker extends AttrFromString[Example] { def apply(s: String): Example = Example(s) }
+  implicit object commentMaker extends AttrFromString[Comment] { def apply(s: String): Comment = Comment(s) }
+  implicit object modelMaker extends AttrFromString[Submodel] { def apply(s: String): Submodel = Submodel(Model.interpret(s)) }
+  
+  object defaultHtmlGenerator extends HtmlGenerator 
+  lazy val defaultDocumentTemplate = DocumentTemplate(
+    "Requirements Document", 
+    Text("Generated by reqT", "Date: " + ( new java.util.Date ), "<a href=\"http://reqT.org\">reqT.org</a>"),
+    Chapter("Context", Text("A context may include the following external entities: products, releases and stakeholders. "), m => Model()),
+    Section("Stakeholders", Text("The following stakeholders have interest in the requirements:"), m => m / Stakeholder),
+    Section("Products", Text("The following products are modelled:"), m => m / Product),
+    Section("Releases", Text("The following releses are planned:"), m => m / Release),
+    Chapter("Features", Text("A feature is a releasable characteristic of a Product."), m => m / Feature), 
+    Chapter("Other entities", Text("The following other entities are part of this model."), m => m \ Context \ Feature), 
+    Chapter("Undefined destinations", Text("An undefined destination is an entity that is the destination of a relation but is not itself a source, thus having no attributes or relations."), 
+      m => Model.fromEntitySet(m.undefined)) 
+  ) 
+  def longName(s: String) = s match {
+    case "Spec" => "Specification"
+    case "Prio" => "Priority"
+    case "Why" => "Rationale"
+    case _ => s
+  }
+
+}  //end package object reqT
+

@@ -1,6 +1,7 @@
 # reqT
-http://reqt.org
+More info about how to use reqT is available here: http://reqt.org
 
+## About reqT
 reqT is a free software requirements modeling tool in Scala
 
 With reqT you can ...
@@ -10,9 +11,9 @@ With reqT you can ...
 * do powerful scripting of requirements models with Scala
 * extend the open, internal DSL with your own modeling semantics
 
-## Directory Structure
+## The reqT directory structure
 When you clone this repo you get these files in directory reqT/
-* `reqT` a script file for the REPL to init reqT with :load reqT
+* `reqT` a scala script file for the REPL to init reqT with :load reqT
 * `src/main/scala/`  a directory for the reqT source code
     * `metamodel.scala`  entity, attribute, relationship and structure elements 
     * `model.scala`  a map collection called Model to store elements in a graph structure 
@@ -22,11 +23,13 @@ When you clone this repo you get these files in directory reqT/
 * `lib/` a directory for jars including JaCoP v3.2
 * `target/` a directory for compiled class files
 
-##How to compile
-    scalac -cp "lib\JaCoP-3.2.jar" -d target src/main/scala/*
+##How to compile reqT
+    scalac -cp lib/* -d target src/main/scala/*
 
-##How to run
-    scala -cp "target;lib\JaCoP-3.2.jar" 
+##How to run reqT in the Scala REPL
+Windows: `scala -cp "lib\*;target"`   
+Unix-like: `scala -cp "lib/*:target"`
 
 When the REPL has started you can init reqT with the :load reqT command:
+
     scala> :load reqT

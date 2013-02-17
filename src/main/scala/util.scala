@@ -10,7 +10,7 @@
 ** reqT is open source, licensed under the BSD 2-clause license: 
 ** http://opensource.org/licenses/bsd-license.php 
 *****************************************************************/
-package org.reqt {  
+package reqt {  
   object util {
     def fileSep = System.getProperty("file.separator")
     def slashify(s:String) = s.replaceAllLiterally(fileSep, "/")

@@ -11,13 +11,13 @@
 ** http://opensource.org/licenses/bsd-license.php 
 *****************************************************************/
 
-package org.reqt {
+package reqt {
 
   import scala.collection.immutable.{SortedSet, SortedMap, MapLike}
   import scala.collection.IndexedSeqLike
   import scala.collection.mutable.LinkedHashMap
   import scala.language.{implicitConversions, postfixOps}
-  import org.reqt.util._
+  import reqt.util._
 
   
   final class Model private ( val mappings: collection.mutable.Map[Key, NodeSet])   
@@ -482,15 +482,15 @@ package org.reqt {
           )
           Model()
         case Some(i) => 
-          val result = Array[org.reqt.Model](org.reqt.Model())
-          //i.bind("result", "Array[org.reqt.Model]", result)
-          i.beQuietDuring(i.bind("result", "Array[org.reqt.Model]", result))
+          val result = Array[reqt.Model](reqt.Model())
+          //i.bind("result", "Array[reqt.Model]", result)
+          i.beQuietDuring(i.bind("result", "Array[reqt.Model]", result))
           i.quietRun("result(0) = " + s)
           result(0)          
       }
     }
     
-    def load(inFile: String): Model = interpret(org.reqt.util.load(inFile))
+    def load(inFile: String): Model = interpret(reqt.util.load(inFile))
   }  
 
 }   //end package org

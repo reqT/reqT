@@ -11,13 +11,13 @@
 ** http://opensource.org/licenses/bsd-license.php 
 *****************************************************************/
 
-package org.reqt {
+package reqt {
 
   /** A module for constraint satisfaction programming over reqT models
-  *   Depends on: org.reqt._, org.reqt.jacop._
+  *   Depends on: reqt._, reqt.jacop._
   */
   object csp { 
-    import org.reqt.jacop._
+    import reqt.jacop._
     import language.{implicitConversions, postfixOps}
     
     implicit def attrRefToVar(ref: AttrRef[Int]): Var[AttrRef[Int]] = Var(ref)  
@@ -56,4 +56,4 @@ package org.reqt {
 
   }
 
-} //end package org.reqt
+} //end package reqt

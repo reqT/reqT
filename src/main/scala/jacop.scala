@@ -11,7 +11,7 @@
 ** http://opensource.org/licenses/bsd-license.php 
 *****************************************************************/
 
-package org.reqt {
+package reqt {
   import language.implicitConversions
   
   /**  An interface module that wraps http://www.jacop.eu/
@@ -22,7 +22,7 @@ package org.reqt {
     object Settings {
       var defaultInterval = Interval(-10000, 10000)
       var defaultObjective = Satisfy
-      var defaultSelect = jacop.IndomainRandom
+      var defaultSelect = IndomainRandom
       var verbose = true
       var warningPrinter: String => Unit = (s: String) => println("WARNING: " + s)
     }
