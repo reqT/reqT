@@ -90,10 +90,10 @@ m /+ Prio
 */
 package reqt {
 
+  import scala.language.postfixOps
   import scala.collection.immutable.{SortedSet, SortedMap, MapLike}
   import scala.collection.IndexedSeqLike
   import scala.collection.mutable.LinkedHashMap
-  import scala.language.{implicitConversions, postfixOps}
 
   trait CanGenerateScala { def toScala: String = toString }  //override with string of code that generates this object
   trait Default[T] { def default : T }

@@ -16,7 +16,7 @@ package reqt {
   import scala.collection.immutable.{SortedSet, SortedMap, MapLike}
   import scala.collection.IndexedSeqLike
   import scala.collection.mutable.LinkedHashMap
-  import scala.language.{implicitConversions, postfixOps}
+  import scala.language.postfixOps
   
   final class Model private ( val mappings: collection.mutable.Map[Key, NodeSet])   
   extends Map[Key, NodeSet]

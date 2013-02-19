@@ -15,7 +15,26 @@ package object reqt {
   import scala.language.implicitConversions
 
   lazy val version = "reqT-v2.3.0-SNAPSHOT_2.10.0"
+  
+  //implicits for constraints.scala
+  implicit def attrRefToVar(ref: AttrRef[Int]): Var[AttrRef[Int]] = Var(ref)  
+  implicit def constraintsToSeq[T](cs: Constraints[T]): Seq[Constr[T]] = cs.cs
+  implicit def seqToConstraints[T](cs: Seq[Constr[T]]): Constraints[T] = Constraints(cs:_*)
+  implicit def rangeToInterval(r: Range): Interval = Interval(r.min, r.max)
+  implicit class ModelImpose(m: Model) {
+    def impose[T](cs: Constraints[T]) = CSP(m, cs)
+  }
+  implicit class ConstraintsImpose[T](cs: Constraints[T]) {
+    def impose(m: Model) = CSP(m, cs)
+  }    
+  implicit class RangeSeqOps(rs: Seq[Range]) { //to enable > Var("x")::Seq(1 to 10, 12 to 15)
+    def ::[T](v: Var[T]): Bounds[T] = Bounds(Seq(v), rs.map(rangeToInterval(_)))
+  }
+  
+  //generator function for variable vectors for constraints:
+  def vars[T](vs: T *): Seq[Var[T]] = vs.map(Var(_)).toIndexedSeq
 
+  //conversions functions from Key and NodeSet to scala code string
   def keyNodesToScala(key: Key, nodes: NodeSet): String = "" + key.toScala + ( if (key.edge.isInstanceOf[RelationWithAttribute[_]]) "to " else "") + nodes.toScala
   def keyNodesPairToScala(kns: (Key, NodeSet)): String = "" + keyNodesToScala(kns._1, kns._2)
   

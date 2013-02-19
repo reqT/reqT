@@ -6,8 +6,5 @@ println("*** Welcome to reqT ***") else println("Init reqt.Model.interpreter fai
 {
   $intp.interpret("import scala.language._")
   $intp.interpret("import reqt._")
-  $intp.interpret("import reqt.jacop._")
-  $intp.interpret("import reqt.csp._")
-  $intp.interpret("import reqt.util._")
   ()
 }

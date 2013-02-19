@@ -26,170 +26,7 @@ package reqt {
       var verbose = true
       var warningPrinter: String => Unit = (s: String) => println("WARNING: " + s)
     }
-
-    implicit def constraintsToSeq[T](cs: Constraints[T]): Seq[Constr[T]] = cs.cs
-    implicit def seqToConstraints[T](cs: Seq[Constr[T]]): Constraints[T] = Constraints(cs:_*)
-    implicit def rangeToInterval(r: Range): Interval = Interval(r.min, r.max)
-
-    implicit class RangeSeqOps(rs: Seq[Range]) { //to enable > Var("x")::Seq(1 to 10, 12 to 15)
-      def ::[T](v: Var[T]): Bounds[T] = Bounds(Seq(v), rs.map(rangeToInterval(_)))
-    }
-        
-    def vars[T](vs: T *): Seq[Var[T]] = vs.map(Var(_)).toIndexedSeq
- 
-    case class Constraints[+T](cs: Constr[T] *) {
-      def solve[B >: T](
-          objective: Objective = Settings.defaultObjective,
-          select: jacop.Indomain = Settings.defaultSelect
-        ): Result[B] = jacop.Solver[B](cs, objective, select).solve
-    }
-
-    case class Interval(min: Int, max: Int) {
-      if (min > max) Settings.warningPrinter("Negative interval min > max: " + this )
-      def ::[T](v: Var[T]): Bounds[T] = Bounds(Seq(v), Seq(this))
-      def ::[T](vs: Seq[Var[T]]): Bounds[T] = Bounds(vs, Seq(this))
-      def ::[T](b: Bounds[T]): Bounds[T] = Bounds(b.seq1, b.domain ++ Seq(this))
-    }  
-    
-    case class Result[T](conclusion: Conclusion, solutions: Seq[Map[Var[T], Int]])  
    
-    sealed trait Conclusion
-    case object SolutionFound       extends Conclusion
-    case object SolutionNotFound    extends Conclusion
-    case object InconsistencyFound  extends Conclusion
-    case class SearchFailed(msg: String)   extends Conclusion  
-     
-    sealed trait Objective   
-    case object Satisfy extends Objective
-    case class Minimize[+T](cost: Var[T]) extends Objective
-    case class Maximize[+T](cost: Var[T]) extends Objective
-    case object CountAll extends Objective
-    case object RecordAll extends Objective //TODO check jacop example gates.java to see how listener is built
-
-    //implicit def anyToVar[T](ref: T): Var[T] = Var(ref)  //too dangerous??
-    case class Var[+T](ref: T) { 
-      def #==[B >:T](that: Var[B]) = XeqY(this, that)
-      def #==[B >:T](const: Int) = XeqC(this, const)
-      def #==[B >:T](const: Boolean) = XeqBool(this, const)
-      def #>[B >:T](that: Var[B]) = XgtY(this, that)  
-      def #>[B >:T](const: Int) = XgtC(this, const)
-      def #>=[B >:T](that: Var[B]) = XgteqY(this, that)  
-      def #>=[B >:T](const: Int) = XgteqC(this, const)
-      def #<[B >:T](that: Var[B]) = XltY(this, that)  
-      def #<[B >:T](const: Int) = XltC(this, const)
-      def #<=[B >:T](that: Var[B]) = XlteqY(this, that)  
-      def #<=[B >:T](const: Int) = XlteqC(this, const)
-      def #!=[B >:T](that: Var[B]) = XneqY(this, that)
-      def #!=[B >:T](const: Int) = XneqC(this, const)
-      def #!=[B >:T](const: Boolean) = XeqBool(this, !const)
-    }
-    // object Var { 
-      // private var nextAnonymousVariableNumber = 0
-      // private def nextVarNum() = { nextAnonymousVariableNumber += 1; nextAnonymousVariableNumber }
-      // def anonVarName() = "v"+nextVarNum
-      // def apply() = new Var(anonVarName()) 
-    // }
-    
-
-    trait BoundingConstr //marker trait to enable Bounds filter
-    
-    trait Constr[+T]{ 
-      val variables: Seq[Var[T]] 
-    }
-    trait Constr1[+T] extends Constr[T] { 
-      val x: Var[T]
-      val variables: Seq[Var[T]] = Seq(x) 
-    }
-    trait Constr2[+T] extends Constr[T] { 
-      val x: Var[T]; val y: Var[T]
-      val variables: Seq[Var[T]] = Seq(x, y) 
-    }
-    trait Constr3[+T] extends Constr[T] { 
-      val x: Var[T]; val y: Var[T]; val z: Var[T]
-      val variables: Seq[Var[T]] = Seq(x, y, z) 
-    }  
-    trait ConstrSeq1[+T] extends Constr[T] { 
-      val seq1: Seq[Var[T]]
-      val variables: Seq[Var[T]] = seq1
-    }
-    trait Constr1Seq1[+T] extends Constr[T] { 
-      val x: Var[T]
-      val seq1: Seq[Var[T]]
-      val variables: Seq[Var[T]] = Seq(x) ++ seq1 
-    }
-    trait Constr2Seq1[+T] extends Constr[T] { 
-      val x: Var[T]; val y: Var[T]
-      val seq1: Seq[Var[T]]
-      val variables: Seq[Var[T]] = Seq(x, y) ++ seq1
-    }
-    
-    case class Bounds[+T](seq1: Seq[Var[T]], domain: Seq[Interval]) 
-    extends ConstrSeq1[T] with BoundingConstr {
-      def addDomainOf[B >:T](that: Bounds[B]): Bounds[B] = Bounds[B](seq1, domain ++ that.domain)
-    }
-    object Bounds {
-      def apply[T](v: Var[T], ivls: Interval *) = new Bounds(Seq(v), ivls) 
-      def apply[T](vs: Var[T] *) = new Bounds(vs, Seq()) 
-    }
-    
-    case class AbsXeqY[+T](x: Var[T], y: Var[T]) extends Constr2[T]
-    case class AllDifferent[+T](seq1: Seq[Var[T]]) extends ConstrSeq1[T]
-    case class Element[T](index: Var[T], varSeq: Seq[Var[T]], value: Var[T]) extends Constr2Seq1[T] {
-      val x = index
-      val y = value
-      val seq1 = varSeq
-    }
-    case class Sum[+T](seq1: Seq[Var[T]], x: Var[T]) extends Constr1Seq1[T] 
-    case class XdivYeqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T]
-    case class XeqC[+T](x: Var[T], c: Int) extends Constr1[T]
-    case class XeqY[+T](x: Var[T], y: Var[T]) extends Constr2[T]
-    case class XexpYeqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T]
-    case class XgtC[+T](x: Var[T], c: Int) extends Constr1[T]
-    case class XgteqC[+T](x: Var[T], c: Int) extends Constr1[T]
-    case class XgteqY[+T](x: Var[T], y: Var[T]) extends Constr2[T]
-    case class XgtY[+T](x: Var[T], y: Var[T]) extends Constr2[T]
-    case class XltC[+T](x: Var[T], c: Int) extends Constr1[T]
-    case class XlteqC[+T](x: Var[T], c: Int) extends Constr1[T]
-    case class XlteqY[+T](x: Var[T], y: Var[T]) extends Constr2[T]
-    case class XltY[+T](x: Var[T], y: Var[T]) extends Constr2[T]
-    case class XneqC[+T](x: Var[T], c: Int) extends Constr1[T]
-    case class XneqY[+T](x: Var[T], y: Var[T]) extends Constr2[T]
-    case class XeqBool[+T](x: Var[T], c: Boolean) extends Constr1[T]
-    
-    trait SolverUtils {
-      type Ivls[T] = Map[Var[T], Seq[Interval]]
-      def distinctVars[T](cs: Seq[Constr[T]]): Seq[Var[T]] = cs.map { _.variables } .flatten.distinct
-      def collectBounds[T](cs: Seq[Constr[T]]): Seq[Bounds[T]] = cs collect { case b: Bounds[T] => b }
-      def collectConstr[T](cs: Seq[Constr[T]]): Seq[Constr[T]] = cs filter { case b: BoundingConstr => false ; case _ => true }
-      def intervals[T](b: Bounds[T]): Map[Var[T], Seq[Interval]] = b.variables.map(v => (v, b.domain)).toMap
-      def mergeIntervals[T](ivls1: Ivls[T], ivls2: Ivls[T]): Ivls[T] = {
-        var result = ivls1
-        for ((v, ivls) <- ivls2) { 
-          if (result.isDefinedAt(v)) result += v -> (result(v) ++ ivls) 
-          else result += v -> ivls 
-        }
-        result
-      }
-      def buildDomainMap[T](cs: Seq[Constr[T]]): Ivls[T] = {
-        var result = collectBounds(cs).map(intervals(_)).foldLeft(Map(): Ivls[T])(mergeIntervals(_,_))
-        for (v <- distinctVars(cs)) {
-          if (!result.isDefinedAt(v)) result += v -> Seq(Settings.defaultInterval)
-        }
-        result
-      }
-      def nameToVarMap[T](vs: Seq[Var[T]]): Map[String, Var[T]] = vs.map(v => (v.ref.toString, v)).toMap
-      //def varToName[T](vs: Seq[Var[T]]): Map[Var[T], String] = vs map (v => (v, v.ref.toString)) toMap
-      def checkUniqueToString[T](vs: Seq[Var[T]]): Set[String] = {
-        val strings = vs.map(_.ref.toString)
-        strings.diff(strings.distinct).toSet
-      }
-      def checkIfNameExists[T](name: String, vs: Seq[Var[T]]): Boolean = 
-        vs.exists { case Var(ref) => ref.toString == name }
-    }    
-    
-    
-    //------ jacop interfacing
-    
     type JIntVar = JaCoP.core.IntVar
     type JBooleanVar = JaCoP.core.BooleanVar
    
@@ -225,7 +62,38 @@ package reqt {
     case object SmallestMin extends Comparator
     case object WeightedDegree extends Comparator
      */
-    
+
+    trait SolverUtils {
+      type Ivls[T] = Map[Var[T], Seq[Interval]]
+      def distinctVars[T](cs: Seq[Constr[T]]): Seq[Var[T]] = cs.map { _.variables } .flatten.distinct
+      def collectBounds[T](cs: Seq[Constr[T]]): Seq[Bounds[T]] = cs collect { case b: Bounds[T] => b }
+      def collectConstr[T](cs: Seq[Constr[T]]): Seq[Constr[T]] = cs filter { case b: BoundingConstr => false ; case _ => true }
+      def intervals[T](b: Bounds[T]): Map[Var[T], Seq[Interval]] = b.variables.map(v => (v, b.domain)).toMap
+      def mergeIntervals[T](ivls1: Ivls[T], ivls2: Ivls[T]): Ivls[T] = {
+        var result = ivls1
+        for ((v, ivls) <- ivls2) { 
+          if (result.isDefinedAt(v)) result += v -> (result(v) ++ ivls) 
+          else result += v -> ivls 
+        }
+        result
+      }
+      def buildDomainMap[T](cs: Seq[Constr[T]]): Ivls[T] = {
+        var result = collectBounds(cs).map(intervals(_)).foldLeft(Map(): Ivls[T])(mergeIntervals(_,_))
+        for (v <- distinctVars(cs)) {
+          if (!result.isDefinedAt(v)) result += v -> Seq(jacop. Settings.defaultInterval)
+        }
+        result
+      }
+      def nameToVarMap[T](vs: Seq[Var[T]]): Map[String, Var[T]] = vs.map(v => (v.ref.toString, v)).toMap
+      //def varToName[T](vs: Seq[Var[T]]): Map[Var[T], String] = vs map (v => (v, v.ref.toString)) toMap
+      def checkUniqueToString[T](vs: Seq[Var[T]]): Set[String] = {
+        val strings = vs.map(_.ref.toString)
+        strings.diff(strings.distinct).toSet
+      }
+      def checkIfNameExists[T](name: String, vs: Seq[Var[T]]): Boolean = 
+        vs.exists { case Var(ref) => ref.toString == name }
+    }         
+     
     case class Solver[T](
         constraints: Seq[Constr[T]], 
         objective: Objective,
@@ -239,7 +107,7 @@ package reqt {
         constr match {
           case AbsXeqY(x, y) => new jcon.AbsXeqY(jIntVar(x), jIntVar(y))
           case AllDifferent(vs) => new jcon.Alldiff(jVarArray(vs))
-          case Element(ix, vs, v) => new jcon.Element(jIntVar(ix), jVarArray(vs), jIntVar(v))
+          case IndexOfEquals(ix, vs, v) => new jcon.Element(jIntVar(ix), jVarArray(vs), jIntVar(v))
           case Sum(vs, x) => new jcon.Sum(vs.map(v => jIntVar(v)).toArray, jIntVar(x))
           case XdivYeqZ(x, y, z) => new jcon.XdivYeqZ(jIntVar(x), jIntVar(y), jIntVar(z))
           case XeqC(x, c) => new jcon.XeqC(jIntVar(x), c)
