@@ -17,8 +17,6 @@ package reqt {
   import scala.collection.IndexedSeqLike
   import scala.collection.mutable.LinkedHashMap
   import scala.language.{implicitConversions, postfixOps}
-  import reqt.util._
-
   
   final class Model private ( val mappings: collection.mutable.Map[Key, NodeSet])   
   extends Map[Key, NodeSet]
@@ -490,7 +488,7 @@ package reqt {
       }
     }
     
-    def load(inFile: String): Model = interpret(reqt.util.load(inFile))
+    def load(inFile: String): Model = interpret(reqt.load(inFile))
   }  
 
 }   //end package org
