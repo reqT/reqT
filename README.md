@@ -19,7 +19,7 @@ When you clone this repo you get these files in directory reqT/
     * `model.scala`  a map collection called Model to store elements in a graph structure 
     * `csp.scala`   constraints imposed on models can be satisfied if consistent
     * `jacop.scala`  an interface to the JaCoP constraint satisfaction solver
-    * `util.scala` string and file utilities for reqT  
+    * `package.scala` implicits and utility functions, values and variables  
 * `lib/` a directory for jars including JaCoP v3.2
 * `target/` a directory for compiled class files
 
