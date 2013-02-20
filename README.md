@@ -2,7 +2,7 @@
 
 reqT: Requirements => Code
 ==========================
-http://reqt.org is a free requirements modeling tool for codifying software features
+http://reqt.org is a free tool for codifying software requirement models
 
 With reqT you can ...
 * create and manage requirements models using versatile collections
@@ -12,8 +12,8 @@ With reqT you can ...
 * do powerful scripting of requirements models with object-functional Scala
 * extend the open, Scala-internal DSL with your own modeling semantics
 
-The reqT directory structure
-----------------------------
+Directory structure
+-------------------
 When you clone this repo you get these files in directory `reqT/`:
 * `reqT` a scala script file for the REPL to init reqT with :load reqT
 * `src/main/scala/`  a directory for the reqT source code modules:
@@ -30,7 +30,7 @@ Create these directories under `reqT/`:
 
 How to compile reqT
 -------------------
-To compile reqT you need first to install scala:
+To compile reqT you need to have Scala installed:
 * http://www.scala-lang.org/downloads
 
 Then compile reqT with:
