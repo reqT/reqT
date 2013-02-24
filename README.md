@@ -22,11 +22,15 @@ When you clone this repo you get these files in directory `reqT/`:
     * `constraints.scala`  a constraint solving API for requirements models
     * `jacop.scala`  an interface to the http://www.jacop.eu/ solver
     * `package.scala` implicits, utility functions, and global values  
+* `lib/` a directory for jars including: 
+    * the JaCoP jar from http://sourceforge.net/projects/jacop-solver/ 
 
-Create these directories under `reqT/`:
-* `target/` a directory for compiled class files
-* `lib/` a directory for jars. You need to download and put the JaCoP jar-file in this directory. Dowload JaCoP from here:  
-    * http://sourceforge.net/projects/jacop-solver/files/latest/download 
+Create this directory to store compiled class files:
+* `target/` 
+
+Command files for Windows:
+* `compile.cmd` compiles reqT into `target/` (see below) 
+* `run.cmd` starts the scala REPL (see below) 
 
 How to compile reqT
 -------------------
