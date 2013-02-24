@@ -76,8 +76,10 @@ package reqt {
     def pp(i: Int) { pp(0, (i - 1) min (size - 1) max 0)}
     def pp { pp(0, size - 1) }
     //----- update methods
-    def apply[T](ar: AttrRef[T]) = this / ar.ent !! ar.attrKind
+    def apply[T](ar: AttrRef[T]):T = this / ar.ent !! ar.attrKind
+    def apply[T](sr: SubRef[T]):T = ( this / sr.ent !! Submodel )(sr.ar)
     def updated[T](ar: AttrRef[T], v: T) = this + ar.ent.has(ar.attrKind(v))
+    //??def updated[T](sr: AttrRef[T], v: T) = this + ar.ent.has(ar.attrKind(v))
     
     def sorted: Model = {
       val newMappings = LinkedHashMap.empty[Key, NodeSet]

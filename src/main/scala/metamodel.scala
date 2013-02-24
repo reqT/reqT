@@ -165,15 +165,29 @@ package reqt {
     def Urgency = AttrRef(this, reqt.Urgency)
     def spec = AttrRef(this, reqt.Spec)
     def Spec = AttrRef(this, reqt.Spec)
+    //construct SubRef
+    def sub[T](ar: AttrRef[T]) = SubRef[T](this, ar)
   }  
 
+  
   case class AttrRef[T](ent: Entity, attrKind: AttributeKind[T]) { 
     def apply(m: Model) = AttrUpdater(m, this)
     def :=(v: T): (Key, NodeSet) =  (ent.has, NodeSet(attrKind(v)))
   }
+  
   case class AttrUpdater[T](m: Model, ar: AttrRef[T]) {
     def :=(v: T): Model =  m.updated(ar, v)
   }
+  
+  case class SubRef[T](ent: Entity, ar: AttrRef[T]){ 
+    //def apply(m: Model) = SubUpdater(m, this)
+    //def :=(v: T): (Key, NodeSet) =  (ent.has, NodeSet(attrKind(v)))
+  }
+  
+  // case class SubUpdater[T](m: Model, ar: AttrRef[T]) {
+    // def :=(v: T): Model =  m.updated(ar, v)
+  // }
+  
   abstract class Context extends Entity 
   case class Product(value: String) extends Context   
   case object Product extends Context with EntityKind    
