@@ -14,7 +14,7 @@
 package object reqt {  
   import scala.language.implicitConversions
 
-  lazy val version = "reqT-v2.3.0-SNAPSHOT_2.10.0"
+  lazy val version = "reqT-v2.3.0RC1-SNAPSHOT_2.10.0"
   
   //implicits for constraints.scala
   implicit def attrRefToVar(ref: AttrRef[Int]): Var[AttrRef[Int]] = Var(ref)  

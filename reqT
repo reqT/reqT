@@ -1,8 +1,7 @@
 //load me in the scala REPL with :load reqT
-if ($intp.quietRun("""
-    reqt.Model.interpreter = Some($intp)
-  """) == scala.tools.nsc.interpreter.IR.Success) 
-println("*** Welcome to reqT ***") else println("Init reqt.Model.interpreter failed.")
+println("Welcome to reqT version " + reqt.version)
+if ($intp.quietRun("reqt.Model.interpreter = Some($intp)") != scala.tools.nsc.interpreter.IR.Success) 
+  println("Init reqt.Model.interpreter failed.")
 {
   $intp.interpret("import scala.language._")
   $intp.interpret("import reqt._")
