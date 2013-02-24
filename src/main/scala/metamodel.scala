@@ -14,7 +14,7 @@
 in v2.3.0:
 INPROGRESS: csp
 INPROGRESS: AttrRef integrated with csp
-DONE: Added Integer attributes: Index, Cost, Benefit, Capacity, Urgency
+DONE: Added Integer attributes: Order, Cost, Benefit, Capacity, Urgency
 DONE: Bugfix: in ++ so that it merges attributes of enitites
 DONE: m.ids gives a Vector of strings of ids
 DONE: don't warn if updating attribute with same value
@@ -153,8 +153,8 @@ package reqt {
     def ![T](ak: AttributeKind[T]) = AttrRef[T](this, ak) 
     def prio = AttrRef(this, reqt.Prio)
     def Prio = AttrRef(this, reqt.Prio)
-    def index = AttrRef(this, reqt.Index)
-    def Index = AttrRef(this, reqt.Index)
+    def order = AttrRef(this, reqt.Order)
+    def Order = AttrRef(this, reqt.Order)
     def cost = AttrRef(this, reqt.Cost)
     def Cost = AttrRef(this, reqt.Cost)
     def benefit = AttrRef(this, reqt.Benefit)
@@ -289,8 +289,8 @@ package reqt {
   case class Prio(value: Int) extends IntAttr 
   case object Prio extends IntAttr with AttributeKind[Int]  
   
-  case class Index(value: Int) extends IntAttr 
-  case object Index extends IntAttr with AttributeKind[Int]  
+  case class Order(value: Int) extends IntAttr 
+  case object Order extends IntAttr with AttributeKind[Int]  
 
   case class Cost(value: Int) extends IntAttr 
   case object Cost extends IntAttr with AttributeKind[Int]  
@@ -405,7 +405,7 @@ package reqt {
     def Critical(value: String) = EdgeToNodes(has(), NodeSet(reqt.Critical(value)))
     def Problem(value: String) = EdgeToNodes(has(), NodeSet(reqt.Problem(value)))
     def Prio(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Prio(value)))
-    def Index(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Index(value)))
+    def Order(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Order(value)))
     def Cost(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Cost(value)))
     def Benefit(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Benefit(value)))
     def Capacity(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Capacity(value)))

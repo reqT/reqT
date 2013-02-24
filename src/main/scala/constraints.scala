@@ -22,7 +22,10 @@ package reqt {
   
   case class CSP[T](m: Model, cons: Constraints[T]) {
     lazy val intValues = (m collect { case (Key(e,has), NodeSet(ns)) => ns.toList collect { case n: IntAttr => (e,n) } } ).flatten.toList
-    lazy val intModelConstr = intValues collect { case (e, Prio(i)) => Var(e.Prio) #== i } toList
+    lazy val intModelConstr = intValues.collect { 
+      case (e, Prio(i)) =>  Var(e.Prio)  #== i 
+      case (e, Order(i)) => Var(e.Order) #== i
+      }.toList
     lazy val allConstr: Seq[Constr[Any]] = cons.cs ++ intModelConstr
     def updateModel(vmap: Map[Var[Any], Int]): Model = { //Any propagates because of Map invariance
       var newModel = m
@@ -35,7 +38,7 @@ package reqt {
     }
     def solve(objective: Objective): (Model, Seq[Map[Var[Any], Int]]) = {
       val Result(conclusion, solutions) = Constraints(allConstr:_*).solve(objective)
-      if (conclusion == SolutionFound) (updateModel(solutions.head), solutions)
+      if (conclusion == SolutionFound) (updateModel(solutions.head), solutions) //TODO should handle multiple solutions
       else { warn(conclusion.toString); (Model(), Seq(Map())) } 
     }
     def satisfy: Model = solve(Satisfy)._1

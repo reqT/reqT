@@ -47,7 +47,7 @@ package object reqt {
   lazy val scenarioKinds: List[Element] = List(UserStory, UseCase, Task, VividScenario)
   lazy val dataKinds: List[Element] = List(Class, Member)
   lazy val requirementKinds: List[Element] = List(Req, Goal, Feature, Function, Quality, Interface, Design) ++ scenarioKinds ++ dataKinds
-  lazy val attributeKinds: List[Element] = List(Gist, Spec, Status, Why, Example, Input, Output, Trigger, Precond, Frequency, Critical, Problem, Prio, Index, Cost, Benefit, Capacity, Urgency, Label, Comment, Image, Deprecated, Submodel)
+  lazy val attributeKinds: List[Element] = List(Gist, Spec, Status, Why, Example, Input, Output, Trigger, Precond, Frequency, Critical, Problem, Prio, Order, Cost, Benefit, Capacity, Urgency, Label, Comment, Image, Deprecated, Submodel)
   lazy val egdeKinds: List[Element] = List(has, owns, requires, excludes, helps, hurts, precedes, inherits, assigns, deprecates)
   lazy val levelIndex: Map[Level, Int] = Map(DROPPED -> 0, ELICITED -> 1, SPECIFIED -> 2, VALIDATED -> 3, POSTPONED -> 4, PLANNED -> 5, FAILED -> 6, IMPLEMENTED -> 7, TESTED -> 8, RELEASED -> 9)
   
