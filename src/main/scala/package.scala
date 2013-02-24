@@ -14,8 +14,8 @@
 package object reqt {  
   import scala.language.implicitConversions
 
-  lazy val version = "reqT-v2.3.0RC1-SNAPSHOT_2.10.0"
-  
+  lazy val VERSION = "reqT-v2.3.0RC1-SNAPSHOT_2.10.0"
+
   //implicits for constraints.scala
   implicit def attrRefToVar(ref: AttrRef[Int]): Var[AttrRef[Int]] = Var(ref)  
   implicit def constraintsToSeq[T](cs: Constraints[T]): Seq[Constr[T]] = cs.cs
@@ -138,5 +138,39 @@ package object reqt {
     try body
     finally println((System.nanoTime - start)/1e9 + " seconds elapsed.")
   }  
+
+  lazy val LICENCE = """
+http://reqT.org/license 
+======================= 
+
+ReqT is open source under the BSD 2-clause license: 
+http://opensource.org/licenses/bsd-license.php 
+
+Copyright (c) 2011-2013 Lund University, Sweden. All rights reserved. 
+
+Redistribution and use in source and binary forms, with or without 
+modification, are permitted provided that the following conditions 
+are met: 
+
+1. Redistributions of source code must retain the above copyright 
+notice, this list of conditions and the following disclaimer. 
+
+2. Redistributions in binary form must reproduce the above copyright 
+notice, this list of conditions and the following disclaimer in the 
+documentation and/or other materials provided with the distribution. 
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS 
+IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED 
+TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A 
+PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED 
+TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+
+"""
 
 }  //end package object reqT
