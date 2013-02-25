@@ -138,6 +138,8 @@ package reqt {
     def requires(es:Entity *) = (Key(this, reqt.requires()), NodeSet(es: _*))
     def excludes() = Key(this, reqt.excludes())
     def excludes(es:Entity *) = (Key(this, reqt.excludes()), NodeSet(es: _*))
+    def releases() = Key(this, reqt.releases())
+    def releases(es:Entity *) = (Key(this, reqt.releases()), NodeSet(es: _*))
     def helps() = Key(this, reqt.helps())
     def helps(es:Entity *) = (Key(this, reqt.helps()), NodeSet(es: _*))
     def hurts() = Key(this, reqt.hurts())
@@ -199,6 +201,8 @@ package reqt {
   case object Actor extends Context with EntityKind  
   case class Resource(value: String) extends Context 
   case object Resource extends Context with EntityKind  
+  case class Area(value: String) extends Context 
+  case object Area extends Context with EntityKind  
   
   abstract class Requirement extends Entity 
   case class Req(value: String) extends Requirement
@@ -364,6 +368,7 @@ package reqt {
     def Stakeholder(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Stakeholder(id)))
     def Actor(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Actor(id)))
     def Resource(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Resource(id)))
+    def Area(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Area(id)))
     def Req(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Req(id)))
     def Goal(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Goal(id)))
     def Feature(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Feature(id)))
@@ -388,6 +393,8 @@ package reqt {
   case object requires extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
   case class excludes() extends RelationWithoutAttribute { def kind: Relation = excludes }
   case object excludes extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
+  case class releases() extends RelationWithoutAttribute { def kind: Relation = releases }
+  case object releases extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
   case class helps() extends RelationWithoutAttribute { def kind: Relation = helps }
   case object helps extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
   case class hurts() extends RelationWithoutAttribute { def kind: Relation = hurts }

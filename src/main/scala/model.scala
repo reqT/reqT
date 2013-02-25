@@ -78,8 +78,12 @@ package reqt {
     //----- update methods
     def apply[T](ar: AttrRef[T]):T = this / ar.ent !! ar.attrKind
     def apply[T](sr: SubRef[T]):T = ( this / sr.ent !! Submodel )(sr.ar)
-    def updated[T](ar: AttrRef[T], v: T) = this + ar.ent.has(ar.attrKind(v))
-    //??def updated[T](sr: AttrRef[T], v: T) = this + ar.ent.has(ar.attrKind(v))
+    def updated[T](ar: AttrRef[T], v: T): Model = this + ar.ent.has(ar.attrKind(v))
+    def updated[T](sr: SubRef[T], v: T) = {
+      val sm = this / sr.ent !! Submodel
+      val smUpdated = sm + sr.ar.ent.has(sr.ar.attrKind(v)) 
+      this + sr.ent.has(Submodel(smUpdated))
+    }
     
     def sorted: Model = {
       val newMappings = LinkedHashMap.empty[Key, NodeSet]
