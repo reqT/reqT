@@ -1,8 +1,13 @@
+val m = Model(Feature("x") has Prio(1)) 
+val cs = Constraints(Feature("y").Prio::{1 to 5}, Feature("y").Prio #> 3)
+m.impose(cs)
+m.impose(cs).satisfy
+
 val m1 = Model(
   Release("r1") precedes Release("r2"),
   Feature("x") precedes Feature("y"))
 
-// how to build a release planning satisfaction problem out if this:
+// how to build a release planning satisfaction problem out if this??:
   
 val nRel = (m1 / Release).entities.size
 
