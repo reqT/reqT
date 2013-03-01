@@ -19,7 +19,7 @@ package reqt {
     extractor: Model => Model = m => Model() 
   ) extends DocItem
 
-  case class Section (
+  case class Heading (
     title: String = "", 
     intro: Text = Text(), 
     extractor: Model => Model = m => Model() 
@@ -36,13 +36,13 @@ package reqt {
     def tabulate(m: Model): String
     def document(title: String, intro: Text, rest: String): String
     def chapter(c: Chapter, m: Model): String
-    def section(s: Section, m: Model): String
+    def heading(s: Heading, m: Model): String
     def text(t: Text): String
     def image(url: String): String 
     def generate(m: Model, dt: DocumentTemplate): String = 
       document(dt.title, dt.intro, dt.items. collect {
           case c: Chapter => chapter(c, m) 
-          case s: Section => section(s, m)
+          case s: Heading => heading(s, m)
         } .mkString  
       )
   }
@@ -64,7 +64,7 @@ package reqt {
     def document(title: String, intro: Text, rest: String): String = pre + head(title) + 
       "<body>\n" + h1(title) + text(intro) + rest + "</body>" + post 
     def chapter(c: Chapter, m: Model): String = h2(c.title) + text(c.intro) + "\n" + tabulate(c.extractor(m)) + "\n"
-    def section(s: Section, m: Model): String = h3(s.title) + text(s.intro) + "\n" + tabulate(s.extractor(m)) + "\n"
+    def heading(s: Heading, m: Model): String = h3(s.title) + text(s.intro) + "\n" + tabulate(s.extractor(m)) + "\n"
     def tabulate(m: Model): String = {
       def entityDivision = wrap("<div class=\"entity\">\n", "</div>\n") _
       def nodeTable = wrap("<table class=\"nodelist\">\n","</table>\n") _
@@ -77,14 +77,14 @@ package reqt {
         val select = m / e 
         val gist = br(select ! Gist getOrElse(""))
         val img = select ! Image match { case Some(url) => image(url); case None => "" }
-        val heading = "" + h3("<b>" + e.prefix + " " + e.id + ": </b><i>" + gist + "</i>") + "\n"
+        val head = "" + h3("<b>" + e.prefix + " " + e.id + ": </b><i>" + gist + "</i>") + "\n"
         val attr = ( select / has map { case (_,ns) => (ns filterNot( _ <==> Gist)).toList.sorted(nodeOrdering) map { node =>
             val n: Node[_] = node match { case l: External[_] =>  l.fromFile ; case a => a}
             "" + tr(tdName(longName(n.prefix) + ":")  + br(td(n.value))) 
         } mkString("\n")  } ).mkString
         val rel = ( select \ has map { case (Key(_, edge),ns) => "" + tr(tdName(edge.toScala) + td(ns map ( n => 
             "" + n.prefix + " "  + n.value)  mkString(", ") )) } ).mkString
-        entityDivision(heading + img +
+        entityDivision(head + img +
           { if (attr != "") nodeTable(tr(thAttr) + attr) else "" } + 
           { if (rel != "") nodeTable(tr(thRel) + rel) else "" }
         )

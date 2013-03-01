@@ -45,7 +45,7 @@ TODO: ??ensure that ids are unique
 TODO: ??flatten Model to insert its submodels??
 
 TODO: ?? Model(Part("name") has Submodel(Model("XX")))  //Submodel extends Attribute[Model]
-TODO: ?? or is Area better than Part??: Model(Area("a1") has Submodel(Model(...))) 
+TODO: ?? or is Section better than Part??: Model(Section("a1") has Submodel(Model(...))) 
 TODO: ?? add Term entity for generating glossaries
 TODO: ?? case class Paragraph instead of Text with object § with apply that generates Paragraph
 TODO: Clean up code duplication in attribute trait structure
@@ -201,8 +201,8 @@ package reqt {
   case object Actor extends Context with EntityKind  
   case class Resource(value: String) extends Context 
   case object Resource extends Context with EntityKind  
-  case class Area(value: String) extends Context 
-  case object Area extends Context with EntityKind  
+  case class Section(value: String) extends Context 
+  case object Section extends Context with EntityKind  
   
   abstract class Requirement extends Entity 
   case class Req(value: String) extends Requirement
@@ -368,7 +368,7 @@ package reqt {
     def Stakeholder(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Stakeholder(id)))
     def Actor(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Actor(id)))
     def Resource(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Resource(id)))
-    def Area(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Area(id)))
+    def Section(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Section(id)))
     def Req(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Req(id)))
     def Goal(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Goal(id)))
     def Feature(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Feature(id)))
