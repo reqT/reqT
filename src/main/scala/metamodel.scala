@@ -751,10 +751,10 @@ package reqt {
   }
 
   object idGen {
-    var id = "id"
+    var prefix = "id"
     var n = 1
-    def next() = { val res = id + n; n +=1; res }
-    def set(newId: String = id, newN: Int = n) { n = newN; id = newId } 
+    def next() = { val res = prefix + n ; n += 1 ; res }
+    def set(newPrefix: String = prefix, newN: Int = n) { n = newN; prefix = newPrefix } 
     def set(newN: Int) { n = newN } 
     def reset() { set("id",1) }
   }   

@@ -38,6 +38,7 @@ package reqt {
     override def stringPrefix = "Model"    
     //--------------------- reqT-specific methods:
     //---- add methods
+	def merge(that: Model): Model = ++(that)
     def ++(that: Model) = super.++(that) : Model //inherited ++ returns Map but we want Model 
     def addEdgeToNodesToAll(el: EdgeToNodes):Model = { //add to all Key Entities
       var result = new Model(mappings) //make a copy of this model
