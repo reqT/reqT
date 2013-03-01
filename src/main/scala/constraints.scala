@@ -20,13 +20,13 @@ package reqt {
   
   //---- integration with class Model: (for implicits conversions see package.scala)
   
-  case class CSP[T](m: Model, cons: Constraints[T]) {
+  case class CSP[T](m: Model, cs: Seq[Constr[T]]) {
     lazy val intValues = (m collect { case (Key(e,has), NodeSet(ns)) => ns.toList collect { case n: IntAttr => (e,n) } } ).flatten.toList
     lazy val intModelConstr = intValues.collect { 
       case (e, Prio(i)) =>  Var(e.Prio)  #== i 
       case (e, Order(i)) => Var(e.Order) #== i
       }.toList
-    lazy val allConstr: Seq[Constr[Any]] = cons.cs ++ intModelConstr
+    lazy val allConstr: Seq[Constr[Any]] = cs ++ intModelConstr
     def updateModel(vmap: Map[Var[Any], Int]): Model = { //Any propagates because of Map invariance
       var newModel = m
       val modelVariables = vmap collect { 
@@ -37,7 +37,7 @@ package reqt {
       newModel
     }
     def solve(objective: Objective): (Model, Seq[Map[Var[Any], Int]]) = {
-      val Result(conclusion, solutions) = Constraints(allConstr:_*).solve(objective)
+      val Result(conclusion, solutions) = allConstr.solve(objective)
       if (conclusion == SolutionFound) (updateModel(solutions.head), solutions) //TODO should handle multiple solutions
       else { warn(conclusion.toString); (Model(), Seq(Map())) } 
     }
@@ -49,13 +49,6 @@ package reqt {
   }
   
   //---- main classes for constraints API
-
-  case class Constraints[+T](cs: Constr[T] *) {
-    def solve[B >: T](
-        objective: Objective = jacop.Settings.defaultObjective,
-        select: jacop.Indomain = jacop.Settings.defaultSelect
-      ): Result[B] = jacop.Solver[B](cs, objective, select).solve
-  }
 
   case class Interval(min: Int, max: Int) {
     if (min > max) jacop.Settings.warningPrinter("Negative interval min > max: " + this )

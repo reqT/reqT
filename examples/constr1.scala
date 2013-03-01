@@ -1,5 +1,5 @@
 val m = Model(Feature("x") has Prio(1)) 
-val cs = Constraints(Feature("y").Prio::{1 to 5}, Feature("y").Prio #> 3)
+val cs = Seq(Feature("y").Prio::{1 to 5}, Feature("y").Prio #> 3)
 m.impose(cs)
 m.impose(cs).satisfy
 
@@ -13,7 +13,7 @@ val nRel = (m1 / Release).entities.size
 
 val orderDomain = {1 to nRel}
 
-val cs1 = Constraints(
+val cs1 = Seq(
   Release("r1").order :: orderDomain,
   Release("r2").order :: orderDomain,
   Feature("x").order :: orderDomain,
