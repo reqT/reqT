@@ -104,9 +104,13 @@ package reqt {
     def hasEqualPrefix(that: Prefixed): Boolean = this.prefix == that.prefix 
     def <==>(that: Prefixed): Boolean = hasEqualPrefix(that)
   } 
+  trait ConstrVectorValueToScala extends CanGenerateScala with Value[Vector[Constr[Any]]] with Prefixed {
+    override def toScala: String = prefix + "(" + value.map(_.toScala).mkString(", ") + ")"
+  }  
   trait StringValueToScala extends CanGenerateScala with Value[String] with Prefixed {
     override def toScala: String = prefix + "(" + value.toScala + ")"
   }
+
   trait NodeKind extends Prefixed  
   trait EntityKind extends NodeKind { val value = "" }
   trait AttributeKind[T] extends NodeKind with Value[T] with Default[T] with CanGenerateScala { 
@@ -172,16 +176,18 @@ package reqt {
   }  
 
   
-  case class AttrRef[T](ent: Entity, attrKind: AttributeKind[T]) { 
+  trait ImplicitVar extends CanGenerateScala //marker trait to signal existence of implicit conversion to Var
+  case class AttrRef[T](ent: Entity, attrKind: AttributeKind[T]) extends ImplicitVar with CanGenerateScala { 
     def apply(m: Model) = AttrUpdater(m, this)
     def :=(v: T): (Key, NodeSet) =  (ent.has, NodeSet(attrKind(v)))
+	override def toScala: String = ent.toScala + "." + attrKind 
   }
   
   case class AttrUpdater[T](m: Model, ar: AttrRef[T]) {
     def :=(v: T): Model =  m.updated(ar, v)
   }
   
-  case class SubRef[T](ent: Entity, ar: AttrRef[T]){ 
+  case class SubRef[T](ent: Entity, ar: AttrRef[T]){  //TODO !!!
     //def apply(m: Model) = SubUpdater(m, this)
     //def :=(v: T): (Key, NodeSet) =  (ent.has, NodeSet(attrKind(v)))
   }
@@ -243,6 +249,7 @@ package reqt {
   trait StringAttr extends Attribute[String] with StringValueToScala { val default = "???" }
   trait LevelAttr extends Attribute[Level] { val default = ELICITED }
   trait IntAttr extends Attribute[Int] { val default = 0 }
+  trait ConstrSeqAttr extends Attribute[Vector[Constr[Any]]] with ConstrVectorValueToScala { val default = Vector() }
   
   case class Gist(value: String) extends StringAttr
   case object Gist extends StringAttr with AttributeKind[String]  
@@ -337,6 +344,11 @@ package reqt {
   case class Submodel(value: Model) extends Attribute[Model] { val default = Model() }
   case object Submodel extends Attribute[Model] with AttributeKind[Model] { val default = Model() }  
 
+  case class Constraints(value: Vector[Constr[Any]]) extends ConstrSeqAttr
+  case object Constraints extends ConstrSeqAttr with AttributeKind[Vector[Constr[Any]]] {
+    def apply(cs: Constr[Any] * ): Constraints = Constraints(cs.toVector)
+  }
+  
   case class External[T <: Attribute[_]](fileName:String)( implicit makeAttr: AttrFromString[T]) 
   extends Attribute[String] with StringValueToScala { 
     val default = "NONAME.scala"
@@ -432,6 +444,8 @@ package reqt {
     def Capacity(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Capacity(value)))
     def Urgency(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Urgency(value)))
     def Submodel(value: Model) = EdgeToNodes(has(), NodeSet(reqt.Submodel(value)))
+    def Constraints[T](value: Vector[Constr[T]]) = EdgeToNodes(has(), NodeSet(reqt.Constraints(value)))
+    def Constraints[T](value: Constr[T] *) = EdgeToNodes(has(), NodeSet(reqt.Constraints(value.toVector)))
     def Label(value: String) = EdgeToNodes(has(), NodeSet(reqt.Label(value)))
     def Comment(value: String) = EdgeToNodes(has(), NodeSet(reqt.Comment(value)))
     def Image(value: String) = EdgeToNodes(has(), NodeSet(reqt.Image(value)))

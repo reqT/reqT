@@ -25,13 +25,19 @@ package object reqt {
   }
   implicit class RangeSeqOps(rs: Seq[Range]) { //to enable > Var("x")::Seq(1 to 10, 12 to 15)
     def ::[T](v: Var[T]): Bounds[T] = Bounds(Seq(v), rs.map(rangeToInterval(_)))
+    def ::[T](vs: Seq[Var[T]]): Bounds[T] = Bounds(vs, rs.map(rangeToInterval(_)))
   }
-  implicit class ConstrSeqSolve[+T](cs: Seq[Constr[T]]) {
+  implicit class RangeIntervalOps(ivls: Seq[Interval]) { //to enable > Var("x")::Seq(Interval(1 to 10), Interval(12 to 15))
+    def ::[T](v: Var[T]): Bounds[T] = Bounds(Seq(v), ivls)
+    def ::[T](vs: Seq[Var[T]]): Bounds[T] = Bounds(vs, ivls)
+  }
+  implicit class ConstrSeqSolve[+T](cs: Seq[Constr[T]]) extends CanGenerateScala {
     def solve[B >: T](
         objective: Objective = jacop.Settings.defaultObjective,
         select: jacop.Indomain = jacop.Settings.defaultSelect
       ): Result[B] = jacop.Solver[B](cs, objective, select).solve
-    //def impose[B >: T](m: Model): CSP[B] = CSP(m, cs)
+    def impose[B >: T](m: Model): CSP[B] = CSP(m, cs)
+    override def toScala: String = cs.map(_.toScala).mkString("Vector(",", ",")")
   }
   //generator function for variable vectors for constraints:
   def vars[T](vs: T *): Seq[Var[T]] = vs.map(Var(_)).toIndexedSeq
@@ -49,7 +55,7 @@ package object reqt {
   lazy val scenarioKinds: List[Element] = List(UserStory, UseCase, Task, VividScenario)
   lazy val dataKinds: List[Element] = List(Class, Member)
   lazy val requirementKinds: List[Element] = List(Req, Goal, Feature, Function, Quality, Interface, Design) ++ scenarioKinds ++ dataKinds
-  lazy val attributeKinds: List[Element] = List(Gist, Spec, Status, Why, Example, Input, Output, Trigger, Precond, Frequency, Critical, Problem, Prio, Order, Cost, Benefit, Capacity, Urgency, Label, Comment, Image, Deprecated, Submodel)
+  lazy val attributeKinds: List[Element] = List(Gist, Spec, Status, Why, Example, Input, Output, Trigger, Precond, Frequency, Critical, Problem, Prio, Order, Cost, Benefit, Capacity, Urgency, Label, Comment, Image, Deprecated, Submodel, Constraints)
   lazy val egdeKinds: List[Element] = List(has, owns, requires, excludes, releases, helps, hurts, precedes, inherits, assigns, deprecates)
   lazy val levelIndex: Map[Level, Int] = Map(DROPPED -> 0, ELICITED -> 1, SPECIFIED -> 2, VALIDATED -> 3, POSTPONED -> 4, PLANNED -> 5, FAILED -> 6, IMPLEMENTED -> 7, TESTED -> 8, RELEASED -> 9)
   
