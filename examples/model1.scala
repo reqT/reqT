@@ -36,3 +36,11 @@ val m6 = Model(
 )
 
 assert(m6 == m5)
+
+val m7 = m - Set[Entity](Feature("x"))
+val m8 = m - Feature("x")
+
+assert(m7 == m8)
+
+m - ((m / Feature / Status(DROPPED)).entities)
+

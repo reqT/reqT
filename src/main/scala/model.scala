@@ -124,6 +124,7 @@ package reqt {
       val result = map { case (Key(en, ed), ns2) => (Key(en, ed), NodeSet((ns2.nodes diff ns.toSet).filterNot(n => ns.exists{ case nk: NodeKind => nk <==> n; case _ => false}))) }
       result filterNot { case (Key(en, _), _) =>  ns.exists(_ == en) || ns.exists{ case nk: NodeKind => nk <==> en; case _ => false}}       
     }
+	def -(es: Set[Entity]): Model = this - (es.toSeq:_ *)
     //---- string methods    
     override def toString: String = 
       if (Model.overrideToStringWithToScala) toScala else super.toString
