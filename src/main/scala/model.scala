@@ -92,27 +92,27 @@ package reqt {
       new Model(newMappings)
     }
     
-    def -(entity: Entity, edge: Edge, node: Node[_]): Model = {
-      val k = Key(entity, edge)
-      mappings.get(k) match {
-        case Some(ns) =>
-          val newNodes = ns - node
-          val m2 = mappings
-          if (newNodes.isEmpty) new Model(m2 - k) else new Model(m2 - k + (k -> (ns - node)))
-        case None => this
-      }
-    }
+    // def -(entity: Entity, edge: Edge, node: Node[_]): Model = { //TODO is this really needed???
+      // val k = Key(entity, edge)
+      // mappings.get(k) match {
+        // case Some(ns) =>
+          // val newNodes = ns - node
+          // val m2 = mappings
+          // if (newNodes.isEmpty) new Model(m2 - k) else new Model(m2 - k + (k -> (ns - node)))
+        // case None => this
+      // }
+    // }
+	
     def -(kns: (Key, NodeSet)): Model = {
       val (k, nsToBeRemoved) = kns
       mappings.get(k) match {
         case Some(ns) => 
-          val newModel = this - k
-          val newNodes = ns diff nsToBeRemoved
-          if (newNodes.isEmpty) newModel else newModel + (k -> newNodes) 
+          val newNodes: NodeSet = ns.filterNot(n => nsToBeRemoved.exists{ case nk: NodeKind => n <==> nk; case any => n == any})
+          if (newNodes.isEmpty) this - k else new Model(mappings.updated(k,newNodes)) 
         case None => this
       }
-    }    
-    
+    }  
+	
     def removeEdgeToNodesToAll(el: EdgeToNodes):Model = { 
         map { case (Key(en, ed), ns) => 
           val isSame: Boolean = el.edge match { case e: EdgeKind => e <==> ed; case e => e == ed } 
