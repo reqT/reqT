@@ -20,10 +20,11 @@ package reqt {
   object jacop {  
 
     object Settings {
-      var defaultInterval = Interval(-10000, 10000)
+      var defaultInterval = Interval(-1000, 1000)
       var defaultObjective = Satisfy
       var defaultSelect = IndomainRandom
       var verbose = true
+	  var debug = false
       var warningPrinter: String => Unit = (s: String) => println("WARNING: " + s)
     }
    
@@ -166,6 +167,7 @@ package reqt {
           return Result(SearchFailed("Cost variable not defined:" + v), Seq(Map())) 
         }
         cs foreach { c => store.impose(toJCon(c, store, intVarMap)) }
+		if (Settings.debug) println(store)
         if (!store.consistency) return Result(InconsistencyFound, Seq(Map()))
         val dfs = new jsearch.DepthFirstSearch[JIntVar]
         dfs.getSolutionListener.searchAll(false)
