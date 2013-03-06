@@ -383,6 +383,7 @@ package reqt {
     def down(e: Entity): Model = 
       if (this / e ! Status == None) { warn(e + "has no status!"); this} 
       else (this / e).down ++ (this \ e)
+	def drop: Model = this - ( this / Status(DROPPED)).entities
     def loadExternals: Model = updateNode{ case n: External[_] => n.fromFile}
     //---- visitor methods
     lazy val entityEdgeSet = keySet.collect { case Key(e,l) => (e,l) } 
