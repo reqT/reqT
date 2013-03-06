@@ -59,24 +59,20 @@ package reqt {
     }
     def apply(i: Int): (Key, NodeSet) = indexed(i)
     def slice(i: Int): Model = Model() + indexed(i)
-    /*  below is redundant with inherited slice(i,j) :    
-    def slice(i: Int, j: Int): Model = {
-      var m = Model()
-      for (k <- i to j) m += indexed(k)
-      m
-    }
-    */
-    //----- indexing methods
-    def pp(a: Int, b: Int) {
-      for (i <- a to (b min (size - 1))) println( i.toString.padTo(3," ").mkString + " " +  {
+    //we also have from Map inherited slice(from,until) 
+    
+    //----- pretty printing methods:
+    def pp(from: Int, til: Int) {
+      for (i <- (from max 0) until (til min size )) println( i.toString.padTo(3," ").mkString + " " +  {
           val s = indexed(i)._1.toScala + indexed(i)._2.map(_.toScala).mkString("(",", ",")")
-          if (s.size > 75) s.take(75) + "..." else s
+          if (s.size > 72) s.take(72) + "..." else s
         }        
       )
     }
-    def pp(i: Int) { pp(0, (i - 1) min (size - 1) max 0)}
-    def pp { pp(0, size - 1) }
-    //----- update methods
+    def pp(until: Int) { pp(0, until min size max 0)}
+    def pp { pp(0, size) }
+	
+    //----- apply and update methods
     def apply[T](ar: AttrRef[T]):T = this / ar.ent !! ar.attrKind
     def apply[T](sr: SubRef[T]):T = ( this / sr.ent !! Submodel )(sr.ar)
     def updated[T](ar: AttrRef[T], v: T): Model = this + ar.ent.has(ar.attrKind(v))
