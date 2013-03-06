@@ -212,7 +212,7 @@ package reqt {
   
   abstract class Requirement extends Entity 
   case class Req(value: String) extends Requirement
-  case object Req extends Requirement with EntityKind { def apply(): Req = Req(idGen.next()) } 
+  case object Req extends Requirement with EntityKind  
   case class Goal(value: String) extends Requirement 
   case object Goal extends Requirement with EntityKind 
   case class Feature(value: String) extends Requirement   
