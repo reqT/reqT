@@ -612,6 +612,7 @@ package reqt {
   
   case class RichString(s: String) {
     def toScala: String = "" + '\"' + convertEscape + '\"'
+    def toModel: Model = Model.interpret(s)
     def decapitalize: String = strUtil.decapitalize(s)
     def filterEscape: String = strUtil.filterEscapeChar(s)
     def convertEscape: String = strUtil.escape(s)

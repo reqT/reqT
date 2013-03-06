@@ -76,7 +76,7 @@ package reqt {
     def apply[T](ar: AttrRef[T]):T = this / ar.ent !! ar.attrKind
     def apply[T](sr: SubRef[T]):T = ( this / sr.ent !! Submodel )(sr.ar)
     def updated[T](ar: AttrRef[T], v: T): Model = this + ar.ent.has(ar.attrKind(v))
-    def updated[T](sr: SubRef[T], v: T) = {
+    def updated[T](sr: SubRef[T], v: T) = { //TODO make this recursive
       val sm = this / sr.ent !! Submodel
       val smUpdated = sm + sr.ar.ent.has(sr.ar.attrKind(v)) 
       this + sr.ent.has(Submodel(smUpdated))
@@ -386,10 +386,43 @@ package reqt {
      } .toMap
 
     // ---- update methods
-    def updateNode(pf: PartialFunction[Node[_], Node[_]]): Model = {
-      val pfoe = pf.orElse[Node[_],Node[_]] { case n: Node[_] => n }
-      map { case (Key(en, ed), ns) => (Key(en, ed), NodeSet(ns.nodes map pfoe)) } 
+    def replaceEntity(e1: Entity, e2: Entity): Model = {
+      def updateNS(ns: NodeSet): NodeSet = ns.map { 
+        case n if (n == e1) => e2 
+        case sm: Submodel => Submodel(sm.value.replaceEntity(e1,e2)) //non-tail-recursive call
+        case any => any
+      }
+      if (entities.contains(e2)) warn(s"Replacing from $e1 to existing entity $e2")
+      this collect {
+        case (Key(e,r),ns) if (e == e1) => (Key(e2,r), updateNS(ns)) 
+        case (Key(e,r),ns) => (Key(e,r),updateNS(ns)) 
+      }
     }
+    
+    def updateEntity(pf: PartialFunction[Entity, Entity]): Model = {
+      val pfoe = pf.orElse[Entity, Entity] { case e => e }
+      def updateNS(ns: NodeSet): NodeSet = ns.nodes map {
+        case sm: Submodel => Submodel(sm.value.updateEntity(pf)) //non-tail-recursive call 
+        case e: Entity => pfoe(e) 
+        case a => a 
+      }
+      map { case (Key(en, ed), ns) => (Key(pfoe(en), ed), updateNS(ns)) } 
+    }
+    
+    def updateNode(pf: PartialFunction[Node[_], Node[_]]): Model = {
+     val pfoe = pf.orElse[Node[_],Node[_]] { case n: Node[_] => n }
+     def updateNS(ns: NodeSet): NodeSet = ns.nodes map {
+        case sm: Submodel => Submodel(sm.value.updateNode(pf)) //non-tail-recursive call 
+        case n => pfoe(n)
+      } 
+      map { case (Key(en, ed), ns) => (Key(en, ed), updateNS(ns)) } 
+    }
+
+    def updateRelation(pf: PartialFunction[Relation, Relation]): Model = {
+      val pfoe = pf.orElse[Relation,Relation] { case r => r }
+      map { case (Key(en, ed), ns) => (ed match { case r: Relation => (Key(en, pfoe(r) : Edge), ns); case _ => (Key(en, ed), ns) } ) } 
+    }
+
     def up: Model = updateNode { case n: Status => n.up }
     def down: Model = updateNode { case n: Status => n.down }
     def up(e: Entity): Model = 
@@ -398,7 +431,7 @@ package reqt {
     def down(e: Entity): Model = 
       if (this / e ! Status == None) { warn(e + "has no status!"); this} 
       else (this / e).down ++ (this \ e)
-	def drop: Model = this - ( this / Status(DROPPED)).entities
+    def drop: Model = this - ( this / Status(DROPPED)).entities
     def loadExternals: Model = updateNode{ case n: External[_] => n.fromFile}
     //---- visitor methods
     lazy val entityEdgeSet = keySet.collect { case Key(e,l) => (e,l) } 
