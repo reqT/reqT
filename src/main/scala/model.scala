@@ -188,10 +188,22 @@ package reqt {
           ke._2.nodes.exists(_ == elm) || //Extend with destinations
           (ke._1.edge match { case rwa: RelationWithAttribute[_] => rwa.attribute == elm || rwa == elm; case _ => false } ) )
     } 
-    
     def separateDestinations(elm: Element, 
       selection: (((Key, NodeSet)) => Boolean) => Model
-    ): Model = separateExtended(elm, selection) -- (separate(elm, selection).keySet)
+    ): Model = elm match {
+      case a: AttributeKind[_] => selection(ke => ke._2.nodes.exists(_ <==> a ) )
+      case a: Attribute[_] => selection(ke => ke._2.nodes.exists(_ == a ) )
+      case n: NodeKind => selection(ke => ke._2.nodes.exists(_ <==> n))  
+      case Context => selection(ke => ke._2.nodes.exists(_.isInstanceOf[Context])) 
+      case Requirement =>  selection(ke => ke._2.nodes.exists(_.isInstanceOf[Requirement]))
+      case Scenario => selection(ke => ke._2.nodes.exists(_.isInstanceOf[Scenario]))
+      case _ => selection(ke => ke._2.nodes.exists(_ == elm)) //Only  destinations
+    } 
+     
+    // deprecated definition of separateDestinations that does not give correct results for /-> Feature
+    // def separateDestinations(elm: Element, 
+      // selection: (((Key, NodeSet)) => Boolean) => Model
+    // ): Model = separateExtended(elm, selection) -- (separate(elm, selection).keySet)
     
     def restrictKeys(ks: Set[Key]): Model = collect { case (k,ns) if ks.contains(k) => (k, ns) } 
     def excludeKeys(ks: Set[Key]): Model = collect { case (k,ns) if !ks.contains(k) => (k, ns) } 
@@ -365,6 +377,13 @@ package reqt {
     def ![T](a: AttributeKind[T]): Option[T] = get(a)
     def getOrDefault[T](a:AttributeKind[T]):T = get(a).getOrElse(a.default)
     def !![T](a:AttributeKind[T]):T = getOrDefault(a)
+
+    def toMap[T](a: AttributeKind[T]): Map[Entity, Attribute[T]] = collect { 
+      case (Key(e,r),ns) if ns.exists(_ <==> a) => (e, ns.find(_ <==> a).get match {
+          case attr: Attribute[T] => attr
+        }
+      ) : (Entity, Attribute[T])
+     } .toMap
 
     // ---- update methods
     def updateNode(pf: PartialFunction[Node[_], Node[_]]): Model = {
