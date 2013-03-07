@@ -498,7 +498,7 @@ package reqt {
         case x::Nil => x::Nil
         case x::xs => 
           if (xs.exists(_.hasEqualPrefix(x))) 
-            { warn("Duplicate" + keyStr(keyOpt) + " ignored: "+x); removeDup(xs) } 
+            { warn("Duplicate" + keyStr(keyOpt) + " overwritten: "+x); removeDup(xs) } 
           else x::removeDup(xs) 
       }
       NodeSet(removeDup(nodes.toList).toSet)
