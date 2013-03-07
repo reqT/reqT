@@ -27,8 +27,8 @@ package reqt {
     override def empty = new Model(LinkedHashMap.empty)  // LinkedHashMap keeps insert order
     def +[B1 >: NodeSet](kv: (Key, B1)): Model =  kv match {
       case (k: Key, ns: NodeSet) =>
-        if (!ns.isEmpty) {
-          val m2 = mappings
+        if (!ns.isEmpty) { //TODO consider allow empty nodesets for Model(Feature("x"))
+          val m2 = mappings.clone
           new Model( m2 + (k -> { if (!m2.isDefinedAt(k)) ns else m2(k).concatNodes(ns, Some(k))  } ))
         } else this
       case _ => warn("Key must map to NodeSet. Ignored:" + kv._2); this
@@ -89,17 +89,19 @@ package reqt {
     }
     
     def -(entity: Entity, edge: Edge, node: Node[_]): Model = { //TODO is this really needed???
+      //TODO recursive removal in submodels??
       val k = Key(entity, edge)
       mappings.get(k) match {
         case Some(ns) =>
           val newNodes = ns - node
-          val m2 = mappings
+          val m2 = mappings.clone
           if (newNodes.isEmpty) new Model(m2 - k) else new Model(m2 - k + (k -> (ns - node)))
         case None => this
       }
     }
 	
     def -(kns: (Key, NodeSet)): Model = {
+      //TODO recursive removal in submodels??
       val (k, nsToBeRemoved) = kns
       mappings.get(k) match {
         case Some(ns) => 
@@ -110,18 +112,26 @@ package reqt {
     }  
 	
     def removeEdgeToNodesToAll(el: EdgeToNodes):Model = { 
+      //TODO recursive removal in submodels??
         map { case (Key(en, ed), ns) => 
           val isSame: Boolean = el.edge match { case e: EdgeKind => e <==> ed; case e => e == ed } 
           if (isSame) (Key(en, ed), NodeSet(ns diff el.nodes)) else (Key(en, ed), ns) } 
     }    
     def -(el: EdgeToNodes): Model = removeEdgeToNodesToAll(el)
     def -(ns: Node[_] *): Model = {
-      //TODO fix m - Label  ;;  ns2.filterNot(n => ns.exists{case nk: NodeKind => nk <==> n})
-      //TODO recursive removal in submodels
-      val result = map { case (Key(en, ed), ns2) => (Key(en, ed), NodeSet((ns2.nodes diff ns.toSet).filterNot(n => ns.exists{ case nk: NodeKind => nk <==> n; case _ => false}))) }
-      result filterNot { case (Key(en, _), _) =>  ns.exists(_ == en) || ns.exists{ case nk: NodeKind => nk <==> en; case _ => false}}       
+      val removedInNodeSet = map { case (Key(en, ed), ns2) => (Key(en, ed), NodeSet((ns2.nodes diff ns.toSet).filterNot(n =>      
+        ns.exists { 
+          case nk: NodeKind => nk <==> n
+          case _ => false
+        } ))) 
+      }
+      val removedInKeys = removedInNodeSet.filterNot { 
+        case (Key(en, _), _) =>  
+          ns.exists(_ == en) || ns.exists{ case nk: NodeKind => nk <==> en; case _ => false } 
+      } 
+      removedInKeys transformAttribute { case Submodel(m) => Submodel(m.-(ns.toSeq:_*)) } 
     }
-	def -(es: Set[Entity]): Model = this - (es.toSeq:_ *)
+    def -(es: Set[Entity]): Model = this - (es.toSeq:_ *)
     //---- string methods    
     override def toString: String = 
       if (Model.overrideToStringWithToScala) toScala else super.toString
@@ -395,7 +405,7 @@ package reqt {
       }
       if (entities.contains(e2)) {
         warn(s"Discarding replace (perhaps in submodel) from $e1 to existing entity $e2" + 
-             s"\nEither remove $e2 first or use transform.")
+             s"\nEither remove $e2 first or use transformEntity.")
         this
       } else this collect {
         case (Key(e,r),ns) if (e == e1) => (Key(e2,r), updateNS(ns)) 
@@ -403,21 +413,21 @@ package reqt {
       }
     }
          
-    def transform(pf: PartialFunction[Entity, Entity]): Model = {
+    def transformEntity(pf: PartialFunction[Entity, Entity]): Model = {
       val pfoe = pf.orElse[Entity, Entity] { case e => e }
       def updateNS(ns: NodeSet): NodeSet = ns.nodes map {
-        case sm: Submodel => Submodel(sm.value.transform(pf)) //non-tail-recursive call 
+        case sm: Submodel => Submodel(sm.value.transformEntity(pf)) //non-tail-recursive call 
         case e: Entity => pfoe(e) 
         case a => a 
       }
       map { case (Key(en, ed), ns) => (Key(pfoe(en), ed), updateNS(ns)) } 
     }
     
-    def transform(pf: PartialFunction[Attribute[_], Attribute[_]]): Model = {
+    def transformAttribute(pf: PartialFunction[Attribute[_], Attribute[_]]): Model = {
      val pfoe = pf.orElse[Attribute[_],Attribute[_]] { case n: Attribute[_] => n }
      def updateNS(ns: NodeSet): NodeSet = {
         val newNodeSet = ns.nodes map {
-          case sm: Submodel => Submodel(sm.value.transform(pf)) //non-tail-recursive call 
+          case sm: Submodel => pfoe(Submodel(sm.value.transformAttribute(pf))) //non-tail-recursive call 
           case n: Attribute[_] => pfoe(n)
           case any => any
         }
@@ -429,13 +439,13 @@ package reqt {
       } 
     }
 
-    def transform(pf: PartialFunction[Relation, Relation]): Model = {
+    def transformRelation(pf: PartialFunction[Relation, Relation]): Model = {
       val pfoe = pf.orElse[Relation,Relation] { case r => r }
       map { case (Key(en, ed), ns) => (ed match { case r: Relation => (Key(en, pfoe(r) : Edge), ns); case _ => (Key(en, ed), ns) } ) } 
     }
 
-    def up: Model = transform { case n: Status => n.up }
-    def down: Model = transform { case n: Status => n.down }
+    def up: Model = transformAttribute { case n: Status => n.up }
+    def down: Model = transformAttribute { case n: Status => n.down }
     def up(e: Entity): Model = 
       if (this / e ! Status == None) { warn(e + "has no status!"); this} 
       else (this / e).up ++ (this \ e)
@@ -443,7 +453,7 @@ package reqt {
       if (this / e ! Status == None) { warn(e + "has no status!"); this} 
       else (this / e).down ++ (this \ e)
     def drop: Model = this - ( this / Status(DROPPED)).entities
-    def loadExternals: Model = transform { case n: External[_] => n.fromFile}
+    def loadExternals: Model = transformAttribute { case n: External[_] => n.fromFile}
     //---- visitor methods
     lazy val entityEdgeSet = keySet.collect { case Key(e,l) => (e,l) } 
     lazy val entityEdgeList = entityEdgeSet.toList.sortWith(_.toString < _.toString) 
