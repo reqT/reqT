@@ -129,7 +129,7 @@ package reqt {
         case (Key(en, _), _) =>  
           ns.exists(_ == en) || ns.exists{ case nk: NodeKind => nk <==> en; case _ => false } 
       } 
-      removedInKeys transformAttribute { case Submodel(m) => Submodel(m.-(ns.toSeq:_*)) } 
+      removedInKeys updateAttribute { case Submodel(m) => Submodel(m.-(ns.toSeq:_*)) } 
     }
     def -(es: Set[Entity]): Model = this - (es.toSeq:_ *)
     //---- string methods    
@@ -397,15 +397,15 @@ package reqt {
      } .toMap
 
     // ---- transformation methods  
-    def replace(e1: Entity, e2: Entity): Model = { //safer than transform 
+    def replace(e1: Entity, e2: Entity): Model = { //safer than updateEntity 
       def updateNS(ns: NodeSet): NodeSet = ns.map { 
         case n if (n == e1) => e2 
         case sm: Submodel => Submodel(sm.value.replace(e1,e2)) //non-tail-recursive call
         case any => any
       }
       if (entities.contains(e2)) {
-        warn(s"Discarding replace (perhaps in submodel) from $e1 to existing entity $e2" + 
-             s"\nEither remove $e2 first or use transformEntity.")
+        warn(s"Discarding replace (perhaps in Submodel) from $e1 to existing entity $e2" + 
+             s"\nEither remove $e2 first or use updateEntity.")
         this
       } else this collect {
         case (Key(e,r),ns) if (e == e1) => (Key(e2,r), updateNS(ns)) 
@@ -413,21 +413,21 @@ package reqt {
       }
     }
          
-    def transformEntity(pf: PartialFunction[Entity, Entity]): Model = {
+    def updateEntity(pf: PartialFunction[Entity, Entity]): Model = {
       val pfoe = pf.orElse[Entity, Entity] { case e => e }
       def updateNS(ns: NodeSet): NodeSet = ns.nodes map {
-        case sm: Submodel => Submodel(sm.value.transformEntity(pf)) //non-tail-recursive call 
+        case sm: Submodel => Submodel(sm.value.updateEntity(pf)) //non-tail-recursive call 
         case e: Entity => pfoe(e) 
         case a => a 
       }
       map { case (Key(en, ed), ns) => (Key(pfoe(en), ed), updateNS(ns)) } 
     }
     
-    def transformAttribute(pf: PartialFunction[Attribute[_], Attribute[_]]): Model = {
+    def updateAttribute(pf: PartialFunction[Attribute[_], Attribute[_]]): Model = {
      val pfoe = pf.orElse[Attribute[_],Attribute[_]] { case n: Attribute[_] => n }
      def updateNS(ns: NodeSet): NodeSet = {
         val newNodeSet = ns.nodes map {
-          case sm: Submodel => pfoe(Submodel(sm.value.transformAttribute(pf))) //non-tail-recursive call 
+          case sm: Submodel => pfoe(Submodel(sm.value.updateAttribute(pf))) //non-tail-recursive call 
           case n: Attribute[_] => pfoe(n)
           case any => any
         }
@@ -439,13 +439,13 @@ package reqt {
       } 
     }
 
-    def transformRelation(pf: PartialFunction[Relation, Relation]): Model = {
+    def updateRelation(pf: PartialFunction[Relation, Relation]): Model = {
       val pfoe = pf.orElse[Relation,Relation] { case r => r }
       map { case (Key(en, ed), ns) => (ed match { case r: Relation => (Key(en, pfoe(r) : Edge), ns); case _ => (Key(en, ed), ns) } ) } 
     }
 
-    def up: Model = transformAttribute { case n: Status => n.up }
-    def down: Model = transformAttribute { case n: Status => n.down }
+    def up: Model = updateAttribute { case n: Status => n.up }
+    def down: Model = updateAttribute { case n: Status => n.down }
     def up(e: Entity): Model = 
       if (this / e ! Status == None) { warn(e + "has no status!"); this} 
       else (this / e).up ++ (this \ e)
@@ -453,7 +453,7 @@ package reqt {
       if (this / e ! Status == None) { warn(e + "has no status!"); this} 
       else (this / e).down ++ (this \ e)
     def drop: Model = this - ( this / Status(DROPPED)).entities
-    def loadExternals: Model = transformAttribute { case n: External[_] => n.fromFile}
+    def loadExternals: Model = updateAttribute { case n: External[_] => n.fromFile}
     //---- visitor methods
     lazy val entityEdgeSet = keySet.collect { case Key(e,l) => (e,l) } 
     lazy val entityEdgeList = entityEdgeSet.toList.sortWith(_.toString < _.toString) 
