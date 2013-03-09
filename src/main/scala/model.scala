@@ -71,12 +71,12 @@ package reqt {
     }
     def pp(until: Int) { pp(0, until min size max 0)}
     def pp { pp(0, size) }
-	
+    
     //----- apply, updated and sorted methods
     def apply[T](ar: AttrRef[T]):T = this / ar.ent !! ar.attrKind
     def apply[T](sr: SubRef[T]):T = ( this / sr.ent !! Submodel )(sr.ar)
     def updated[T](ar: AttrRef[T], v: T): Model = this + ar.ent.has(ar.attrKind(v))
-    def updated[T](sr: SubRef[T], v: T) = { //TODO make this recursive
+    def updated[T](sr: SubRef[T], v: T) = { //TODO make this recursive ???
       val sm = this / sr.ent !! Submodel
       val smUpdated = sm + sr.ar.ent.has(sr.ar.attrKind(v)) 
       this + sr.ent.has(Submodel(smUpdated))
@@ -443,7 +443,13 @@ package reqt {
       val pfoe = pf.orElse[Relation,Relation] { case r => r }
       map { case (Key(en, ed), ns) => (ed match { case r: Relation => (Key(en, pfoe(r) : Edge), ns); case _ => (Key(en, ed), ns) } ) } 
     }
+    
+    def collectNodes[T](pf: PartialFunction[Node[_], T]): Seq[T] = {
+      (collect { case (k,ns) => ns.toSeq.collect(pf) } ).toSeq.flatten
+    }
 
+    def submodels: Vector[Model] = collectNodes { case Submodel(m) => m } toVector
+    
     def up: Model = updateAttribute { case n: Status => n.up }
     def down: Model = updateAttribute { case n: Status => n.down }
     def up(e: Entity): Model = 
