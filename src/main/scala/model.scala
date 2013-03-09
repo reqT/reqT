@@ -376,7 +376,9 @@ package reqt {
         missingSpecs.mkString(", "))
       !hasMultiOwners && !hasMissingSpecs
     }
-   
+    
+    lazy val isDeep = ( this / Submodel ).size > 0
+    
     //---- attribute extraction methods
     def get[T](a: AttributeKind[T]): Option[T] = attributes.find(_ <==> a) match {
       case Some(attr) => Some(attr.value.asInstanceOf[T])
@@ -446,6 +448,12 @@ package reqt {
     }
 
     lazy val submodels: ModelVector = ModelVector( collectNodes { case Submodel(m) => m } toSeq :_* )
+    lazy val flatten: Model = (ModelVector(this - Submodel) ++ this.submodels).merge
+    def flattenAll(): Model = {
+      val flat = flatten
+      if (!flat.isDeep) flat
+      else flat.flattenAll
+    }
     
     def up: Model = updateAttribute { case n: Status => n.up }
     def down: Model = updateAttribute { case n: Status => n.down }
