@@ -20,9 +20,7 @@ package object reqt {
   
   implicit def attrRefToVar(ref: AttrRef[Int]): Var[AttrRef[Int]] = Var(ref)  
   implicit def rangeToInterval(r: Range): Interval = Interval(r.min, r.max)
-  implicit class ModelImpose(m: Model) {
-    def impose[T](cs: Seq[Constr[T]]) = CSP(m, cs)
-  }
+
   implicit class RangeSeqOps(rs: Seq[Range]) { //to enable > Var("x")::Seq(1 to 10, 12 to 15)
     def ::[T](v: Var[T]): Bounds[T] = Bounds(Seq(v), rs.map(rangeToInterval(_)))
     def ::[T](vs: Seq[Var[T]]): Bounds[T] = Bounds(vs, rs.map(rangeToInterval(_)))

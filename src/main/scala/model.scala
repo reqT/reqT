@@ -468,42 +468,9 @@ package reqt {
     //---
     def split(mv: ModelVector): ModelVector = mv.split(this)
    
-/*     def depthFirstVisit[A](startNodes: List[Entity])(
-      preVisitor:(Entity, List[Entity], Int, Int, Int) => A,
-      postVisitor:(Entity, List[Entity], Int, Int, Int) => A
-    ) :(List[A], Int, Int) = {
-      var visitedEnts: Set[Entity] = Set()
-      def isVisited(e: Entity): Boolean = visitedEnts.contains(e)
-      def mark(e: Entity) {visitedEnts += e}
-      def markAndGetChildren(e: Entity) = { mark(e); destinationsOf(e) }
-      var maxNumberOfChildren = 0
-      var depth = 0
-      var result = scala.collection.mutable.Buffer[A]()
-      def visitAll(path:List[Entity], kids: List[Entity], level: Int) {
-        if (kids.size > maxNumberOfChildren) maxNumberOfChildren = kids.size
-        if (level > depth) depth = level
-        val nSiblings = kids.size
-        for ((e, i) <- (kids zip (0 to nSiblings-1))) {
-          result += preVisitor(e, path, level, i, nSiblings) 
-          if (!isVisited(e)) visitAll(e :: path, markAndGetChildren(e).toList, level + 1)
-          result += postVisitor(e, path, level, i, nSiblings) 
-        }
-      }
-      visitAll(List(), startNodes, 0) 
-      (result.toList, depth, maxNumberOfChildren)
-    }
-    
-    def depthFirstSearch(startNodes: Set[Entity]):Set[Entity] = {
-      var visited: Set[Entity] = Set()
-      def isVisited(e: Entity): Boolean = visited.contains(e)
-      def markAndGetChildren(e: Entity) = { visited += e; destinationsOf(e) }
-      def visitAll(nodes: Set[Entity]) {
-        for (e <- nodes) if (!isVisited(e)) visitAll(markAndGetChildren(e))
-      }
-      visitAll(startNodes) 
-      visited
-    } */
-
+    //--- integration with constraints:
+    def impose[T](cs: Seq[Constr[T]]) = CSP( this , cs)
+    def impose(cs: Constraints) = CSP( this , cs.value)    
   }
 
   object Model extends {

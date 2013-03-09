@@ -345,7 +345,8 @@ package reqt {
   case object Submodel extends Attribute[Model] with AttributeKind[Model] { val default = Model() }  
 
   case class Constraints(value: Vector[Constr[Any]]) extends ConstrSeqAttr {
-	def satisfy = value.solve(Satisfy)
+    def satisfy = value.solve(Satisfy)
+    def toModel = (Model() impose this) satisfy
   }
   case object Constraints extends ConstrSeqAttr with AttributeKind[Vector[Constr[Any]]] {
     def apply(cs: Constr[Any] * ): Constraints = Constraints(cs.toVector)
