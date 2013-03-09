@@ -359,6 +359,26 @@ package reqt {
   case class Submodel(value: Model) extends Attribute[Model] { val default = Model() }
   case object Submodel extends Attribute[Model] with AttributeKind[Model] { val default = Model() }  
 
+  case class Code(value: String) extends StringAttr {
+    def run: String = {
+      Model.interpreter match {
+        case None => 
+          warn("No interpreter avialable: result is empty String" +
+            "\nTo make an interpreter available, you can do this:" +
+            "\n  in the REPL: Model.interpreter = Some($intp)" +
+            "\n  in Kojo:     Model.interpreter = Some(builtins.kojoInterp)"
+          )
+          ""
+        case Some(i) => 
+          val result = Array[String]("")
+          i.beQuietDuring(i.bind("result", "Array[String]", result))
+          i.quietRun("result(0) = {" + value + "}.toString")
+          result(0)          
+      } 
+    }
+  }
+  case object Code extends StringAttr with AttributeKind[String]   
+  
   case class Constraints(value: Vector[Constr[Any]]) extends ConstrSeqAttr {
     def satisfy = value.solve(Satisfy)
     def toModel = (Model() impose this) satisfy
@@ -472,6 +492,7 @@ package reqt {
     def Capacity(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Capacity(value)))
     def Urgency(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Urgency(value)))
     def Submodel(value: Model) = EdgeToNodes(has(), NodeSet(reqt.Submodel(value)))
+    def Code(value: String) = EdgeToNodes(has(), NodeSet(reqt.Code(value)))
     def Constraints[T](value: Vector[Constr[T]]) = EdgeToNodes(has(), NodeSet(reqt.Constraints(value)))
     def Constraints[T](value: Constr[T] *) = EdgeToNodes(has(), NodeSet(reqt.Constraints(value.toVector)))
     def Label(value: String) = EdgeToNodes(has(), NodeSet(reqt.Label(value)))
