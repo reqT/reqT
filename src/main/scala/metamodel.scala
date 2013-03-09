@@ -215,6 +215,8 @@ package reqt {
   abstract class Requirement extends Entity 
   case class Req(value: String) extends Requirement
   case object Req extends Requirement with EntityKind  
+  case class Idea(value: String) extends Requirement 
+  case object Idea extends Requirement with EntityKind 
   case class Goal(value: String) extends Requirement 
   case object Goal extends Requirement with EntityKind 
   case class Feature(value: String) extends Requirement   
@@ -227,6 +229,10 @@ package reqt {
   case object Interface extends Requirement with EntityKind   
   case class Design(value: String) extends Requirement   
   case object Design extends Requirement with EntityKind   
+  case class Issue(value: String) extends Requirement   
+  case object Issue extends Requirement with EntityKind   
+  case class Ticket(value: String) extends Requirement   
+  case object Ticket extends Requirement with EntityKind   
   
   abstract class Data extends Requirement
   case class Class(value: String) extends Requirement   
@@ -387,6 +393,7 @@ package reqt {
     def Resource(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Resource(id)))
     def Frame(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Frame(id)))
     def Req(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Req(id)))
+    def Idea(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Idea(id)))
     def Goal(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Goal(id)))
     def Feature(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Feature(id)))
     def Function(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Function(id)))
@@ -395,6 +402,8 @@ package reqt {
     def Quality(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Quality(id)))
     def Interface(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Interface(id)))
     def Design(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Design(id)))
+    def Issue(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Issue(id)))
+    def Ticket(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Ticket(id)))
     def UserStory(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.UserStory(id)))
     def UseCase(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.UseCase(id)))
     def Task(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Task(id)))
