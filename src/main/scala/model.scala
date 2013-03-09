@@ -72,6 +72,8 @@ package reqt {
     def pp(until: Int) { pp(0, until min size max 0)}
     def pp { pp(0, size) }
     
+    def ppg { toMap(Gist) foreach { case (f,g) => println(f.toScala + " has " + g.toScala) } }
+	
     //----- apply, updated and sorted methods
     def apply[T](ar: AttrRef[T]):T = this / ar.ent !! ar.attrKind
     def apply[T](sr: SubRef[T]):T = ( this / sr.ent !! Submodel )(sr.ar)
@@ -210,12 +212,7 @@ package reqt {
       case Scenario => selection(ke => ke._2.nodes.exists(_.isInstanceOf[Scenario]))
       case _ => selection(ke => ke._2.nodes.exists(_ == elm)) //Only  destinations
     } 
-     
-    // deprecated definition of separateDestinations that does not give correct results for /-> Feature
-    // def separateDestinations(elm: Element, 
-      // selection: (((Key, NodeSet)) => Boolean) => Model
-    // ): Model = separateExtended(elm, selection) -- (separate(elm, selection).keySet)
-    
+
     def restrictKeys(ks: Set[Key]): Model = collect { case (k,ns) if ks.contains(k) => (k, ns) } 
     def excludeKeys(ks: Set[Key]): Model = collect { case (k,ns) if !ks.contains(k) => (k, ns) } 
     //above restictKeys / excludeKeys are specal cases needed by ModelVector.split and set operations over keySet
