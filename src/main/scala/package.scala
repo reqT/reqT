@@ -90,7 +90,7 @@ package object reqt {
   implicit object whyMaker extends AttrFromString[Why] { def apply(s: String): Why = Why(s) }
   implicit object exampleMaker extends AttrFromString[Example] { def apply(s: String): Example = Example(s) }
   implicit object commentMaker extends AttrFromString[Comment] { def apply(s: String): Comment = Comment(s) }
-  implicit object modelMaker extends AttrFromString[Submodel] { def apply(s: String): Submodel = Submodel(Model.interpret(s)) }
+  implicit object submodelMaker extends AttrFromString[Submodel] { def apply(s: String): Submodel = Submodel(Model.interpret(s)) }
   
   object defaultHtmlGenerator extends HtmlGenerator 
   lazy val defaultDocumentTemplate = DocumentTemplate(
