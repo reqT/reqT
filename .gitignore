@@ -1,2 +1,4 @@
 target/
 project/
+workspace/
+!workspace/reqT*
