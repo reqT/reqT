@@ -445,7 +445,7 @@ package reqt {
       (collect { case (k,ns) => ns.toSeq.collect(pf) } ).toSeq.flatten
     }
 
-    def submodels: Vector[Model] = collectNodes { case Submodel(m) => m } toVector
+    lazy val submodels: ModelVector = ModelVector( collectNodes { case Submodel(m) => m } toSeq :_* )
     
     def up: Model = updateAttribute { case n: Status => n.up }
     def down: Model = updateAttribute { case n: Status => n.down }
@@ -457,6 +457,7 @@ package reqt {
       else (this / e).down ++ (this \ e)
     def drop: Model = this - ( this / Status(DROPPED)).entities
     def loadExternals: Model = updateAttribute { case n: External[_] => n.fromFile}
+    
     //---- visitor methods
     lazy val entityEdgeSet = keySet.collect { case Key(e,l) => (e,l) } 
     lazy val entityEdgeList = entityEdgeSet.toList.sortWith(_.toString < _.toString) 
@@ -474,6 +475,22 @@ package reqt {
     //--- integration with constraints:
     def impose[T](cs: Seq[Constr[T]]) = CSP( this , cs)
     def impose(cs: Constraints) = CSP( this , cs.value)    
+    
+    //--- code and testcase execution
+    
+    def run() = toMap(Code)  map { case (e, Code(c)) => (e, Code(c).run) }
+    def run(ent: Entity): String = Code( this / ent !! Code ) .run
+    lazy val test: Boolean = {
+      val results = toMap(Expectation).map { case (TestCase(ent), Expectation(exp)) =>
+        val res = this.run(TestCase(ent))
+        if (exp == res) true
+        else { 
+          warn("FAILED: " + TestCase(ent) + s"\n  Expected: $exp\n  Found:    $res" ) 
+          false 
+        } 
+      } .toSeq
+      results reduce (_ && _)
+    }
   }
 
   object Model extends {

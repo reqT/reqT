@@ -252,6 +252,8 @@ package reqt {
 
   case class UseCase(value: String) extends Scenario  
   case object UseCase extends Scenario with EntityKind   
+  case class TestCase(value: String) extends Scenario  
+  case object TestCase extends Scenario with EntityKind   
   case class Task(value: String) extends Scenario  
   case object Task extends Scenario with EntityKind  
   case class VividScenario(value: String) extends Scenario  
@@ -304,6 +306,9 @@ package reqt {
   
   case class Example(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED EXAMPLE" }
   case object Example extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED EXAMPLE" }
+
+  case class Expectation(value: String) extends StringAttr
+  case object Expectation extends StringAttr with AttributeKind[String]
   
   case class Input(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED INPUT" }
   case object Input extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED INPUT" }
@@ -437,7 +442,7 @@ package reqt {
     def Story(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Story(id)))
     
     def UseCase(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.UseCase(id)))
- 
+    def TestCase(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.TestCase(id)))
     def Task(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Task(id)))
     def VividScenario(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.VividScenario(id)))
   }
@@ -478,6 +483,7 @@ package reqt {
     def Status(value: Level) = EdgeToNodes(has(), NodeSet(reqt.Status(value)))
     def Why(value: String) = EdgeToNodes(has(), NodeSet(reqt.Why(value)))
     def Example(value: String) = EdgeToNodes(has(), NodeSet(reqt.Example(value)))
+    def Expectation(value: String) = EdgeToNodes(has(), NodeSet(reqt.Expectation(value)))
     def Input(value: String) = EdgeToNodes(has(), NodeSet(reqt.Input(value)))
     def Output(value: String) = EdgeToNodes(has(), NodeSet(reqt.Output(value)))
     def Trigger(value: String) = EdgeToNodes(has(), NodeSet(reqt.Trigger(value)))
@@ -584,13 +590,14 @@ package reqt {
 
     def apply(idx: Int): Model = models(idx)
 
-    override def toString = if (isEmpty) "ModelVector()" 
-      else "ModelVector(\n" + models.map(
-        m => "Model(... " + 
-          m.size + " keys; " + 
-          m.entities.size + " entities, " + 
-          m.relations.size + " relations ...)"
-      ).mkString(" ",",\n ","\n") + ")"
+    // override def toString = if (isEmpty) "ModelVector()" 
+      // else "ModelVector(\n" + models.map(
+        // m => "Model(... " + 
+          // m.size + " keys; " + 
+          // m.entities.size + " entities, " + 
+          // m.relations.size + " relations ...)"
+      // ).mkString(" ",",\n ","\n") + ")"
+      
     lazy val merge: Model = reduce(_ ++ _)
     lazy val overlap: Model = reduce(_ & _)
     def split(pivot: Model): ModelVector = {

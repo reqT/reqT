@@ -50,10 +50,10 @@ package object reqt {
   lazy val nodeKinds: List[Element] = entityKinds ++ attributeKinds
   lazy val entityKinds: List[Element] = contextKinds ++ requirementKinds
   lazy val contextKinds: List[Element] = List(Product, Release, Stakeholder, Actor, Resource, Frame)
-  lazy val scenarioKinds: List[Element] = List(Story, UseCase, Task, VividScenario)
+  lazy val scenarioKinds: List[Element] = List(Story, UseCase, TestCase, Task, VividScenario)
   lazy val dataKinds: List[Element] = List(Class, Member)
   lazy val requirementKinds: List[Element] = List(Req, Idea, Goal, Feature, Function, Quality, Interface, Design, Issue, Ticket) ++ scenarioKinds ++ dataKinds
-  lazy val attributeKinds: List[Element] = List(Gist, Spec, Status, Why, Example, Input, Output, Trigger, Precond, Frequency, Critical, Problem, Prio, Order, Cost, Benefit, Capacity, Urgency, Label, Comment, Image, Deprecated, Submodel, Code, Constraints)
+  lazy val attributeKinds: List[Element] = List(Gist, Spec, Status, Why, Example, Expectation, Input, Output, Trigger, Precond, Frequency, Critical, Problem, Prio, Order, Cost, Benefit, Capacity, Urgency, Label, Comment, Image, Deprecated, Submodel, Code, Constraints)
   lazy val egdeKinds: List[Element] = List(has, owns, requires, excludes, releases, helps, hurts, precedes, inherits, implements, assigns, deprecates)
   lazy val levelIndex: Map[Level, Int] = Map(DROPPED -> 0, ELICITED -> 1, SPECIFIED -> 2, VALIDATED -> 3, POSTPONED -> 4, PLANNED -> 5, FAILED -> 6, IMPLEMENTED -> 7, TESTED -> 8, RELEASED -> 9)
   
@@ -89,6 +89,7 @@ package object reqt {
   implicit object exampleMaker extends AttrFromString[Example] { def apply(s: String): Example = Example(s) }
   implicit object commentMaker extends AttrFromString[Comment] { def apply(s: String): Comment = Comment(s) }
   implicit object submodelMaker extends AttrFromString[Submodel] { def apply(s: String): Submodel = Submodel(Model.interpret(s)) }
+  implicit object codeMaker extends AttrFromString[Code] { def apply(s: String): Code = Code(s) }
   
   object defaultHtmlGenerator extends HtmlGenerator 
   lazy val defaultDocumentTemplate = DocumentTemplate(
