@@ -170,7 +170,10 @@ package reqt {
     def separate(elm: Element, 
       selection: (((Key, NodeSet)) => Boolean) => Model
     ): Model = elm match {
-      case a: AttributeKind[_] => selection(ke => ke._2.nodes.exists(_ <==> a ) )
+      case a: AttributeKind[_] => a match {
+        case e: External.type => selection(ke => ke._2.nodes.exists(_.isInstanceOf[External[_]] ) )
+        case _ => selection(ke => ke._2.nodes.exists(_ <==> a ) )
+      }
       case a: Attribute[_] => selection(ke => ke._2.nodes.exists(_ == a ) )
       case n: NodeKind => selection(ke => ke._1.entity <==> n || 
           (ke._1.edge match { case rwa: RelationWithAttribute[_] => rwa.attribute <==> n; case _ => false } ) )
@@ -186,7 +189,10 @@ package reqt {
     def separateExtended(elm: Element, 
       selection: (((Key, NodeSet)) => Boolean) => Model
     ): Model = elm match {
-      case a: AttributeKind[_] => selection(ke => ke._2.nodes.exists(_ <==> a ) )
+      case a: AttributeKind[_] => a match {
+        case e: External.type => selection(ke => ke._2.nodes.exists(_.isInstanceOf[External[_]] ) )
+        case _ => selection(ke => ke._2.nodes.exists(_ <==> a ) )
+      }
       case a: Attribute[_] => selection(ke => ke._2.nodes.exists(_ == a ) )
       case n: NodeKind => selection(ke => ke._1.entity <==> n || 
           ke._2.nodes.exists(_ <==> n) || //Extend with destinations
@@ -204,7 +210,10 @@ package reqt {
     def separateDestinations(elm: Element, 
       selection: (((Key, NodeSet)) => Boolean) => Model
     ): Model = elm match {
-      case a: AttributeKind[_] => selection(ke => ke._2.nodes.exists(_ <==> a ) )
+      case a: AttributeKind[_] => a match {
+        case e: External.type => selection(ke => ke._2.nodes.exists(_.isInstanceOf[External[_]] ) )
+        case _ => selection(ke => ke._2.nodes.exists(_ <==> a ) )
+      }
       case a: Attribute[_] => selection(ke => ke._2.nodes.exists(_ == a ) )
       case n: NodeKind => selection(ke => ke._2.nodes.exists(_ <==> n))  
       case Context => selection(ke => ke._2.nodes.exists(_.isInstanceOf[Context])) 
@@ -489,7 +498,7 @@ package reqt {
     
     //--- code and testcase execution
     
-    def run() = toMap(Code).map { case (e, Code(c)) => (e, Code(c).run) }
+    def run() = loadExternals.toMap(Code).collect { case (e, Code(c)) => (e, Code(c).run) }
     def run(ent: Entity): String = Code( this / ent !! Code ) .run
     def tested() = {
       var newModel = this
