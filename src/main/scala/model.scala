@@ -486,14 +486,31 @@ package reqt {
     
     //--- code and testcase execution
     
-    def run() = toMap(Code)  map { case (e, Code(c)) => (e, Code(c).run) }
+    def run() = toMap(Code).map { case (e, Code(c)) => (e, Code(c).run) }
     def run(ent: Entity): String = Code( this / ent !! Code ) .run
-    lazy val test: Boolean = {
+    def tested() = {
+      var newModel = this
+      toMap(Code).map { case (TestCase(ent), Code(code)) =>
+        newModel += TestCase(ent) has Output(Code(code).run)
+      }
+      newModel
+    }
+    lazy val testMap: Map[Entity,(String, String)] = {
+      val output = toMap(Output)
+      val expect = toMap(Expectation)
+      val result = output collect { case (TestCase(ent), Output(str)) if expect.isDefinedAt(TestCase(ent))   => 
+        (TestCase(ent),(str, expect(TestCase(ent)).value))
+      }
+      result.toMap
+    }
+    lazy val testFailed = testMap.filterNot { case (_,(s1,s2)) =>  s1 == s2 }
+    lazy val testPassed = testMap.filter { case (_,(s1,s2)) =>  s1 == s2 }
+    def isTestOk: Boolean = {
       val results = toMap(Expectation).map { case (TestCase(ent), Expectation(exp)) =>
         val res = this.run(TestCase(ent))
         if (exp == res) true
         else { 
-          warn("FAILED: " + TestCase(ent) + s"\n  Expected: $exp\n  Found:    $res" ) 
+          warn("FAILED: " + TestCase(ent) + s"\n  Output:    $res\n  Expectation: $exp" ) 
           false 
         } 
       } .toSeq
