@@ -50,7 +50,7 @@ package object reqt {
   lazy val nodeKinds: List[Element] = entityKinds ++ attributeKinds
   lazy val entityKinds: List[Element] = contextKinds ++ requirementKinds
   lazy val contextKinds: List[Element] = List(Product, Release, Stakeholder, Actor, Resource, Frame)
-  lazy val scenarioKinds: List[Element] = List(Story, UseCase, TestCase, Task, VividScenario)
+  lazy val scenarioKinds: List[Element] = List(UserStory, UseCase, TestCase, Task, VividScenario)
   lazy val dataKinds: List[Element] = List(Class, Member)
   lazy val requirementKinds: List[Element] = List(Req, Idea, Goal, Feature, Function, Quality, Interface, Design, Issue, Ticket) ++ scenarioKinds ++ dataKinds
   lazy val attributeKinds: List[Element] = List(Gist, Spec, Status, Why, Example, Expectation, Input, Output, Trigger, Precond, Frequency, Critical, Problem, Prio, Order, Cost, Benefit, Capacity, Urgency, Label, Comment, Image, Deprecated, Submodel, Code, Constraints)

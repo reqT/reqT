@@ -241,15 +241,8 @@ package reqt {
   case object Member extends Requirement with EntityKind    
   
   abstract class Scenario extends Requirement
-  
-  @deprecated("use Story instead", "2.3")
   case class UserStory(value: String) extends Scenario  
-  case class Story(value: String) extends Scenario  
-
-  @deprecated("use Story instead", "2.3")
   case object UserStory extends Scenario with EntityKind  
-  case object Story extends Scenario with EntityKind  
-
   case class UseCase(value: String) extends Scenario  
   case object UseCase extends Scenario with EntityKind   
   case class TestCase(value: String) extends Scenario  
@@ -436,11 +429,7 @@ package reqt {
     def Design(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Design(id)))
     def Issue(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Issue(id)))
     def Ticket(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Ticket(id)))
-
-    @deprecated("use Story instead", "2.3")
     def UserStory(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.UserStory(id)))
-    def Story(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Story(id)))
-    
     def UseCase(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.UseCase(id)))
     def TestCase(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.TestCase(id)))
     def Task(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Task(id)))
