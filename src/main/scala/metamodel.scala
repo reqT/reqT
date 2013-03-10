@@ -154,6 +154,8 @@ package reqt {
     def inherits(es:Entity *) = (Key(this, reqt.inherits()), NodeSet(es: _*))
     def implements() = Key(this, reqt.implements())
     def implements(es:Entity *) = (Key(this, reqt.implements()), NodeSet(es: _*))
+    def verifies() = Key(this, reqt.verifies())
+    def verifies(es:Entity *) = (Key(this, reqt.verifies()), NodeSet(es: _*))
     def deprecates() = Key(this, reqt.deprecates())
     def deprecates(es:Entity *) = (Key(this, reqt.deprecates()), NodeSet(es: _*))
     def assigns[T](a:Attribute[T]) = Key(this, reqt.assigns(a))
@@ -457,6 +459,8 @@ package reqt {
   case object inherits extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
   case class implements() extends RelationWithoutAttribute { def kind: Relation = implements }
   case object implements extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }  
+  case class verifies() extends RelationWithoutAttribute { def kind: Relation = verifies }
+  case object verifies extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }  
   case class deprecates() extends RelationWithoutAttribute { def kind: Relation = deprecates }
   case object deprecates extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
   abstract class RelationWithAttribute[T] extends Relation { 

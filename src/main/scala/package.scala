@@ -54,7 +54,7 @@ package object reqt {
   lazy val dataKinds: List[Element] = List(Class, Member)
   lazy val requirementKinds: List[Element] = List(Req, Idea, Goal, Feature, Function, Quality, Interface, Design, Issue, Ticket) ++ scenarioKinds ++ dataKinds
   lazy val attributeKinds: List[Element] = List(Gist, Spec, Status, Why, Example, Expectation, Input, Output, Trigger, Precond, Frequency, Critical, Problem, Prio, Order, Cost, Benefit, Capacity, Urgency, Label, Comment, Image, Deprecated, Submodel, Code, Constraints)
-  lazy val egdeKinds: List[Element] = List(has, owns, requires, excludes, releases, helps, hurts, precedes, inherits, implements, assigns, deprecates)
+  lazy val egdeKinds: List[Element] = List(has, owns, requires, excludes, releases, helps, hurts, precedes, inherits, implements, verifies, assigns, deprecates)
   lazy val levelIndex: Map[Level, Int] = Map(DROPPED -> 0, ELICITED -> 1, SPECIFIED -> 2, VALIDATED -> 3, POSTPONED -> 4, PLANNED -> 5, FAILED -> 6, IMPLEMENTED -> 7, TESTED -> 8, RELEASED -> 9)
   
   def levelLessThan(l1: Level, l2: Level): Boolean = levelIndex(l1) < levelIndex(l2)

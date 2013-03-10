@@ -381,7 +381,10 @@ package reqt {
     
     //---- attribute extraction methods
     def get[T](a: AttributeKind[T]): Option[T] = attributes.find(_ <==> a) match {
-      case Some(attr) => Some(attr.value.asInstanceOf[T])
+      case Some(attr) => attr match {
+        case e: External[_] => Some(e.fromFile.value.asInstanceOf[T]) //TODO check if this is what you want
+        case _ => Some(attr.value.asInstanceOf[T])
+      }
       case _ => None
     }
     def ![T](a: AttributeKind[T]): Option[T] = get(a)
@@ -490,7 +493,7 @@ package reqt {
     def run(ent: Entity): String = Code( this / ent !! Code ) .run
     def tested() = {
       var newModel = this
-      toMap(Code).map { case (TestCase(ent), Code(code)) =>
+      toMap(Code).collect { case (TestCase(ent), Code(code)) =>
         newModel += TestCase(ent) has Output(Code(code).run)
       }
       newModel
