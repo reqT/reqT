@@ -529,7 +529,11 @@ package reqt {
     def hasAttribute = nodes.exists(_.isInstanceOf[Attribute[_]])
     def hasEntity = nodes.exists(_.isInstanceOf[Entity])
     override def toScala = {
-      val (leftPar, rightPar) = if (nodes.size == 1) ("", "") else ("(\n    ","\n  )")
+      val (leftPar, rightPar) = nodes.size match {
+        case 0 => ("(",")")
+        case 1 => ("", "") 
+        case _ => ("(\n    ","\n  )")
+      }
       nodes.map(_.toScala).mkString(leftPar, ",\n    ", rightPar)
     }
     override def toString = prefix + nodes.map(_.toString).mkString("(", ", ", ")")

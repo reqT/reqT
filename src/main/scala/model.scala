@@ -27,7 +27,7 @@ package reqt {
     override def empty = new Model(LinkedHashMap.empty)  // LinkedHashMap keeps insert order
     def +[B1 >: NodeSet](kv: (Key, B1)): Model =  kv match {
       case (k: Key, ns: NodeSet) =>
-        if (!ns.isEmpty) { //TODO consider allow empty nodesets for Model(Feature("x"))
+        if (!ns.isEmpty || (ns.isEmpty && k.edge == has())) { //allow empty nodesets for Model(Feature("x"))
           val m2 = mappings.clone
           new Model( m2 + (k -> { if (!m2.isDefinedAt(k)) ns else m2(k).concatNodes(ns, Some(k))  } ))
         } else this
@@ -120,7 +120,7 @@ package reqt {
           if (isSame) (Key(en, ed), NodeSet(ns diff el.nodes)) else (Key(en, ed), ns) } 
     }    
     def -(el: EdgeToNodes): Model = removeEdgeToNodesToAll(el)
-    def -(ns: Node[_] *): Model = {
+    def -(ns: Node[_] *): Model = { //recursive removal in submodels
       val removedInNodeSet = map { case (Key(en, ed), ns2) => (Key(en, ed), NodeSet((ns2.nodes diff ns.toSet).filterNot(n =>      
         ns.exists { 
           case nk: NodeKind => nk <==> n
@@ -138,7 +138,7 @@ package reqt {
     override def toString: String = 
       if (Model.overrideToStringWithToScala) toScala else super.toString
     override def toScala: String = {
-      val nl = if (this.size > 1) "\n" else ""
+      val nl = if (super.toString.size > 72) "\n" else ""
       def indent(i:Int) = if (nl != "") nl + List.fill(i)("  ").mkString else ""
       stringPrefix + "(" + {
         { 
@@ -309,7 +309,7 @@ package reqt {
     def &~ (that: Model): Model = diff(that)
     
     // ---- different subsets of nodes in Model
-    lazy val sources: Set[Entity] = for (Key(e, r) <- this.keySet) yield e
+    lazy val sources: Set[Entity] = collect { case (Key(e,r),ns) => e } .toSet
     lazy val sourceVector: Vector[Entity] = collect { case (Key(e,r),ns) => e } .toVector
     lazy val destinations: Set[Entity] = { for ((k, NodeSet(ns)) <- this; n <- ns; if (n.isEntity)) yield n.asInstanceOf[Entity] } toSet 
     lazy val destinationVector: Vector[Entity] = collect { case (_,ns) => ns.collect { case e: Entity => e } } .flatten.toVector
@@ -458,9 +458,9 @@ package reqt {
     def collectNodes[T](pf: PartialFunction[Node[_], T]): Seq[T] = {
       (collect { case (k,ns) => ns.toSeq.collect(pf) } ).toSeq.flatten
     }
-
     lazy val submodels: ModelVector = ModelVector( collectNodes { case Submodel(m) => m } toSeq :_* )
-    lazy val flatten: Model = (ModelVector(this - Submodel) ++ this.submodels).merge
+    lazy val models: ModelVector = (ModelVector(this - Submodel) ++ this.submodels)
+    lazy val flatten: Model = models.merge
     def flattenAll(): Model = {
       val flat = flatten
       if (!flat.isDeep) flat

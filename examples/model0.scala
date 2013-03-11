@@ -24,3 +24,10 @@ val m1 = Model(
     Feature("smsm") has Submodel(Model(Feature("e") has Order(7)))
   ))
 )
+
+val deep = Model(
+	Feature("top") has (Gist("hello e"), Spec("world e"), Order(3), Prio(42)),
+  Feature("sub") has Submodel(Model(
+    Feature("subsub") has Submodel(Model(Feature("subsubsub") has Order(7)))
+  ))
+)

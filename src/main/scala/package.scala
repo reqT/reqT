@@ -81,7 +81,7 @@ package object reqt {
   implicit def stringToRichString(str: String): RichString = RichString(str)
   implicit def setOfNodesToNodeSet(nodes: Set[Node[_]]):NodeSet = NodeSet(nodes)
   implicit def nodeSetToSetOfNodes(nodes:NodeSet):Set[Node[_]] = nodes.nodes
-  implicit def entityToKeyNodeSetPair(e: Entity): (Key,NodeSet) = (Key(e, has()), NodeSet(Spec("???")))
+  implicit def entityToKeyNodeSetPair(e: Entity): (Key,NodeSet) = (Key(e, has()), NodeSet())
   
   // Implicits objects allowed for attribute External[T]
   implicit object specMaker extends AttrFromString[Spec] { def apply(s: String): Spec = Spec(s) }
