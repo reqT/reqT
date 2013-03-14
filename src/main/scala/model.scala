@@ -98,14 +98,24 @@ package reqt {
     def ppg { attributeMap(Gist) foreach { case (f,g) => println(f.toScala + " has " + g.toScala) } }
 	
     //----- apply, updated and sorted methods
-    def apply[T](ar: AttrRef[T]):T = this / ar.ent !! ar.attrKind
-    def apply[T](sr: SubRef[T]):T = ( this / sr.ent !! Submodel )(sr.ar)
-    def updated[T](ar: AttrRef[T], v: T): Model = this + ar.ent.has(ar.attrKind(v))
-    def updated[T](sr: SubRef[T], v: T) = { //TODO make this recursive ???
-      val sm = this / sr.ent !! Submodel
-      val smUpdated = sm + sr.ar.ent.has(sr.ar.attrKind(v)) 
-      this + sr.ent.has(Submodel(smUpdated))
+    def apply[T](r: Reference[T]): T = r match {
+      case ar: AttrRef[T] =>  this / ar.ent !! ar.attrKind
+      case sr: SubRef[T] => ( this / sr.ent !! Submodel )(sr.r)
     }
+    
+    def updated[T](r: Reference[T], v: T): Model = r match {
+      case ar: AttrRef[T] =>  this + ar.ent.has(ar.attrKind(v))
+      case sr: SubRef[T] => 
+        val sm = this / sr.ent !! Submodel
+        this + sr.ent.has(Submodel(sm.updated(sr.r, v)))
+    }
+
+    //def updated[T](ar: AttrRef[T], v: T): Model = this + ar.ent.has(ar.attrKind(v))
+    // def updated[T](sr: SubRef[T], v: T) = { //TODO make this recursive ???
+      // val sm = this / sr.ent !! Submodel
+      // val smUpdated = sm + sr.ar.ent.has(sr.ar.attrKind(v)) 
+      // this + sr.ent.has(Submodel(smUpdated))
+    // }
     
     def sorted: Model = {
       val newMappings = LinkedHashMap.empty[Key, NodeSet]

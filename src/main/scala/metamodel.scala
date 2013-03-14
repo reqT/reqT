@@ -160,21 +160,43 @@ package reqt {
     def deprecates(es:Entity *) = (Key(this, reqt.deprecates()), NodeSet(es: _*))
     def assigns[T](a:Attribute[T]) = Key(this, reqt.assigns(a))
     //construct AttrRef
-    def ![T](ak: AttributeKind[T]) = AttrRef[T](this, ak) 
+    //def ![T](ak: AttributeKind[T]) = AttrRef[T](this, ak) 
+    def Gist = AttrRef(this, reqt.Gist)
+    def Spec = AttrRef(this, reqt.Spec)
+    def Status = AttrRef(this, reqt.Status)
+    def Why = AttrRef(this, reqt.Why)
+    def Example = AttrRef(this, reqt.Example)
+    def Expectation = AttrRef(this, reqt.Expectation)
+    def Input = AttrRef(this, reqt.Input)
+    def Output = AttrRef(this, reqt.Output)
+    def Trigger = AttrRef(this, reqt.Trigger)
+    def Precond = AttrRef(this, reqt.Precond)
+    def Frequency = AttrRef(this, reqt.Frequency)
+    def Critical = AttrRef(this, reqt.Critical)
+    def Problem = AttrRef(this, reqt.Problem)
     def Prio = AttrRef(this, reqt.Prio)
     def Order = AttrRef(this, reqt.Order)
     def Cost = AttrRef(this, reqt.Cost)
-    def Beneft = AttrRef(this, reqt.Benefit)
+    def Benefit = AttrRef(this, reqt.Benefit)
     def Capacity = AttrRef(this, reqt.Capacity)
     def Urgency = AttrRef(this, reqt.Urgency)
-    def Spec = AttrRef(this, reqt.Spec)
-    //construct SubRef
-    def sub[T](ar: AttrRef[T]) = SubRef[T](this, ar)
+    def Code = AttrRef(this, reqt.Code)
+    def Constraints = AttrRef(this, reqt.Constraints)
+    def Label = AttrRef(this, reqt.Label)
+    def Comment = AttrRef(this, reqt.Comment)
+    def Image = AttrRef(this, reqt.Image)
+    def Deprecated = AttrRef(this, reqt.Deprecated)
+
+    def Submodel[T](r: Reference[T]): Reference[T] = r match {
+      case AttrRef(e, ak) => SubRef[T](this, AttrRef[T](e,ak)) 
+      case SubRef(e, r) => SubRef[T](this, e.Submodel[T](r))
+    }
   }  
 
-  
+  sealed abstract class Reference[T] 
   trait ImplicitVar extends CanGenerateScala //marker trait to signal existence of implicit conversion to Var
-  case class AttrRef[T](ent: Entity, attrKind: AttributeKind[T]) extends ImplicitVar with CanGenerateScala { 
+  case class AttrRef[T](ent: Entity, attrKind: AttributeKind[T]) 
+      extends Reference[T] with ImplicitVar with CanGenerateScala {
     def apply(m: Model) = AttrUpdater(m, this)
     def :=(v: T): (Key, NodeSet) =  (ent.has, NodeSet(attrKind(v)))
 	override def toScala: String = ent.toScala + "." + attrKind 
@@ -184,7 +206,9 @@ package reqt {
     def :=(v: T): Model =  m.updated(ar, v)
   }
   
-  case class SubRef[T](ent: Entity, ar: AttrRef[T]){  //TODO !!!
+  case class SubRef[T](ent: Entity, r: Reference[T]) 
+      extends Reference[T] with ImplicitVar with CanGenerateScala { 
+   //TODO !!!
     //def apply(m: Model) = SubUpdater(m, this)
     //def :=(v: T): (Key, NodeSet) =  (ent.has, NodeSet(attrKind(v)))
   }

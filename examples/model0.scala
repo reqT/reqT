@@ -31,3 +31,7 @@ val deep = Model(
     Feature("subsub") has Submodel(Model(Feature("subsubsub") has Order(7)))
   ))
 )
+
+val d2 = Model( F(1) has Prio(1), F(1) has Submodel(Model(
+  F(2) has (Prio(2), Submodel(Model(F(3) has Prio(3))))
+)))
