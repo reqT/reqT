@@ -529,18 +529,21 @@ package reqt {
     def hasAttribute = nodes.exists(_.isInstanceOf[Attribute[_]])
     def hasEntity = nodes.exists(_.isInstanceOf[Entity])
     override def toScala = {
+      val skipNl = (hasEntity) || nodes.map(_.toScala).size < 68
+      val nl = if (skipNl) "" else "\n  "
+      val nl2 = if (skipNl) "" else "\n    "
       val (leftPar, rightPar) = nodes.size match {
         case 0 => ("(",")")
         case 1 => ("", "") 
-        case _ => ("(\n    ","\n  )")
+        case _ => ("(" + nl2, nl +")")
       }
-      nodes.map(_.toScala).mkString(leftPar, ",\n    ", rightPar)
+      nodes.map(_.toScala).mkString(leftPar, ", " + nl2, rightPar)
     }
     override def toString = prefix + nodes.map(_.toString).mkString("(", ", ", ")")
   }
   case class NodeSet(nodes: Set[Node[_]]) extends SetStructure[Node[_]] {  
     assert(!(hasAttribute && hasEntity), 
-      "Both Entity and Attribute nodes in the same NodeSet is not allowed")
+      "Both Entity and Attribute nodes in the same NodeSet is not allowed. This is a bug. Please report.")
     def keyStr(keyOpt: Option[Key] = None) = (keyOpt collect { case k => " of " + k.entity } orElse (Some("")) get)
     def removeDuplicatePrefixes(keyOpt: Option[Key] = None) = {
       def removeDup(l:List[Node[_]]):List[Node[_]] = l match {

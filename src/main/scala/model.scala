@@ -72,7 +72,7 @@ package reqt {
     def pp(until: Int) { pp(0, until min size max 0)}
     def pp { pp(0, size) }
     
-    def ppg { toMap(Gist) foreach { case (f,g) => println(f.toScala + " has " + g.toScala) } }
+    def ppg { attributeMap(Gist) foreach { case (f,g) => println(f.toScala + " has " + g.toScala) } }
 	
     //----- apply, updated and sorted methods
     def apply[T](ar: AttrRef[T]):T = this / ar.ent !! ar.attrKind
@@ -400,7 +400,7 @@ package reqt {
     def getOrDefault[T](a:AttributeKind[T]):T = get(a).getOrElse(a.default)
     def !![T](a:AttributeKind[T]):T = getOrDefault(a)
 
-    def toMap[T](a: AttributeKind[T]): Map[Entity, Attribute[T]] = collect { 
+    def attributeMap[T](a: AttributeKind[T]): Map[Entity, Attribute[T]] = collect { 
       case (Key(e,r),ns) if ns.exists(_ <==> a) => (e, ns.find(_ <==> a).get match {
           case attr: Attribute[T] => attr
         }
@@ -495,21 +495,34 @@ package reqt {
     //--- integration with constraints:
     def impose[T](cs: Seq[Constr[T]]) = CSP( this , cs)
     def impose(cs: Constraints) = CSP( this , cs.value)    
+    def backlog(r: Release): Vector[Entity] = {
+      val content: Set[Entity] = ( this / r / implements ).destinations
+      val unorderd = (( this / content ) \ Order).entities
+      val orderMap = (( this / content).attributeMap(Order)).collect { case (e,Order(i)) => (e,i) }
+      val ents = orderMap.keys.toVector.sorted(Ordering.fromLessThan[Entity]((a,b) => orderMap(a) < orderMap(b)))
+      ents ++ unorderd.toVector
+    }
+    def backlog = {
+      val unorderd = (( this / Requirement ) \ Order).entities
+      val orderMap = (( this / Requirement).attributeMap(Order)).collect { case (e,Order(i)) => (e,i) }
+      val ents = orderMap.keys.toVector.sorted(Ordering.fromLessThan[Entity]((a,b) => orderMap(a) < orderMap(b)))
+      ents ++ unorderd.toVector
+    }
     
     //--- code and testcase execution
     
-    def run() = loadExternals.toMap(Code).collect { case (e, Code(c)) => (e, Code(c).run) }
+    def run() = ( this / Code ).loadExternals.attributeMap(Code).collect { case (e, Code(c)) => (e, Code(c).run) }
     def run(ent: Entity): String = Code( this / ent !! Code ) .run
     def tested() = {
       var newModel = this
-      toMap(Code).collect { case (TestCase(ent), Code(code)) =>
+      attributeMap(Code).collect { case (TestCase(ent), Code(code)) =>
         newModel += TestCase(ent) has Output(Code(code).run)
       }
       newModel
     }
     lazy val testMap: Map[Entity,(String, String)] = {
-      val output = toMap(Output)
-      val expect = toMap(Expectation)
+      val output = attributeMap(Output)
+      val expect = attributeMap(Expectation)
       val result = output collect { case (TestCase(ent), Output(str)) if expect.isDefinedAt(TestCase(ent))   => 
         (TestCase(ent),(str, expect(TestCase(ent)).value))
       }
@@ -518,7 +531,7 @@ package reqt {
     lazy val testFailed = testMap.filterNot { case (_,(s1,s2)) =>  s1 == s2 }
     lazy val testPassed = testMap.filter { case (_,(s1,s2)) =>  s1 == s2 }
     def isTestOk: Boolean = {
-      val results = toMap(Expectation).map { case (TestCase(ent), Expectation(exp)) =>
+      val results = attributeMap(Expectation).map { case (TestCase(ent), Expectation(exp)) =>
         val res = this.run(TestCase(ent))
         if (exp == res) true
         else { 
