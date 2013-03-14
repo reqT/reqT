@@ -38,8 +38,31 @@ package reqt {
     override def stringPrefix = "Model"    
     //--------------------- reqT-specific methods:
     //---- add methods
-	def merge(that: Model): Model = ++(that)
+    def addIfNew(kv: (Key, NodeSet)): Model = 
+      if (isNew(kv._1.entity)) this + kv else { warn("Id is not new. Add discarded: " + kv); this }
+    def +?(kv: (Key, NodeSet)): Model = addIfNew(kv)
+    
+    def addIfExists(kv: (Key, NodeSet)): Model = 
+      if (!isNew(kv._1.entity)) this + kv else { warn("Id does not exist. Overwrite discarded: " + kv); this }
+    def +!(kv: (Key, NodeSet)): Model = addIfExists(kv)
+    
+    def merge(that: Model): Model = ++(that)
     def ++(that: Model) = super.++(that) : Model //inherited ++ returns Map but we want Model 
+    
+    def mergeIfNew(that: Model): Model = {
+      val (newIds, oldIds) = that.partition(kv => this.isNew(kv._1.entity))
+      warn("All ids are not new. Add discarded: " + oldIds.entities.mkString(", "))
+      merge(newIds)
+    }
+    def ++?(that: Model): Model = mergeIfNew(that)
+    
+    def mergeIfExists(that: Model): Model = {
+      val (newIds, oldIds) = that.partition(kv => this.isNew(kv._1.entity))
+      warn("Some ids don't exist. Add discarded: " + newIds.entities.mkString(", "))
+      merge(oldIds)
+      }
+    def ++!(that: Model): Model = mergeIfExists(that)
+    
     def addEdgeToNodesToAll(el: EdgeToNodes):Model = { //add to all Key Entities
       var result = new Model(mappings) //make a copy of this model
       sources.map { case entity => (Key(entity, el.edge), el.nodes) } foreach (kns => result += kns)
@@ -165,7 +188,7 @@ package reqt {
     def toHtml(documentTemplate: DocumentTemplate = defaultDocumentTemplate, 
       htmlGenerator: HtmlGenerator = defaultHtmlGenerator): String = htmlGenerator.generate(this, documentTemplate)
     def toHtml: String = toHtml()
-    def ids: Vector[String] = collect { case (Key(ent, _), _) => ent.id } toVector 
+    def ids: Set[String] = collect { case (Key(ent, _), _) => ent.id } toSet 
     //---- selection, restriction and exclusion methods
     def separate(elm: Element, 
       selection: (((Key, NodeSet)) => Boolean) => Model
@@ -355,6 +378,7 @@ package reqt {
     def isRoot(e: Entity): Boolean = roots.contains(e)
     def isParent(e: Entity): Boolean = parents.contains(e)  
     def isChild(e: Entity): Boolean = children.contains(e)  
+    def isNew(e: Entity): Boolean = !ids.contains(e.id)
     //---- extractions
 
     def sourcesOf(e: Edge, n: Node[_]): Set[Entity] = ( for ((k, ns) <- this; if ( k.edge <==> e && ns.contains(n) ) ) yield k.entity ).toSet

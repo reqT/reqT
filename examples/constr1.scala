@@ -14,12 +14,12 @@ val nRel = (m1 / Release).entities.size
 val orderDomain = {1 to nRel}
 
 val cs1 = Seq(
-  Release("r1").order :: orderDomain,
-  Release("r2").order :: orderDomain,
-  Feature("x").order :: orderDomain,
-  Feature("y").order :: orderDomain,
-  Release("r2").order #> Release("r1").order,
-  Feature("y").order #> Feature("x").order)
+  Release("r1").Order :: orderDomain,
+  Release("r2").Order :: orderDomain,
+  Feature("x").Order :: orderDomain,
+  Feature("y").Order :: orderDomain,
+  Release("r2").Order #> Release("r1").Order,
+  Feature("y").Order #> Feature("x").Order)
 
 val m1cs1 = Model() impose cs1 satisfy
   
