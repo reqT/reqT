@@ -183,7 +183,7 @@ package reqt {
     def toTable: String = toTable("\t")
     def toTable(columnSeparator: String, headers: Boolean = true) = {
       val rowSeparator = "\n"
-      val headRow = Model.tableHeadings.mkString("",columnSeparator,rowSeparator)  
+      lazy val headRow = Model.tableHeadings.mkString("",columnSeparator,rowSeparator)  
       val table = for ((Key(entity, edge), NodeSet(nodes)) <- this) yield {
           val edgeValueStr = edge match {
             case lwa: RelationWithAttribute[_] => lwa.attribute.prefix + columnSeparator + lwa.attribute.value 
