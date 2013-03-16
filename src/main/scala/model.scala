@@ -619,18 +619,18 @@ package reqt {
       ()
     }
     var interpreter: Option[scala.tools.nsc.interpreter.IMain] = None 
-    def interpret(s: String): Model = {
-      interpreter match {
-        case None => 
-          warn("No interpreter avialable: result is empty Model()" +
+    def interpreterWarning() {
+      warn( "No interpreter avialable: result is empty Model()" +
             "\nTo make an interpreter available, you can do this:" +
             "\n  in the REPL: Model.interpreter = Some($intp)" +
             "\n  in Kojo:     Model.interpreter = Some(builtins.kojoInterp)"
-          )
-          Model()
+      )
+    }
+    def interpret(s: String): Model = {
+      interpreter match {
+        case None => interpreterWarning() ; Model()
         case Some(i) => 
           val result = Array[reqt.Model](reqt.Model())
-          //i.bind("result", "Array[reqt.Model]", result)
           i.beQuietDuring(i.bind("result", "Array[reqt.Model]", result))
           i.quietRun("result(0) = " + s)
           result(0)          

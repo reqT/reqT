@@ -379,13 +379,7 @@ package reqt {
   case class Code(value: String) extends StringAttr {
     def run: String = {
       Model.interpreter match {
-        case None => 
-          warn("No interpreter avialable: result is empty String" +
-            "\nTo make an interpreter available, you can do this:" +
-            "\n  in the REPL: Model.interpreter = Some($intp)" +
-            "\n  in Kojo:     Model.interpreter = Some(builtins.kojoInterp)"
-          )
-          ""
+        case None => Model.interpreterWarning() ; ""
         case Some(i) => 
           val result = Array[String]("")
           i.beQuietDuring(i.bind("result", "Array[String]", result))
