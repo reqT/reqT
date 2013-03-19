@@ -18,7 +18,7 @@ val m = Model(
   F(8) has Order(3),  
   F(1), F(2),
   Release("r1") implements (F(7), F(4), F(3), F(1)),
-  Release("r2") implements (F(6), F(2), F(8), F(5))
+  Release("r2") implements (F(6), F(2), F(8), F(5), F(4))
 )
 
 val m = ModelVector(m1,m2)

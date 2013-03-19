@@ -170,16 +170,17 @@ package reqt {
     //---- string methods    
     override def toString: String = 
       if (Model.overrideToStringWithToScala) toScala else super.toString
-    override def toScala: String = {
+    def bodyToScala: String = {
       val nl = if (super.toString.size > 72) "\n" else ""
       def indent(i:Int) = if (nl != "") nl + List.fill(i)("  ").mkString else ""
-      stringPrefix + "(" + {
+      "(" + (
         { 
           for ((key, nodes) <- this)  
           yield indent(1) + keyNodesToScala(key, nodes) 
         } . mkString(",")
-      } + nl + ")"
+      ) + nl + ")"
     }
+    override def toScala: String = stringPrefix + bodyToScala
     def toTable: String = toTable("\t")
     def toTable(columnSeparator: String, headers: Boolean = true) = {
       val rowSeparator = "\n"
@@ -545,12 +546,14 @@ package reqt {
     
     //--- code and testcase execution
     
-    def run() = ( this / Code ).loadExternals.attributeMap(Code).collect { case (e, Code(c)) => (e, Code(c).run) }
-    def run(ent: Entity): String = Code( this / ent !! Code ) .run
+    def run() = ( this / Code ).loadExternals.attributeMap(Code).collect { 
+      case (ent, Code(c)) => (ent, Code(c).run(( this / ent ! Input).getOrElse(""))) 
+    }
+    def run(ent: Entity): String = Code( this / ent !! Code ).run(( this / ent ! Input).getOrElse(""))
     def tested() = {
       var newModel = this
-      attributeMap(Code).collect { case (TestCase(ent), Code(code)) =>
-        newModel += TestCase(ent) has Output(Code(code).run)
+      attributeMap(Code).collect { case (tc@TestCase(id), code@Code(c)) =>
+        newModel += tc has Output(code.run(( this / tc ! Input).getOrElse("")))
       }
       newModel
     }

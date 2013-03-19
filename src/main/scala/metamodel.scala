@@ -104,13 +104,17 @@ package reqt {
     def hasEqualPrefix(that: Prefixed): Boolean = this.prefix == that.prefix 
     def <==>(that: Prefixed): Boolean = hasEqualPrefix(that)
   } 
-  trait ConstrVectorValueToScala extends CanGenerateScala with Value[Vector[Constr[Any]]] with Prefixed {
-    override def toScala: String = prefix + "(" + value.map(_.toScala).mkString(", ") + ")"
-  }  
+
   trait StringValueToScala extends CanGenerateScala with Value[String] with Prefixed {
     override def toScala: String = prefix + "(" + value.toScala + ")"
   }
-
+  trait SubmodelValueToScala extends CanGenerateScala with Value[Model] with Prefixed {
+    override def toScala: String = "Submodel" + value.bodyToScala.indentNewline()
+  }
+  trait ConstrVectorValueToScala extends CanGenerateScala with Value[Vector[Constr[Any]]] with Prefixed {
+    override def toScala: String = prefix + "(" + value.map(_.toScala).mkString(", ") + ")"
+  }  
+  
   trait NodeKind extends Prefixed  
   trait EntityKind extends NodeKind { val value = "" }
   trait AttributeKind[T] extends NodeKind with Value[T] with Default[T] with CanGenerateScala { 
@@ -373,17 +377,20 @@ package reqt {
   case class Deprecated(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED LABEL" }
   case object Deprecated extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED LABEL" }
 
-  case class Submodel(value: Model) extends Attribute[Model] { val default = Model() }
-  case object Submodel extends Attribute[Model] with AttributeKind[Model] { val default = Model() }  
+  case class Submodel(value: Model) extends Attribute[Model] with SubmodelValueToScala { val default = Model() }
+  case object Submodel extends Attribute[Model] with AttributeKind[Model] { 
+    val default = Model() 
+    def apply(kvs: (Key,NodeSet) * ): Submodel = Submodel(Model(kvs: _*))
+  }  
 
   case class Code(value: String) extends StringAttr {
-    def run: String = {
+    def run(prefix: String = ""): String = {
       Model.interpreter match {
         case None => Model.interpreterWarning() ; ""
         case Some(i) => 
           val result = Array[String]("")
           i.beQuietDuring(i.bind("result", "Array[String]", result))
-          i.quietRun("result(0) = {" + value + "}.toString")
+          i.quietRun(s"result(0) = {$prefix ; $value}.toString")
           result(0)          
       } 
     }
@@ -679,6 +686,7 @@ package reqt {
     def toScala: String = "" + '\"' + convertEscape + '\"'
     def toModel: Model = Model.interpret(s)
     def decapitalize: String = strUtil.decapitalize(s)
+    def indentNewline(n: Int = 2) = strUtil.indentNewline(s, n)
     def filterEscape: String = strUtil.filterEscapeChar(s)
     def convertEscape: String = strUtil.escape(s)
     def save(fileName:String) = saveString(s, fileName) 
@@ -686,6 +694,7 @@ package reqt {
   
   object strUtil { //utilities for strings
     def decapitalize(s:String) = s.take(1).toLowerCase + s.drop(1)
+    def indentNewline(s: String, n: Int) = s.replace("\n","\n"+ (" " * n))
     def quoteIfString(a:Any):String = a match {
       case s:String => "\"" + s + "\""
       case _ => a.toString
