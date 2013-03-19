@@ -380,6 +380,9 @@ package reqt {
       }
       visit(expanded, Set()) 
     }
+    
+    def depthOwns(e: Entity) = ??? //TODO
+    
     //---- predicates
     def isSource(e: Entity): Boolean = sources.contains(e)
     def isDestination(e: Entity): Boolean = destinations.contains(e)
@@ -494,14 +497,40 @@ package reqt {
       (collect { case (k,ns) => ns.toSeq.collect(pf) } ).toSeq.flatten
     }
     lazy val submodels: ModelVector = ModelVector( collectNodes { case Submodel(m) => m } toSeq :_* )
-    lazy val models: ModelVector = (ModelVector(this - Submodel) ++ this.submodels)
-    lazy val flatten: Model = models.merge
+    lazy val models: ModelVector = ModelVector(this - Submodel) ++ this.submodels
+    lazy val flatten: Model = models.merge ++ ownedBySubmodels
+    lazy val flattenNoOwns: Model = models.merge 
+
     def flattenAll(): Model = {
       val flat = flatten
       if (!flat.isDeep) flat
       else flat.flattenAll
     }
+
+    def flattenAllNoOwns(): Model = {
+      val flat = flattenNoOwns
+      if (!flat.isDeep) flat
+      else flat.flattenAllNoOwns
+    }
     
+    lazy val depth: Int = if (!isDeep) 0  else 1 + (submodels.map(_.depth).reduce(Math.max(_,_)))
+    
+    def flatten(e: Entity): Model = if (this.contains(e.has)) this - e.has + e ++ ( this / e !! Submodel ) ++ ownedBySubmodel(e) else this
+    def flattenNoOwns(e: Entity): Model = if (this.contains(e.has)) this - e.has + e ++ ( this / e !! Submodel ) else this
+    
+    def ownedBySubmodel(e: Entity): Model = Model( ( this / e / Submodel).sources.toSeq.map( e => 
+      e.owns(( this / e !! Submodel).entities.toSeq:_*) ) :_*)
+    lazy val ownedBySubmodels: Model = ModelVector(this.entities.toVector.map(e => this.ownedBySubmodel(e)):_*).merge
+    
+    def deepen(e: Entity): Model = if (this.contains(e.owns)) {
+        this - e.owns + (
+          e has Submodel(
+            Model(( this / e / owns).destinations.map(d => d.has((( this / d).attributes.toSeq):_*)).toSeq:_*) ++
+              (this / e !! Submodel)
+          )
+        ) -- ( this / e / owns).destinations.map(d => d.has)
+      } else this 
+        
     def up: Model = updateAttributes { case n: Status => n.up }
     def down: Model = updateAttributes { case n: Status => n.down }
     def up(e: Entity): Model = 

@@ -35,3 +35,16 @@ val deep = Model(
 val d2 = Model( F(1) has Prio(1), F(1) has Submodel(Model(
   F(2) has (Prio(2), Submodel(Model(F(3) has Prio(3))))
 )))
+
+val dualityTest = Model(
+  F(1) has Prio(1), 
+  F(2) owns F(21), 
+  F(3) has Submodel(F(31) has Prio(31), F(32) has Prio(32)),
+  F(5) has Submodel(F(51) has Prio(51), F(52) has Prio(52)),
+  F(4) owns (F(41), F(42)),
+  F(4) has Submodel(F(43), F(44)),
+  F(41) has Gist("hej")
+  )
+  
+
+  
