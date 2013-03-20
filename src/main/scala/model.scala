@@ -381,8 +381,6 @@ package reqt {
       visit(expanded, Set()) 
     }
     
-    def depthOwns(e: Entity) = ??? //TODO
-    
     //---- predicates
     def isSource(e: Entity): Boolean = sources.contains(e)
     def isDestination(e: Entity): Boolean = destinations.contains(e)
@@ -393,6 +391,7 @@ package reqt {
     def isParent(e: Entity): Boolean = parents.contains(e)  
     def isChild(e: Entity): Boolean = children.contains(e)  
     def isNew(e: Entity): Boolean = !ids.contains(e.id)
+    lazy val isDeep = ( this / Submodel ).size > 0
     //---- extractions
 
     def sourcesOf(e: Edge, n: Node[_]): Set[Entity] = ( for ((k, ns) <- this; if ( k.edge <==> e && ns.contains(n) ) ) yield k.entity ).toSet
@@ -402,29 +401,51 @@ package reqt {
       (this / e).destinations foreach { d => result += d -> sourcesOf(e, d) }
       result
     } 
-    lazy val ownersOf = sourcesOf(owns)  //a Map indexed by Entity
-    def parentsOf(e: Entity): Set[Entity] = (( this /-> e / owns) \ e).sources
+    lazy val ownerOf: Map[Entity, Set[Entity]] = sourcesOf(owns)  
+    lazy val ownerCircles: Vector[Set[Entity]] = circles(owns)
+    def circles(r: Relation): Vector[Set[Entity]] = {
+      def visit(e: Entity, visited: Set[Entity], circle: Set[Entity]): Set[Set[Entity]] = 
+        if (visited.contains(e)) Set(circle ++ visited)
+        else ( this / e / r ).destinations.map(c => visit(c, visited + e, circle)).flatten
+      entityVector.map(e => visit(e, Set(), Set())).flatten.distinct      
+    }
+    lazy val ownedDepthOf: Map[Entity, Int] = {
+      def count(e: Entity, lvl: Int, visited: Set[Entity]): Int =
+        if (visited.contains(e)) { warn("circular owns-relation detected including: " + e); -1 }
+        else if (ownerOf(e).isEmpty) lvl 
+        else count(ownerOf(e).head, lvl + 1, visited + e) //!!!! kolla oändlig loop om ej träd med visited
+      val result = scala.collection.mutable.LinkedHashMap(entityVector.map(e => e -> 0):_*)
+      for (e <- result.keys) result(e) = count(e, 0, Set()) 
+      result.toMap
+    }
+    lazy val ownedMaxDepth = ownedDepthOf.collect { case (_,i) => i } .max
+    lazy val ownedAtDepth: Map[Int, Set[Entity]] = {
+      val result = scala.collection.mutable.Map[Int, Set[Entity]]((0 to ownedMaxDepth).map(i => i -> Set[Entity]()):_*)
+      for ((e, i) <- ownedDepthOf) if (result.isDefinedAt(i)) result(i) = result(i) + e else result += i -> Set(e) 
+      result.toMap
+    }
+    def parentsOf(e: Entity): Set[Entity] = (( this /-> e / owns) \ e).sources  //better use ownerOf - is this needed???
     def childrenOf(e: Entity): Set[Entity] = this / e children
     def destinationsOf(source: Entity):Set[Entity] = this / source destinations
     def attributesOf(source: Entity): Set[Attribute[_]] = this / source attributes
     
     //--- semantic checks and warnings
-    lazy val multiOwners = ownersOf filter { case (e, es) => es.size > 1  }
+    lazy val multiOwners = ownerOf filter { case (e, es) => es.size > 1  }
     lazy val hasMultiOwners: Boolean = !multiOwners.isEmpty
     lazy val missingSpecs: Set[Entity] = filter { case (ke,ns) => 
       ns.exists{ case n: Status => n.value >= SPECIFIED; case _ => false } && 
         !ns.exists{  _ <==> Spec }
     } sources
     lazy val hasMissingSpecs: Boolean = !missingSpecs.isEmpty
+    lazy val hasOwnerCircles: Boolean = !ownerCircles.isEmpty
     def check: Boolean = {
       if (hasMultiOwners) warn("Entities with more than one direct owner: " + 
         multiOwners.keySet.mkString(", "))
       if (hasMissingSpecs) warn("Entities with Status >= SPECIFIED and missing Spec: " + 
         missingSpecs.mkString(", "))
-      !hasMultiOwners && !hasMissingSpecs
+      if (hasOwnerCircles) warn("Entities have circular ownership. Model ownerCircles == " + ownerCircles)
+      !hasMultiOwners && !hasMissingSpecs && !hasOwnerCircles
     }
-    
-    lazy val isDeep = ( this / Submodel ).size > 0
     
     //---- attribute extraction methods
     def get[T](a: AttributeKind[T]): Option[T] = attributes.find(_ <==> a) match {
@@ -531,6 +552,11 @@ package reqt {
         ) -- ( this / e / owns).destinations.map(d => d.has)
       } else this 
         
+    def deepen: Model = if (ownedMaxDepth > 0) {
+      var newModel = this
+      for (e <- ownedAtDepth(ownedMaxDepth-1)) newModel = newModel.deepen(e)
+      newModel
+    } else this
     def up: Model = updateAttributes { case n: Status => n.up }
     def down: Model = updateAttributes { case n: Status => n.down }
     def up(e: Entity): Model = 

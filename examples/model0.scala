@@ -36,15 +36,22 @@ val d2 = Model( F(1) has Prio(1), F(1) has Submodel(Model(
   F(2) has (Prio(2), Submodel(Model(F(3) has Prio(3))))
 )))
 
-val dualityTest = Model(
+val duality = Model(
   F(1) has Prio(1), 
   F(2) owns F(21), 
   F(3) has Submodel(F(31) has Prio(31), F(32) has Prio(32)),
   F(5) has Submodel(F(51) has Prio(51), F(52) has Prio(52)),
   F(4) owns (F(41), F(42)),
   F(4) has Submodel(F(43), F(44)),
-  F(41) has Gist("hej")
+  F(41) has Gist("hej"),
+  F(41) owns F(411)
   )
-  
+
+  val circular = Model(
+    F(1) owns F(2), F(2) owns F(3), F(3) owns F(1), 
+    F(4) owns F(5), F(5) owns F(4),
+    F(6) owns (F(61), F(62)),
+    F(61) owns (F(611), F(612))
+  )
 
   
