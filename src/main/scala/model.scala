@@ -520,24 +520,15 @@ package reqt {
     lazy val submodels: ModelVector = ModelVector( collectNodes { case Submodel(m) => m } toSeq :_* )
     lazy val models: ModelVector = ModelVector(this - Submodel) ++ this.submodels
     lazy val flatten: Model = models.merge ++ ownedBySubmodels
-    lazy val flattenNoOwns: Model = models.merge 
+    lazy val flattenUnowned: Model = models.merge 
 
-    def flattenAll(): Model = {
-      val flat = flatten
-      if (!flat.isDeep) flat
-      else flat.flattenAll
-    }
+    lazy val flattenAll: Model = if (!flatten.isDeep) flatten else flatten.flattenAll
+    lazy val flattenAllUnowned: Model = if (!flattenUnowned.isDeep) flattenUnowned else flattenUnowned.flattenAllUnowned
 
-    def flattenAllNoOwns(): Model = {
-      val flat = flattenNoOwns
-      if (!flat.isDeep) flat
-      else flat.flattenAllNoOwns
-    }
-    
     lazy val depth: Int = if (!isDeep) 0  else 1 + (submodels.map(_.depth).reduce(Math.max(_,_)))
     
     def flatten(e: Entity): Model = if (this.contains(e.has)) this - e.has + e ++ ( this / e !! Submodel ) ++ ownedBySubmodel(e) else this
-    def flattenNoOwns(e: Entity): Model = if (this.contains(e.has)) this - e.has + e ++ ( this / e !! Submodel ) else this
+    def flattenUnowned(e: Entity): Model = if (this.contains(e.has)) this - e.has + e ++ ( this / e !! Submodel ) else this
     
     def ownedBySubmodel(e: Entity): Model = Model( ( this / e / Submodel).sources.toSeq.map( e => 
       e.owns(( this / e !! Submodel).entities.toSeq:_*) ) :_*)
@@ -552,11 +543,14 @@ package reqt {
         ) -- ( this / e / owns).destinations.map(d => d.has)
       } else this 
         
-    def deepen: Model = if (ownedMaxDepth > 0) {
+    lazy val deepen: Model = if (ownedMaxDepth > 0) {
       var newModel = this
       for (e <- ownedAtDepth(ownedMaxDepth-1)) newModel = newModel.deepen(e)
       newModel
     } else this
+    
+    lazy val deepenAll: Model = if (deepen.ownedMaxDepth <= 0) deepen else deepen.deepenAll  
+   
     def up: Model = updateAttributes { case n: Status => n.up }
     def down: Model = updateAttributes { case n: Status => n.down }
     def up(e: Entity): Model = 
