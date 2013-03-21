@@ -408,6 +408,7 @@ package reqt {
   }
   case object Constraints extends ConstrSeqAttr with AttributeKind[Vector[Constr[Any]]] {
     def apply(cs1: Constr[Any], cs: Constr[Any] * ): Constraints = Constraints(Vector(cs1) ++ cs.toVector)
+    override def apply(): Constraints = Constraints(Vector())
     /*
     //WHAT TODO ABOUT THIS: ???    
 scala> Constraints()
