@@ -54,4 +54,26 @@ val duality = Model(
     F(61) owns (F(611), F(612))
   )
 
+val sm = Model(
+  Stakeholder("a") has Submodel(
+    F(1) has Prio(1),
+    F(2) has Prio(2),
+    F(3) has Prio(3)
+   ),
+  Stakeholder("b") has Submodel(
+    F(1) has Prio(4),
+    F(2) has Prio(5),
+    F(3) has Prio(6)
+   ),
+  Stakeholder("c") has Submodel(
+    F(1) has Prio(7),
+    F(2) has Prio(8),
+    F(3) has Prio(9)
+   ),
+  Stakeholder("d") has Submodel(
+    F(1) has Prio(10),
+    F(2) has Prio(11),
+    F(3) has Prio(12)
+   )
+)
   

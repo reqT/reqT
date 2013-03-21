@@ -116,12 +116,16 @@ package reqt {
   }  
   
   trait NodeKind extends Prefixed  
-  trait EntityKind extends NodeKind { val value = "" }
+  trait EntityKind extends NodeKind { 
+    val value = ""
+    def apply(id: String): Entity
+    def apply(): Entity = apply(value) 
+ }
   trait AttributeKind[T] extends NodeKind with Value[T] with Default[T] with CanGenerateScala { 
     override def value = default
     override def toScala = prefix + "(" + default + ")"
     def apply(v: T): Attribute[T] 
-   //TRIAL*** def make(v: T): Attribute[T] 
+    def apply(): Attribute[T] = apply(default)
   }
   trait EdgeKind extends Prefixed 
 
@@ -574,8 +578,10 @@ package reqt {
       }
       NodeSet(removeDup(nodes.toList).toSet)
     }
-    def concatNodes(ns: NodeSet, keyOpt: Option[Key] = None)  = {
-      if (!ns.hasAttribute) NodeSet(nodes ++ ns.nodes)
+    private def entityKindsReplacedWithEmptyId = NodeSet(nodes.map { case e: EntityKind => e(); case n => n } )
+    private def attrKindsReplacedWithDefault = NodeSet(nodes.map { case a: AttributeKind[_] => a(); case n => n } )
+    def concatNodes(ns: NodeSet, keyOpt: Option[Key] = None): NodeSet  = {
+      if (!ns.hasAttribute) NodeSet(nodes ++ ns.nodes).entityKindsReplacedWithEmptyId
       else { //remove duplicates and replace existing attributes
         val moreNodes = ns.removeDuplicatePrefixes(keyOpt) 
         val existingAttrNodesRemoved = nodes filterNot { n =>
@@ -587,7 +593,7 @@ package reqt {
           }
           else false
         }
-        NodeSet(existingAttrNodesRemoved ++ moreNodes.nodes)
+        NodeSet(existingAttrNodesRemoved ++ moreNodes.nodes).attrKindsReplacedWithDefault
       } 
     }
   }
