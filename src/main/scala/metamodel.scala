@@ -404,9 +404,20 @@ package reqt {
   case class Constraints(value: Vector[Constr[Any]]) extends ConstrSeqAttr {
     def satisfy = value.solve(Satisfy)
     def toModel = (Model() impose this) satisfy
+    def ++(cs: Constraints): Constraints = Constraints(value ++ cs.value)
   }
   case object Constraints extends ConstrSeqAttr with AttributeKind[Vector[Constr[Any]]] {
-    def apply(cs: Constr[Any] * ): Constraints = Constraints(cs.toVector)
+    def apply(cs1: Constr[Any], cs: Constr[Any] * ): Constraints = Constraints(Vector(cs1) ++ cs.toVector)
+    /*
+    //WHAT TODO ABOUT THIS: ???    
+scala> Constraints()
+<console>:18: error: ambiguous reference to overloaded definition,
+both method apply in object Constraints of type (cs: reqt.Constr[Any]*)reqt.Constraints
+and  method apply in trait AttributeKind of type ()reqt.Attribute[Vector[reqt.Constr[Any]]]
+match argument types ()
+              Constraints()
+              ^
+    */
   }
   
   case class External[T <: Attribute[_]](fileName:String)( implicit makeAttr: AttrFromString[T]) 

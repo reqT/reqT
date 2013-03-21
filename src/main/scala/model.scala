@@ -475,9 +475,14 @@ package reqt {
         } 
       ) : Attribute[T]
      } .toVector
-     def attributeValueVector[T](a: AttributeKind[T]): Vector[T] = attributeVector(a).map( a => a.value)
-     def !!!![T](a: AttributeKind[T]): Vector[T] = attributeValueVector(a)
-     
+    def attributeValueVector[T](a: AttributeKind[T]): Vector[T] = attributeVector(a).map( a => a.value)
+    def !!!![T](a: AttributeKind[T]): Vector[T] = attributeValueVector(a)
+    
+    lazy val constraints: Constraints = Constraints(( this !!!! Constraints ).flatten)
+    lazy val constraintsAll: Constraints = constraints ++ (
+      if (isDeep) submodels.map(_.constraintsAll).reduce(_ ++ _)
+      else Constraints(Vector())
+    )
     // ---- transformation methods  
     def replace(e1: Entity, e2: Entity): Model = { //safer than updateEntities 
       def updateNS(ns: NodeSet): NodeSet = ns.map { 
