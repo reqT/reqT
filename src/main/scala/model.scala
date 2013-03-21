@@ -456,6 +456,7 @@ package reqt {
       case _ => None
     }
     def ![T](a: AttributeKind[T]): Option[T] = get(a)
+
     def getOrDefault[T](a:AttributeKind[T]):T = get(a).getOrElse(a.default)
     def !![T](a:AttributeKind[T]):T = getOrDefault(a)
 
@@ -465,7 +466,18 @@ package reqt {
         }
       ) : (Entity, Attribute[T])
      } .toMap
-
+    def attributeValueMap[T](a: AttributeKind[T]): Map[Entity, T] = attributeMap(a).map( ea => (ea._1, ea._2.value))
+    def !!![T](a: AttributeKind[T]): Map[Entity, T] = attributeValueMap(a)
+     
+    def attributeVector[T](a: AttributeKind[T]): Vector[Attribute[T]] = collect { 
+      case (Key(e,r),ns) if ns.exists(_ <==> a) => ( ns.find(_ <==> a).get match {
+          case attr: Attribute[T] => attr
+        } 
+      ) : Attribute[T]
+     } .toVector
+     def attributeValueVector[T](a: AttributeKind[T]): Vector[T] = attributeVector(a).map( a => a.value)
+     def !!!![T](a: AttributeKind[T]): Vector[T] = attributeValueVector(a)
+     
     // ---- transformation methods  
     def replace(e1: Entity, e2: Entity): Model = { //safer than updateEntities 
       def updateNS(ns: NodeSet): NodeSet = ns.map { 
