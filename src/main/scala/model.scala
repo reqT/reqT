@@ -88,7 +88,7 @@ package reqt {
     def pp(from: Int, til: Int) {
       for (i <- (from max 0) until (til min size )) println( i.toString.padTo(3," ").mkString + " " +  {
           val s = indexed(i)._1.toScala + indexed(i)._2.map(_.toScala).mkString("(",", ",")")
-          if (s.size > 72) s.take(72) + "..." else s
+          if (s.size > Model.ppLineLength) s.take(Model.ppLineLength) + "..." else s
         }        
       )
     }
@@ -109,20 +109,7 @@ package reqt {
         val sm = this / sr.ent !! Submodel
         this + sr.ent.has(Submodel(sm.updated(sr.r, v)))
     }
-
-    //def updated[T](ar: AttrRef[T], v: T): Model = this + ar.ent.has(ar.attrKind(v))
-    // def updated[T](sr: SubRef[T], v: T) = { //TODO make this recursive ???
-      // val sm = this / sr.ent !! Submodel
-      // val smUpdated = sm + sr.ar.ent.has(sr.ar.attrKind(v)) 
-      // this + sr.ent.has(Submodel(smUpdated))
-    // }
-    
-    def sorted: Model = {
-      val newMappings = LinkedHashMap.empty[Key, NodeSet]
-      for (i <- mappings.toSeq.sorted(keyNodeSetOrdering)) newMappings += i
-      new Model(newMappings)
-    }
-    
+       
     def -(entity: Entity, edge: Edge, node: Node[_]): Model = { //TODO is this really needed???
       //TODO recursive removal in submodels??
       val k = Key(entity, edge)
@@ -579,6 +566,41 @@ package reqt {
     def drop: Model = this - ( this / Status(DROPPED)).entities
     def loadExternals: Model = updateAttributes { case n: External[_] => n.fromFile}
     
+    //---- sorting methods
+
+    def sorted(intAttr: AttributeKind[Int]): Model = {
+      def attrLessThan(kns1:(Key, NodeSet), kns2:(Key, NodeSet)): Boolean = {
+        val a1 = (this / kns1._1 ! intAttr).getOrElse(Int.MaxValue)
+        val a2 = (this / kns2._1 ! intAttr).getOrElse(Int.MaxValue)
+        a1 < a2  
+      }
+      val sortOrdering = Ordering.fromLessThan[(Key, NodeSet)](attrLessThan)
+      val newMappings = LinkedHashMap.empty[Key, NodeSet]
+      for (i <- mappings.toSeq.sorted(sortOrdering)) newMappings += i
+      new Model(newMappings)
+    }    
+    
+    def sorted: Model = {
+      val newMappings = LinkedHashMap.empty[Key, NodeSet]
+      for (i <- mappings.toSeq.sorted(keyNodeSetOrdering)) newMappings += i
+      new Model(newMappings)
+    }
+
+    
+    def backlog(r: Release): Vector[Entity] = {
+      val content: Set[Entity] = ( this / r / implements ).destinations
+      val unorderd = (( this / content ) \ Order).entities
+      val orderMap = (( this / content).attributeMap(Order)).collect { case (e,Order(i)) => (e,i) }
+      val ents = orderMap.keys.toVector.sorted(Ordering.fromLessThan[Entity]((a,b) => orderMap(a) < orderMap(b)))
+      ents ++ unorderd.toVector
+    }
+    def backlog = {
+      val unorderd = (( this / Requirement ) \ Order).entities
+      val orderMap = (( this / Requirement).attributeMap(Order)).collect { case (e,Order(i)) => (e,i) }
+      val ents = orderMap.keys.toVector.sorted(Ordering.fromLessThan[Entity]((a,b) => orderMap(a) < orderMap(b)))
+      ents ++ unorderd.toVector
+    }
+    
     //---- visitor methods
     lazy val entityEdgeSet = keySet.collect { case Key(e,l) => (e,l) } 
     lazy val entityEdgeList = entityEdgeSet.toList.sortWith(_.toString < _.toString) 
@@ -596,20 +618,7 @@ package reqt {
     //--- integration with constraints:
     def impose[T](cs: Seq[Constr[T]]) = CSP( this , cs)
     def impose(cs: Constraints) = CSP( this , cs.value)    
-    def backlog(r: Release): Vector[Entity] = {
-      val content: Set[Entity] = ( this / r / implements ).destinations
-      val unorderd = (( this / content ) \ Order).entities
-      val orderMap = (( this / content).attributeMap(Order)).collect { case (e,Order(i)) => (e,i) }
-      val ents = orderMap.keys.toVector.sorted(Ordering.fromLessThan[Entity]((a,b) => orderMap(a) < orderMap(b)))
-      ents ++ unorderd.toVector
-    }
-    def backlog = {
-      val unorderd = (( this / Requirement ) \ Order).entities
-      val orderMap = (( this / Requirement).attributeMap(Order)).collect { case (e,Order(i)) => (e,i) }
-      val ents = orderMap.keys.toVector.sorted(Ordering.fromLessThan[Entity]((a,b) => orderMap(a) < orderMap(b)))
-      ents ++ unorderd.toVector
-    }
-    
+   
     //--- code and testcase execution
     
     def run() = ( this / Code ).loadExternals.attributeMap(Code).collect { 
@@ -682,6 +691,7 @@ package reqt {
     }
     lazy val tableHeadings = List("ENTITY", "ENTITY id", "LINK", "LINK attr", "LINK val", "NODE", "NODE val") 
     var overrideToStringWithToScala = true
+    var ppLineLength = 80
     val unitVisitor = (e: Entity, path: List[Entity], level: Int, count: Int, nSiblings: Int) => ()
     val printVisitor = (e: Entity, path: List[Entity], level: Int, count: Int, nSiblings: Int) => {
       println("Entity visited: " + e + " at level " + level + " count " + count + " #siblings " + nSiblings + "\n" + "Path: " + path + "\n")
