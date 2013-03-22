@@ -560,10 +560,11 @@ match argument types ()
   }
   sealed abstract class SetStructure[T <: Node[_]] extends Structure {
     def nodes: Set[T]
-    def hasAttribute = nodes.exists(_.isInstanceOf[Attribute[_]])
-    def hasEntity = nodes.exists(_.isInstanceOf[Entity])
+    lazy val sortedNodes = nodes.toSeq.sorted(reqt.nodeOrdering)
+    lazy val hasAttribute = nodes.exists(_.isInstanceOf[Attribute[_]])
+    lazy val hasEntity = nodes.exists(_.isInstanceOf[Entity])
     override def toScala = {
-      val skipNl = (hasEntity) || nodes.map(_.toScala).size < 68
+      val skipNl = (hasEntity) || toString.size < (Model.ppLineLength - 40) //TODO smarter?
       val nl = if (skipNl) "" else "\n  "
       val nl2 = if (skipNl) "" else "\n    "
       val (leftPar, rightPar) = nodes.size match {
@@ -571,9 +572,9 @@ match argument types ()
         case 1 => ("", "") 
         case _ => ("(" + nl2, nl +")")
       }
-      nodes.map(_.toScala).mkString(leftPar, ", " + nl2, rightPar)
+      sortedNodes.map(_.toScala).mkString(leftPar, ", " + nl2, rightPar)
     }
-    override def toString = prefix + nodes.map(_.toString).mkString("(", ", ", ")")
+    override def toString = prefix + sortedNodes.map(_.toString).mkString("(", ", ", ")")
   }
   case class NodeSet(nodes: Set[Node[_]]) extends SetStructure[Node[_]] {  
     assert(!(hasAttribute && hasEntity), 

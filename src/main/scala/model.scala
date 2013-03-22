@@ -85,9 +85,10 @@ package reqt {
     //we also have from Map inherited slice(from,until) 
     
     //----- pretty printing methods:
+    def print = println(toScala)
     def pp(from: Int, til: Int) {
       for (i <- (from max 0) until (til min size )) println( i.toString.padTo(3," ").mkString + " " +  {
-          val s = indexed(i)._1.toScala + indexed(i)._2.map(_.toScala).mkString("(",", ",")")
+          val s = indexed(i)._1.toScala + indexed(i)._2.toSeq.sorted.map(_.toScala).mkString("(",", ",")")
           if (s.size > Model.ppLineLength) s.take(Model.ppLineLength) + "..." else s
         }        
       )
