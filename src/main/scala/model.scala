@@ -209,7 +209,9 @@ package reqt {
     def toHtml(documentTemplate: DocumentTemplate = defaultDocumentTemplate, 
       htmlGenerator: HtmlGenerator = defaultHtmlGenerator): String = htmlGenerator.generate(this, documentTemplate)
     def toHtml: String = toHtml()
-    lazy val ids: Vector[String] = collect { case (Key(ent, _), _) => ent.id } .toVector.distinct 
+    lazy val ids: Vector[String] = collect { case (Key(ent, _), _) => ent.id } .toVector.distinct  
+    def idsToValues(objectName: String) = 
+       Model.interpreter.get.interpret(s"object $objectName {" + (ids map { id => s"""val $id = "$id"; """ } mkString) + "}")
     //---- selection, restriction and exclusion methods
     def separate(elm: Element, 
       selection: (((Key, NodeSet)) => Boolean) => Model
