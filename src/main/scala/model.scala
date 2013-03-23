@@ -85,31 +85,39 @@ package reqt {
     //we also have from Map inherited slice(from,until) 
     
     //----- pretty printing methods:
-    def print = println(toScala)
-    def pp(from: Int, til: Int) {
-      for (i <- (from max 0) until (til min size )) println( i.toString.padTo(3," ").mkString + " " +  {
-          val s = indexed(i)._1.toScala + indexed(i)._2.toSeq.sorted.map(_.toScala).mkString("(",", ",")")
-          if (s.size > Model.ppLineLength) s.take(Model.ppLineLength) + "..." else s
-        }        
-      )
-    }
-    def pp(until: Int) { pp(0, until min size max 0)}
-    def pp { pp(0, size) }
+    def print { println(toScala) }
+    def p { print }
+    def pp { pp(attributeKinds.collect { case a: AttributeKind[_] => a } : _* ) }
     def pp(as: AttributeKind[_]*) {
       val prefixes = as.map(_.prefix)
       def select(prefMap: Map[String, Node[_]]): Seq[Node[_]] = 
         prefixes.collect { case s if prefMap.isDefinedAt(s) => prefMap(s) } .toSeq
       for (i <- 0 until size) println( i.toString.padTo(3," ").mkString + " " +  {
-          val s = indexed(i)._1.truncPadString((Model.ppLineLength / 2) min 35 ) + 
-            ( if (indexed(i)._1.edge == has())
-                select(indexed(i)._2.prefixMap)
-              else indexed(i)._2.nodes
-            ).map(_.toScala).mkString("(",", ",")")
+          val s = indexed(i)._1.entity.toScala.truncPad(Model.ppEntityWidth) + " " +
+            indexed(i)._1.edge.toScala + " " +
+            ( if (indexed(i)._1.edge == has()) select(indexed(i)._2.prefixMap).map { p => 
+                  if (as.size > 1) p.toScala.trunc(Model.ppColumnWidth)
+                  else p.toScala
+              } else indexed(i)._2.nodes.map(_.toScala)
+            ).mkString("(",", ",")")
           if (s.size > Model.ppLineLength) s.take(Model.ppLineLength) + "..." else s
         }        
       )
     }
-    
+    def ppa {
+      val prefixes = attributeKinds.map(_.prefix)
+      def select(prefMap: Map[String, Node[_]]): Seq[String] = 
+        prefixes.collect { case s if prefMap.isDefinedAt(s) => s } .toSeq
+      for (i <- 0 until size) println( i.toString.padTo(3," ").mkString + " " +  {
+          val s = indexed(i)._1.entity.toScala.truncPad(Model.ppEntityWidth) + " " +
+            indexed(i)._1.edge.toScala + " " + 
+            ( if (indexed(i)._1.edge == has()) select(indexed(i)._2.prefixMap)
+              else indexed(i)._2.nodes.map(_.toScala)
+            ).mkString("(",", ",")")
+          if (s.size > Model.ppLineLength) s.take(Model.ppLineLength) + "..." else s
+        }        
+      )    
+    }
     def ppg { pp(Gist) }
 	
     //----- apply, updated and sorted methods
@@ -201,7 +209,7 @@ package reqt {
     def toHtml(documentTemplate: DocumentTemplate = defaultDocumentTemplate, 
       htmlGenerator: HtmlGenerator = defaultHtmlGenerator): String = htmlGenerator.generate(this, documentTemplate)
     def toHtml: String = toHtml()
-    def ids: Set[String] = collect { case (Key(ent, _), _) => ent.id } toSet 
+    lazy val ids: Vector[String] = collect { case (Key(ent, _), _) => ent.id } .toVector.distinct 
     //---- selection, restriction and exclusion methods
     def separate(elm: Element, 
       selection: (((Key, NodeSet)) => Boolean) => Model
@@ -706,7 +714,9 @@ package reqt {
     }
     lazy val tableHeadings = List("ENTITY", "ENTITY id", "LINK", "LINK attr", "LINK val", "NODE", "NODE val") 
     var overrideToStringWithToScala = true
-    var ppLineLength = 80
+    var ppLineLength = 92
+    var ppColumnWidth = 33
+    var ppEntityWidth = 23
     val unitVisitor = (e: Entity, path: List[Entity], level: Int, count: Int, nSiblings: Int) => ()
     val printVisitor = (e: Entity, path: List[Entity], level: Int, count: Int, nSiblings: Int) => {
       println("Entity visited: " + e + " at level " + level + " count " + count + " #siblings " + nSiblings + "\n" + "Path: " + path + "\n")

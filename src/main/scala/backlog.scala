@@ -44,11 +44,6 @@ package reqt {
         Example("val mh = ModelHistory() + {m => m + (Feature(1))} \n mh.undo; mh.redo; mh.branch(name) "),
         Prio(2)
       ),
-      Feature("smartNewline") has (
-        Gist("Break lines better in m.toScala"),
-        Status(PLANNED),
-        Prio(2)
-      ),
       Ticket("trippleQuotes") has (
         Gist("Investigate escape versus tripple quotes"),
         Status(PLANNED),
@@ -89,7 +84,9 @@ package reqt {
       Feature("toMarkdown") requires Ticket("pandoc")
     )
     val done = Model(
-      Feature("collectConstraints") has (Gist("m.constraints, m.constraintsAll"), Status(IMPLEMENTED))
+      Feature("collectConstraints") has (Gist("m.constraints, m.constraintsAll"), Status(IMPLEMENTED)),
+      Feature("smartNewline") has (Gist("Break lines better in m.toScala"), Status(IMPLEMENTED), Prio(2)),
+      Feature("prettyPrint") has (Gist("Make m.pp; m.pp(Gist); m.pp(Gist,Prio); m.ppa"))
     )
     val halt = Model(
       Feature("javaId") has (Gist("Check that entity id is java identifier"), Problem("Is this good?"), Status.init),

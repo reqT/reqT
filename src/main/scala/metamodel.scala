@@ -557,11 +557,6 @@ match argument types ()
         (this, NodeSet.empty)
     }     
     override def toScala = entity.toScala + " " + edge.toScala + " "
-    def truncPadString(n: Int): String = {
-      val (ent, edg, s) = (entity.toScala, edge.toScala, toScala)
-      val result = if (s.size > n) ent.take(n / 2) + "... " + edg.take(n / 2 - 2) else s
-      result.padTo(n, " ").mkString
-    }
   }
   sealed abstract class SetStructure[T <: Node[_]] extends Structure {
     def nodes: Set[T]
@@ -712,6 +707,8 @@ match argument types ()
     def toScala: String = "" + '\"' + convertEscape + '\"'
     def toModel: Model = Model.interpret(s)
     def decapitalize: String = strUtil.decapitalize(s)
+    def truncPad(n: Int) = strUtil.truncPad(s, n)
+    def trunc(n: Int) = strUtil.trunc(s, n)
     def indentNewline(n: Int = 2) = strUtil.indentNewline(s, n)
     def filterEscape: String = strUtil.filterEscapeChar(s)
     def convertEscape: String = strUtil.escape(s)
@@ -760,7 +757,11 @@ match argument types ()
     def latexSuffix(s:String):String = if (!s.contains(".")) s + ".tex" else s
     def txtSuffix(s:String):String = if (!s.contains(".")) s + ".txt" else s
     def varPrefix(s:String):String = if (s.contains(".")) "" else  "var " + s + " = "
-    
+    def truncPad(s: String, n: Int): String = trunc(s,n) + (" " * (n - s.size))
+    def trunc(s: String, n: Int): String = { 
+      val s2 = s.take(n)
+      if (s2.size < s.size) s2.take(n-3) + "..." else s2
+    }
   } // end strUtil  
   
   object warn {
