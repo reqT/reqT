@@ -557,14 +557,20 @@ match argument types ()
         (this, NodeSet.empty)
     }     
     override def toScala = entity.toScala + " " + edge.toScala + " "
+    def truncPadString(n: Int): String = {
+      val (ent, edg, s) = (entity.toScala, edge.toScala, toScala)
+      val result = if (s.size > n) ent.take(n / 2) + "... " + edg.take(n / 2 - 2) else s
+      result.padTo(n, " ").mkString
+    }
   }
   sealed abstract class SetStructure[T <: Node[_]] extends Structure {
     def nodes: Set[T]
     lazy val sortedNodes = nodes.toSeq.sorted(reqt.nodeOrdering)
     lazy val hasAttribute = nodes.exists(_.isInstanceOf[Attribute[_]])
     lazy val hasEntity = nodes.exists(_.isInstanceOf[Entity])
+    lazy val prefixMap: Map[String, Node[_]] = sortedNodes.map(_.prefix).zip(sortedNodes).toMap
     override def toScala = {
-      val skipNl = (hasEntity) || toString.size < (Model.ppLineLength - 40) //TODO smarter?
+      val skipNl = (hasEntity) || toString.size < (Model.ppLineLength - 30) //TODO smarter?
       val nl = if (skipNl) "" else "\n  "
       val nl2 = if (skipNl) "" else "\n    "
       val (leftPar, rightPar) = nodes.size match {
@@ -576,6 +582,7 @@ match argument types ()
     }
     override def toString = prefix + sortedNodes.map(_.toString).mkString("(", ", ", ")")
   }
+  
   case class NodeSet(nodes: Set[Node[_]]) extends SetStructure[Node[_]] {  
     assert(!(hasAttribute && hasEntity), 
       "Both Entity and Attribute nodes in the same NodeSet is not allowed. This is a bug. Please report.")

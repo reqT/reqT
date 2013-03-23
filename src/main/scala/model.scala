@@ -95,8 +95,22 @@ package reqt {
     }
     def pp(until: Int) { pp(0, until min size max 0)}
     def pp { pp(0, size) }
+    def pp(as: AttributeKind[_]*) {
+      val prefixes = as.map(_.prefix)
+      def select(prefMap: Map[String, Node[_]]): Seq[Node[_]] = 
+        prefixes.collect { case s if prefMap.isDefinedAt(s) => prefMap(s) } .toSeq
+      for (i <- 0 until size) println( i.toString.padTo(3," ").mkString + " " +  {
+          val s = indexed(i)._1.truncPadString((Model.ppLineLength / 2) min 35 ) + 
+            ( if (indexed(i)._1.edge == has())
+                select(indexed(i)._2.prefixMap)
+              else indexed(i)._2.nodes
+            ).map(_.toScala).mkString("(",", ",")")
+          if (s.size > Model.ppLineLength) s.take(Model.ppLineLength) + "..." else s
+        }        
+      )
+    }
     
-    def ppg { attributeMap(Gist) foreach { case (f,g) => println(f.toScala + " has " + g.toScala) } }
+    def ppg { pp(Gist) }
 	
     //----- apply, updated and sorted methods
     def apply[T](r: Reference[T]): T = r match {
