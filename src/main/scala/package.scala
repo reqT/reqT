@@ -114,29 +114,54 @@ package object reqt {
   //fileutils
   def fileSep = System.getProperty("file.separator")
   def slashify(s:String) = s.replaceAllLiterally(fileSep, "/")
-  def pwd = slashify(System.getProperty("user.dir"))
-  def listFiles(dir: String) = new java.io.File(dir).listFiles.toList
-  def ls(d: String) { println(listFiles(d) map { f => f.getName + ( if (f.isDirectory) "/" else "") }  mkString("\n")) }
-  def ls { ls(pwd) }
+  val startDir = slashify(System.getProperty("user.dir"))
+  val homeDir = slashify(System.getProperty("user.home"))
+  protected var workDir = startDir
+  def resolveFileName(fileName: String): String = {
+    val f = new java.io.File(fileName)
+    val fn = slashify(f.toString)
+    if (f.isAbsolute || fn.take(1) == "/" || fn.contains(":")) fn else workDir + "/" + fn
+  }
+  def pwd { println("workDir: String = " + workDir)}
+  def listFiles(dir: String): Option[List[java.io.File]] = 
+    new java.io.File(resolveFileName(dir)).listFiles match { case null => None; case a => Some(a.toList) }
+  def ls(d: String) { 
+    println(listFiles(d)
+      .getOrElse { 
+        println("ERROR Directory not found:" + d )
+        List[java.io.File]()
+      } .map { 
+        case f => f.getName + ( if (f.isDirectory) "/" else "") 
+      }  .mkString("\n")) 
+  }
+  def ls { ls(workDir) }
   def dir { ls } 
   def dir(d: String)  = ls(d)
-  var defaultPath = ""
+  def cd(d: String): Unit = { 
+    val dd = if (d == "..") new java.io.File(workDir).getParent.toString
+      else resolveFileName(d)
+    val f = new java.io.File(dd)
+    if (f.isDirectory && f.exists) workDir = dd 
+    else println("ERROR Directory not found:" + dd )
+    pwd  
+  }
+  def cd: Unit = cd(startDir)
   def saveString(s:String, fileName:String) = {
-    val fn = defaultPath + fileName
+    val fn = resolveFileName(fileName)
     val outFile = new java.io.FileOutputStream(fn)
     val outStream = new java.io.PrintStream(outFile)
     try { outStream.println(s.toString) } finally { outStream.close }
     println("Saved to file: "+fn) 
   }
   def loadLines(fileName:String) = {
-    val fn = defaultPath + fileName
+    val fn = resolveFileName(fileName)
     val source = scala.io.Source.fromFile(fn)
     val lines = source.getLines.toList
     source.close
     lines
   }
   def load(fileName:String): String = {
-    val fn = defaultPath + fileName
+    val fn = resolveFileName(fileName)
     try  { loadLines(fn).mkString("\n") } catch  { case e: Throwable => "ERROR " + e }
   }
   //dbg utils to be used in REPL> :wrap timedSec
@@ -146,7 +171,7 @@ package object reqt {
     finally println((System.nanoTime - start)/1e9 + " seconds elapsed.")
   }  
 
-  lazy val LICENCE = """
+  lazy val reqT_LICENCE = """
 http://reqT.org/license 
 ======================= 
 
