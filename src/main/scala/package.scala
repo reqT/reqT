@@ -14,8 +14,18 @@
 package object reqt {  
   import scala.language.implicitConversions
 
-  lazy val VERSION = "reqT-v2.3.0RC1-SNAPSHOT_2.10.0"
+  val VERSION = "2.3.0"
+  val SCALA_VERSION = "2.10.1"
 
+  def init(intp: scala.tools.nsc.interpreter.IMain) {
+    println("** Initializing Scala interpreter for reqT ...")
+    Model.interpreter = Some(intp)
+    intp.quietRun("import scala.language._")
+    intp.quietRun("import reqt._")
+    intp.quietRun("import reqt." + reqt.elementNames.mkString("{",", ","}")) //to allow tab completion on model elements
+    intp.quietRun("import reqt.abbrev._")
+  }
+  
   //implicits for constraints.scala
   
   implicit def attrRefToVar(ref: AttrRef[Int]): Var[AttrRef[Int]] = Var(ref)  
@@ -116,13 +126,14 @@ package object reqt {
   def slashify(s:String) = s.replaceAllLiterally(fileSep, "/")
   val startDir = slashify(System.getProperty("user.dir"))
   val homeDir = slashify(System.getProperty("user.home"))
-  protected var workDir = startDir
+  protected var workingDirectory = startDir
+  def workDir = workingDirectory
   def resolveFileName(fileName: String): String = {
     val f = new java.io.File(fileName)
     val fn = slashify(f.toString)
-    if (f.isAbsolute || fn.take(1) == "/" || fn.contains(":")) fn else workDir + "/" + fn
+    if (f.isAbsolute || fn.take(1) == "/" || fn.contains(":")) fn else workingDirectory + "/" + fn
   }
-  def pwd { println("workDir: String = " + workDir)}
+  def pwd { println("workDir == " + workDir)}
   def listFiles(dir: String): Option[List[java.io.File]] = 
     new java.io.File(resolveFileName(dir)).listFiles match { case null => None; case a => Some(a.toList) }
   def ls(d: String) { 
@@ -134,14 +145,14 @@ package object reqt {
         case f => f.getName + ( if (f.isDirectory) "/" else "") 
       }  .mkString("\n")) 
   }
-  def ls { ls(workDir) }
+  def ls { ls(workingDirectory) }
   def dir { ls } 
   def dir(d: String)  = ls(d)
   def cd(d: String): Unit = { 
-    val dd = if (d == "..") new java.io.File(workDir).getParent.toString
+    val dd = if (d == "..") new java.io.File(workingDirectory).getParent.toString
       else resolveFileName(d)
     val f = new java.io.File(dd)
-    if (f.isDirectory && f.exists) workDir = dd 
+    if (f.isDirectory && f.exists) workingDirectory = dd 
     else println("ERROR Directory not found:" + dd )
     pwd  
   }
@@ -204,5 +215,14 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 
 """
-
+  lazy val reqT_PREAMBLE = """
+**                  _______        
+**                 |__   __|       
+**   _ __  ___   __ _ | |          
+**  |  __|/ _ \ / _  || |        http://reqT.org
+**  | |  |  __/| (_| || |   
+**  |_|   \___| \__  ||_|   
+**                 | |      
+**                 |_|      
+"""
 }  //end package object reqT
