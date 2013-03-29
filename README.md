@@ -45,12 +45,15 @@ How to build reqT from code
 ---------------------------
 There are several ways to build reqT after cloning this repo:
 * You can build reqT from scratch step by step using:
-``
+
     scalac -feature -deprecation -cp "lib\*" -d target "src\main\scala\*"
+
     jar xf lib/JaCoP-3.2.jar JaCoP
+
     mv JaCoP target/JaCoP
+
     jar cfe reqT.jar reqt.start -C target/ .
-``
+
 * Or on Windows you can run the provided `build.cmd` that 
     * compiles reqT into `target/`
     * packages compiled class files into `reqT.jar`
