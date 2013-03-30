@@ -46,16 +46,16 @@ Different ways of running reqT, depending on your preference:
     * Create a new directory e.g. `<home>/reqT/bin`
     * Put `reqt.cmd` file (Windows) or a `reqt` bash file (Unix-like) including something similar to:
         
-        :: put this code in a file called reqt.cmd
-        @echo OFF
-        set _jarfilename=%HOMEDRIVE%%HOMEPATH%\reqT\lib\reqT.jar
-        echo Adding %_jarfilename% to CLASSPATH
-        set CLASSPATH=%CLASSPATH%;%_jarfilename%
-        echo %CLASSPATH%
-        call scala %HOMEDRIVE%%HOMEPATH%\reqT\lib\reqT.jar
-        echo ** Exit reqT at %TIME%
+            :: put this code in a file called reqt.cmd
+            @echo OFF
+            set _jarfilename=%HOMEDRIVE%%HOMEPATH%\reqT\lib\reqT.jar
+            echo Adding %_jarfilename% to CLASSPATH
+            set CLASSPATH=%CLASSPATH%;%_jarfilename%
+            echo %CLASSPATH%
+            call scala %HOMEDRIVE%%HOMEPATH%\reqT\lib\reqT.jar
+            echo ** Exit reqT at %TIME%
 
-    *Add reqt to PATH in windows:* If you want, you can put the `reqt.cmd` file in the `%HOMEDRIVE%%HOMEPATH%\reqT\bin` directory and append that directory to your `PATH`user environment variable, by (1) right-clicking on your computer, (2) select "Properties", (3) follow "Advanced system settings", (4) click on the "Environment variables..." button and (5) select the PATH user variable and (6) click Edit and (7) append the string `;C:\Users\bjornr\reqT\bin` where you should replace C:\Users\bjornr with your home directory.     
+    **Add reqt to PATH in windows:**  If you want, you can put the `reqt.cmd` file in the `%HOMEDRIVE%%HOMEPATH%\reqT\bin` directory and append that directory to your `PATH`user environment variable, by (1) right-clicking on your computer, (2) select "Properties", (3) follow "Advanced system settings", (4) click on the "Environment variables..." button and (5) select the PATH user variable and (6) click Edit and (7) append the string `;C:\Users\bjornr\reqT\bin` where you should replace C:\Users\bjornr with your home directory.     
         
         
 Directory structure
@@ -78,7 +78,7 @@ How to build reqT from code
 ---------------------------
 There are several ways to build reqT after cloning this repo:
 
-1. On Windows you can run the provided `build.cmd` that will do this for you
+1. On Windows you can run the provided `build.cmd` that will do this:
     * compiles reqT into `target\`
     * packages compiled class files into `reqT.jar`
     * copies relevant files to `%HOMEDRIVE%%HOMEPATH%\reqT\`
