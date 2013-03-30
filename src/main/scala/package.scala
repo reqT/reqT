@@ -17,13 +17,18 @@ package object reqt {
   val VERSION = "2.3.0"
   val SCALA_VERSION = "2.10.1"
 
-  def init(intp: scala.tools.nsc.interpreter.IMain) {
-    println("** Initializing Scala interpreter for reqT ...")
+  def initInterpreter(intp: scala.tools.nsc.interpreter.IMain) {
+    println("** Initializing interpreter ...")
     Model.interpreter = Some(intp)
     intp.quietRun("import scala.language._")
     intp.quietRun("import reqt._")
     intp.quietRun("import reqt." + reqt.elementNames.mkString("{",", ","}")) //to allow tab completion on model elements
     intp.quietRun("import reqt.abbrev._")
+  }
+
+  def init(intp: scala.tools.nsc.interpreter.IMain) {
+    println(repl.startMsg)
+    initInterpreter(intp)
   }
   
   //implicits for constraints.scala
