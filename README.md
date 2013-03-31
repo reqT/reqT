@@ -16,7 +16,7 @@ How to run reqT
 ---------------
 Preparations:
 * Install Scala 2.10.1 from http://www.scala-lang.org/downloads
-* Download the reqT.jar from https://github.com/reqT/reqT/raw/master/reqT.jar and put it in some directory of your chioce, e.g. `~/reqT/lib` 
+* Download the reqT.jar from https://github.com/reqT/reqT/raw/master/reqT.jar and put it in some directory of your chioce, e.g. `\Users\<yourusername>\reqT\lib` (Windows) or `~/reqT/lib` (Linux or MacOS) 
  
 Different ways of running reqT, depending on your preference:
 
@@ -42,7 +42,7 @@ Different ways of running reqT, depending on your preference:
             Welcome to reqT version 2.3.0
             ---
 
-3.  Install `reqt` as command for easy start of the reqT interpreter wrapper in any directory using cmd or bash:
+3.  Install `reqt` as a command for easy start of the reqT interpreter wrapper in any directory using cmd or bash:
 
     To make it easy to start reqT anywhere from a terminal och command prompt and to avoid having to type `reqt.init($intp)` everytime, you can make an executable script that appends the `reqT.jar` to your `CLASSPATH` and then starts reqT with `scala <home>/reqT/lib/reqT.jar`. Then append the directory of your script to your system environment PATH variable to enable execution as a command. This can be done using something similar to this (replace <home> with suitable directory):
     * Create a new directory e.g. `<home>/reqT/lib`
@@ -51,7 +51,7 @@ Different ways of running reqT, depending on your preference:
     
     **Windows: reqt command** Put the `reqt.cmd` file (Windows) in directory `\Users\yourname\reqT\bin` 
 
-    **Windows: Add reqt to PATH**  Append the `\Users\yourname\reqT\bin`  directory to your `PATH` user environment variable, by (1) right-clicking on your computer, (2) select "Properties", (3) follow "Advanced system settings", (4) click on the "Environment variables..." button and (5) select the PATH user variable and (6) click Edit and (7) append the string `;C:\Users\<yourusername>\reqT\bin` (note the semicolon and replace <yourusername> with your user name).
+    **Windows: Add reqt to PATH** Append the `\Users\yourname\reqT\bin`  directory to your `PATH` user environment variable, by (1) right-clicking on your computer, (2) select "Properties", (3) follow "Advanced system settings", (4) click on the "Environment variables..." button and (5) select the PATH user variable and (6) click Edit and (7) append the string `;C:\Users\<yourusername>\reqT\bin` (note the semicolon and replace <yourusername> with your user name).
 
     **Linux or MacOS: reqt command**  Put the `reqt.sh` bash file in the directory ~/reqT/bin and open a terminal window and execute these commands:
           
@@ -59,7 +59,7 @@ Different ways of running reqT, depending on your preference:
           mv reqt.sh reqt
           chmod u+x reqt
           
-     **Linux or MacOS: Add reqt to PATH** Append this text to the end of your ~/.profile file e.g. using pluma or vi:
+     **Linux or MacOS: Add reqt to PATH** Append this text at the end of your `~/.profile` file e.g. using pluma or vi:
      
           export PATH=$PATH:~/reqT/bin
         

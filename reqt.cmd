@@ -4,5 +4,5 @@ set _jarfilename=%HOMEDRIVE%%HOMEPATH%\reqT\lib\reqT.jar
 echo Adding %_jarfilename% to CLASSPATH
 set CLASSPATH=%CLASSPATH%;%_jarfilename%
 echo %CLASSPATH%
-call scala %HOMEDRIVE%%HOMEPATH%\reqT\lib\reqT.jar
+call scala %HOMEDRIVE%%HOMEPATH%\reqT\lib\reqT.jar %*
 echo ** Exit reqT at %TIME%
