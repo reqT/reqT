@@ -13,7 +13,13 @@
 
 package object reqt {  
   import scala.language.implicitConversions
-
+  
+  private var helpIsInstalled = false
+  def ?? = {
+    if (!helpIsInstalled) { helpInstaller.installHelp; helpIsInstalled = true }
+    println("? <topic>\nwhere <topic> can be: " + helpInstaller.summary)
+  }
+  
   val VERSION = "2.3.0"
   val SCALA_VERSION = "2.10.1"
 

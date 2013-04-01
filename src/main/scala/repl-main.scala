@@ -22,7 +22,7 @@ import interpreter._
 import java.io._
 
 object repl {
-  val helpOnReqT: String = "** Type ? for help on reqT"
+  val helpOnReqT: String = "** Type ?? for help on reqT, type :h for help on Scala REPL"
   val startMsg: String = 
     s"\nStarting reqT-v$VERSION compiled with Scala $SCALA_VERSION ..." +  
     s"\n$reqT_PREAMBLE\n$helpOnReqT"

@@ -25,10 +25,6 @@ echo Copying %_jarfilename% to %USERPROFILE%\reqT\lib\
 copy /Y %_jarfilename% "%USERPROFILE%\reqT\lib\."
 echo Copying reqt.cmd to %USERPROFILE%\reqT\bin\
 copy /Y reqt.cmd "%USERPROFILE%\reqT\bin\."
-echo Make sure that:
-echo * your CLASSPATH variable includes %USERPROFILE%\reqT\lib\%_jarfilename%
-echo * your PATH variable includes %USERPROFILE%\reqT\bin\ 
-echo then you can use the reqt command
 goto end
 :error
 echo Error level: %ERRORLEVEL%
