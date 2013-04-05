@@ -371,7 +371,7 @@ package reqt {
     lazy val relations: Set[Relation] = ( for (Key(entity, edge) <- this.keySet) yield edge ) collect { case r: Relation => r.kind }  
     lazy val relationSources: Set[Entity] = this \ has sources  
     lazy val relationDestinations: Set[Entity] = this \ has destinations
-    lazy val releationEntities: Set[Entity] = relationSources ++ relationDestinations   
+    lazy val relationEntities: Set[Entity] = relationSources ++ relationDestinations   
     lazy val attributeSources: Set[Entity] = this / has sources
     lazy val unrelated: Set[Entity] = entities diff relationSources diff relationDestinations
     lazy val unsourced: Set[Entity] = (relationSources ++ unrelated) diff destinations
