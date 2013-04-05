@@ -12,8 +12,8 @@ echo Packaging ready!    %TIME%
 if not exist "%USERPROFILE%\.kojo\lite\libk" goto checklibdir
 echo Copying %_jarfilename% to "%USERPROFILE%\.kojo\lite\libk\."
 copy /Y %_jarfilename% "%USERPROFILE%\.kojo\lite\libk\."
-echo Copying "kojo\reqTinit.kojo" to "%USERPROFILE%\.kojo\lite\initk\."
-copy /Y "kojo\reqTinit.kojo" "%USERPROFILE%\.kojo\lite\initk\."
+echo Copying "reqTinit.kojo" to "%USERPROFILE%\.kojo\lite\initk\."
+copy /Y "reqTinit.kojo" "%USERPROFILE%\.kojo\lite\initk\."
 :checklibdir
 if exist "%USERPROFILE%\reqT\lib" goto checkbindir
 mkdir "%USERPROFILE%\reqT\lib"
@@ -25,6 +25,7 @@ echo Copying %_jarfilename% to %USERPROFILE%\reqT\lib\
 copy /Y %_jarfilename% "%USERPROFILE%\reqT\lib\."
 echo Copying reqt.cmd to %USERPROFILE%\reqT\bin\
 copy /Y reqt.cmd "%USERPROFILE%\reqT\bin\."
+echo If %USERPROFILE%\reqT\bin is in your Path you can run reqt as a command
 goto end
 :error
 echo Error level: %ERRORLEVEL%
