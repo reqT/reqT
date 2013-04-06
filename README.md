@@ -4,7 +4,7 @@ reqT: Requirements => Code
 ==========================
 http://reqt.org is a free tool for software requirement modelling 
 
-``scala
+```scala
 
 val about = Model(
   Feature("create") has 
@@ -20,7 +20,7 @@ val about = Model(
   Quality("open") has
     Gist("extend the Scala-internal DSL with your own modeling semantics")
 )
-``
+```
 
 How to run reqT
 ---------------
