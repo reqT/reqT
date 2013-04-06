@@ -2,24 +2,19 @@
 
 reqT: Requirements => Code
 ==========================
-http://reqt.org is a free tool for software requirement modelling 
+http://reqt.org is a free tool for software requirements modelling
 
 ```scala
 
 val about = Model(
-  Feature("create") has 
-    Gist("Create & manage requirements using versatile collections"),
-  Feature("collaborate") has 
-    Gist("Work distributed with model chunks in emails, wikis, git repos, tickets, ..."),
-  Feature("express") has
-    Gist("Combine informal language expressiveness with graph-oriented modeling"),
-  Quality("interop") has
-    Gist("Interoperate with spread sheet applications and web publishing"),
-  Quality("scalable") has
-    Gist("Modularize models inside models and extend models with Scala scripts"),
-  Quality("open") has
-    Gist("extend the Scala-internal DSL with your own modeling semantics")
+  Feature("create") has Gist("Create & manage requirements and test cases using versatile collections"),
+  Feature("collaborate") has Gist("Work distributed with model chunks in emails, wikis, git repos, tickets, ..."),
+  Feature("express") has Gist("Combine natural language expressiveness with graph-oriented modeling"),
+  Feature("interop") has Gist("Interoperate with spread sheet applications and web publishing"),
+  Feature("scalable") has Gist("Modularize models in hierarchies and script them in Scala"),
+  Feature("open") has Gist("extend the Scala-internal DSL with your own modeling semantics")
 )
+
 ```
 
 How to run reqT
