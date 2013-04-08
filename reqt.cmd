@@ -1,6 +1,5 @@
 :: put this code in a file called reqt.cmd in a dir appended to path
 @echo OFF
-setlocal enableextensions enabledelayedexpansion
 set _jarfilename=%HOMEDRIVE%%HOMEPATH%\reqT\lib\reqT.jar
 set CLASSPATH=%CLASSPATH%;%_jarfilename%
-call scala !%HOMEDRIVE%%HOMEPATH%\reqT\lib\reqT.jar! %*
+call scala %_jarfilename% %*
