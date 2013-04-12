@@ -283,16 +283,25 @@ package reqt {
   
   abstract class Attribute[T] extends Node[T] with Default[T] 
   
-  trait StringAttr extends Attribute[String] with StringValueToScala { val default = "???" }
-  trait LevelAttr extends Attribute[Level] { val default = ELICITED }
-  trait IntAttr extends Attribute[Int] { val default = 0 }
-  trait ConstrSeqAttr extends Attribute[Vector[Constr[Any]]] with ConstrVectorValueToScala { val default = Vector() }
+  //Marker traits for attribute values
+  trait StringValue extends Attribute[String] with StringValueToScala { val default = "???" }
+  trait LevelValue extends Attribute[Level] { val default = ELICITED }
+  trait IntValue extends Attribute[Int] { val default = 0 }
+  trait ConstrVectorValue extends Attribute[Vector[Constr[Any]]] with ConstrVectorValueToScala { val default = Vector() }
+  trait ModelValue extends Attribute[Model] with SubmodelValueToScala { val default = Model() }
   
-  case class Gist(value: String) extends StringAttr
-  case object Gist extends StringAttr with AttributeKind[String]  
+  //Marker traits for attribute kinds
+  trait StringKind extends StringValue with AttributeKind[String]
+  trait LevelKind extends LevelValue with AttributeKind[Level] 
+  trait IntKind extends IntValue with AttributeKind[Int]
+  trait ConstrVectorKind extends ConstrVectorValue with AttributeKind[Vector[Constr[Any]]]
+  trait ModelKind extends ModelValue with AttributeKind[Model]  
   
-  case class Spec(value: String) extends StringAttr
-  case object Spec extends StringAttr with AttributeKind[String] 
+  case class Gist(value: String) extends StringValue
+  case object Gist extends StringKind  
+  
+  case class Spec(value: String) extends StringValue
+  case object Spec extends StringKind 
   
   trait Level extends Ordered[Level] { 
     def up:Level
@@ -316,78 +325,88 @@ package reqt {
     def init = Status(default)
   }
   
-  case class Status(value: Level) extends LevelAttr with CanUpDown with Ordered[Status] { 
+  case class Status(value: Level) extends LevelValue with CanUpDown with Ordered[Status] { 
     def compare(that: Status) = levelIndex(this.value) compare levelIndex(that.value)
   }
-  case object Status extends LevelAttr with AttributeKind[Level] with CanUpDown 
+  case object Status extends LevelKind with CanUpDown 
   
-  case class Why(value: String) extends StringAttr   //TODO *** update all below with StringAttr and IntAttr etc.
-  case object Why extends StringAttr with AttributeKind[String] 
+  case class Why(value: String) extends StringValue   
+  case object Why extends StringKind 
   
-  case class Example(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED EXAMPLE" }
-  case object Example extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED EXAMPLE" }
+  case class Example(value: String) extends StringValue
+  case object Example extends StringKind
 
-  case class Expectation(value: String) extends StringAttr
-  case object Expectation extends StringAttr with AttributeKind[String]
+  case class Expectation(value: String) extends StringValue
+  case object Expectation extends StringKind
   
-  case class Input(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED INPUT" }
-  case object Input extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED INPUT" }
+  case class Input(value: String) extends StringValue
+  case object Input extends StringKind 
   
-  case class Output(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED OUTPUT" }
-  case object Output extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED OUTPUT" }
+  case class Output(value: String) extends StringValue
+  case object Output extends StringKind
   
-  case class Trigger(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED TRIGGER" }
-  case object Trigger extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED TRIGGER" }
+  case class Trigger(value: String) extends StringValue
+  case object Trigger extends StringKind 
   
-  case class Precond(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED PRECONDITION" }
-  case object Precond extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED PRECONDITION" }
+  case class Precond(value: String) extends StringValue
+  case object Precond extends StringKind 
   
-  case class Frequency(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED FREQUENCY" }
-  case object Frequency extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED FREQUENCY" }
+  case class Frequency(value: String) extends StringValue
+  case object Frequency extends StringKind
   
-  case class Critical(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED CRITICAL" }
-  case object Critical extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED CRITICAL" }
+  case class Critical(value: String) extends StringValue
+  case object Critical extends StringKind
   
-  case class Problem(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED PROBLEM" }
-  case object Problem extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED PROBLEM" }
+  case class Problem(value: String) extends StringValue
+  case object Problem extends StringKind 
   
-  case class Prio(value: Int) extends IntAttr 
-  case object Prio extends IntAttr with AttributeKind[Int]  
+  case class Prio(value: Int) extends IntValue 
+  case object Prio extends IntKind  
   
-  case class Order(value: Int) extends IntAttr 
-  case object Order extends IntAttr with AttributeKind[Int]  
+  case class Order(value: Int) extends IntValue 
+  case object Order extends IntKind  
 
-  case class Cost(value: Int) extends IntAttr 
-  case object Cost extends IntAttr with AttributeKind[Int]  
+  case class Cost(value: Int) extends IntValue 
+  case object Cost extends IntKind  
   
-  case class Benefit(value: Int) extends IntAttr 
-  case object Benefit extends IntAttr with AttributeKind[Int]  
+  case class Benefit(value: Int) extends IntValue 
+  case object Benefit extends IntKind  
 
-  case class Capacity(value: Int) extends IntAttr 
-  case object Capacity extends IntAttr with AttributeKind[Int]  
+  case class Capacity(value: Int) extends IntValue 
+  case object Capacity extends IntKind  
   
-  case class Urgency(value: Int) extends IntAttr 
-  case object Urgency extends IntAttr with AttributeKind[Int]  
+  case class Urgency(value: Int) extends IntValue 
+  case object Urgency extends IntKind  
 
-  case class Label(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED LABEL" }
-  case object Label extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED LABEL" }
+  case class Label(value: String) extends StringValue
+  case object Label extends StringKind
 
-  case class Comment(value: String) extends Attribute[String] with StringValueToScala { val default = "NO COMMENT" }
-  case object Comment extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "NO COMMENT" }
+  case class Comment(value: String) extends StringValue
+  case object Comment extends StringKind 
   
-  case class Image(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED-FILENAME.jpg" }
-  case object Image extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED-FILENAME.jpg" }
+  case class Image(value: String) extends StringValue
+  case object Image extends StringKind 
   
-  case class Deprecated(value: String) extends Attribute[String] with StringValueToScala { val default = "UNDEFINED LABEL" }
-  case object Deprecated extends Attribute[String] with StringValueToScala with AttributeKind[String] { val default = "UNDEFINED LABEL" }
+  case class Deprecated(value: String) extends StringValue
+  case object Deprecated extends StringKind 
 
-  case class Submodel(value: Model) extends Attribute[Model] with SubmodelValueToScala { val default = Model() }
-  case object Submodel extends Attribute[Model] with AttributeKind[Model] { 
-    val default = Model() 
-    def apply(kvs: (Key,NodeSet) * ): Submodel = Submodel(Model(kvs: _*))
-  }  
+  case class Submodel(value: Model) extends ModelValue
+  case object Submodel extends ModelKind { 
+    def apply(kv1: (Key,NodeSet), kvs: (Key,NodeSet) * ): Submodel = Submodel(Model(kv1) ++ Model(kvs: _*))
+    override def apply(): Submodel = Submodel(Model())
+/*
+    //Above two apply to avoid below problem: - any better solution???   
+scala> Submodel()
+<console>:18: error: ambiguous reference to overloaded definition,
+both method apply in object Submodel of type (kvs: (reqt.Key, reqt.NodeSet)*)reqt.Submodel
+and  method apply in trait AttributeKind of type ()reqt.Attribute[reqt.Model]
+match argument types ()
+            Submodel()
+            ^
+*/    
+  } 
 
-  case class Code(value: String) extends StringAttr {
+  case class Code(value: String) extends StringValue {
     def run(prefix: String = ""): String = {
       Model.interpreter match {
         case None => Model.interpreterWarning() ; ""
@@ -399,18 +418,18 @@ package reqt {
       } 
     }
   }
-  case object Code extends StringAttr with AttributeKind[String]   
+  case object Code extends StringKind   
   
-  case class Constraints(value: Vector[Constr[Any]]) extends ConstrSeqAttr {
+  case class Constraints(value: Vector[Constr[Any]]) extends ConstrVectorValue {
     def satisfy = value.solve(Satisfy)
     def toModel = (Model() impose this) satisfy
     def ++(cs: Constraints): Constraints = Constraints(value ++ cs.value)
   }
-  case object Constraints extends ConstrSeqAttr with AttributeKind[Vector[Constr[Any]]] {
+  case object Constraints extends ConstrVectorValue with AttributeKind[Vector[Constr[Any]]] {
     def apply(cs1: Constr[Any], cs: Constr[Any] * ): Constraints = Constraints(Vector(cs1) ++ cs.toVector)
     override def apply(): Constraints = Constraints(Vector())
     /*
-    //WHAT TODO ABOUT THIS: ???    
+    //Above two apply to avoid below problem: - any better solution???   
 scala> Constraints()
 <console>:18: error: ambiguous reference to overloaded definition,
 both method apply in object Constraints of type (cs: reqt.Constr[Any]*)reqt.Constraints

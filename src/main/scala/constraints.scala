@@ -21,7 +21,7 @@ package reqt {
   //---- integration with class Model: (for implicits conversions see package.scala)
   
   case class CSP[T](m: Model, cs: Seq[Constr[T]]) {
-    lazy val intValues = (m collect { case (Key(e,has), NodeSet(ns)) => ns.toList collect { case n: IntAttr => (e,n) } } ).flatten.toList
+    lazy val intValues = (m collect { case (Key(e,has), NodeSet(ns)) => ns.toList collect { case n: IntValue => (e,n) } } ).flatten.toList
     lazy val intModelConstr = intValues.collect { 
       case (e, Prio(i)) =>  Var(e.Prio)  #== i 
       case (e, Order(i)) => Var(e.Order) #== i
@@ -30,7 +30,7 @@ package reqt {
     def updateModel(vmap: Map[Var[Any], Int]): Model = { //Any propagates because of Map invariance
       var newModel = m
       val modelVariables = vmap collect { 
-        case (v @ Var(ar @ AttrRef(e,a)), i) => //kolla IntAttr??
+        case (v @ Var(ar @ AttrRef(e,a)), i) => //kolla IntValue??
           (ar, i) 
       } 
       modelVariables foreach { case (ar, i) => newModel = newModel.updated(ar, i)  } 
