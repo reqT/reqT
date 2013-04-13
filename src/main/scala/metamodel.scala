@@ -457,7 +457,7 @@ match argument types ()
   trait AttrFromString[T <: Attribute[_]] {
     def apply(s: String): T 
   }
-  
+    
   case object NoAttribute extends Attribute[Unit] { val value = (); val default = () }
 
   //************** Relations **************
@@ -725,6 +725,7 @@ match argument types ()
   case class RichString(s: String) {
     def toScala: String = "" + '\"' + convertEscape + '\"'
     def toModel: Model = Model.interpret(s)
+    def toLevel: Level = levelFromString(s)
     def decapitalize: String = strUtil.decapitalize(s)
     def truncPad(n: Int) = strUtil.truncPad(s, n)
     def trunc(n: Int) = strUtil.trunc(s, n)

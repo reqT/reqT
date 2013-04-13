@@ -20,7 +20,7 @@ package object reqt {
     println("? <topic>\nwhere <topic> can be: " + helpInstaller.summary)
   }
   
-  val VERSION = "2.3.0"
+  val VERSION = "2.3.0_RC1_SNAPSHOT"
   val SCALA_VERSION = "2.10.1"
 
   def initInterpreter(intp: scala.tools.nsc.interpreter.IMain) {
@@ -74,10 +74,15 @@ package object reqt {
   lazy val scenarioKinds: List[Element] = List(UserStory, UseCase, TestCase, Task, VividScenario)
   lazy val dataKinds: List[Element] = List(Class, Member)
   lazy val requirementKinds: List[Element] = List(Req, Idea, Goal, Feature, Function, Quality, Interface, Design, Issue, Ticket) ++ scenarioKinds ++ dataKinds
-  lazy val attributeKinds: List[Element] = List(Gist, Spec, Status, Why, Example, Expectation, Input, Output, Trigger, Precond, Frequency, Critical, Problem, Prio, Order, Cost, Benefit, Capacity, Urgency, Label, Comment, Image, Deprecated, Submodel, Code, Constraints)
-  lazy val edgeKinds: List[Element] = List(has, owns, requires, excludes, releases, helps, hurts, precedes, inherits, implements, verifies, assigns, deprecates)
-  lazy val levelIndex: Map[Level, Int] = Map(DROPPED -> 0, ELICITED -> 1, SPECIFIED -> 2, VALIDATED -> 3, POSTPONED -> 4, PLANNED -> 5, FAILED -> 6, IMPLEMENTED -> 7, TESTED -> 8, RELEASED -> 9)
-  
+  lazy val attributeKinds: List[Attribute[_] with AttributeKind[_]] = 
+    List(Gist, Spec, Status, Why, Example, Expectation, Input, Output, Trigger, Precond, Frequency, Critical, Problem, Prio, Order, Cost, Benefit, Capacity, Urgency, Label, Comment, Image, Deprecated, Submodel, Code, Constraints)
+  lazy val edgeKinds: List[Element] = List(has) ++ relationKinds ++ relationWithAttributeKinds
+  lazy val relationKinds: List[RelationWithoutAttribute] = List(owns, requires, excludes, releases, helps, hurts, precedes, inherits, implements, verifies, deprecates)
+  lazy val relationWithAttributeKinds: List[RelationWithAttribute[_]] = List(assigns)
+  lazy val levelVector: Vector[Level] = Vector(DROPPED, ELICITED, SPECIFIED, VALIDATED, POSTPONED, PLANNED, FAILED, IMPLEMENTED, TESTED, RELEASED)
+  lazy val levelIndex: Map[Level, Int] = levelVector.zipWithIndex.toMap
+  lazy val levelFromString: Map[String, Level] = levelVector.map { k => (k.toString, k) } .toMap
+
   def levelLessThan(l1: Level, l2: Level): Boolean = levelIndex(l1) < levelIndex(l2)
   implicit val levelOrdering = Ordering.fromLessThan[Level](levelLessThan) 
   def statusLessThan(s1: Status, s2: Status): Boolean = levelIndex(s1.value) < levelIndex(s2.value)
@@ -104,13 +109,91 @@ package object reqt {
   implicit def nodeSetToSetOfNodes(nodes:NodeSet):Set[Node[_]] = nodes.nodes
   implicit def entityToKeyNodeSetPair(e: Entity): (Key,NodeSet) = (Key(e, has()), NodeSet())
   
-  // Implicits objects allowed for attribute External[T]
-  implicit object specMaker extends AttrFromString[Spec] { def apply(s: String): Spec = Spec(s) }
-  implicit object whyMaker extends AttrFromString[Why] { def apply(s: String): Why = Why(s) }
-  implicit object exampleMaker extends AttrFromString[Example] { def apply(s: String): Example = Example(s) }
-  implicit object commentMaker extends AttrFromString[Comment] { def apply(s: String): Comment = Comment(s) }
-  implicit object submodelMaker extends AttrFromString[Submodel] { def apply(s: String): Submodel = Submodel(Model.interpret(s)) }
-  implicit object codeMaker extends AttrFromString[Code] { def apply(s: String): Code = Code(s) }
+  // Implicits objects for attribute External[T] and makeAttribute
+  implicit object makeGist extends AttrFromString[Gist] { def apply(s: String): Gist = Gist(s) }
+  implicit object makeSpec extends AttrFromString[Spec] { def apply(s: String): Spec = Spec(s) }
+  implicit object makeStatus extends AttrFromString[Status] { def apply(s: String): Status = Status(s.toLevel) }
+  implicit object makeWhy extends AttrFromString[Why] { def apply(s: String): Why = Why(s) }
+  implicit object makeExample extends AttrFromString[Example] { def apply(s: String): Example = Example(s) }
+  implicit object makeExpectation extends AttrFromString[Expectation] { def apply(s: String): Expectation = Expectation(s) }
+  implicit object makeInput extends AttrFromString[Input] { def apply(s: String): Input = Input(s) }
+  implicit object makeOutput extends AttrFromString[Output] { def apply(s: String): Output = Output(s) }
+  implicit object makeTrigger extends AttrFromString[Trigger] { def apply(s: String): Trigger = Trigger(s) }
+  implicit object makePrecond extends AttrFromString[Precond] { def apply(s: String): Precond = Precond(s) }
+  implicit object makeFrequency extends AttrFromString[Frequency] { def apply(s: String): Frequency = Frequency(s) }
+  implicit object makeCritical extends AttrFromString[Critical] { def apply(s: String): Critical = Critical(s) }
+  implicit object makeProblem extends AttrFromString[Problem] { def apply(s: String): Problem = Problem(s) }
+  implicit object makePrio extends AttrFromString[Prio] { def apply(s: String): Prio = Prio(s.toInt) }
+  implicit object makeOrder extends AttrFromString[Order] { def apply(s: String): Order = Order(s.toInt) }
+  implicit object makeCost extends AttrFromString[Cost] { def apply(s: String): Cost = Cost(s.toInt) }
+  implicit object makeBenefit extends AttrFromString[Benefit] { def apply(s: String): Benefit = Benefit(s.toInt) }
+  implicit object makeCapacity extends AttrFromString[Capacity] { def apply(s: String): Capacity = Capacity(s.toInt) }
+  implicit object makeUrgency extends AttrFromString[Urgency] { def apply(s: String): Urgency = Urgency(s.toInt) }
+  implicit object makeLabel extends AttrFromString[Label] { def apply(s: String): Label = Label(s) }
+  implicit object makeComment extends AttrFromString[Comment] { def apply(s: String): Comment = Comment(s) }
+  implicit object makeImage extends AttrFromString[Image] { def apply(s: String): Image = Image(s) }
+  implicit object makeDeprecated extends AttrFromString[Deprecated] { def apply(s: String): Deprecated = Deprecated(s) }
+  implicit object makeSubmodel extends AttrFromString[Submodel] { def apply(s: String): Submodel = Submodel(Model.interpret(s)) }
+  implicit object makeCode extends AttrFromString[Code] { def apply(s: String): Code = Code(s) }
+  implicit object makeConstraints extends AttrFromString[Constraints] { def apply(s: String): Constraints = ??? }  
+
+  def makeAttribute[T <: Attribute[_]](value: String)( implicit make: AttrFromString[T]): T = make(value)
+  lazy val attributeFromString = Map[String, String => Attribute[_]](
+   "Gist" -> makeAttribute[Gist] _,
+   "Spec" -> makeAttribute[Spec] _,
+   "Status" -> makeAttribute[Status] _,
+   "Why" -> makeAttribute[Why] _,
+   "Example" -> makeAttribute[Example] _,
+   "Expectation" -> makeAttribute[Expectation] _,
+   "Input" -> makeAttribute[Input] _,
+   "Output" -> makeAttribute[Output] _,
+   "Trigger" -> makeAttribute[Trigger] _,
+   "Precond" -> makeAttribute[Precond] _,
+   "Frequency" -> makeAttribute[Frequency] _,
+   "Critical" -> makeAttribute[Critical] _,
+   "Problem" -> makeAttribute[Problem] _,
+   "Prio" -> makeAttribute[Prio] _,
+   "Order" -> makeAttribute[Order] _,
+   "Cost" -> makeAttribute[Cost] _,
+   "Benefit" -> makeAttribute[Benefit] _,
+   "Capacity" -> makeAttribute[Capacity] _,
+   "Urgency" -> makeAttribute[Urgency] _,
+   "Label" -> makeAttribute[Label] _,
+   "Comment" -> makeAttribute[Comment] _,
+   "Image" -> makeAttribute[Image] _,
+   "Deprecated" -> makeAttribute[Deprecated] _,
+   "Submodel" -> makeAttribute[Submodel] _,
+   "Code" -> makeAttribute[Code] _,
+   "Constraints" -> makeAttribute[Constraints] _
+  )
+  
+  lazy val entityFromString = Map[String, String => Entity](
+   "Product" -> Product.apply _,
+   "Release" -> Release.apply _,
+   "Stakeholder" -> Stakeholder.apply _,
+   "Actor" -> Actor.apply _,
+   "Resource" -> Resource.apply _,
+   "Subdomain" -> Subdomain.apply _,
+   "Req" -> Req.apply _,
+   "Idea" -> Idea.apply _,
+   "Goal" -> Goal.apply _,
+   "Feature" -> Feature.apply _,
+   "Function" -> Function.apply _,
+   "Quality" -> Quality.apply _,
+   "Interface" -> Interface.apply _,
+   "Design" -> Design.apply _,
+   "Issue" -> Issue.apply _,
+   "Ticket" -> Ticket.apply _,
+   "UserStory" -> UserStory.apply _,
+   "UseCase" -> UseCase.apply _,
+   "TestCase" -> TestCase.apply _,
+   "Task" -> Task.apply _,
+   "VividScenario" -> VividScenario.apply _,
+   "Class" -> Class.apply _,
+   "Member" -> Member.apply _    
+  )
+  
+  lazy val relationFromString: Map[String, RelationWithoutAttribute] =  relationKinds.map(r => (r.toString, r)).toMap
   
   object defaultHtmlGenerator extends HtmlGenerator 
   lazy val defaultDocumentTemplate = DocumentTemplate(
