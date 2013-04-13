@@ -94,7 +94,13 @@ Type this at the reqT> prompt, in the Kojo script editor or in the plain scala R
            
             var m = Model(Feature("hello") has Gist("Hello reqT!"))
 
-     
+Editors with scala support
+--------------------------
+* [Notepad++](http://notepad-plus-plus.org/) for windows: use this [Scala-definition userDefineLang.xml file](http://notepad-plus-plus.org//download/userDefineLang.xml) and put it in `%APPDATA%\Notepad++`
+* [Textwrangler](http://www.barebones.com/products/textwrangler/) for MacOS: use this [config file](https://github.com/scala/scala-dist/tree/master/tool-support/src/textwrangler) 
+* [Sublime text 2](http://www.sublimetext.com/2)
+* [Eclipse plugin for Scala](http://scala-ide.org/)
+            
 Directory structure of this repo
 --------------------------------
 When you clone this repo you get these files in directory `reqT/`:
