@@ -26,7 +26,32 @@ object repl {
   val startMsg: String = 
     s"\nStarting reqT-v$VERSION compiled with Scala $SCALA_VERSION ..." +  
     s"\n$reqT_PREAMBLE\n$helpOnReqT"
-    
+  
+  var interpreter: Option[ReqTILoop] = None
+  
+  def reset() { 
+  /*
+    //the idea was that this should avoid memory leaks
+    //https://issues.scala-lang.org/browse/SI-4331
+    //but it does not seem to help...
+    //test case:
+      var j = 0
+      while (true) {
+        if (j % 1000 == 0) {
+          $intp.interpret("""reqt.repl.reset""")
+          $intp.bind("j",j)
+          $intp.interpret(s"var i = $j")
+        }
+        $intp.interpret("""i += 1;println(i + ":" + new java.util.Date)""")
+        j += 1
+      }    
+  */
+    interpreter.map { i => 
+      i.intp.reset
+      i.initReqT
+    }
+  }
+  
   class ReqTILoop(out : PrintWriter) extends ILoop(None, out) {
      override val prompt = "\nreqT> "
      override def loop() {
@@ -53,8 +78,8 @@ object repl {
     val out = new PrintWriter( new BufferedWriter( new OutputStreamWriter(System.out) ) )
     val settings = new GenericRunnerSettings(out.println)
     settings.usejavacp.value = true
-    val interpreter = new ReqTILoop(out)
-    interpreter.process(settings)
+    interpreter = Some(new ReqTILoop(out))
+    interpreter.map(_.process(settings))
   }
 }
 
