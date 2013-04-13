@@ -30,6 +30,7 @@ package reqt {
         Gist("Implement essential jacop constraints."),
         Status(PLANNED),
         Problem("Which constraints are essential?"),
+        Spec("Essential constraints hypothesis: AllDifferent, XmultYeqZ, XplusYlteqZ, XplusYeqZ, XeqY, Sum, IfThen, Cumulative and/or Diff2, where Cumulative is more efficient while Diff2 is more powerful."),
         Prio(1)
       ),
       Feature("submodelConstr") has (
