@@ -110,9 +110,13 @@ package reqt {
   trait BoundingConstr //marker trait to enable Bounds filter in jacop.scala
   
   trait Constr[+T] extends CanGenerateScala with Prefixed { 
-    val variables: Seq[Var[T]] 
+    def variables: Seq[Var[T]] 
     def varSeqToScala[B >: T](vs: Seq[Var[B]]) = vs.map(_.toScala).mkString("Seq(",",",")")
+    override def toScala = prefix + variables.map(_.toScala).mkString("(",",",")")
   }
+  
+  trait PrimitiveConstr[+T] extends Constr[T] 
+  
   trait Constr1IntConst[+T] extends Constr[T] { 
     val x: Var[T]
     val c: Int
@@ -128,12 +132,10 @@ package reqt {
   trait Constr2[+T] extends Constr[T] { 
     val x: Var[T]; val y: Var[T]
     val variables: Seq[Var[T]] = Seq(x, y) 
-    override def toScala = prefix + "(" + x.toScala + ")"
   }
   trait Constr3[+T] extends Constr[T] { 
     val x: Var[T]; val y: Var[T]; val z: Var[T]
     val variables: Seq[Var[T]] = Seq(x, y, z) 
-    override def toScala = prefix + "(" + x.toScala + ")"
   }  
   trait ConstrSeq1[+T] extends Constr[T] { 
     val seq1: Seq[Var[T]]
@@ -153,6 +155,18 @@ package reqt {
     override def toScala = prefix + "(" + x.toScala + "," + varSeqToScala(seq1) + "," + y.toScala + ")"
   }
   
+  trait CompoundConstr[+T] extends Constr[T] {
+    val constraints: Seq[Constr[T]]
+    lazy val variables: Seq[Var[T]]  = constraints.flatMap(_.variables).distinct
+    override def toScala = prefix + constraints.map(_.toScala).mkString("(",",",")")
+  }
+  
+  trait CompoundConstr2[+T] extends CompoundConstr[T] {
+    val c1: Constr[T]
+    val c2: Constr[T]
+    val constraints = Seq(c1, c2)
+  }
+    
   case class Bounds[+T](seq1: Seq[Var[T]], domain: Seq[Interval]) 
   extends ConstrSeq1[T] with BoundingConstr {
     def addDomainOf[B >:T](that: Bounds[B]): Bounds[B] = Bounds[B](seq1, domain ++ that.domain)
@@ -169,21 +183,28 @@ package reqt {
   }
   
   case class AbsXeqY[+T](x: Var[T], y: Var[T]) extends Constr2[T]
+  
   case class AllDifferent[+T](seq1: Seq[Var[T]]) extends ConstrSeq1[T]
+  
   case class IndexOfEquals[T](index: Var[T], varSeq: Seq[Var[T]], value: Var[T]) extends Constr2Seq1[T] {
     val x = index
     val y = value
     val seq1 = varSeq
   }
   case class Sum[+T](seq1: Seq[Var[T]], x: Var[T]) extends Constr1Seq1[T] 
-  case class XdivYeqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T]
   case class XeqC[+T](x: Var[T], c: Int) extends Constr1IntConst[T] {
     override def toScala = x.toScala + " #== " + c
   }
   case class XeqY[+T](x: Var[T], y: Var[T]) extends Constr2[T] {
     override def toScala = x.toScala + " #== " + y.toScala
   }
-  case class XexpYeqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T]
+  
+  case class XdivYeqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T]
+  case class XexpYeqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T] 
+  case class XmulYeqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T] 
+  case class XplusYeqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T] 
+  case class XplusYlteqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T] 
+  
   case class XgtC[+T](x: Var[T], c: Int) extends Constr1IntConst[T] {
     override def toScala = x.toScala + " #> " + c
   }
@@ -215,6 +236,7 @@ package reqt {
     override def toScala = x.toScala + " #!= " + y.toScala
   }
   case class XeqBool[+T](x: Var[T], c: Boolean) extends Constr1BoolConst[T]
-
+  
+  case class IfThen[+T](c1: Constr[T], c2: Constr[T]) extends CompoundConstr2[T]
 
 } //end package reqt

@@ -39,7 +39,9 @@ package object reqt {
   
   //implicits for constraints.scala
   
-  implicit def attrRefToVar(ref: AttrRef[Int]): Var[AttrRef[Int]] = Var(ref)  
+  implicit def attrRefToVar[T](ref: AttrRef[T]): Var[AttrRef[T]] = Var(ref)
+  implicit def seqAttrRefToSeqVar[T](refs: Seq[AttrRef[T]]) = refs.map(Var(_))
+  
   implicit def rangeToInterval(r: Range): Interval = Interval(r.min, r.max)
 
   implicit class RangeSeqOps(rs: Seq[Range]) { //to enable > Var("x")::Seq(1 to 10, 12 to 15)
@@ -58,8 +60,10 @@ package object reqt {
     def impose[B >: T](m: Model): CSP[B] = CSP(m, cs)
     override def toScala: String = cs.map(_.toScala).mkString("Vector(",", ",")")
   }
-  //generator function for variable vectors for constraints:
+  //generator functions:
   def vars[T](vs: T *): Seq[Var[T]] = vs.map(Var(_)).toIndexedSeq
+  def forAllEntities(es:Seq[Entity])(f: Entity => Constr[_]) = es.map(f(_)).toVector
+  def forAllAttributes[T](vs:Seq[AttrRef[T]])(f: AttrRef[T] => Constr[_]) = vs.map(f(_)).toVector
 
   //conversions functions from Key and NodeSet to scala code string
   def keyNodesToScala(key: Key, nodes: NodeSet): String = "" + key.toScala + ( if (key.edge.isInstanceOf[RelationWithAttribute[_]]) "to " else "") + nodes.toScala

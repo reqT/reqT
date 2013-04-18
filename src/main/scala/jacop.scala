@@ -110,10 +110,13 @@ package reqt {
           case AllDifferent(vs) => new jcon.Alldiff(jVarArray(vs))
           case IndexOfEquals(ix, vs, v) => new jcon.Element(jIntVar(ix), jVarArray(vs), jIntVar(v))
           case Sum(vs, x) => new jcon.Sum(vs.map(v => jIntVar(v)).toArray, jIntVar(x))
-          case XdivYeqZ(x, y, z) => new jcon.XdivYeqZ(jIntVar(x), jIntVar(y), jIntVar(z))
           case XeqC(x, c) => new jcon.XeqC(jIntVar(x), c)
           case XeqY(x, y) => new jcon.XeqY(jIntVar(x), jIntVar(y))
+          case XdivYeqZ(x, y, z) => new jcon.XdivYeqZ(jIntVar(x), jIntVar(y), jIntVar(z))
           case XexpYeqZ(x, y, z) => new jcon.XexpYeqZ(jIntVar(x), jIntVar(y), jIntVar(z))
+          case XmulYeqZ(x, y, z) => new jcon.XmulYeqZ(jIntVar(x), jIntVar(y), jIntVar(z))
+          case XplusYeqZ(x, y, z) => new jcon.XplusYeqZ(jIntVar(x), jIntVar(y), jIntVar(z))
+          case XplusYlteqZ(x, y, z) => new jcon.XplusYlteqZ(jIntVar(x), jIntVar(y), jIntVar(z))
           case XgtC(x, c) => new jcon.XgtC(jIntVar(x), c)
           case XgteqC(x, c) => new jcon.XgteqC(jIntVar(x), c)
           case XgteqY(x, y) => new jcon.XgteqY(jIntVar(x), jIntVar(y))
@@ -124,6 +127,10 @@ package reqt {
           case XltY(x, y) => new jcon.XltY(jIntVar(x), jIntVar(y))
           case XneqC(x, c) => new jcon.XneqC(jIntVar(x), c)
           case XneqY(x, y) => new jcon.XneqY(jIntVar(x), jIntVar(y))
+          case XeqBool(x, b) => new jcon.XeqC(jIntVar(x), if (b) 1 else 0)
+          case IfThen(c1, c2) =>
+            val jc = (toJCon(c1, store, jIntVar), toJCon(c2, store, jIntVar)) 
+            new jcon.IfThen(jc._1.asInstanceOf[jcon.PrimitiveConstraint],   jc._2.asInstanceOf[jcon.PrimitiveConstraint])
         }
       }
       
