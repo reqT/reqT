@@ -25,22 +25,19 @@ Preparations:
  
 Different ways of running reqT, depending on your preference:
 
-1.  Quick try-out: 
+1.  Quick try-it-out: 
     
     Open a command window (terminal, bash, cmd, or powershell etc.) and change directory to where you have put the  [reqT.jar](https://github.com/reqT/reqT/raw/master/reqT.jar) and type: 
     
-        > scala -cp reqT.jar
+        > scala -toolcp reqT.jar reqT.jar
     
-    When the scala interpreter has started, type `reqt.init($intp)` by the `scala>` prompt.
-
-
 2.  Run inside Kojo
 
     Kojo is an easy-to-use scripting environment for Scala with a nice syntax-highligting script editor.
     * Install Kojo from http://www.kogics.net/kojo-download
     * Put the `reqT.jar` file in the `<home>/.kojo/lite/libk` directory
     * Put the `reqTinit.kojo` file in the `<home>/.kojo/lite/initk` directory
-    * Launch Kojo and after a while the following message should print in the output window:
+    * Launch Kojo and after a while a message similar to this should print in the output window:
         
             ---
             ** Initializing reqT for the Scala interpreter ...
@@ -49,13 +46,14 @@ Different ways of running reqT, depending on your preference:
 
 3.  Install `reqt` as a command for easy start of the reqT interpreter wrapper in any directory using cmd or bash:
 
-    To make it easy to start reqT anywhere from a terminal och command prompt and to avoid having to type `reqt.init($intp)` everytime, you can make an executable script that appends the [reqT.jar](https://github.com/reqT/reqT/raw/master/reqT.jar) to your CLASSPATH and then starts reqT with `scala <home>/reqT/lib/reqT.jar`. Then append the directory of your script to your system environment PATH variable to enable execution as a command. This can be done using something similar to this (replace `<home>` with some suitable directory):
+    You also can make an executable script that runs reqT from a terminal window prompt:
+    
     * Create a new directory e.g. `<home>/reqT/lib`
     * Put [reqT.jar](https://github.com/reqT/reqT/raw/master/reqT.jar)  in the `<home>/reqT/lib` directory
     * Create a new directory e.g. `<home>/reqT/bin` and put `reqt.cmd`(Windows) or `reqt.sh`(Unix-like) as explained below:
     
     **Windows** Put the `reqt.cmd` file in some directory `<home>\reqT\bin`.  
-    Make sure that the <home> path *does not include spaces*, as the standard scala.bat launcher assumes non-spaced paths. Append the `<home>\reqT\bin`  directory to your `PATH` user environment variable, by (1) right-clicking on your computer, (2) select "Properties", (3) follow "Advanced system settings", (4) click on the "Environment variables..." button and (5) select the PATH user variable and (6) click Edit and (7) append the string `;<home>\reqT\bin` (note the semicolon).
+    Make sure that the <home> path *does not include spaces*, as the current scala.bat launcher [assumes non-spaced paths](https://issues.scala-lang.org/browse/SI-7355). Append the `<home>\reqT\bin`  directory to your `PATH` user environment variable, by (1) right-clicking on your computer, (2) select "Properties", (3) follow "Advanced system settings", (4) click on the "Environment variables..." button and (5) select the PATH user variable and (6) click Edit and (7) append the string `;<home>\reqT\bin` (note the semicolon).
 
     **Unix-like**  Put the `reqt.sh` bash file in the directory ~/reqT/bin and open a terminal window and execute these commands:
           
