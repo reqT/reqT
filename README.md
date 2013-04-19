@@ -44,10 +44,7 @@ Different ways of running reqT, depending on your preference:
             Welcome to reqT version 2.3.0
             ---
 
-3.  Install `reqt` as a command for easy start of the reqT interpreter wrapper in any directory using cmd or bash:
-
-    You also can make an executable script that runs reqT from a terminal window prompt:
-    
+3.  Install `reqt` as a command
     * Create a new directory e.g. `<home>/reqT/lib`
     * Put [reqT.jar](https://github.com/reqT/reqT/raw/master/reqT.jar)  in the `<home>/reqT/lib` directory
     * Create a new directory e.g. `<home>/reqT/bin` and put `reqt.cmd`(Windows) or `reqt.sh`(Unix-like) as explained below:
