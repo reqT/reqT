@@ -207,7 +207,8 @@ package reqt {
       extends Reference[T] with ImplicitVar with CanGenerateScala {
     def apply(m: Model) = AttrUpdater(m, this)
     def :=(v: T): (Key, NodeSet) =  (ent.has, NodeSet(attrKind(v)))
-	override def toScala: String = ent.toScala + "." + attrKind 
+    def >>:(e: Entity): SubRef[T] = SubRef(e, this )
+    override def toScala: String = ent.toScala + "." + attrKind 
   }
   
   case class AttrUpdater[T](m: Model, ar: AttrRef[T]) {
@@ -216,6 +217,7 @@ package reqt {
   
   case class SubRef[T](ent: Entity, r: Reference[T]) 
       extends Reference[T] with ImplicitVar with CanGenerateScala { 
+    def >>:(e: Entity): SubRef[T] = SubRef(e, this )
    //TODO !!!
     //def apply(m: Model) = SubUpdater(m, this)
     //def :=(v: T): (Key, NodeSet) =  (ent.has, NodeSet(attrKind(v)))

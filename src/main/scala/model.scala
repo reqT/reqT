@@ -122,8 +122,8 @@ package reqt {
 	
     //----- apply, updated and sorted methods
     def apply[T](r: Reference[T]): T = r match {
-      case ar: AttrRef[T] =>  this / ar.ent !! ar.attrKind
-      case sr: SubRef[T] => ( this / sr.ent !! Submodel )(sr.r)
+      case ar: AttrRef[T] => this / ar.ent ! ar.attrKind get
+      case sr: SubRef[T] => ( this / sr.ent ! Submodel get ).apply(sr.r)
     }
     
     def updated[T](r: Reference[T], v: T): Model = r match {
@@ -467,10 +467,22 @@ package reqt {
       }
       case _ => None
     }
+    def get[T](r: Reference[T]): Option[T] = r match {
+      case AttrRef(e, ak) => ( this / e  ).get(ak) 
+      case SubRef(e, r) =>  ( ( this / e ) !! Submodel ).get(r) 
+    }
+    
     def ![T](a: AttributeKind[T]): Option[T] = get(a)
+    def ![T](r: Reference[T]): Option[T] = get(r)
 
     def getOrDefault[T](a:AttributeKind[T]):T = get(a).getOrElse(a.default)
+    def getOrDefault[T](r: Reference[T]): T = r match {
+      case AttrRef(e, ak) => ( this / e  ).getOrDefault(ak) 
+      case SubRef(e, r) =>  ( ( this / e ) !! Submodel ).getOrDefault(r) 
+    }    
+    
     def !![T](a:AttributeKind[T]):T = getOrDefault(a)
+    def !![T](r: Reference[T]):T = getOrDefault(r)
 
     def attributeMap[T](a: AttributeKind[T]): Map[Entity, Attribute[T]] = collect { 
       case (Key(e,r),ns) if ns.exists(_ <==> a) => (e, ns.find(_ <==> a).get match {
