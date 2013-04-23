@@ -51,16 +51,18 @@ package reqt {
     
     def mergeIfNew(that: Model): Model = {
       val (newIds, oldIds) = that.partition(kv => this.isNew(kv._1.entity))
-      warn("All ids are not new. Add discarded: " + oldIds.entities.mkString(", "))
+      if (!oldIds.isEmpty) 
+        warn("All ids are not new. Add discarded: " + oldIds.entities.mkString(", "))
       merge(newIds)
     }
     def ++?(that: Model): Model = mergeIfNew(that)
     
     def mergeIfExists(that: Model): Model = {
       val (newIds, oldIds) = that.partition(kv => this.isNew(kv._1.entity))
-      warn("Some ids don't exist. Add discarded: " + newIds.entities.mkString(", "))
+      if (!newIds.isEmpty)
+        warn("Some ids don't exist. Add discarded: " + newIds.entities.mkString(", "))
       merge(oldIds)
-      }
+    }
     def ++!(that: Model): Model = mergeIfExists(that)
     
     def addEdgeToNodesToAll(el: EdgeToNodes):Model = { //add to all Key Entities

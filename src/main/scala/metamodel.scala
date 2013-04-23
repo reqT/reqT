@@ -609,6 +609,8 @@ match argument types ()
     assert(!(hasAttribute && hasEntity), 
       "Both Entity and Attribute nodes in the same NodeSet is not allowed. This is a bug. Please report.")
     def keyStr(keyOpt: Option[Key] = None) = (keyOpt collect { case k => " of " + k.entity } orElse (Some("")) get)
+    lazy val submodelsMerged: Model = nodes.collect { case Submodel(m) => m } .fold(Model())(_ ++ _)
+    lazy val submodelsRemoved: Set[Node[_]] = nodes.filterNot( _ <==> Submodel) 
     def removeDuplicatePrefixes(keyOpt: Option[Key] = None) = {
       def removeDup(l:List[Node[_]]):List[Node[_]] = l match {
         case Nil => Nil
@@ -624,9 +626,10 @@ match argument types ()
     private def attrKindsReplacedWithDefault = NodeSet(nodes.map { case a: AttributeKind[_] => a(); case n => n } )
     def concatNodes(ns: NodeSet, keyOpt: Option[Key] = None): NodeSet  = {
       if (!ns.hasAttribute) NodeSet(nodes ++ ns.nodes).entityKindsReplacedWithEmptyId
-      else { //remove duplicates and replace existing attributes
-        val moreNodes = ns.removeDuplicatePrefixes(keyOpt) 
-        val existingAttrNodesRemoved = nodes filterNot { n =>
+      else { //collect+merge submodels, remove duplicates and replace existing attributes
+        val mergedSubmodels: Model = submodelsMerged ++ ns.submodelsMerged
+        val moreNodes = ns.submodelsRemoved.removeDuplicatePrefixes(keyOpt) 
+        val existingAttrNodesRemoved = nodes.submodelsRemoved filterNot { n =>
           if (n.isAttribute) moreNodes.nodes.exists { n2 => 
             if (n2.hasEqualPrefix(n) && (n2.value != n.value))
               { warn("Overwriting attribute " + n + " with " + n2 + keyStr(keyOpt))
@@ -635,7 +638,8 @@ match argument types ()
           }
           else false
         }
-        NodeSet(existingAttrNodesRemoved ++ moreNodes.nodes).attrKindsReplacedWithDefault
+        val addSubmodel: Set[Node[_]] = if (mergedSubmodels.isEmpty) Set() else Set(Submodel(mergedSubmodels))
+        NodeSet(existingAttrNodesRemoved ++ moreNodes.nodes ++ addSubmodel).attrKindsReplacedWithDefault
       } 
     }
   }
