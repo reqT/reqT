@@ -205,6 +205,7 @@ package reqt {
 
   sealed abstract class Reference[T] extends Structure {
     def attrKind: AttributeKind[T]
+    def apply(m: Model) = ModelUpdater(m, this)
   }
   
   trait ImplicitVar extends CanGenerateScala 
@@ -214,31 +215,24 @@ package reqt {
   
   case class AttrRef[T](ent: Entity, attrKind: AttributeKind[T]) 
       extends Reference[T] with ImplicitVar {
-    def apply(m: Model) = AttrUpdater(m, this)
-    def :=(v: T): (Key, NodeSet) =  (ent.has, NodeSet(attrKind(v)))
     def >>:(e: Entity): SubRef[T] = SubRef(e, this )
     override def toScala: String = ent.toScala + "." + attrKind 
   }
-  
-  case class AttrUpdater[T](m: Model, ar: AttrRef[T]) {
-    def :=(v: T): Model =  m.updated(ar, v)
-  }
-  
+
   case class SubRef[T](ent: Entity, ref: Reference[T]) 
       extends Reference[T] with ImplicitVar { 
     lazy val attrKind: AttributeKind[T] = ref.attrKind
     def >>:(e: Entity): SubRef[T] = SubRef(e, this )
     override def toScala: String = ent.toScala + ">>:" + ref.toScala
-    
-   //TODO !!!
-    //def apply(m: Model) = SubUpdater(m, this)
-    //def :=(v: T): (Key, NodeSet) =  (ent.has, NodeSet(attrKind(v)))
   }
   
-  // case class SubUpdater[T](m: Model, ar: AttrRef[T]) {
-    // def :=(v: T): Model =  m.updated(ar, v)
-  // }
-  
+  case class ModelUpdater[T](m: Model, ref: Reference[T]) {
+    //to enable DSL syntax Feature("x").Prio(Model()) := 3 
+    def :=(value: T): Model =  m.updated(ref, value)
+    //to enable DSL syntax Feature("a")>>:Feature("b").Prio(Model()) := 3
+    def >>:(e: Entity): ModelUpdater[T] = ModelUpdater(m, SubRef(e, ref))
+  }
+ 
   abstract class Context extends Entity 
   case class Product(value: String) extends Context   
   case object Product extends Context with EntityKind    

@@ -197,7 +197,7 @@ package object reqt {
    "Member" -> Member.apply _    
   )
   
-  lazy val relationFromString: Map[String, RelationWithoutAttribute] =  relationKinds.map(r => (r.toString, r)).toMap
+  lazy val relationFromString: Map[String, RelationWithoutAttribute] =  relationKinds.map(r => (r.toString, r)).toMap  //TODO how to do this with assigns(Prio(1)) ???
   
   object defaultHtmlGenerator extends HtmlGenerator 
   lazy val defaultDocumentTemplate = DocumentTemplate(
