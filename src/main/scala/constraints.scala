@@ -27,13 +27,14 @@ package reqt {
       case (e, Order(i)) => Var(e.Order) #== i
       }.toList
     lazy val allConstr: Seq[Constr[Any]] = cs ++ intModelConstr
-    def updateModel(vmap: Map[Var[Any], Int]): Model = { //Any propagates because of Map invariance
+    //Any propagates because of Map invariance in first Type arg
+    def updateModel(vmap: Map[Var[Any], Int]): Model = { 
       var newModel = m
       val modelVariables = vmap collect { 
-        case (v @ Var(ar @ AttrRef(e,a)), i) => //kolla IntValue??
-          (ar, i) 
+        case (Var(ar @ AttrRef(_,_)), i) => (ar, i) //check attr is IntValue??
+        case (Var(sr @ SubRef(_,_)), i) => (sr, i) //check attr is IntValue??
       } 
-      modelVariables foreach { case (ar, i) => newModel = newModel.updated(ar, i)  } 
+      modelVariables foreach { case (r, i) => newModel = newModel.updated(r, i)  } 
       newModel
     }
     def solve(objective: Objective): (Model, Seq[Map[Var[Any], Int]]) = {

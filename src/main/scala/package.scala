@@ -39,8 +39,8 @@ package object reqt {
   
   //implicits for constraints.scala
   
-  implicit def attrRefToVar[T](ref: AttrRef[T]): Var[AttrRef[T]] = Var(ref)
-  implicit def seqAttrRefToSeqVar[T](refs: Seq[AttrRef[T]]) = refs.map(Var(_))
+  implicit def referenceToVar[T](ref: Reference[T]): Var[Reference[T]] = Var(ref)
+  implicit def seqReferenceToSeqVar[T](refs: Seq[Reference[T]]) = refs.map(Var(_))
   
   implicit def rangeToInterval(r: Range): Interval = Interval(r.min, r.max)
 

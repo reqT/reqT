@@ -167,8 +167,10 @@ package reqt {
     def deprecates() = Key(this, reqt.deprecates())
     def deprecates(es:Entity *) = (Key(this, reqt.deprecates()), NodeSet(es: _*))
     def assigns[T](a:Attribute[T]) = Key(this, reqt.assigns(a))
+
     //construct AttrRef
-    //def ![T](ak: AttributeKind[T]) = AttrRef[T](this, ak) 
+      //def ![T](ak: AttributeKind[T]) = AttrRef[T](this, ak) 
+        //above bang operator not as good as Feature("x").Prio wrt precedence
     def Gist = AttrRef(this, reqt.Gist)
     def Spec = AttrRef(this, reqt.Spec)
     def Status = AttrRef(this, reqt.Status)
@@ -201,10 +203,17 @@ package reqt {
     }
   }  
 
-  sealed abstract class Reference[T] 
-  trait ImplicitVar extends CanGenerateScala //marker trait to signal existence of implicit conversion to Var
+  sealed abstract class Reference[T] extends Structure {
+    def attrKind: AttributeKind[T]
+  }
+  
+  trait ImplicitVar extends CanGenerateScala 
+  //ImplicitVar is a marker trait to signal the existence of 
+  //  implicit conversion to Var, and to avoid double boxing in 
+  //  case class Var in constraints.scala
+  
   case class AttrRef[T](ent: Entity, attrKind: AttributeKind[T]) 
-      extends Reference[T] with ImplicitVar with CanGenerateScala {
+      extends Reference[T] with ImplicitVar {
     def apply(m: Model) = AttrUpdater(m, this)
     def :=(v: T): (Key, NodeSet) =  (ent.has, NodeSet(attrKind(v)))
     def >>:(e: Entity): SubRef[T] = SubRef(e, this )
@@ -215,9 +224,12 @@ package reqt {
     def :=(v: T): Model =  m.updated(ar, v)
   }
   
-  case class SubRef[T](ent: Entity, r: Reference[T]) 
-      extends Reference[T] with ImplicitVar with CanGenerateScala { 
+  case class SubRef[T](ent: Entity, ref: Reference[T]) 
+      extends Reference[T] with ImplicitVar { 
+    lazy val attrKind: AttributeKind[T] = ref.attrKind
     def >>:(e: Entity): SubRef[T] = SubRef(e, this )
+    override def toScala: String = ent.toScala + ">>:" + ref.toScala
+    
    //TODO !!!
     //def apply(m: Model) = SubUpdater(m, this)
     //def :=(v: T): (Key, NodeSet) =  (ent.has, NodeSet(attrKind(v)))
@@ -397,7 +409,7 @@ package reqt {
     def apply(kv1: (Key,NodeSet), kvs: (Key,NodeSet) * ): Submodel = Submodel(Model(kv1) ++ Model(kvs: _*))
     override def apply(): Submodel = Submodel(Model())
 /*
-    //Above two apply to avoid below problem: - any better solution???   
+    //Above solution to avoid below problem: - any better solution???   
 scala> Submodel()
 <console>:18: error: ambiguous reference to overloaded definition,
 both method apply in object Submodel of type (kvs: (reqt.Key, reqt.NodeSet)*)reqt.Submodel

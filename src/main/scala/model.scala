@@ -123,14 +123,14 @@ package reqt {
     //----- apply, updated and sorted methods
     def apply[T](r: Reference[T]): T = r match {
       case ar: AttrRef[T] => this / ar.ent ! ar.attrKind get
-      case sr: SubRef[T] => ( this / sr.ent ! Submodel get ).apply(sr.r)
+      case sr: SubRef[T] => ( this / sr.ent ! Submodel get ).apply(sr.ref)
     }
     
     def updated[T](r: Reference[T], v: T): Model = r match {
       case ar: AttrRef[T] =>  this + ar.ent.has(ar.attrKind(v))
       case sr: SubRef[T] => 
         val sm = this / sr.ent !! Submodel
-        this + sr.ent.has(Submodel(sm.updated(sr.r, v)))
+        this + sr.ent.has(Submodel(sm.updated(sr.ref, v)))
     }
        
     def -(entity: Entity, edge: Edge, node: Node[_]): Model = { //TODO is this really needed???
