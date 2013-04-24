@@ -218,6 +218,10 @@ package reqt {
     def separate(elm: Element, 
       selection: (((Key, NodeSet)) => Boolean) => Model
     ): Model = elm match {
+      case Context => selection(ke => ke._1.entity.isInstanceOf[Context] )
+      case Requirement => selection(ke => ke._1.entity.isInstanceOf[Requirement] )
+      case Scenario => selection(ke => ke._1.entity.isInstanceOf[Scenario] )
+      case Relation => selection(ke => ke._1.edge.isInstanceOf[Relation])
       case a: AttributeKind[_] => a match {
         case e: External.type => selection(ke => ke._2.nodes.exists(_.isInstanceOf[External[_]] ) )
         case _ => selection(ke => ke._2.nodes.exists(_ <==> a ) )
@@ -226,10 +230,6 @@ package reqt {
       case n: NodeKind => selection(ke => ke._1.entity <==> n || 
           (ke._1.edge match { case rwa: RelationWithAttribute[_] => rwa.attribute <==> n; case _ => false } ) )
       case e: EdgeKind =>  selection(ke => ke._1.edge <==> e)
-      case Context => selection(ke => ke._1.entity.isInstanceOf[Context] )
-      case Requirement => selection(ke => ke._1.entity.isInstanceOf[Requirement] )
-      case Scenario => selection(ke => ke._1.entity.isInstanceOf[Scenario] )
-      case Relation => selection(ke => ke._1.edge.isInstanceOf[Relation])
       case k: Key => selection(ke => ke._1 == k)
       case _ => selection(ke => ke._1.entity == elm || 
           (ke._1.edge match { case rwa: RelationWithAttribute[_] => rwa.attribute == elm || rwa == elm; case _ => false } ) )
@@ -237,6 +237,10 @@ package reqt {
     def separateExtended(elm: Element, 
       selection: (((Key, NodeSet)) => Boolean) => Model
     ): Model = elm match {
+      case Context => selection(ke => ke._1.entity.isInstanceOf[Context] || ke._2.nodes.exists(_.isInstanceOf[Context])) //Extend with destinations
+      case Requirement => selection(ke => ke._1.entity.isInstanceOf[Requirement] || ke._2.nodes.exists(_.isInstanceOf[Requirement]))
+      case Scenario => selection(ke => ke._1.entity.isInstanceOf[Scenario] || ke._2.nodes.exists(_.isInstanceOf[Scenario]))
+      case Relation => selection(ke => ke._1.edge.isInstanceOf[Relation])      
       case a: AttributeKind[_] => a match {
         case e: External.type => selection(ke => ke._2.nodes.exists(_.isInstanceOf[External[_]] ) )
         case _ => selection(ke => ke._2.nodes.exists(_ <==> a ) )
@@ -246,10 +250,7 @@ package reqt {
           ke._2.nodes.exists(_ <==> n) || //Extend with destinations
           (ke._1.edge match { case rwa: RelationWithAttribute[_] => rwa.attribute <==> n; case _ => false } ) )
       case e: EdgeKind =>  selection(ke => ke._1.edge <==> e)
-      case Context => selection(ke => ke._1.entity.isInstanceOf[Context] || ke._2.nodes.exists(_.isInstanceOf[Context])) //Extend with destinations
-      case Requirement => selection(ke => ke._1.entity.isInstanceOf[Requirement] || ke._2.nodes.exists(_.isInstanceOf[Requirement]))
-      case Scenario => selection(ke => ke._1.entity.isInstanceOf[Scenario] || ke._2.nodes.exists(_.isInstanceOf[Scenario]))
-      case Relation => selection(ke => ke._1.edge.isInstanceOf[Relation])
+
       case k: Key => selection(ke => ke._1 == k)
       case _ => selection(ke => ke._1.entity == elm || 
           ke._2.nodes.exists(_ == elm) || //Extend with destinations
@@ -258,15 +259,15 @@ package reqt {
     def separateDestinations(elm: Element, 
       selection: (((Key, NodeSet)) => Boolean) => Model
     ): Model = elm match {
+      case Context => selection(ke => ke._2.nodes.exists(_.isInstanceOf[Context])) 
+      case Requirement =>  selection(ke => ke._2.nodes.exists(_.isInstanceOf[Requirement]))
+      case Scenario => selection(ke => ke._2.nodes.exists(_.isInstanceOf[Scenario]))
       case a: AttributeKind[_] => a match {
         case e: External.type => selection(ke => ke._2.nodes.exists(_.isInstanceOf[External[_]] ) )
         case _ => selection(ke => ke._2.nodes.exists(_ <==> a ) )
       }
       case a: Attribute[_] => selection(ke => ke._2.nodes.exists(_ == a ) )
       case n: NodeKind => selection(ke => ke._2.nodes.exists(_ <==> n))  
-      case Context => selection(ke => ke._2.nodes.exists(_.isInstanceOf[Context])) 
-      case Requirement =>  selection(ke => ke._2.nodes.exists(_.isInstanceOf[Requirement]))
-      case Scenario => selection(ke => ke._2.nodes.exists(_.isInstanceOf[Scenario]))
       case _ => selection(ke => ke._2.nodes.exists(_ == elm)) //Only  destinations
     } 
 
@@ -364,13 +365,16 @@ package reqt {
     lazy val entities: Set[Entity] = sources ++ destinations  
     lazy val entityVector: Vector[Entity] = (sourceVector ++ destinationVector).distinct
     lazy val entityIndex: Map[Entity, Int] = entityVector.zipWithIndex.toMap
+    lazy val entitiesOfKind: Map[EntityKind, Vector[Entity]] = entityVector.groupBy(_.kind).withDefaultValue(Vector())
     lazy val undefined: Set[Entity]  = for (e <- destinations; if (!sources.contains(e))) yield e
     lazy val attributes: Set[Attribute[_]] = { 
       for ((k, NodeSet(ns)) <- this; n <- (ns ++ ( k.edge match { 
         case rwa: RelationWithAttribute[_] => Set(rwa.attribute)
         case _ => Set() 
       } ) ); if (n.isAttribute))  yield n.asInstanceOf[Attribute[_]] } toSet
-    lazy val relations: Set[Relation] = ( for (Key(entity, edge) <- this.keySet) yield edge ) collect { case r: Relation => r.kind }  
+    lazy val attributesOfKind: Map[NodeKind, Set[Attribute[_]]] = attributes.groupBy(_.kind).withDefaultValue(Set())
+    lazy val relations: Set[Relation] = ( for (Key(entity, edge) <- this.keySet) yield edge ) collect { case r: Relation => r }  
+    lazy val relationsOfKind: Map[EdgeKind, Set[Relation]] = relations.groupBy(_.kind).withDefaultValue(Set())
     lazy val relationSources: Set[Entity] = this \ has sources  
     lazy val relationDestinations: Set[Entity] = this \ has destinations
     lazy val relationEntities: Set[Entity] = relationSources ++ relationDestinations   
@@ -380,6 +384,17 @@ package reqt {
     lazy val parents: Set[Entity] =  this / owns sources
     lazy val children: Set[Entity] =  this / owns destinations
     lazy val roots: Set[Entity] =  parents diff children
+
+    lazy val entityEdgeSet = keySet.collect { case Key(e,l) => (e,l) } 
+    lazy val entityEdgeList = entityEdgeSet.toList.sortWith(_.toString < _.toString) 
+    lazy val entityEdgeMap = {
+      var result: Map[Entity, SortedSet[Edge]] = SortedMap.empty[Entity,SortedSet[Edge]](entityOrdering)
+      entityEdgeSet foreach { ee => 
+        if ( result.isDefinedAt(ee._1) ) result += ee._1 -> ( result(ee._1) + ee._2 ) else result += ee._1 -> SortedSet(ee._2)(edgeOrdering) 
+      }
+      result
+    }
+    
     
     def depthFirstSearch(startNodes: Set[Entity]): Set[Entity] = {
       def visit(nodes: Set[Entity], visited: Set[Entity]): Set[Entity] = {
@@ -638,17 +653,6 @@ package reqt {
       val orderMap = (( this / Requirement).attributeMap(Order)).collect { case (e,Order(i)) => (e,i) }
       val ents = orderMap.keys.toVector.sorted(Ordering.fromLessThan[Entity]((a,b) => orderMap(a) < orderMap(b)))
       ents ++ unorderd.toVector
-    }
-    
-    //---- visitor methods
-    lazy val entityEdgeSet = keySet.collect { case Key(e,l) => (e,l) } 
-    lazy val entityEdgeList = entityEdgeSet.toList.sortWith(_.toString < _.toString) 
-    lazy val entityEdgeMap = {
-      var result: Map[Entity, SortedSet[Edge]] = SortedMap.empty[Entity,SortedSet[Edge]](entityOrdering)
-      entityEdgeSet foreach { ee => 
-        if ( result.isDefinedAt(ee._1) ) result += ee._1 -> ( result(ee._1) + ee._2 ) else result += ee._1 -> SortedSet(ee._2)(edgeOrdering) 
-      }
-      result
     }
     
     //---

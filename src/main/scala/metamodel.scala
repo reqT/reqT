@@ -115,29 +115,33 @@ package reqt {
     override def toScala: String = prefix + "(" + value.map(_.toScala).mkString(", ") + ")"
   }  
   
-  trait NodeKind extends Prefixed  
+  trait NodeKind extends Prefixed 
   trait EntityKind extends NodeKind { 
     val value = ""
     def apply(id: String): Entity
     def apply(): Entity = apply(value) 
+    lazy val kind = this
  }
   trait AttributeKind[T] extends NodeKind with Value[T] with Default[T] with CanGenerateScala { 
     override def value = default
     override def toScala = prefix + "(" + default + ")"
     def apply(v: T): Attribute[T] 
     def apply(): Attribute[T] = apply(default)
+    lazy val kind = this
   }
-  trait EdgeKind extends Prefixed 
-
+  trait EdgeKind extends Prefixed { lazy val kind = this }
+  
   abstract class Element extends CanGenerateScala with Prefixed
-  abstract class Concept extends Element 
+  abstract class Concept extends Element { def kind: Prefixed }
   abstract class Structure extends Element 
   abstract class Node[T] extends Concept with Value[T] {
     def isAttribute: Boolean = this.isInstanceOf[Attribute[_]]
     def isEntity: Boolean = this.isInstanceOf[Entity]
+    override def kind: NodeKind
   }
   abstract class Entity extends Node[String] with StringValueToScala {
     def id: String = value
+    override def kind: EntityKind
     def has() = Key(this, reqt.has())
     def has(as:Attribute[_] *) = (Key(this, reqt.has()), NodeSet(as: _*)) 
     def owns() = Key(this, reqt.owns())
@@ -333,62 +337,64 @@ package reqt {
   }
  
   abstract class Context extends Entity 
-  case class Product(value: String) extends Context   
-  case object Product extends Context with EntityKind    
-  case class Release(value: String) extends Context 
-  case object Release extends Context with EntityKind  
-  case class Stakeholder(value: String) extends Context 
+  case class Product(value: String) extends Context { override lazy val kind = reqt.Product }  
+  case object Product extends Context with EntityKind 
+  case class Release(value: String) extends Context { override lazy val kind = reqt.Release }
+  case object Release extends Context with EntityKind 
+  case class Stakeholder(value: String) extends Context { override lazy val kind = reqt.Stakeholder }
   case object Stakeholder extends Context with EntityKind 
-  case class Actor(value: String) extends Context 
+  case class Actor(value: String) extends Context { override lazy val kind = reqt.Actor }
   case object Actor extends Context with EntityKind  
-  case class Resource(value: String) extends Context 
-  case object Resource extends Context with EntityKind  
-  case class Subdomain(value: String) extends Context 
+  case class Resource(value: String) extends Context { override lazy val kind = reqt.Resource }
+  case object Resource extends Context with EntityKind
+  case class Subdomain(value: String) extends Context { override lazy val kind = reqt.Subdomain }
   case object Subdomain extends Context with EntityKind  
   
   abstract class Requirement extends Entity 
-  case class Req(value: String) extends Requirement
+  case class Req(value: String) extends Requirement { override lazy val kind = reqt.Req }
   case object Req extends Requirement with EntityKind  
-  case class Idea(value: String) extends Requirement 
+  case class Idea(value: String) extends Requirement { override lazy val kind = reqt.Idea }
   case object Idea extends Requirement with EntityKind 
-  case class Goal(value: String) extends Requirement 
+  case class Goal(value: String) extends Requirement { override lazy val kind = reqt.Goal }
   case object Goal extends Requirement with EntityKind 
-  case class Feature(value: String) extends Requirement   
+  case class Feature(value: String) extends Requirement   { override lazy val kind = reqt.Feature }
   case object Feature extends Requirement with EntityKind   
-  case class Function(value: String) extends Requirement   
+  case class Function(value: String) extends Requirement   { override lazy val kind = reqt.Function }
   case object Function extends Requirement with EntityKind  
-  case class Quality(value: String) extends Requirement   
+  case class Quality(value: String) extends Requirement { override lazy val kind = reqt.Quality }  
   case object Quality extends Requirement with EntityKind   
-  case class Interface(value: String) extends Requirement   
+  case class Interface(value: String) extends Requirement { override lazy val kind = reqt.Interface }  
   case object Interface extends Requirement with EntityKind   
-  case class Design(value: String) extends Requirement   
+  case class Design(value: String) extends Requirement { override lazy val kind = reqt.Design }  
   case object Design extends Requirement with EntityKind   
-  case class Issue(value: String) extends Requirement   
+  case class Issue(value: String) extends Requirement { override lazy val kind = reqt.Issue }  
   case object Issue extends Requirement with EntityKind   
-  case class Ticket(value: String) extends Requirement   
+  case class Ticket(value: String) extends Requirement { override lazy val kind = reqt.Ticket }  
   case object Ticket extends Requirement with EntityKind   
   
   abstract class Data extends Requirement
-  case class Class(value: String) extends Requirement   
+  case class Class(value: String) extends Requirement { override lazy val kind = reqt.Class }  
   case object Class extends Requirement with EntityKind 
-  case class Member(value: String) extends Requirement   
+  case class Member(value: String) extends Requirement { override lazy val kind = reqt.Member }  
   case object Member extends Requirement with EntityKind    
   
   abstract class Scenario extends Requirement
-  case class UserStory(value: String) extends Scenario  
+  case class UserStory(value: String) extends Scenario { override lazy val kind = reqt.UserStory } 
   case object UserStory extends Scenario with EntityKind  
-  case class UseCase(value: String) extends Scenario  
+  case class UseCase(value: String) extends Scenario  { override lazy val kind = reqt.UseCase }
   case object UseCase extends Scenario with EntityKind   
-  case class TestCase(value: String) extends Scenario  
+  case class TestCase(value: String) extends Scenario { override lazy val kind = reqt.TestCase } 
   case object TestCase extends Scenario with EntityKind   
-  case class Task(value: String) extends Scenario  
+  case class Task(value: String) extends Scenario { override lazy val kind = reqt.Task } 
   case object Task extends Scenario with EntityKind  
-  case class VividScenario(value: String) extends Scenario  
+  case class VividScenario(value: String) extends Scenario { override lazy val kind = reqt.VividScenario } 
   case object VividScenario extends Scenario with EntityKind  
   
   //************** Attributes **************
   
-  abstract class Attribute[T] extends Node[T] with Default[T] 
+  abstract class Attribute[T] extends Node[T] with Default[T] {
+    //override def kind: AttributeKind
+  }
   
   //Marker traits for attribute values
   trait StringValue extends Attribute[String] with StringValueToScala { val default = "???" }
@@ -404,10 +410,10 @@ package reqt {
   trait ConstrVectorKind extends ConstrVectorValue with AttributeKind[Vector[Constr[Any]]]
   trait ModelKind extends ModelValue with AttributeKind[Model]  
   
-  case class Gist(value: String) extends StringValue
+  case class Gist(value: String) extends StringValue { override lazy val kind = reqt.Gist } 
   case object Gist extends StringKind  
   
-  case class Spec(value: String) extends StringValue
+  case class Spec(value: String) extends StringValue { override lazy val kind = reqt.Spec } 
   case object Spec extends StringKind 
   
   trait Level extends Ordered[Level] { 
@@ -434,70 +440,71 @@ package reqt {
   
   case class Status(value: Level) extends LevelValue with CanUpDown with Ordered[Status] { 
     def compare(that: Status) = levelIndex(this.value) compare levelIndex(that.value)
+    override lazy val kind = reqt.Status
   }
   case object Status extends LevelKind with CanUpDown 
   
-  case class Why(value: String) extends StringValue   
+  case class Why(value: String) extends StringValue { override lazy val kind = reqt.Why }  
   case object Why extends StringKind 
   
-  case class Example(value: String) extends StringValue
+  case class Example(value: String) extends StringValue { override lazy val kind = reqt.Example }
   case object Example extends StringKind
 
-  case class Expectation(value: String) extends StringValue
+  case class Expectation(value: String) extends StringValue { override lazy val kind = reqt.Expectation}
   case object Expectation extends StringKind
   
-  case class Input(value: String) extends StringValue
+  case class Input(value: String) extends StringValue { override lazy val kind = reqt.Input }
   case object Input extends StringKind 
   
-  case class Output(value: String) extends StringValue
+  case class Output(value: String) extends StringValue { override lazy val kind = reqt.Output }
   case object Output extends StringKind
   
-  case class Trigger(value: String) extends StringValue
+  case class Trigger(value: String) extends StringValue { override lazy val kind = reqt.Trigger }
   case object Trigger extends StringKind 
   
-  case class Precond(value: String) extends StringValue
+  case class Precond(value: String) extends StringValue { override lazy val kind = reqt.Precond}
   case object Precond extends StringKind 
   
-  case class Frequency(value: String) extends StringValue
+  case class Frequency(value: String) extends StringValue { override lazy val kind = reqt.Frequency }
   case object Frequency extends StringKind
   
-  case class Critical(value: String) extends StringValue
+  case class Critical(value: String) extends StringValue { override lazy val kind = reqt.Critical }
   case object Critical extends StringKind
   
-  case class Problem(value: String) extends StringValue
+  case class Problem(value: String) extends StringValue { override lazy val kind = reqt.Problem }
   case object Problem extends StringKind 
   
-  case class Prio(value: Int) extends IntValue 
+  case class Prio(value: Int) extends IntValue { override lazy val kind = reqt.Prio }
   case object Prio extends IntKind  
   
-  case class Order(value: Int) extends IntValue 
+  case class Order(value: Int) extends IntValue { override lazy val kind = reqt.Order }
   case object Order extends IntKind  
 
-  case class Cost(value: Int) extends IntValue 
+  case class Cost(value: Int) extends IntValue { override lazy val kind = reqt.Cost }
   case object Cost extends IntKind  
   
-  case class Benefit(value: Int) extends IntValue 
+  case class Benefit(value: Int) extends IntValue { override lazy val kind = reqt.Benefit }
   case object Benefit extends IntKind  
 
-  case class Capacity(value: Int) extends IntValue 
+  case class Capacity(value: Int) extends IntValue { override lazy val kind = reqt.Capacity }
   case object Capacity extends IntKind  
   
-  case class Urgency(value: Int) extends IntValue 
+  case class Urgency(value: Int) extends IntValue { override lazy val kind = reqt.Urgency }
   case object Urgency extends IntKind  
 
-  case class Label(value: String) extends StringValue
+  case class Label(value: String) extends StringValue { override lazy val kind = reqt.Label }
   case object Label extends StringKind
 
-  case class Comment(value: String) extends StringValue
+  case class Comment(value: String) extends StringValue { override lazy val kind = reqt.Comment }
   case object Comment extends StringKind 
   
-  case class Image(value: String) extends StringValue
+  case class Image(value: String) extends StringValue { override lazy val kind = reqt.Image }
   case object Image extends StringKind 
   
-  case class Deprecated(value: String) extends StringValue
+  case class Deprecated(value: String) extends StringValue { override lazy val kind = reqt.Deprecated}
   case object Deprecated extends StringKind 
 
-  case class Submodel(value: Model) extends ModelValue
+  case class Submodel(value: Model) extends ModelValue { override lazy val kind = reqt.Submodel }
   case object Submodel extends ModelKind { 
     def apply(kv1: (Key,NodeSet), kvs: (Key,NodeSet) * ): Submodel = Submodel(Model(kv1) ++ Model(kvs: _*))
     override def apply(): Submodel = Submodel(Model())
@@ -514,6 +521,7 @@ match argument types ()
   } 
 
   case class Code(value: String) extends StringValue {
+    override lazy val kind = reqt.Spec
     def run(prefix: String = ""): String = {
       Model.interpreter match {
         case None => Model.interpreterWarning() ; ""
@@ -531,6 +539,7 @@ match argument types ()
     def satisfy = value.solve(Satisfy)
     def toModel = (Model() impose this) satisfy
     def ++(cs: Constraints): Constraints = Constraints(value ++ cs.value)
+    override lazy val kind = reqt.Spec    
   }
   case object Constraints extends ConstrVectorValue with AttributeKind[Vector[Constr[Any]]] {
     def apply(cs1: Constr[Any], cs: Constr[Any] * ): Constraints = Constraints(Vector(cs1) ++ cs.toVector)
@@ -555,6 +564,7 @@ match argument types ()
     def fromFile: T = makeAttr(load(fileName))
     override def prefix = emptyAttr.prefix
     override def toScala = "External[" + emptyAttr.prefix + "](\"" + fileName + "\")" 
+    override lazy val kind = reqt.Spec
   }
   case object External extends Attribute[String] with StringValueToScala with AttributeKind[String] { 
     val default = "UNDEFINED EXTERNAL" 
@@ -565,13 +575,18 @@ match argument types ()
     def apply(s: String): T 
   }
     
-  case object NoAttribute extends Attribute[Unit] { val value = (); val default = () }
+  case object NoAttribute extends Attribute[Unit] with AttributeKind[Unit] { 
+    override val value = ()
+    override val default = ()
+    override def apply(v: Unit) = this
+    override lazy val kind = this 
+  }
 
   //************** Relations **************
   
   abstract class Edge extends Concept 
   abstract class Relation extends Edge {
-    def kind: Relation
+    override def kind: EdgeKind
     def to(es: Entity *): EdgeToNodes = EdgeToNodes(this, NodeSet(es.toSet.asInstanceOf[Set[Node[_]]]))
     def Product(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Product(id)))
     def Release(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Release(id)))
@@ -601,34 +616,37 @@ match argument types ()
   abstract class RelationWithoutAttribute extends Relation {
     override def toScala = prefix
   }
-  case class owns() extends RelationWithoutAttribute { def kind: Relation = owns } 
-  case object owns extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
-  case class requires() extends RelationWithoutAttribute { def kind: Relation = requires }
-  case object requires extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
-  case class excludes() extends RelationWithoutAttribute { def kind: Relation = excludes }
-  case object excludes extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
-  case class releases() extends RelationWithoutAttribute { def kind: Relation = releases }
-  case object releases extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
-  case class helps() extends RelationWithoutAttribute { def kind: Relation = helps }
-  case object helps extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
-  case class hurts() extends RelationWithoutAttribute { def kind: Relation = hurts }
-  case object hurts extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
-  case class precedes() extends RelationWithoutAttribute { def kind: Relation = precedes }
-  case object precedes extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
-  case class inherits() extends RelationWithoutAttribute { def kind: Relation = inherits }
-  case object inherits extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
-  case class implements() extends RelationWithoutAttribute { def kind: Relation = implements }
-  case object implements extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }  
-  case class verifies() extends RelationWithoutAttribute { def kind: Relation = verifies }
-  case object verifies extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }  
-  case class deprecates() extends RelationWithoutAttribute { def kind: Relation = deprecates }
-  case object deprecates extends RelationWithoutAttribute with EdgeKind { def kind: Relation = this }
+  case class owns() extends RelationWithoutAttribute { override lazy val kind = owns } 
+  case object owns extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
+  case class requires() extends RelationWithoutAttribute { override lazy val kind = requires }
+  case object requires extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
+  case class excludes() extends RelationWithoutAttribute { override lazy val kind = excludes }
+  case object excludes extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
+  case class releases() extends RelationWithoutAttribute { override lazy val kind = releases }
+  case object releases extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
+  case class helps() extends RelationWithoutAttribute { override lazy val kind = helps }
+  case object helps extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
+  case class hurts() extends RelationWithoutAttribute { override lazy val kind = hurts }
+  case object hurts extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
+  case class precedes() extends RelationWithoutAttribute { override lazy val kind = precedes }
+  case object precedes extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
+  case class inherits() extends RelationWithoutAttribute { override lazy val kind = inherits }
+  case object inherits extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
+  case class implements() extends RelationWithoutAttribute { override lazy val kind = implements }
+  case object implements extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }  
+  case class verifies() extends RelationWithoutAttribute { override lazy val kind = verifies }
+  case object verifies extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }  
+  case class deprecates() extends RelationWithoutAttribute { override lazy val kind = deprecates }
+  case object deprecates extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
   abstract class RelationWithAttribute[T] extends Relation { 
     def attribute: Attribute[T]
     override def toScala: String = prefix + "(" + attribute.toScala + ")"
   } 
-  case class assigns[T](attribute: Attribute[T]) extends RelationWithAttribute[T] { def kind: Relation = assigns }
-  case object assigns extends RelationWithAttribute[Unit] with EdgeKind { val attribute = NoAttribute; def kind: Relation = this }
+  case class assigns[T](attribute: Attribute[T]) extends RelationWithAttribute[T] { override lazy val kind = assigns }
+  case object assigns extends RelationWithAttribute[Unit] with EdgeKind { 
+    val attribute = NoAttribute 
+    override lazy val kind = this 
+  }
   
   abstract class AttributeEdge extends Edge {
     def Gist(value: String) = EdgeToNodes(has(), NodeSet(reqt.Gist(value)))
@@ -660,18 +678,19 @@ match argument types ()
     def Deprecated(value: String) = EdgeToNodes(has(), NodeSet(reqt.Deprecated(value)))
     override def toScala = prefix
  }
-  case class has() extends AttributeEdge 
+  case class has() extends AttributeEdge { override lazy val kind = has }
   case object has extends AttributeEdge with EdgeKind {
     def apply(as:Attribute[_] *): EdgeToNodes = EdgeToNodes(has(), NodeSet(as.toSet.asInstanceOf[Set[Node[_]]])) 
+    override lazy val kind = this
   }
   
   case class EdgeToNodes(edge: Edge, nodes: NodeSet) extends Structure //used as argument for addEdgeToNodes
   
   //values below used for abstract concept arguments to the restriction method in Model:
-  case object Context extends Context { val value = "" }
-  case object Requirement extends Requirement { val value = "" }
-  case object Scenario extends Scenario { val value = "" }
-  case object Relation extends Relation { def kind: Relation = owns } // TODO check if kind=owns is ok here
+  case object Context extends Context with EntityKind { override lazy val kind = this ; def apply(id: String) = this }
+  case object Requirement extends Requirement with EntityKind { override lazy val kind = this ; def apply(id: String) = this }
+  case object Scenario extends Scenario with EntityKind { override lazy val kind = this ; def apply(id: String) = this }
+  case object Relation extends Relation with EdgeKind { override lazy val kind = this ; def apply(id: String) = this } 
   
   //******* Structural elements *******
   
