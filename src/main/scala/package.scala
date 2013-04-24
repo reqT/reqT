@@ -58,12 +58,13 @@ package object reqt {
         select: jacop.Indomain = jacop.Settings.defaultSelect
       ): Result[B] = jacop.Solver[B](cs, objective, select).solve
     def impose[B >: T](m: Model): CSP[B] = CSP(m, cs)
+    def toModel: Model = Constraints(cs.toVector).toModel
     override def toScala: String = cs.map(_.toScala).mkString("Vector(",", ",")")
   }
   //generator functions:
   def vars[T](vs: T *): Seq[Var[T]] = vs.map(Var(_)).toIndexedSeq
   def forAllEntities(es:Seq[Entity])(f: Entity => Constr[_]) = es.map(f(_)).toVector
-  def forAllAttributes[T](vs:Seq[AttrRef[T]])(f: AttrRef[T] => Constr[_]) = vs.map(f(_)).toVector
+  def forAllAttributes[T](vs:Seq[Reference[T]])(f: Reference[T] => Constr[_]) = vs.map(f(_)).toVector
 
   //conversions functions from Key and NodeSet to scala code string
   def keyNodesToScala(key: Key, nodes: NodeSet): String = "" + key.toScala + ( if (key.edge.isInstanceOf[RelationWithAttribute[_]]) "to " else "") + nodes.toScala

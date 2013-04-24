@@ -172,7 +172,7 @@ package reqt {
       //def ![T](ak: AttributeKind[T]) = AttrRef[T](this, ak) 
         //above bang operator not as good as Feature("x").Prio wrt precedence
     def Gist = AttrRef(this, reqt.Gist)
-    def Spec = AttrRef(this, reqt.Spec)
+    def Spec = AttrRef(this, reqt.Spec) 
     def Status = AttrRef(this, reqt.Status)
     def Why = AttrRef(this, reqt.Why)
     def Example = AttrRef(this, reqt.Example)
@@ -201,7 +201,110 @@ package reqt {
       case AttrRef(e, ak) => SubRef[T](this, AttrRef[T](e,ak)) 
       case SubRef(e, r) => SubRef[T](this, e.Submodel[T](r))
     }
+    
+    //construct SubmodelPath to allow syntax Feature("x").Feature("x").Prio
+    def Product(id: String) = SubmodelPath(reqt.Product(id) :: this :: Nil)
+    def Release(id: String) = SubmodelPath(reqt.Release(id) :: this :: Nil)
+    def Stakeholder(id: String) = SubmodelPath(reqt.Stakeholder(id) :: this :: Nil)
+    def Actor(id: String) = SubmodelPath(reqt.Actor(id) :: this :: Nil)
+    def Resource(id: String) = SubmodelPath(reqt.Resource(id) :: this :: Nil)
+    def Subdomain(id: String) = SubmodelPath(reqt.Subdomain(id) :: this :: Nil)
+    def Req(id: String) = SubmodelPath(reqt.Req(id) :: this :: Nil)
+    def Idea(id: String) = SubmodelPath(reqt.Idea(id) :: this :: Nil)
+    def Goal(id: String) = SubmodelPath(reqt.Goal(id) :: this :: Nil)
+    def Feature(id: String) = SubmodelPath(reqt.Feature(id) :: this :: Nil)
+    def Function(id: String) = SubmodelPath(reqt.Function(id) :: this :: Nil)
+    def Quality(id: String) = SubmodelPath(reqt.Quality(id) :: this :: Nil)
+    def Interface(id: String) = SubmodelPath(reqt.Interface(id) :: this :: Nil)
+    def Design(id: String) = SubmodelPath(reqt.Design(id) :: this :: Nil)
+    def Issue(id: String) = SubmodelPath(reqt.Issue(id) :: this :: Nil)
+    def Ticket(id: String) = SubmodelPath(reqt.Ticket(id) :: this :: Nil)
+    def UserStory(id: String) = SubmodelPath(reqt.UserStory(id) :: this :: Nil)
+    def UseCase(id: String) = SubmodelPath(reqt.UseCase(id) :: this :: Nil)
+    def TestCase(id: String) = SubmodelPath(reqt.TestCase(id) :: this :: Nil)
+    def Task(id: String) = SubmodelPath(reqt.Task(id) :: this :: Nil)
+    def VividScenario(id: String) = SubmodelPath(reqt.VividScenario(id) :: this :: Nil)
+    def Class(id: String) = SubmodelPath(reqt.Class(id) :: this :: Nil)
+    def Member(id: String) = SubmodelPath(reqt.Member(id) :: this :: Nil)
+    def S(id: String) = SubmodelPath(reqt.Stakeholder(id) :: this :: Nil) 
+    def S(id: Int) = SubmodelPath(reqt.Stakeholder(id.toString) :: this :: Nil) 
+    def G(id: String) = SubmodelPath(reqt.Goal(id) :: this :: Nil) 
+    def G(id: Int) = SubmodelPath(reqt.Goal(id.toString) :: this :: Nil)     
+    def F(id: String) = SubmodelPath(reqt.Feature(id) :: this :: Nil) 
+    def F(id: Int) = SubmodelPath(reqt.Feature(id.toString) :: this :: Nil)     
+    def Q(id: String) = SubmodelPath(reqt.Quality(id) :: this :: Nil) 
+    def Q(id: Int) = SubmodelPath(reqt.Quality(id.toString) :: this :: Nil)   
   }  
+  
+  case class SubmodelPath(path: List[Entity]) {
+    //to enable DSL syntax Feature("a").Feature("b").Prio
+    assert(!path.isEmpty, "path must be non-empty")
+    lazy val target = path.head
+    lazy val subReferences = path.tail.reverse
+    def toReference[T](aRef: AttrRef[T], subRefs: List[Entity]): Reference[T] = subRefs match {
+      case Nil => aRef
+      case e :: es => SubRef(e, toReference(aRef, es))  
+    }
+    //construct next part of path in subReferences
+    def Product(id: String) = SubmodelPath(reqt.Product(id) :: path)
+    def Release(id: String) = SubmodelPath(reqt.Release(id) :: path)
+    def Stakeholder(id: String) = SubmodelPath(reqt.Stakeholder(id) :: path)
+    def Actor(id: String) = SubmodelPath(reqt.Actor(id) :: path)
+    def Resource(id: String) = SubmodelPath(reqt.Resource(id) :: path)
+    def Subdomain(id: String) = SubmodelPath(reqt.Subdomain(id) :: path)
+    def Req(id: String) = SubmodelPath(reqt.Req(id) :: path)
+    def Idea(id: String) = SubmodelPath(reqt.Idea(id) :: path)
+    def Goal(id: String) = SubmodelPath(reqt.Goal(id) :: path)
+    def Feature(id: String) = SubmodelPath(reqt.Feature(id) :: path)
+    def Function(id: String) = SubmodelPath(reqt.Function(id) :: path)
+    def Quality(id: String) = SubmodelPath(reqt.Quality(id) :: path)
+    def Interface(id: String) = SubmodelPath(reqt.Interface(id) :: path)
+    def Design(id: String) = SubmodelPath(reqt.Design(id) :: path)
+    def Issue(id: String) = SubmodelPath(reqt.Issue(id) :: path)
+    def Ticket(id: String) = SubmodelPath(reqt.Ticket(id) :: path)
+    def UserStory(id: String) = SubmodelPath(reqt.UserStory(id) :: path)
+    def UseCase(id: String) = SubmodelPath(reqt.UseCase(id) :: path)
+    def TestCase(id: String) = SubmodelPath(reqt.TestCase(id) :: path)
+    def Task(id: String) = SubmodelPath(reqt.Task(id) :: path)
+    def VividScenario(id: String) = SubmodelPath(reqt.VividScenario(id) :: path)
+    def Class(id: String) = SubmodelPath(reqt.Class(id) :: path)
+    def Member(id: String) = SubmodelPath(reqt.Member(id) :: path)
+    def S(id: String) = SubmodelPath(reqt.Stakeholder(id) :: path) 
+    def S(id: Int) = SubmodelPath(reqt.Stakeholder(id.toString) :: path) 
+    def G(id: String) = SubmodelPath(reqt.Goal(id) :: path) 
+    def G(id: Int) = SubmodelPath(reqt.Goal(id.toString) :: path)     
+    def F(id: String) = SubmodelPath(reqt.Feature(id) :: path) 
+    def F(id: Int) = SubmodelPath(reqt.Feature(id.toString) :: path)     
+    def Q(id: String) = SubmodelPath(reqt.Quality(id) :: path) 
+    def Q(id: Int) = SubmodelPath(reqt.Quality(id.toString) :: path)   
+    //construct final part of path
+    def Gist = toReference(AttrRef(target, reqt.Gist), subReferences)
+    def Spec = toReference(AttrRef(target, reqt.Spec), subReferences)
+    def Status = toReference(AttrRef(target, reqt.Status), subReferences)
+    def Why = toReference(AttrRef(target, reqt.Why), subReferences)
+    def Example = toReference(AttrRef(target, reqt.Example), subReferences)
+    def Expectation = toReference(AttrRef(target, reqt.Expectation), subReferences)
+    def Input = toReference(AttrRef(target, reqt.Input), subReferences)
+    def Output = toReference(AttrRef(target, reqt.Output), subReferences)
+    def Trigger = toReference(AttrRef(target, reqt.Trigger), subReferences)
+    def Precond = toReference(AttrRef(target, reqt.Precond), subReferences)
+    def Frequency = toReference(AttrRef(target, reqt.Frequency), subReferences)
+    def Critical = toReference(AttrRef(target, reqt.Critical), subReferences)
+    def Problem = toReference(AttrRef(target, reqt.Problem), subReferences)
+    def Prio = toReference(AttrRef(target, reqt.Prio), subReferences)
+    def Order = toReference(AttrRef(target, reqt.Order), subReferences)
+    def Cost = toReference(AttrRef(target, reqt.Cost), subReferences)
+    def Benefit = toReference(AttrRef(target, reqt.Benefit), subReferences)
+    def Capacity = toReference(AttrRef(target, reqt.Capacity), subReferences)
+    def Urgency = toReference(AttrRef(target, reqt.Urgency), subReferences)
+    def Label = toReference(AttrRef(target, reqt.Label), subReferences)
+    def Comment = toReference(AttrRef(target, reqt.Comment), subReferences)
+    def Image = toReference(AttrRef(target, reqt.Image), subReferences)
+    def Deprecated = toReference(AttrRef(target, reqt.Deprecated), subReferences)
+    def Submodel = toReference(AttrRef(target, reqt.Submodel), subReferences)
+    def Code = toReference(AttrRef(target, reqt.Code), subReferences)
+    def Constraints = toReference(AttrRef(target, reqt.Constraints), subReferences)
+  }
 
   sealed abstract class Reference[T] extends Structure {
     def attrKind: AttributeKind[T]
@@ -215,22 +318,18 @@ package reqt {
   
   case class AttrRef[T](ent: Entity, attrKind: AttributeKind[T]) 
       extends Reference[T] with ImplicitVar {
-    def >>:(e: Entity): SubRef[T] = SubRef(e, this )
     override def toScala: String = ent.toScala + "." + attrKind 
   }
 
   case class SubRef[T](ent: Entity, ref: Reference[T]) 
       extends Reference[T] with ImplicitVar { 
     lazy val attrKind: AttributeKind[T] = ref.attrKind
-    def >>:(e: Entity): SubRef[T] = SubRef(e, this )
-    override def toScala: String = ent.toScala + ">>:" + ref.toScala
+    override def toScala: String = ent.toScala + "." + ref.toScala
   }
   
   case class ModelUpdater[T](m: Model, ref: Reference[T]) {
     //to enable DSL syntax Feature("x").Prio(Model()) := 3 
     def :=(value: T): Model =  m.updated(ref, value)
-    //to enable DSL syntax Feature("a")>>:Feature("b").Prio(Model()) := 3
-    def >>:(e: Entity): ModelUpdater[T] = ModelUpdater(m, SubRef(e, ref))
   }
  
   abstract class Context extends Entity 
@@ -799,7 +898,8 @@ match argument types ()
   object warn {
     private var warnMe = true
     private var savedState = List[Boolean]()
-    def on() = {warnMe = true } ; def off() = {warnMe = false }
+    def on() = {warnMe = true } 
+    def off() = {warnMe = false }
     def isOn = warnMe
     def save() {savedState = warnMe :: savedState} // to enable local change of warn state
     def restore() {warnMe = savedState.headOption.getOrElse(warnMe); savedState = savedState.drop(1)}
