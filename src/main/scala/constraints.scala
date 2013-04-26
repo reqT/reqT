@@ -21,19 +21,17 @@ package reqt {
   //---- integration with class Model: (for implicits conversions see package.scala)
   
   case class CSP[T](m: Model, cs: Seq[Constr[T]]) {
-    lazy val intValues = (m collect { case (Key(e,has), NodeSet(ns)) => ns.toList collect { case n: IntValue => (e,n) } } ).flatten.toList
-    lazy val intModelConstr = intValues.collect { 
-      case (e, Prio(i)) =>  Var(e.Prio)  #== i 
-      case (e, Order(i)) => Var(e.Order) #== i
-      }.toList
+    lazy val intValues: List[(Entity, Attribute[Int])] = (m collect { 
+      case (Key(e,has), NodeSet(ns)) => ns.toList collect { 
+        case a: IntValue => (e,a: Attribute[Int]) 
+      } } ).flatten.toList
+    lazy val intModelConstr: List[Constr[Any]] = intValues.collect { 
+      case (e, a) =>  Var(Ref[Int](Vector(e),a.kind)) #== a.value } .toList
     lazy val allConstr: Seq[Constr[Any]] = cs ++ intModelConstr
     //Any propagates because of Map invariance in first Type arg
     def updateModel(vmap: Map[Var[Any], Int]): Model = { 
       var newModel = m
-      val modelVariables = vmap collect { 
-        case (Var(ar @ AttrRef(_,_)), i) => (ar, i) //check attr is IntValue??
-        case (Var(sr @ SubRef(_,_)), i) => (sr, i) //check attr is IntValue??
-      } 
+      val modelVariables = vmap collect { case (Var(r @ Ref(_,_)), i) => (r, i)  } //check r.attrKind is IntValue??
       modelVariables foreach { case (r, i) => newModel = newModel.updated(r, i)  } 
       newModel
     }

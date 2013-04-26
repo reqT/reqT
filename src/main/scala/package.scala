@@ -39,8 +39,8 @@ package object reqt {
   
   //implicits for constraints.scala
   
-  implicit def referenceToVar[T](ref: Reference[T]): Var[Reference[T]] = Var(ref)
-  implicit def seqReferenceToSeqVar[T](refs: Seq[Reference[T]]) = refs.map(Var(_))
+  implicit def refToVar[T](r: Ref[T]): Var[Ref[T]] = Var(r)
+  implicit def seqRefToVar[T](rs: Seq[Ref[T]]) = rs.map(Var(_))
   
   implicit def rangeToInterval(r: Range): Interval = Interval(r.min, r.max)
 
@@ -64,7 +64,8 @@ package object reqt {
   //generator functions:
   def vars[T](vs: T *): Seq[Var[T]] = vs.map(Var(_)).toIndexedSeq
   def forAllEntities(es:Seq[Entity])(f: Entity => Constr[_]) = es.map(f(_)).toVector
-  def forAllAttributes[T](vs:Seq[Reference[T]])(f: Reference[T] => Constr[_]) = vs.map(f(_)).toVector
+  def forAllAttributes[T](vs:Seq[Attribute[T]])(f: Attribute[T] => Constr[_]) = vs.map(f(_)).toVector
+  def forAllRefs[T](vs:Seq[Ref[T]])(f: Ref[T] => Constr[_]) = vs.map(f(_)).toVector
 
   //conversions functions from Key and NodeSet to scala code string
   def keyNodesToScala(key: Key, nodes: NodeSet): String = "" + key.toScala + ( if (key.edge.isInstanceOf[RelationWithAttribute[_]]) "to " else "") + nodes.toScala

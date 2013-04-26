@@ -123,18 +123,28 @@ package reqt {
     def ppg { pp(Gist) }
 	
     //----- apply, updated and sorted methods
-    def apply[T](r: Reference[T]): T = r match {
-      case ar: AttrRef[T] => this / ar.ent ! ar.attrKind get
-      case sr: SubRef[T] => ( this / sr.ent ! Submodel get ).apply(sr.ref)
-    }
+    // def apply[T](r: Reference[T]): T = r match {
+      // case ar: AttrRef[T] => this / ar.ent ! ar.attrKind get
+      // case sr: SubRef[T] => ( this / sr.ent ! Submodel get ).apply(sr.ref)
+    // }
+    def apply[T](r: Ref[T]): T = 
+      if (r.isSingle) this / r.head ! r.attrKind get
+      else ( this / r.head ! Submodel get ).apply(r.tail)
     
-    def updated[T](r: Reference[T], v: T): Model = r match {
-      case ar: AttrRef[T] =>  this + ar.ent.has(ar.attrKind(v))
-      case sr: SubRef[T] => 
-        val sm = this / sr.ent !! Submodel
-        this + sr.ent.has(Submodel(sm.updated(sr.ref, v)))
-    }
-       
+    // def updated[T](r: Reference[T], v: T): Model = r match {
+      // case ar: AttrRef[T] =>  this + ar.ent.has(ar.attrKind(v))
+      // case sr: SubRef[T] => 
+        // val sm = this / sr.ent !! Submodel
+        // this + sr.ent.has(Submodel(sm.updated(sr.ref, v)))
+    // }
+
+    def updated[T](r: Ref[T], v: T): Model = 
+      if (r.isSingle) this + r.head.has(r.attrKind(v))
+      else { 
+        val sm = this / r.head !! Submodel
+        this + r.head.has(Submodel(sm.updated(r.tail, v)))
+      }
+    
     def -(entity: Entity, edge: Edge, node: Node[_]): Model = { //TODO is this really needed???
       //TODO recursive removal in submodels??
       val k = Key(entity, edge)
@@ -372,7 +382,7 @@ package reqt {
         case rwa: RelationWithAttribute[_] => Set(rwa.attribute)
         case _ => Set() 
       } ) ); if (n.isAttribute))  yield n.asInstanceOf[Attribute[_]] } toSet
-    lazy val attributesOfKind: Map[NodeKind, Set[Attribute[_]]] = attributes.groupBy(_.kind).withDefaultValue(Set())
+    lazy val attributesOfKind: Map[AttributeKind[_], Set[Attribute[_]]] = attributes.groupBy(_.kind).withDefaultValue(Set())
     lazy val relations: Set[Relation] = ( for (Key(entity, edge) <- this.keySet) yield edge ) collect { case r: Relation => r }  
     lazy val relationsOfKind: Map[EdgeKind, Set[Relation]] = relations.groupBy(_.kind).withDefaultValue(Set())
     lazy val relationSources: Set[Entity] = this \ has sources  
@@ -484,22 +494,20 @@ package reqt {
       }
       case _ => None
     }
-    def get[T](r: Reference[T]): Option[T] = r match {
-      case AttrRef(e, ak) => ( this / e  ).get(ak) 
-      case SubRef(e, r) =>  ( ( this / e ) !! Submodel ).get(r) 
-    }
+    def get[T](r: Ref[T]): Option[T] = 
+      if (r.isSingle) ( this / r.head  ).get(r.attrKind) 
+      else  ( ( this / r.head ) !! Submodel ).get(r.tail) 
     
     def ![T](a: AttributeKind[T]): Option[T] = get(a)
-    def ![T](r: Reference[T]): Option[T] = get(r)
+    def ![T](r: Ref[T]): Option[T] = get(r)
 
     def getOrDefault[T](a:AttributeKind[T]):T = get(a).getOrElse(a.default)
-    def getOrDefault[T](r: Reference[T]): T = r match {
-      case AttrRef(e, ak) => ( this / e  ).getOrDefault(ak) 
-      case SubRef(e, r) =>  ( ( this / e ) !! Submodel ).getOrDefault(r) 
-    }    
+    def getOrDefault[T](r: Ref[T]): T = 
+      if (r.isSingle) ( this / r.head  ).getOrDefault(r.attrKind) 
+      else ( ( this / r.head ) !! Submodel ).getOrDefault(r.tail) 
     
     def !![T](a:AttributeKind[T]):T = getOrDefault(a)
-    def !![T](r: Reference[T]):T = getOrDefault(r)
+    def !![T](r: Ref[T]):T = getOrDefault(r)
 
     def attributeMap[T](a: AttributeKind[T]): Map[Entity, Attribute[T]] = collect { 
       case (Key(e,r),ns) if ns.exists(_ <==> a) => (e, ns.find(_ <==> a).get match {
