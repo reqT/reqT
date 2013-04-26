@@ -11,6 +11,11 @@ val cs = Constraints(
   Feature("y").Prio #> 0,
   Feature("x").Prio #>= Feature("y").Prio
 )
+val cs = Constraints(
+  (Feature("x")!Prio) #> 0,
+  (Feature("y")!Prio) #> 0,
+  (Feature("x")!Prio) #>= (Feature("y")!Prio)
+)
 val Result(conlusion, solutionList) = cs.satisfy
 
 // constraints in a requirements model

@@ -173,8 +173,8 @@ package reqt {
     def assigns[T](a:Attribute[T]) = Key(this, reqt.assigns(a))
 
     //construct AttrRef
-      //def ![T](ak: AttributeKind[T]) = AttrRef[T](this, ak) 
-        //above bang operator not as good as Feature("x").Prio wrt precedence
+    def ![T](ak: AttributeKind[T]) = AttrRef[T](this, ak) 
+    //above bang operator not as good as Feature("x").Prio wrt precedence
     def Gist = AttrRef(this, reqt.Gist)
     def Spec = AttrRef(this, reqt.Spec) 
     def Status = AttrRef(this, reqt.Status)
@@ -207,6 +207,8 @@ package reqt {
     }
     
     //construct SubmodelPath to allow syntax Feature("x").Feature("x").Prio
+    //this syntax is also available but often require paren; (Feature("x")!Feature("x")!Prio) #== 2
+    def !(e: Entity) = EntityPath(Vector(this, e))
     def Product(id: String) = SubmodelPath(reqt.Product(id) :: this :: Nil)
     def Release(id: String) = SubmodelPath(reqt.Release(id) :: this :: Nil)
     def Stakeholder(id: String) = SubmodelPath(reqt.Stakeholder(id) :: this :: Nil)
@@ -240,15 +242,28 @@ package reqt {
     def Q(id: Int) = SubmodelPath(reqt.Quality(id.toString) :: this :: Nil)   
   }  
   
+  case class EntityPath(path: Vector[Entity]) extends Structure {
+    def !(e: Entity) = EntityPath(path :+ e)
+    def ![T](ak: AttributeKind[T]) = AttributePath[T](path, ak)
+    override def toScala = path.mkString("(","!",")")
+  }
+  
+  case class AttributePath[T](path: Vector[Entity], attrKind: AttributeKind[T]) extends Structure {
+    override def toScala = "(" + path.mkString("!") + "!" + attrKind + ")"
+  }
+  
   case class SubmodelPath(path: List[Entity]) {
     //to enable DSL syntax Feature("a").Feature("b").Prio
     assert(!path.isEmpty, "path must be non-empty")
     lazy val target = path.head
     lazy val subReferences = path.tail.reverse
-    def toReference[T](aRef: AttrRef[T], subRefs: List[Entity]): Reference[T] = subRefs match {
-      case Nil => aRef
-      case e :: es => SubRef(e, toReference(aRef, es))  
-    }
+    def toReference[T](aRef: AttrRef[T], subRefs: List[Entity]): Reference[T] = 
+      subRefs match {
+        case Nil => aRef
+        case e :: es => SubRef(e, toReference(aRef, es))  
+      }
+    def !(e: Entity) = SubmodelPath(e :: path)
+    def ![T](ak: AttributeKind[T]) = toReference(AttrRef(target, ak), subReferences)
     //construct next part of path in subReferences
     def Product(id: String) = SubmodelPath(reqt.Product(id) :: path)
     def Release(id: String) = SubmodelPath(reqt.Release(id) :: path)
