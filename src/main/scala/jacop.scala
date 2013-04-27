@@ -117,6 +117,7 @@ package reqt {
           case XmulYeqZ(x, y, z) => new jcon.XmulYeqZ(jIntVar(x), jIntVar(y), jIntVar(z))
           case XplusYeqZ(x, y, z) => new jcon.XplusYeqZ(jIntVar(x), jIntVar(y), jIntVar(z))
           case XplusYlteqZ(x, y, z) => new jcon.XplusYlteqZ(jIntVar(x), jIntVar(y), jIntVar(z))
+          case Distance(x, y, z) => new jcon.Distance(jIntVar(x), jIntVar(y), jIntVar(z))
           case XgtC(x, c) => new jcon.XgtC(jIntVar(x), c)
           case XgteqC(x, c) => new jcon.XgteqC(jIntVar(x), c)
           case XgteqY(x, y) => new jcon.XgteqY(jIntVar(x), jIntVar(y))
@@ -131,6 +132,9 @@ package reqt {
           case IfThen(c1, c2) =>
             val jc = (toJCon(c1, store, jIntVar), toJCon(c2, store, jIntVar)) 
             new jcon.IfThen(jc._1.asInstanceOf[jcon.PrimitiveConstraint],   jc._2.asInstanceOf[jcon.PrimitiveConstraint])
+          case Diff2(rectangles) => 
+            def matrix: Array[Array[JIntVar]] = rectangles.map(jVarArray(_)).toArray
+            new jcon.Diff2(matrix)
         }
       }
       

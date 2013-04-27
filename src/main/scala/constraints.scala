@@ -106,15 +106,18 @@ package reqt {
   // }
   
 
+  
   trait BoundingConstr //marker trait to enable Bounds filter in jacop.scala
   
-  trait Constr[+T] extends CanGenerateScala with Prefixed { 
-    def variables: Seq[Var[T]] 
+  trait Variables[+T] extends Prefixed with CanGenerateScala { 
+    def variables: Seq[Var[T]]  
     def varSeqToScala[B >: T](vs: Seq[Var[B]]) = vs.map(_.toScala).mkString("Seq(",",",")")
     override def toScala = prefix + variables.map(_.toScala).mkString("(",",",")")
-  }
+  } 
   
-  trait PrimitiveConstr[+T] extends Constr[T] 
+  trait Constr[+T] extends Variables[T]
+  
+  trait PrimitiveConstr //TODO marker trait to prevent wrong usage of jacob primitive constr 
   
   trait Constr1IntConst[+T] extends Constr[T] { 
     val x: Var[T]
@@ -153,6 +156,11 @@ package reqt {
     val variables: Seq[Var[T]] = Seq(x, y) ++ seq1
     override def toScala = prefix + "(" + x.toScala + "," + varSeqToScala(seq1) + "," + y.toScala + ")"
   }
+  trait ConstrMatrix[+T] extends Constr[T] { 
+    def matrix: Vector[Vector[Var[T]]]
+    val variables: Seq[Var[T]] = matrix.flatten
+    override def toScala = prefix + "(" + matrix.map(varSeqToScala(_)).mkString("Seq(",",",")") + ")"
+  }  
   
   trait CompoundConstr[+T] extends Constr[T] {
     val constraints: Seq[Constr[T]]
@@ -160,12 +168,17 @@ package reqt {
     override def toScala = prefix + constraints.map(_.toScala).mkString("(",",",")")
   }
   
+  trait CompoundConstr1[+T] extends CompoundConstr[T] {
+    val c1: Constr[T]
+    val constraints = Seq(c1)
+  }
+  
   trait CompoundConstr2[+T] extends CompoundConstr[T] {
     val c1: Constr[T]
     val c2: Constr[T]
     val constraints = Seq(c1, c2)
   }
-    
+   
   case class Bounds[+T](seq1: Seq[Var[T]], domain: Seq[Interval]) 
   extends ConstrSeq1[T] with BoundingConstr {
     def addDomainOf[B >:T](that: Bounds[B]): Bounds[B] = Bounds[B](seq1, domain ++ that.domain)
@@ -203,6 +216,7 @@ package reqt {
   case class XmulYeqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T] 
   case class XplusYeqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T] 
   case class XplusYlteqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T] 
+  case class Distance[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T] 
   
   case class XgtC[+T](x: Var[T], c: Int) extends Constr1IntConst[T] {
     override def toScala = x.toScala + " #> " + c
@@ -237,5 +251,19 @@ package reqt {
   case class XeqBool[+T](x: Var[T], c: Boolean) extends Constr1BoolConst[T]
   
   case class IfThen[+T](c1: Constr[T], c2: Constr[T]) extends CompoundConstr2[T]
-
+  
+  case class Rectangle[+T](x: Var[T], y: Var[T], dx: Var[T], dy: Var[T]) extends Variables[T] {
+    lazy val toVector: Vector[Var[T]] = Vector(x, y, dx, dy)
+    lazy val variables: Seq[Var[T]] = toVector
+  }
+  
+  case class Diff2[+T](rectangles: Vector[Vector[Var[T]]]) extends ConstrMatrix[T] {
+    lazy val matrix = rectangles     
+    assert(rectangles.map(_.size).distinct == Vector(4), "size of all rectangle vectors must be 4")
+    override def toString = "Diff2" + rectangles.map(_.mkString("Rectangle(",",",")")).mkString("(",",",")")
+  }
+  object Diff2 {
+    def apply[T](rectangles: Rectangle[T] *) = new Diff2[T](rectangles.toVector.map(_.toVector))
+  }
+  
 } //end package reqt
