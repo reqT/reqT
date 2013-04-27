@@ -190,7 +190,7 @@ package reqt {
     def !(e: Entity) = EntityPath(path :+ e)
     def ![T](ak: AttributeKind[T]) = Ref[T](path, ak)
     lazy val tail = EntityPath(path.tail)
-    override def toScala = path.mkString("(","!",")")
+    override def toScala = path.map(_.toScala).mkString("(","!",")")
   }
 
   trait ImplicitVar extends CanGenerateScala 
@@ -202,7 +202,7 @@ package reqt {
     assert(!path.isEmpty, "path Vector of Ref must not be empty")
     lazy val tail = Ref(path.tail, attrKind)
     def apply(m: Model) = ModelUpdater(m, this)
-    override def toScala = "(" + path.mkString("!") + "!" + attrKind + ")"
+    override def toScala = "(" + path.map(_.toScala).mkString("!") + "!" + attrKind + ")"
   }
   
   // sealed abstract class Reference[T] extends Structure {
