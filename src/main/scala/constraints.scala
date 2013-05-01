@@ -35,14 +35,14 @@ package reqt {
       modelVariables foreach { case (r, i) => newModel = newModel.updated(r, i)  } 
       newModel
     }
-    def solve(objective: Objective): (Model, Seq[Map[Var[Any], Int]]) = {
-      val Result(conclusion, solutions) = allConstr.solve(objective)
-      if (conclusion == SolutionFound) (updateModel(solutions.head), solutions) //TODO should handle multiple solutions
-      else { warn(conclusion.toString); (Model(), Seq(Map())) } 
+    def solve(objective: Objective): (Vector[Model], Vector[Map[Var[Any], Int]]) = {
+      val Result(conclusion, i, solutions) = allConstr.solve(objective)
+      if (conclusion == SolutionFound) (solutions.map(updateModel), solutions) 
+      else { warn(conclusion.toString); (Vector(), Vector()) } 
     }
-    def satisfy: Model = solve(Satisfy)._1
-    def optimum(ms: (Model, Seq[Map[Var[Any], Int]]), v: Var[Any]): (Model, Option[Int]) = 
-      (ms._1, ms._2.headOption.map(m => m.get(v)).flatten)
+    def satisfy: Model = solve(Satisfy)._1.headOption.getOrElse(Model())
+    def optimum(ms: (Vector[Model], Seq[Map[Var[Any], Int]]), v: Var[Any]): (Model, Option[Int]) = 
+      (ms._1.headOption.getOrElse(Model()), ms._2.headOption.map(m => m.get(v)).flatten)
     def maximize(v: Var[Any]): (Model, Option[Int]) = optimum(solve(Maximize(v)), v)
     def minimize(v: Var[Any]): (Model, Option[Int]) = optimum(solve(Minimize(v)), v)
   }
@@ -57,20 +57,21 @@ package reqt {
     override def toScala =  s"$prefix($min, $max)" 
   }  
   
-  case class Result[T](conclusion: Conclusion, solutions: Seq[Map[Var[T], Int]])  
+  case class Result[T](conclusion: Conclusion, solutionCount: Int, solutions: Vector[Map[Var[T], Int]])  
  
   sealed trait Conclusion
-  case object SolutionFound       extends Conclusion
-  case object SolutionNotFound    extends Conclusion
-  case object InconsistencyFound  extends Conclusion
-  case class SearchFailed(msg: String)   extends Conclusion  
+  case object SolutionFound extends Conclusion
+  case object SolutionNotFound extends Conclusion
+  case object InconsistencyFound extends Conclusion
+  case class SearchFailed(msg: String) extends Conclusion  
    
   sealed trait Objective   
   case object Satisfy extends Objective
-  case class Minimize[+T](cost: Var[T]) extends Objective
-  case class Maximize[+T](cost: Var[T]) extends Objective
-  case object CountAll extends Objective
-  case object RecordAll extends Objective //TODO check jacop example gates.java to see how listener is built
+  case object Count extends Objective
+  case object FindAll extends Objective //TODO check jacop example gates.java to see how listener is built
+  sealed trait Optimize[+T] extends Objective { def cost: Var[T] }
+  case class Minimize[+T](cost: Var[T]) extends Optimize[T]
+  case class Maximize[+T](cost: Var[T]) extends Optimize[T]
 
   case class Var[+T](ref: T) extends CanGenerateScala with Prefixed { 
     def #==[B >:T](that: Var[B]) = XeqY(this, that)

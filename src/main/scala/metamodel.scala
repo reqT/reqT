@@ -429,7 +429,7 @@ match argument types ()
     def satisfy = value.solve(Satisfy)
     def maximize[T](v: Var[T]) = value.solve(Maximize(v))
     def minimize[T](v: Var[T]) = value.solve(Minimize(v))
-    def solve(objective: Objective) = value.solve(objective)
+    def solve[T](objective: Objective) = value.solve(objective)
     def toModel = (Model() impose this) satisfy
     def ++(cs: Constraints): Constraints = Constraints(value ++ cs.value)
     override lazy val kind = reqt.Constraints    

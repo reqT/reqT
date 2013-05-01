@@ -24,11 +24,12 @@ package reqt {
       var defaultObjective = Satisfy
       var defaultSelect = IndomainRandom
       var verbose = true
-	  var debug = false
+      var debug = false
       var warningPrinter: String => Unit = (s: String) => println("WARNING: " + s)
     }
    
     type JIntVar = JaCoP.core.IntVar
+    type JVar = JaCoP.core.Var
     type JBooleanVar = JaCoP.core.BooleanVar
    
     sealed trait Indomain { def toJacop: JaCoP.search.Indomain[JIntVar] }
@@ -37,7 +38,7 @@ package reqt {
     case object IndomainMiddle  extends Indomain { def toJacop = new JaCoP.search.IndomainMiddle[JIntVar] }
     case object IndomainMin  extends Indomain { def toJacop = new JaCoP.search.IndomainMin[JIntVar] }
     case object IndomainRandom  extends Indomain { def toJacop = new JaCoP.search.IndomainRandom[JIntVar] }
-    case object IndomainSimpleRandom  extends Indomain { def toJacop = new JaCoP.search.IndomainMax[JIntVar] }
+    case object IndomainSimpleRandom  extends Indomain { def toJacop = new JaCoP.search.IndomainSimpleRandom[JIntVar] }
   //  case object IndomainSetMax  extends Indomain { def toJacop = new JaCoP.search.IndomainMax[JSetVar] }
   //  case object IndomainSetMin  extends Indomain { def toJacop = new JaCoP.search.IndomainMax[JSetVar] }
   //  case object IndomainSetRandom  extends Indomain { def toJacop = new JaCoP.search.IndomainMax[JSetVar] }
@@ -158,46 +159,85 @@ package reqt {
         val store = new jcore.Store
         val vs = distinctVars(constraints)
         val cs = collectConstr(constraints)
-        if (Settings.verbose) println("*** Solver VARIABLES:   " + vs.mkString(","))
-        if (Settings.verbose) println("*** Solver CONSTRAINTS: " + cs.mkString(","))
+        if (Settings.verbose) println("*** VARIABLES:   " + vs.mkString(","))
+        if (Settings.verbose) println("*** CONSTRAINTS: " + cs.mkString(","))
         val duplicates = checkUniqueToString(vs)
         if (!duplicates.isEmpty) return Result(
             SearchFailed("Duplicate toString values of variables:" + duplicates.mkString(", ")), 
-            Seq(Map())
+            0,
+            Vector()
         )
         if (checkIfNameExists(minimizeHelpVarName, vs)) return Result(
             SearchFailed("Reserved varable name not allowed:" + minimizeHelpVarName), 
-            Seq(Map())
+            0,
+            Vector()
         )
         val intVarMap: Map[Var[T], JIntVar] = vs.map { v => (v, varToJIntVar(v, store)) } .toMap
-        (objective match {
-          case m: Maximize[T] => Some(m.cost) 
-          case m: Minimize[T] => Some(m.cost)
-          case _ => None
-        } ). foreach { v => if (!intVarMap.isDefinedAt(v)) 
-          return Result(SearchFailed("Cost variable not defined:" + v), Seq(Map())) 
+        Some(objective).collect { //abort if cost variable is not defined
+          case opt: Optimize[T] if (!intVarMap.isDefinedAt(opt.cost)) => 
+            return Result(SearchFailed("Cost variable not defined:" + opt.cost), 0, Vector()) 
         }
         cs foreach { c => store.impose(toJCon(c, store, intVarMap)) }
-		if (Settings.debug) println(store)
-        if (!store.consistency) return Result(InconsistencyFound, Seq(Map()))
-        val dfs = new jsearch.DepthFirstSearch[JIntVar]
-        dfs.getSolutionListener.searchAll(false)
-        dfs.getSolutionListener.recordSolutions(true)
+        if (Settings.debug) println(store)
+        if (!store.consistency) return Result(InconsistencyFound, 0, Vector())
+        val label = new jsearch.DepthFirstSearch[JIntVar]
         val select = new jsearch.InputOrderSelect[JIntVar](store, collectIntVars(store), indomain.toJacop) 
-        val found = objective match {
-          case Satisfy => dfs.labeling(store, select)
-          case minimize: Minimize[T] => dfs.labeling(store, select, intVarMap(minimize.cost))
+        def listener = label.getSolutionListener()
+        def noSolution = Result[T](SolutionNotFound, 0, Vector())
+        def solutionInStore = solutionMap(store, nameToVarMap(vs))
+        def oneResult(ok: Boolean) = 
+          if (ok) Result(SolutionFound, 1, Vector(solutionInStore)  else noSolution
+        def countResult(ok: Boolean, i: Int) = 
+          if (ok) Result[T](SolutionFound, i, Vector(solutionInStore)) else noSolution
+        val conclusion = objective match {
+          case Satisfy => 
+            listener.searchAll(false)
+            listener.recordSolutions(true)
+            oneResult(label.labeling(store, select)) 
+          case Count => //count soultions but don't record any solution to save memory
+            listener.searchAll(true)
+            listener.recordSolutions(false)
+            countResult(label.labeling(store, select), listener.solutionsNo) 
+          case FindAll => 
+            listener.searchAll(true)
+            listener.recordSolutions(true)
+            val found = label.labeling(store, select)
+            if (!found) noSolution else {
+              val vmap = nameToVarMap(vs)
+              //AARGH! ask Kris why getSolutions() sometimes include null ...
+              val values: Array[Array[Option[Int]]] = 
+                listener.getSolutions().filterNot(_ == null).map( domains => 
+                  domains.collect { 
+                    case intDom: jcore.IntDomain if intDom.singleton() => Some(intDom.value)
+                    case _ => None
+                  } 
+                )
+              val v: Array[_ <: JVar] = listener.getVariables()
+              val solutions: Vector[Map[Var[T], Int]] = values.map { d => 
+                ( for (i <- 0 until d.size if d(i).isDefined) 
+                  yield (vmap(v(i).id), d(i).get) ).toMap
+              } .toVector
+              Result(SolutionFound, solutions.size, solutions)
+            }
+          case minimize: Minimize[T] => 
+            listener.searchAll(false)
+            listener.recordSolutions(true)
+            oneResult(label.labeling(store, select, intVarMap(minimize.cost)))
           case m: Maximize[T] =>  
+            listener.searchAll(false)
+            listener.recordSolutions(true)
             val intDom = new jcore.IntervalDomain()
             domainOf(m.cost) foreach (ivl => intDom.addDom( new jcore.IntervalDomain(-ivl.max, -ivl.min)))
             val negCost = new JIntVar(store, minimizeHelpVarName, intDom)
             store.impose( new jcon.XmulCeqZ(intVarMap(m.cost), -1, negCost) )
-            dfs.labeling(store, select, negCost)
-          case so => println("Search objective not yet implemented: " + so); ??? ; false
+            oneResult(label.labeling(store, select, negCost))
+          case other => 
+            println("Search objective not yet implemented: " + other)
+            ???
+            noSolution
         }
         if (Settings.verbose) println(store)
-        if (found) Result(SolutionFound, Seq(solutionMap(store, nameToVarMap(vs))))
-        else Result(SolutionNotFound, Seq(Map()))
+        conclusion
       } //end def solve
       
     } //end class Solver
