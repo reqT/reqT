@@ -618,7 +618,7 @@ match argument types ()
   
   case class NodeSet(nodes: Set[Node[_]]) extends SetStructure[Node[_]] {  
     assert(!(hasAttribute && hasEntity), 
-      "Both Entity and Attribute nodes in the same NodeSet is not allowed. This is a bug. Please report.")
+      "Both Entity and Attribute nodes in the same NodeSet is not allowed.")
     def keyStr(keyOpt: Option[Key] = None) = (keyOpt collect { case k => " of " + k.entity } orElse (Some("")) get)
     lazy val submodelsMerged: Model = nodes.collect { case Submodel(m) => m } .fold(Model())(_ ++ _)
     lazy val submodelsRemoved: Set[Node[_]] = nodes.filterNot( _ <==> Submodel) 
@@ -635,6 +635,7 @@ match argument types ()
     }
     private def entityKindsReplacedWithEmptyId = NodeSet(nodes.map { case e: EntityKind => e(); case n => n } )
     private def attrKindsReplacedWithDefault = NodeSet(nodes.map { case a: AttributeKind[_] => a(); case n => n } )
+    def -(n: NodeKind) = NodeSet(nodes.filterNot( _ <==> n))
     def concatNodes(ns: NodeSet, keyOpt: Option[Key] = None): NodeSet  = {
       if (!ns.hasAttribute) NodeSet(nodes ++ ns.nodes).entityKindsReplacedWithEmptyId
       else { //collect+merge submodels, remove duplicates and replace existing attributes
