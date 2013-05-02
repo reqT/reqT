@@ -31,7 +31,7 @@ package reqt {
     type JIntVar = JaCoP.core.IntVar
     type JVar = JaCoP.core.Var
     type JBooleanVar = JaCoP.core.BooleanVar
-   
+    
     sealed trait Indomain { def toJacop: JaCoP.search.Indomain[JIntVar] }
     case object IndomainMax  extends Indomain { def toJacop = new JaCoP.search.IndomainMax[JIntVar] }
     case object IndomainMedian  extends Indomain { def toJacop = new JaCoP.search.IndomainMedian[JIntVar] }
@@ -39,6 +39,7 @@ package reqt {
     case object IndomainMin  extends Indomain { def toJacop = new JaCoP.search.IndomainMin[JIntVar] }
     case object IndomainRandom  extends Indomain { def toJacop = new JaCoP.search.IndomainRandom[JIntVar] }
     case object IndomainSimpleRandom  extends Indomain { def toJacop = new JaCoP.search.IndomainSimpleRandom[JIntVar] }
+    
   //  case object IndomainSetMax  extends Indomain { def toJacop = new JaCoP.search.IndomainMax[JSetVar] }
   //  case object IndomainSetMin  extends Indomain { def toJacop = new JaCoP.search.IndomainMax[JSetVar] }
   //  case object IndomainSetRandom  extends Indomain { def toJacop = new JaCoP.search.IndomainMax[JSetVar] }
@@ -99,7 +100,9 @@ package reqt {
     case class Solver[T](
         constraints: Seq[Constr[T]], 
         objective: Objective,
-        indomain: Indomain
+        indomain: Indomain,
+        timeOutOption: Option[Long],
+        solutionLimitOption: Option[Int]
       ) extends SolverUtils {
  
       import JaCoP. { search => jsearch, core => jcore, constraints => jcon }  
@@ -162,33 +165,36 @@ package reqt {
         if (Settings.verbose) println("*** VARIABLES:   " + vs.mkString(","))
         if (Settings.verbose) println("*** CONSTRAINTS: " + cs.mkString(","))
         val duplicates = checkUniqueToString(vs)
-        if (!duplicates.isEmpty) return Result(
-            SearchFailed("Duplicate toString values of variables:" + duplicates.mkString(", ")), 
-            0,
-            Vector()
-        )
-        if (checkIfNameExists(minimizeHelpVarName, vs)) return Result(
-            SearchFailed("Reserved varable name not allowed:" + minimizeHelpVarName), 
-            0,
-            Vector()
-        )
+        if (!duplicates.isEmpty) 
+          return Result(SearchFailed("Duplicate toString values of variables:" + 
+            duplicates.mkString(", "))        )
+        if (checkIfNameExists(minimizeHelpVarName, vs)) 
+          return Result(SearchFailed("Reserved varable name not allowed:" + minimizeHelpVarName))
         val intVarMap: Map[Var[T], JIntVar] = vs.map { v => (v, varToJIntVar(v, store)) } .toMap
         Some(objective).collect { //abort if cost variable is not defined
           case opt: Optimize[T] if (!intVarMap.isDefinedAt(opt.cost)) => 
-            return Result(SearchFailed("Cost variable not defined:" + opt.cost), 0, Vector()) 
+            return Result(SearchFailed("Cost variable not defined:" + opt.cost)) 
         }
         cs foreach { c => store.impose(toJCon(c, store, intVarMap)) }
         if (Settings.debug) println(store)
-        if (!store.consistency) return Result(InconsistencyFound, 0, Vector())
+        if (!store.consistency) return Result(InconsistencyFound)
         val label = new jsearch.DepthFirstSearch[JIntVar]
-        val select = new jsearch.InputOrderSelect[JIntVar](store, collectIntVars(store), indomain.toJacop) 
         def listener = label.getSolutionListener()
-        def noSolution = Result[T](SolutionNotFound, 0, Vector())
+        val select = new jsearch.InputOrderSelect[JIntVar](store, collectIntVars(store), indomain.toJacop) 
+        timeOutOption.map { timeOut => label.setTimeOut(timeOut) } 
+        solutionLimitOption.map { limit =>  listener.setSolutionLimit(limit) }
+        def noSolution = Result[T](SolutionNotFound)
         def solutionInStore = solutionMap(store, nameToVarMap(vs))
+        def interuptOpt: Option[SearchInterupt] = 
+          if (label.timeOutOccured) Some(SearchTimeOut) 
+          else if (listener.solutionLimitReached) Some(SolutionLimitReached)
+          else None
         def oneResult(ok: Boolean) = 
-          if (ok) Result(SolutionFound, 1, Vector(solutionInStore))  else noSolution
+          if (ok) Result(SolutionFound, 1, Vector(solutionInStore), interuptOpt)  
+          else noSolution
         def countResult(ok: Boolean, i: Int) = 
-          if (ok) Result[T](SolutionFound, i, Vector(solutionInStore)) else noSolution
+          if (ok) Result[T](SolutionFound, i, Vector(solutionInStore), interuptOpt) 
+          else noSolution
         val conclusion = objective match {
           case Satisfy => 
             listener.searchAll(false)
@@ -217,7 +223,7 @@ package reqt {
                 ( for (i <- 0 until d.size if d(i).isDefined) 
                   yield (vmap(v(i).id), d(i).get) ).toMap
               } .toVector
-              Result(SolutionFound, solutions.size, solutions)
+              Result(SolutionFound, solutions.size, solutions, interuptOpt)
             }
           case minimize: Minimize[T] => 
             listener.searchAll(false)

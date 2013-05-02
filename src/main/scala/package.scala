@@ -41,7 +41,6 @@ package object reqt {
   
   implicit def refToVar[T](r: Ref[T]): Var[Ref[T]] = Var(r)
   implicit def seqRefToVar[T](rs: Seq[Ref[T]]) = rs.map(Var(_))
-  
   implicit def rangeToInterval(r: Range): Interval = Interval(r.min, r.max)
 
   implicit class RangeSeqOps(rs: Seq[Range]) { //to enable > Var("x")::Seq(1 to 10, 12 to 15)
@@ -55,8 +54,10 @@ package object reqt {
   implicit class ConstrSeqSolve[+T](cs: Seq[Constr[T]]) extends CanGenerateScala {
     def solve[B >: T](
         objective: Objective = jacop.Settings.defaultObjective,
-        select: jacop.Indomain = jacop.Settings.defaultSelect
-      ): Result[B] = jacop.Solver[B](cs, objective, select).solve
+        select: jacop.Indomain = jacop.Settings.defaultSelect,
+        timeOutOption: Option[Long] = None,
+        solutionLimitOption: Option[Int] = None
+      ): Result[B] = jacop.Solver[B](cs, objective, select, timeOutOption, solutionLimitOption).solve
     def impose[B >: T](m: Model): CSP[B] = CSP(m, cs)
     def toModel: Model = Constraints(cs.toVector).toModel
     override def toScala: String = cs.map(_.toScala).mkString("Vector(",", ",")")
