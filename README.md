@@ -24,13 +24,13 @@ Preparations:
     * Windows: download and run ["Windows (msi)"](http://www.scala-lang.org/downloads/distrib/files/scala-2.10.1.msi) 
     * MacOSX: see e.g. these [instructions](http://devblog.aprics.net/post/47633194425/scala-install-macosx-macports) 
     * Linux: see e.g. instructions under heading [Installing Scala](http://simonholywell.com/post/2013/03/install-netbeans-scala-ubuntu.html) 
-* Download the [reqT.jar](https://github.com/reqT/reqT/raw/master/reqT.jar) and put it in some directory of your chioce, e.g. `\Users\<user>\reqT\lib` (Windows) or `~/reqT/lib` (Linux or MacOS) 
+* Download the [reqT.jar](http://reqT.org/reqT.jar) and put it in some directory of your chioce, e.g. `\Users\<user>\reqT\lib` (Windows) or `~/reqT/lib` (Linux or MacOS) 
  
 Different ways of running reqT, depending on your preference:
 
 1.  Quick try-it-out: 
     
-    Open a command window (terminal, bash, cmd, or powershell etc.) and change directory to where you have put the  [reqT.jar](https://github.com/reqT/reqT/raw/master/reqT.jar) and type: 
+    Open a command window (terminal, bash, cmd, or powershell etc.) and change directory to where you have put the [reqT.jar](http://reqT.org/reqT.jar) and type: 
     
         > scala -toolcp reqT.jar reqT.jar
     
@@ -49,7 +49,7 @@ Different ways of running reqT, depending on your preference:
 
 3.  Install `reqt` as a command
     * Create a new directory e.g. `<home>/reqT/lib`
-    * Put [reqT.jar](https://github.com/reqT/reqT/raw/master/reqT.jar)  in the `<home>/reqT/lib` directory
+    * Put [reqT.jar](http://reqT.org/reqT.jar)  in the `<home>/reqT/lib` directory
     * Create a new directory e.g. `<home>/reqT/bin` and put in that directory either [reqt.cmd](https://github.com/reqT/reqT/raw/master/reqt.cmd) (Windows) or [reqt.sh](https://github.com/reqT/reqT/raw/master/reqt.sh) (Linux/MacOS) and put that dir on your path as explained below:
     
     **Windows**  Append the `<home>\reqT\bin`  directory to your `PATH` user environment variable, by (1) right-clicking on your computer, (2) select "Properties", (3) follow "Advanced system settings", (4) click on the "Environment variables..." button and (5) select the PATH user variable and (6) click Edit and (7) append the string `;<home>\reqT\bin` (note the semicolon). Make sure that the <home> path *does not include spaces*, as the current scala.bat launcher [assumes non-spaced paths](https://issues.scala-lang.org/browse/SI-7355). 
@@ -101,7 +101,6 @@ Editors with scala support
 Directory structure of this repo
 --------------------------------
 When you clone this repo you get these files in directory `reqT/`:
-* `reqT.jar` a pre-packaged jar file ready to run as described above
 * `src/main/scala/`  a directory for the reqT source code modules:
     * `metamodel.scala` entity, attribute, relationship and structure elements 
     * `model.scala`  a graph-like collection for storing requirements in fast hashmaps 
