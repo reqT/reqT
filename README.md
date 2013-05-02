@@ -21,6 +21,9 @@ How to run reqT
 ---------------
 Preparations:
 * Install Scala 2.10.1 from http://www.scala-lang.org/downloads
+    * Windows: download and run ["Windows (msi)"](http://www.scala-lang.org/downloads/distrib/files/scala-2.10.1.msi) 
+    * MacOSX: see e.g. these [instructions](http://devblog.aprics.net/post/47633194425/scala-install-macosx-macports) 
+    * Linux: see e.g. instructions under heading [Installing Scala](http://simonholywell.com/post/2013/03/install-netbeans-scala-ubuntu.html) 
 * Download the [reqT.jar](https://github.com/reqT/reqT/raw/master/reqT.jar) and put it in some directory of your chioce, e.g. `\Users\<user>\reqT\lib` (Windows) or `~/reqT/lib` (Linux or MacOS) 
  
 Different ways of running reqT, depending on your preference:
@@ -86,7 +89,7 @@ Hello reqT
 ----------
 Type this at the reqT> prompt, in the Kojo script editor or in the plain scala REPL scala> prompt:
            
-            var m = Model(Feature("hello") has Gist("Hello reqT!"))
+            var m = Model(Feature("hi") has Gist("Hello reqT!"))
 
 Editors with scala support
 --------------------------
@@ -108,8 +111,6 @@ When you clone this repo you get these files in directory `reqT/`:
 * `lib/` a directory including: 
     * the JaCoP jar from http://sourceforge.net/projects/jacop-solver/ 
 
-Create this directory to store compiled class files:
-* `target/` 
 
 How to build reqT from code
 ---------------------------
@@ -119,6 +120,7 @@ There are several ways to build reqT after cloning this repo:
     
 2. You can build reqT from scratch step by step after cloning this repo using something similar to:
 
+          mkdir target
           scalac -cp "lib\*" -d target "src\main\scala\*"
           jar xf lib/JaCoP-3.2.jar JaCoP
           mv JaCoP target/JaCoP
