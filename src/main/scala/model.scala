@@ -145,14 +145,14 @@ package reqt {
         this + r.head.has(Submodel(sm.updated(r.tail, v)))
       }
     
-    def -(entity: Entity, edge: Edge, node: Node[_]): Model = { //TODO is this really needed???
+    def -(entity: Entity, edge: Edge, nk: NodeKind): Model = { 
       //TODO recursive removal in submodels??
       val k = Key(entity, edge)
       mappings.get(k) match {
         case Some(ns) =>
-          val newNodes = ns - node
+          val newNodes = ns - nk
           val m2 = mappings.clone
-          if (newNodes.isEmpty) new Model(m2 - k) else new Model(m2 - k + (k -> (ns - node)))
+          if (newNodes.isEmpty) new Model(m2 - k) else new Model(m2 - k + (k -> (ns - nk)))
         case None => this
       }
     }
