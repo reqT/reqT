@@ -36,7 +36,7 @@ package reqt {
       newModel
     }
     def solve(objective: Objective): (Vector[Model], Vector[Map[Var[Any], Int]]) = {
-      val Result(conclusion, i, solutions) = allConstr.solve(objective)
+      val Result(conclusion, i, solutions, timeOutOccured) = allConstr.solve(objective)
       if (conclusion == SolutionFound) (solutions.map(updateModel), solutions) 
       else { warn(conclusion.toString); (Vector(), Vector()) } 
     }
@@ -57,7 +57,15 @@ package reqt {
     override def toScala =  s"$prefix($min, $max)" 
   }  
   
-  case class Result[T](conclusion: Conclusion, solutionCount: Int, solutions: Vector[Map[Var[T], Int]])  
+  case class Result[T](
+    conclusion: Conclusion, 
+    solutionCount: Int = 0, 
+    solutions: Vector[Map[Var[T], Int]] = Vector(),
+    interuptOption: Option[SearchInterupt] = None)  
+    
+  sealed trait SearchInterupt 
+  case object SearchTimeOut extends SearchInterupt
+  case object SolutionLimitReached extends SearchInterupt
  
   sealed trait Conclusion
   case object SolutionFound extends Conclusion
