@@ -122,21 +122,11 @@ package reqt {
     }
     def ppg { pp(Gist) }
 	
-    //----- apply, updated and sorted methods
-    // def apply[T](r: Reference[T]): T = r match {
-      // case ar: AttrRef[T] => this / ar.ent ! ar.attrKind get
-      // case sr: SubRef[T] => ( this / sr.ent ! Submodel get ).apply(sr.ref)
-    // }
+    //----- apply, updated and remove methods
+
     def apply[T](r: Ref[T]): T = 
       if (r.isSingle) this / r.head ! r.attrKind get
       else ( this / r.head ! Submodel get ).apply(r.tail)
-    
-    // def updated[T](r: Reference[T], v: T): Model = r match {
-      // case ar: AttrRef[T] =>  this + ar.ent.has(ar.attrKind(v))
-      // case sr: SubRef[T] => 
-        // val sm = this / sr.ent !! Submodel
-        // this + sr.ent.has(Submodel(sm.updated(sr.ref, v)))
-    // }
 
     def updated[T](r: Ref[T], v: T): Model = 
       if (r.isSingle) this + r.head.has(r.attrKind(v))
@@ -144,32 +134,34 @@ package reqt {
         val sm = this / r.head !! Submodel
         this + r.head.has(Submodel(sm.updated(r.tail, v)))
       }
-    
-    def -(entity: Entity, edge: Edge, nk: NodeKind): Model = { 
-      //TODO recursive removal in submodels??
-      val k = Key(entity, edge)
+
+    def -[T](r: Ref[T]): Model = 
+      if (r.isSingle) this - (r.head.has, r.attrKind)
+      else {
+        val sm = this / r.head !! Submodel
+        ( this - (r.head.has, Submodel)) + r.head.has(Submodel(sm - r.tail))  
+      }
+      
+    def -(k: Key, nk: NodeKind): Model = { 
       mappings.get(k) match {
         case Some(ns) =>
           val newNodes = ns - nk
-          val m2 = mappings.clone
-          if (newNodes.isEmpty) new Model(m2 - k) else new Model(m2 - k + (k -> (ns - nk)))
+          if (newNodes.isEmpty && !(k.edge == has())) this - k else new Model(mappings.updated(k,newNodes)) 
         case None => this
       }
     }
-	
+
     def -(kns: (Key, NodeSet)): Model = {
-      //TODO recursive removal in submodels??
       val (k, nsToBeRemoved) = kns
       mappings.get(k) match {
         case Some(ns) => 
-          val newNodes: NodeSet = ns.filterNot(n => nsToBeRemoved.exists{ case nk: NodeKind => n <==> nk; case any => n == any})
-          if (newNodes.isEmpty) this - k else new Model(mappings.updated(k,newNodes)) 
+          val newNodes: NodeSet = ns.filterNot(n => nsToBeRemoved.exists { case r => n == r  } )
+          if (newNodes.isEmpty && !(k.edge == has())) this - k else new Model(mappings.updated(k,newNodes)) 
         case None => this
       }
     }  
 	
     def removeEdgeToNodesToAll(el: EdgeToNodes):Model = { 
-      //TODO recursive removal in submodels??
         map { case (Key(en, ed), ns) => 
           val isSame: Boolean = el.edge match { case e: EdgeKind => e <==> ed; case e => e == ed } 
           if (isSame) (Key(en, ed), NodeSet(ns diff el.nodes)) else (Key(en, ed), ns) } 
