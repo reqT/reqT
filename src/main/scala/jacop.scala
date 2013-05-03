@@ -17,6 +17,27 @@ package reqt {
   /**  An interface module that wraps http://www.jacop.eu/
   *    Dependends on JaCoP-3.2.jar: JaCoP.core._,JaCoP.search._,JaCoP.constraints._
   */
+  
+  class Solutions[T]( 
+          val jacopDomains: Array[Array[JaCoP.core.Domain]], 
+          val jacopVariables: Array[_ <: JaCoP.core.Var],
+          val nSolutions: Int,
+          val lastSolution: Map[Var[T], Int]) {
+    lazy val nVariables = jacopVariables.length
+    lazy val varMap: Map[String, Var[T]] = lastSolution.keys.toSeq.map(v => (v.ref.toString, v)).toMap
+    lazy val variables: Array[Var[T]] = jacopVariables.map(v => varMap(v.id))
+    lazy val indexOf: Map[Var[T], Int] = variables.zipWithIndex.toMap
+    private def toInt(d: JaCoP.core.Domain): Int = d.asInstanceOf[JaCoP.core.IntDomain].value
+    def domain(solutionIndex: Int, variableIndex: Int) = jacopDomains(solutionIndex)(variableIndex)
+    def value(s: Int, v: Int): Int = toInt(domain(s,v))
+    def solution(s: Int): Array[Int] = jacopDomains(s).map(toInt)
+    def solutionMap(s: Int): Map[Var[T], Int] = 
+      ( for (i <- 0 until nVariables) yield (variables(i), value(s, i)) ) .toMap
+    def valueVector(v: Var[T]): Vector[Int] = 
+      ( for (s <- 0 until nSolutions) yield value(s, indexOf(v)) ) .toVector   
+    override def toString = s"Solutions([nSolutions=$nSolutions][nVariables=$nVariables])" 
+  }
+  
   object jacop {  
 
     object Settings {
@@ -88,7 +109,6 @@ package reqt {
         result
       }
       def nameToVarMap[T](vs: Seq[Var[T]]): Map[String, Var[T]] = vs.map(v => (v.ref.toString, v)).toMap
-      //def varToName[T](vs: Seq[Var[T]]): Map[Var[T], String] = vs map (v => (v, v.ref.toString)) toMap
       def checkUniqueToString[T](vs: Seq[Var[T]]): Set[String] = {
         val strings = vs.map(_.ref.toString)
         strings.diff(strings.distinct).toSet
@@ -100,9 +120,9 @@ package reqt {
     case class Solver[T](
         constraints: Seq[Constr[T]], 
         objective: Objective,
-        indomain: Indomain,
         timeOutOption: Option[Long],
-        solutionLimitOption: Option[Int]
+        solutionLimitOption: Option[Int],
+        indomain: Indomain
       ) extends SolverUtils {
  
       import JaCoP. { search => jsearch, core => jcore, constraints => jcon }  
@@ -189,18 +209,19 @@ package reqt {
           solutionLimitOption.map { limit =>  listener.setSolutionLimit(limit) }
         }
         val select = new jsearch.InputOrderSelect[JIntVar](store, collectIntVars(store), indomain.toJacop) 
-        def noSolution = Result[T](SolutionNotFound)
+        def solutionNotFound = Result[T](SolutionNotFound)
         def solutionInStore = solutionMap(store, nameToVarMap(vs))
         def interuptOpt: Option[SearchInterupt] = 
           if (label.timeOutOccured) Some(SearchTimeOut) 
-          else if (listener.solutionLimitReached) Some(SolutionLimitReached)
+          else if (listener.solutionLimitReached && solutionLimitOption.isDefined) 
+            Some(SolutionLimitReached)
           else None
         def oneResult(ok: Boolean) = 
-          if (ok) Result(SolutionFound, 1, Vector(solutionInStore), interuptOpt)  
-          else noSolution
+          if (ok) Result(SolutionFound, 1, solutionInStore, interuptOpt)  
+          else solutionNotFound
         def countResult(ok: Boolean, i: Int) = 
-          if (ok) Result[T](SolutionFound, i, Vector(solutionInStore), interuptOpt) 
-          else noSolution
+          if (ok) Result(SolutionFound, i, solutionInStore, interuptOpt) 
+          else solutionNotFound
         val conclusion = objective match {
           case Satisfy => 
             setup(searchAll = false , recordSolutions = true )
@@ -211,25 +232,30 @@ package reqt {
           case FindAll => 
             setup(searchAll = true , recordSolutions = true )
             val found = label.labeling(store, select)
-            if (!found) noSolution else {
-              val vmap = nameToVarMap(vs)
+            if (!found) solutionNotFound else {
+              //val vmap = nameToVarMap(vs)
               //AARGH! getSolutions() array of array may include null after last solution...
-              val aargh = listener.getSolutions()
-              for (i <- 0 until aargh.size) 
-                if (aargh(i) == null) println(s"*** DEBUG aargh($i) == null")
-              val values: Array[Array[Option[Int]]] = 
-                listener.getSolutions().filterNot(_ == null).map( domains => 
-                  domains.collect { 
-                    case intDom: jcore.IntDomain if intDom.singleton() => Some(intDom.value)
-                    case _ => None
-                  } 
-                )
-              val v: Array[_ <: JVar] = listener.getVariables()
-              val solutions: Vector[Map[Var[T], Int]] = values.map { d => 
-                ( for (i <- 0 until d.size if d(i).isDefined) 
-                  yield (vmap(v(i).id), d(i).get) ).toMap
-              } .toVector
-              Result(SolutionFound, solutions.size, solutions, interuptOpt)
+              // val aargh = listener.getSolutions()
+              // for (i <- 0 until aargh.size) 
+                // if (aargh(i) == null) println(s"*** DEBUG aargh($i) == null")
+              // val values: Array[Array[Option[Int]]] = 
+                // listener.getSolutions().filterNot(_ == null).map( domains => 
+                  // domains.collect { 
+                    // case intDom: jcore.IntDomain if intDom.singleton() => Some(intDom.value)
+                    // case _ => None
+                  // } 
+                // )
+              // val v: Array[_ <: JVar] = listener.getVariables()
+              // val solutions: Vector[Map[Var[T], Int]] = values.map { d => 
+                // ( for (i <- 0 until d.size if d(i).isDefined) 
+                  // yield (vmap(v(i).id), d(i).get) ).toMap
+              // } .toVector
+              val solutions = new Solutions(
+                    listener.getSolutions(), 
+                    listener.getVariables(), 
+                    listener.solutionsNo(), 
+                    solutionInStore)
+              Result(SolutionFound, solutions.nSolutions, solutionInStore, interuptOpt, Some(solutions))
             }
           case minimize: Minimize[T] => 
             listener.searchAll(false)
@@ -246,7 +272,7 @@ package reqt {
           case other => 
             println("Search objective not yet implemented: " + other)
             ???
-            noSolution
+            solutionNotFound
         }
         if (Settings.verbose) println(store)
         conclusion

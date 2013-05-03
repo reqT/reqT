@@ -53,12 +53,13 @@ package object reqt {
   }
   implicit class ConstrSeqSolve[+T](cs: Seq[Constr[T]]) extends CanGenerateScala {
     def solve[B >: T](
-        objective: Objective = jacop.Settings.defaultObjective,
-        select: jacop.Indomain = jacop.Settings.defaultSelect,
-        timeOutOption: Option[Long] = None,
-        solutionLimitOption: Option[Int] = None
-      ): Result[B] = jacop.Solver[B](cs, objective, select, timeOutOption, solutionLimitOption).solve
-    def impose[B >: T](m: Model): CSP[B] = CSP(m, cs)
+          objective: Objective = jacop.Settings.defaultObjective,
+          timeOutOption: Option[Long] = None,
+          solutionLimitOption: Option[Int] = None,
+          select: jacop.Indomain = jacop.Settings.defaultSelect
+        ): Result[B] = 
+      jacop.Solver[B](cs, objective, timeOutOption, solutionLimitOption, select).solve
+    def impose[B >: T](m: Model): CSP[B] = CSP[B](m, cs)
     def toModel: Model = Constraints(cs.toVector).toModel
     override def toScala: String = cs.map(_.toScala).mkString("Vector(",", ",")")
   }

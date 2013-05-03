@@ -35,14 +35,18 @@ package reqt {
       modelVariables foreach { case (r, i) => newModel = newModel.updated(r, i)  } 
       newModel
     }
-    def solve(objective: Objective): (Vector[Model], Vector[Map[Var[Any], Int]]) = {
-      val Result(conclusion, i, solutions, timeOutOccured) = allConstr.solve(objective)
-      if (conclusion == SolutionFound) (solutions.map(updateModel), solutions) 
-      else { warn(conclusion.toString); (Vector(), Vector()) } 
+    def solve(
+          objective: Objective, 
+          timeOutOption: Option[Long] = None, 
+          solutionLimitOption: Option[Int] = None
+        ): (Model, Result[Any]) = {
+      val r = allConstr.solve(objective, timeOutOption, solutionLimitOption)
+      if (r.conclusion == SolutionFound) (updateModel(r.lastSolution), r) 
+      else { warn(r.conclusion.toString); (Model(), r) } 
     }
-    def satisfy: Model = solve(Satisfy)._1.headOption.getOrElse(Model())
-    def optimum(ms: (Vector[Model], Seq[Map[Var[Any], Int]]), v: Var[Any]): (Model, Option[Int]) = 
-      (ms._1.headOption.getOrElse(Model()), ms._2.headOption.map(m => m.get(v)).flatten)
+    def satisfy: Model = solve(Satisfy)._1
+    private def optimum(mr: (Model, Result[Any]), v: Var[Any]): (Model, Option[Int]) = 
+      (mr._1, mr._2.lastSolution.get(v))
     def maximize(v: Var[Any]): (Model, Option[Int]) = optimum(solve(Maximize(v)), v)
     def minimize(v: Var[Any]): (Model, Option[Int]) = optimum(solve(Minimize(v)), v)
   }
@@ -56,12 +60,14 @@ package reqt {
     def ::[T](b: Bounds[T]): Bounds[T] = Bounds(b.seq1, b.domain ++ Seq(this))
     override def toScala =  s"$prefix($min, $max)" 
   }  
-  
+
   case class Result[T](
     conclusion: Conclusion, 
     solutionCount: Int = 0, 
-    solutions: Vector[Map[Var[T], Int]] = Vector(),
-    interuptOption: Option[SearchInterupt] = None)  
+    lastSolution: Map[Var[T], Int] = Map[Var[T], Int](),
+    interuptOption: Option[SearchInterupt] = None,
+    solutionsOption: Option[Solutions[T]] = None
+  )  
     
   sealed trait SearchInterupt 
   case object SearchTimeOut extends SearchInterupt
