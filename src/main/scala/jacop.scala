@@ -20,11 +20,11 @@ package reqt {
   object jacop {  
 
     object Settings {
-      var defaultInterval = Interval(-1000, 1000)
-      var defaultObjective = Satisfy
-      var defaultSelect = IndomainRandom
-      var verbose = true
-      var debug = false
+      var defaultInterval: Interval = Interval(-1000, 1000)
+      var defaultObjective: Objective = Satisfy
+      var defaultSelect: Indomain = IndomainRandom
+      var verbose: Boolean = true
+      var debug: Boolean = false
       var warningPrinter: String => Unit = (s: String) => println("WARNING: " + s)
     }
    
@@ -179,10 +179,16 @@ package reqt {
         if (Settings.debug) println(store)
         if (!store.consistency) return Result(InconsistencyFound)
         val label = new jsearch.DepthFirstSearch[JIntVar]
-        def listener = label.getSolutionListener()
+        def listener = label.getSolutionListener().asInstanceOf[jsearch.SimpleSolutionListener[JIntVar]]
+        def setup(searchAll: Boolean, recordSolutions: Boolean): Unit =  {
+          //this must be done in the right order as JaCoP may overwrite solutionLimit if
+          // searchAll is set after setting solutionLimit as explained by Kris
+          listener.searchAll(searchAll)
+          listener.recordSolutions(recordSolutions)
+          timeOutOption.map { timeOut => label.setTimeOut(timeOut) } 
+          solutionLimitOption.map { limit =>  listener.setSolutionLimit(limit) }
+        }
         val select = new jsearch.InputOrderSelect[JIntVar](store, collectIntVars(store), indomain.toJacop) 
-        timeOutOption.map { timeOut => label.setTimeOut(timeOut) } 
-        solutionLimitOption.map { limit =>  listener.setSolutionLimit(limit) }
         def noSolution = Result[T](SolutionNotFound)
         def solutionInStore = solutionMap(store, nameToVarMap(vs))
         def interuptOpt: Option[SearchInterupt] = 
@@ -197,20 +203,20 @@ package reqt {
           else noSolution
         val conclusion = objective match {
           case Satisfy => 
-            listener.searchAll(false)
-            listener.recordSolutions(true)
+            setup(searchAll = false , recordSolutions = true )
             oneResult(label.labeling(store, select)) 
           case Count => //count soultions but don't record any solution to save memory
-            listener.searchAll(true)
-            listener.recordSolutions(false)
+            setup(searchAll = true , recordSolutions = false )
             countResult(label.labeling(store, select), listener.solutionsNo) 
           case FindAll => 
-            listener.searchAll(true)
-            listener.recordSolutions(true)
+            setup(searchAll = true , recordSolutions = true )
             val found = label.labeling(store, select)
             if (!found) noSolution else {
               val vmap = nameToVarMap(vs)
-              //AARGH! ask Kris why getSolutions() sometimes include null ...
+              //AARGH! getSolutions() array of array may include null after last solution...
+              val aargh = listener.getSolutions()
+              for (i <- 0 until aargh.size) 
+                if (aargh(i) == null) println(s"*** DEBUG aargh($i) == null")
               val values: Array[Array[Option[Int]]] = 
                 listener.getSolutions().filterNot(_ == null).map( domains => 
                   domains.collect { 
