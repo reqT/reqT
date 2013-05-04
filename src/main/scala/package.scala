@@ -116,6 +116,7 @@ package object reqt {
   implicit def setOfNodesToNodeSet(nodes: Set[Node[_]]):NodeSet = NodeSet(nodes)
   implicit def nodeSetToSetOfNodes(nodes:NodeSet):Set[Node[_]] = nodes.nodes
   implicit def entityToKeyNodeSetPair(e: Entity): (Key,NodeSet) = (Key(e, has()), NodeSet())
+  implicit def keyToKeyNodeSetPair(k: Key): (Key,NodeSet) = (k, NodeSet())
   
   // Implicits objects for attribute External[T] and makeAttribute
   implicit object makeGist extends AttrFromString[Gist] { def apply(s: String): Gist = Gist(s) }
