@@ -56,10 +56,11 @@ package object reqt {
           objective: Objective = jacop.Settings.defaultObjective,
           timeOutOption: Option[Long] = None,
           solutionLimitOption: Option[Int] = None,
-          select: jacop.Indomain = jacop.Settings.defaultSelect
+          indomain: jacop.Indomain = jacop.Settings.defaultSelect,
+          assignOption: Option[Seq[Var[B]]] = None
         ): Result[B] = 
-      jacop.Solver[B](cs, objective, timeOutOption, solutionLimitOption, select).solve
-    def impose[B >: T](m: Model): CSP[B] = CSP[B](m, cs)
+      jacop.Solver[B](cs, objective, timeOutOption, solutionLimitOption, indomain, assignOption).solve
+    def impose[B >: T](m: Model) = ModelSatisfactionProblem[B](m, cs)
     def toModel: Model = Constraints(cs.toVector).toModel
     override def toScala: String = cs.map(_.toScala).mkString("Vector(",", ",")")
   }

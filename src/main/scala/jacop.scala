@@ -118,11 +118,12 @@ package reqt {
     }         
      
     case class Solver[T](
-        constraints: Seq[Constr[T]], 
-        objective: Objective,
-        timeOutOption: Option[Long],
-        solutionLimitOption: Option[Int],
-        indomain: Indomain
+        constraints: Seq[Constr[T]] , 
+        objective: Objective = jacop.Settings.defaultObjective,
+        timeOutOption: Option[Long] = None,
+        solutionLimitOption: Option[Int] = None,
+        indomain: Indomain = jacop.Settings.defaultSelect,
+        assignOption: Option[Seq[Var[T]]] = None
       ) extends SolverUtils {
  
       import JaCoP. { search => jsearch, core => jcore, constraints => jcon }  
@@ -208,7 +209,10 @@ package reqt {
           timeOutOption.map { timeOut => label.setTimeOut(timeOut) } 
           solutionLimitOption.map { limit =>  listener.setSolutionLimit(limit) }
         }
-        val select = new jsearch.InputOrderSelect[JIntVar](store, collectIntVars(store), indomain.toJacop) 
+        val variablesToAssign: Array[JIntVar] = 
+          if (!assignOption.isDefined) collectIntVars(store) //assign all in store
+          else assignOption.get.map(intVarMap(_)).toArray
+        val select = new jsearch.InputOrderSelect[JIntVar](store, variablesToAssign, indomain.toJacop) 
         def solutionNotFound = Result[T](SolutionNotFound)
         def solutionInStore = solutionMap(store, nameToVarMap(vs))
         def interuptOpt: Option[SearchInterupt] = 

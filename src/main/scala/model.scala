@@ -659,8 +659,8 @@ package reqt {
     def split(mv: ModelVector): ModelVector = mv.split(this)
    
     //--- integration with constraints:
-    def impose[T](cs: Seq[Constr[T]]) = CSP( this , cs)
-    def impose(cs: Constraints) = CSP( this , cs.value)    
+    def impose[T](cs: Seq[Constr[T]]) = ModelSatisfactionProblem( this , cs)
+    def impose(cs: Constraints) = ModelSatisfactionProblem( this , cs.value)    
    
     //--- code and testcase execution
     
