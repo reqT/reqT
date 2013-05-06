@@ -12,13 +12,19 @@ val cs = Constraints(
   (Feature("x")!Prio) #>= (Feature("y")!Prio)
 )
 
-val Result(conlusion, solutionList) = cs.satisfy
+val Result(conclusion, solutionCount, lastSolution, interuptOption, solutionsOption)   
+  = cs.satisfy
 
 // constraints in a requirements model
 val m = Model(Stakeholder("user") has cs)
-val Result(c, ss) = m.constraints.satisfy
+val result = m.constraints.satisfy
 val newModel = m.constraints.toModel
 val (extendedModel, _) = m.impose(m.constraints).solve(Satisfy)
+
+// use of assignOption to only assign solutions to some vars
+val v = vars("x","y","z")
+Seq(XplusYeqZ(v(0),v(1),v(2)), v::{1 to 10}).
+  solve(Satisfy,assignOption = Some(Seq(v(2))))
 
 //a bigger example
 val priorities = Vector(Feature("x")!Prio, Feature("y")!Prio)
@@ -31,3 +37,11 @@ var m2 = Model(
     XmulYeqZ(Var("a"),Var("b"),Var("c"))
   )
 )
+val Result(_, n, _, interuptOption, _) = 
+  m2.constraints.solve(Count, timeOutOption = Some(1))
+val Result(_, n, _, interuptOption, Some(solutions)) =
+  m2.constraints.solve(FindAll,solutionLimitOption = Some(10))
+println("solutions.variables.toVector == " + solutions.variables.toVector)
+println("solutions.nSolutions == " + solutions.nSolutions)
+println("solutions.solutionMap(0) == " + solutions.solutionMap(0))
+val valueOfFirstVariableOfFirstSolution = solutions.solutionMap(0)(solutions.variables(0)) 
