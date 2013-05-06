@@ -427,9 +427,16 @@ match argument types ()
   
   case class Constraints(value: Vector[Constr[Any]]) extends ConstrVectorValue {
     def satisfy = value.solve(Satisfy)
-    def maximize[T](v: Var[T]) = value.solve(Maximize(v))
-    def minimize[T](v: Var[T]) = value.solve(Minimize(v))
-    def solve[T](objective: Objective) = value.solve(objective)
+    def maximize(v: Var[Any]) = value.solve(Maximize(v))
+    def minimize(v: Var[Any]) = value.solve(Minimize(v))
+    def solve(
+          objective: Objective = jacop.Settings.defaultObjective,
+          timeOutOption: Option[Long] = None,
+          solutionLimitOption: Option[Int] = None,
+          indomain: jacop.Indomain = jacop.Settings.defaultSelect,
+          assignOption: Option[Seq[Var[Any]]] = None
+        ): Result[Any] = 
+      jacop.Solver(value, objective, timeOutOption, solutionLimitOption, indomain, assignOption).solve
     def toModel = (Model() impose this) satisfy
     def ++(cs: Constraints): Constraints = Constraints(value ++ cs.value)
     override lazy val kind = reqt.Constraints    
