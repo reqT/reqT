@@ -20,7 +20,7 @@ package reqt {
   
   //---- integration with class Model: (for implicits conversions see package.scala)
   
-  case class ModelSatisfactionProblem[T](m: Model, cs: Seq[Constr[T]]) {
+  case class ModelSatisfactionProblem(m: Model, cs: Seq[Constr[Any]]) {
     lazy val intValues: List[(Entity, Attribute[Int])] = (m collect { 
       case (Key(e,has), NodeSet(ns)) => ns.toList collect { 
         case a: IntValue => (e,a: Attribute[Int]) 

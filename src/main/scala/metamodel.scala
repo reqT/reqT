@@ -441,7 +441,7 @@ match argument types ()
     def ++(cs: Constraints): Constraints = Constraints(value ++ cs.value)
     override lazy val kind = reqt.Constraints    
   }
-  case object Constraints extends ConstrVectorValue with AttributeKind[Vector[Constr[Any]]] {
+  case object Constraints extends ConstrVectorKind {
     def apply(cs1: Constr[Any], cs: Constr[Any] * ): Constraints = Constraints(Vector(cs1) ++ cs.toVector)
     override def apply(): Constraints = Constraints(Vector())
     /*
@@ -454,6 +454,16 @@ match argument types ()
               Constraints()
               ^
     */
+    def interpret(s: String): Constraints = {
+      Model.interpreter match {
+        case None => Model.interpreterWarning() ; Constraints()
+        case Some(i) => 
+          val result = Array[reqt.Constraints](reqt.Constraints())
+          i.beQuietDuring(i.bind("result", "Array[reqt.Constraints]", result))
+          i.quietRun("result(0) = " + s)
+          result(0)          
+      }
+    }
   }
   
   case class External[T <: Attribute[_]](fileName:String)( implicit makeAttr: AttrFromString[T]) 

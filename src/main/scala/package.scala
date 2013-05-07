@@ -60,7 +60,7 @@ package object reqt {
           assignOption: Option[Seq[Var[B]]] = None
         ): Result[B] = 
       jacop.Solver[B](cs, objective, timeOutOption, solutionLimitOption, indomain, assignOption).solve
-    def impose[B >: T](m: Model) = ModelSatisfactionProblem[B](m, cs)
+    def impose(m: Model) = ModelSatisfactionProblem(m, cs)
     def toModel: Model = Constraints(cs.toVector).toModel
     override def toScala: String = cs.map(_.toScala).mkString("Vector(",", ",")")
   }
@@ -145,7 +145,9 @@ package object reqt {
   implicit object makeDeprecated extends AttrFromString[Deprecated] { def apply(s: String): Deprecated = Deprecated(s) }
   implicit object makeSubmodel extends AttrFromString[Submodel] { def apply(s: String): Submodel = Submodel(Model.interpret(s)) }
   implicit object makeCode extends AttrFromString[Code] { def apply(s: String): Code = Code(s) }
-  implicit object makeConstraints extends AttrFromString[Constraints] { def apply(s: String): Constraints = ??? }  
+  implicit object makeConstraints extends AttrFromString[Constraints] { 
+    def apply(s: String): Constraints = Constraints.interpret(s) 
+  }  
 
   def makeAttribute[T <: Attribute[_]](value: String)( implicit make: AttrFromString[T]): T = make(value)
   lazy val attributeFromString = Map[String, String => Attribute[_]](
