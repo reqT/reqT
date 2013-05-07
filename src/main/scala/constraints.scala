@@ -172,6 +172,13 @@ package reqt {
     val variables: Seq[Var[T]] = Seq(x, y) ++ seq1
     override def toScala = prefix + "(" + x.toScala + "," + varSeqToScala(seq1) + "," + y.toScala + ")"
   }
+  trait ConstrSeq2ConstSeq1[+T] extends Constr[T] { 
+    def seq1: Seq[Var[T]]
+    def seq2: Seq[Var[T]]
+    def constSeq1: Seq[Int]
+    lazy val variables: Seq[Var[T]] = seq1 ++ seq2
+    override def toScala = prefix + "(" + varSeqToScala(seq1) + "," + varSeqToScala(seq2) + "," + constSeq1 + ")"
+  }
   trait ConstrMatrix[+T] extends Constr[T] { 
     def matrix: Vector[Vector[Var[T]]]
     val variables: Seq[Var[T]] = matrix.flatten
@@ -300,6 +307,13 @@ package reqt {
   }
   object Diff2 {
     def apply[T](rectangles: Rectangle[T] *) = new Diff2[T](rectangles.toVector.map(_.toVector))
+  }
+  
+  case class Binpacking[+T](item: Vector[Var[T]], load: Vector[Var[T]], size: Vector[Int]) 
+      extends ConstrSeq2ConstSeq1[T] {
+    lazy val seq1 = item
+    lazy val seq2 = load
+    lazy val constSeq1 = size    
   }
   
 } //end package reqt

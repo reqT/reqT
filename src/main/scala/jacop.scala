@@ -168,6 +168,8 @@ package reqt {
           case Diff2(rectangles) => 
             def matrix: Array[Array[JIntVar]] = rectangles.map(jVarArray(_)).toArray
             new jcon.Diff2(matrix)
+          case Binpacking(item, load, size) =>
+            new jcon.binpacking.Binpacking(jVarArray(item), jVarArray(load), size.toArray)
           case c => println("Constr to jacop match error: " + c); ???
         }
       }
