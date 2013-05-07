@@ -43,7 +43,7 @@ package reqt {
     object Settings {
       var defaultInterval: Interval = Interval(-1000, 1000)
       var defaultObjective: Objective = Satisfy
-      var defaultSelect: Indomain = IndomainRandom
+      var defaultIndomain: Indomain = IndomainRandom
       var verbose: Boolean = true
       var debug: Boolean = false
       var warningPrinter: String => Unit = (s: String) => println("WARNING: " + s)
@@ -122,7 +122,7 @@ package reqt {
         objective: Objective = jacop.Settings.defaultObjective,
         timeOutOption: Option[Long] = None,
         solutionLimitOption: Option[Int] = None,
-        indomain: Indomain = jacop.Settings.defaultSelect,
+        indomain: Indomain = jacop.Settings.defaultIndomain,
         assignOption: Option[Seq[Var[T]]] = None
       ) extends SolverUtils {
  
