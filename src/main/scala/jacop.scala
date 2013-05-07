@@ -133,7 +133,7 @@ package reqt {
         constr match {
           case AbsXeqY(x, y) => new jcon.AbsXeqY(jIntVar(x), jIntVar(y))
           case AllDifferent(vs) => new jcon.Alldiff(jVarArray(vs))
-          case IndexOfEquals(ix, vs, v) => new jcon.Element(jIntVar(ix), jVarArray(vs), jIntVar(v))
+          case IndexValue(ix, vs, v) => new jcon.Element(jIntVar(ix), jVarArray(vs), jIntVar(v))
           case Sum(vs, x) => new jcon.Sum(vs.map(v => jIntVar(v)).toArray, jIntVar(x))
           case XeqC(x, c) => new jcon.XeqC(jIntVar(x), c)
           case XeqY(x, y) => new jcon.XeqY(jIntVar(x), jIntVar(y))
@@ -157,9 +157,18 @@ package reqt {
           case IfThen(c1, c2) =>
             val jc = (toJCon(c1, store, jIntVar), toJCon(c2, store, jIntVar)) 
             new jcon.IfThen(jc._1.asInstanceOf[jcon.PrimitiveConstraint],   jc._2.asInstanceOf[jcon.PrimitiveConstraint])
+          case IfThenElse(c1, c2, c3) =>
+            val vs = Vector(c1, c2, c3)
+            val jc = vs.map(toJCon(_, store, jIntVar).asInstanceOf[jcon.PrimitiveConstraint]) 
+            new jcon.IfThenElse(jc(0), jc(1), jc(2))
+          case IfThenBool(x,y,z) => new jcon.IfThenBool(jIntVar(x), jIntVar(y), jIntVar(z))
+          case Reified(c1, x) =>
+            val jc = toJCon(c1, store, jIntVar).asInstanceOf[jcon.PrimitiveConstraint]
+            new jcon.Reified(jc, jIntVar(x))
           case Diff2(rectangles) => 
             def matrix: Array[Array[JIntVar]] = rectangles.map(jVarArray(_)).toArray
             new jcon.Diff2(matrix)
+          case c => println("Constr to jacop match error: " + c); ???
         }
       }
       

@@ -132,8 +132,9 @@ package reqt {
   
   trait Constr[+T] extends Variables[T]
   
-  trait PrimitiveConstr //TODO marker trait to prevent wrong usage of jacob primitive constr 
-  
+  trait PrimitiveConstr[+T] extends Constr[T]{  //TODO marker trait to prevent wrong usage of jacob primitive constr
+    def #<=>[B >:T](that: Var[B]) = Reified[B](this, that)
+  }
   trait Constr1IntConst[+T] extends Constr[T] { 
     val x: Var[T]
     val c: Int
@@ -193,7 +194,18 @@ package reqt {
     val c2: Constr[T]
     val constraints = Seq(c1, c2)
   }
-   
+  trait CompoundConstr3[+T] extends CompoundConstr[T] {
+    val c1: Constr[T]
+    val c2: Constr[T]
+    val c3: Constr[T]
+    val constraints = Seq(c1, c2, c3)
+  }
+  
+  trait CompoundConstr1Var1[+T] extends CompoundConstr1[T] {
+    val x: Var[T]
+    override lazy val variables: Seq[Var[T]]  = (constraints.flatMap(_.variables) :+ x).distinct
+  }
+  
   case class Bounds[+T](seq1: Seq[Var[T]], domain: Seq[Interval]) 
   extends ConstrSeq1[T] with BoundingConstr {
     def addDomainOf[B >:T](that: Bounds[B]): Bounds[B] = Bounds[B](seq1, domain ++ that.domain)
@@ -209,63 +221,72 @@ package reqt {
     def apply[T](vs: Var[T] *) = new Bounds(vs, Seq()) 
   }
   
-  case class AbsXeqY[+T](x: Var[T], y: Var[T]) extends Constr2[T]
+  case class AbsXeqY[+T](x: Var[T], y: Var[T]) extends Constr2[T] with PrimitiveConstr[T]
   
   case class AllDifferent[+T](seq1: Seq[Var[T]]) extends ConstrSeq1[T]
   
-  case class IndexOfEquals[T](index: Var[T], varSeq: Seq[Var[T]], value: Var[T]) extends Constr2Seq1[T] {
+  case class IndexValue[T](index: Var[T], varSeq: Seq[Var[T]], value: Var[T]) extends Constr2Seq1[T] {
     val x = index
     val y = value
     val seq1 = varSeq
   }
   case class Sum[+T](seq1: Seq[Var[T]], x: Var[T]) extends Constr1Seq1[T] 
-  case class XeqC[+T](x: Var[T], c: Int) extends Constr1IntConst[T] {
+  case class XeqC[+T](x: Var[T], c: Int) extends Constr1IntConst[T] with PrimitiveConstr[T] {
     override def toScala = x.toScala + " #== " + c
   }
-  case class XeqY[+T](x: Var[T], y: Var[T]) extends Constr2[T] {
+  case class XeqY[+T](x: Var[T], y: Var[T]) extends Constr2[T] with PrimitiveConstr[T] {
     override def toScala = x.toScala + " #== " + y.toScala
   }
   
-  case class XdivYeqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T]
-  case class XexpYeqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T] 
-  case class XmulYeqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T] 
-  case class XplusYeqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T] 
-  case class XplusYlteqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T] 
-  case class Distance[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T] 
+  case class XdivYeqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T] with PrimitiveConstr[T]
+  case class XexpYeqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T] with PrimitiveConstr[T] 
+  case class XmulYeqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T] with PrimitiveConstr[T] 
+  case class XplusYeqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T] with PrimitiveConstr[T] 
+  case class XplusYlteqZ[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T] with PrimitiveConstr[T]
+  case class Distance[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T] with PrimitiveConstr[T]
   
-  case class XgtC[+T](x: Var[T], c: Int) extends Constr1IntConst[T] {
+  case class XgtC[+T](x: Var[T], c: Int) extends Constr1IntConst[T] with PrimitiveConstr[T] {
     override def toScala = x.toScala + " #> " + c
   }
-  case class XgteqC[+T](x: Var[T], c: Int) extends Constr1IntConst[T] {
+  case class XgteqC[+T](x: Var[T], c: Int) extends Constr1IntConst[T] with PrimitiveConstr[T] {
     override def toScala = x.toScala + " #>= " + c
   }
-  case class XgteqY[+T](x: Var[T], y: Var[T]) extends Constr2[T] {
+  case class XgteqY[+T](x: Var[T], y: Var[T]) extends Constr2[T] with PrimitiveConstr[T] {
     override def toScala = x.toScala + " #>= " + y.toScala
   }
-  case class XgtY[+T](x: Var[T], y: Var[T]) extends Constr2[T] {
+  case class XgtY[+T](x: Var[T], y: Var[T]) extends Constr2[T] with PrimitiveConstr[T] {
     override def toScala = x.toScala + " #> " + y.toScala
   }
-  case class XltC[+T](x: Var[T], c: Int) extends Constr1IntConst[T] {
+  case class XltC[+T](x: Var[T], c: Int) extends Constr1IntConst[T] with PrimitiveConstr[T] {
     override def toScala = x.toScala + " #< " + c
   }
-  case class XlteqC[+T](x: Var[T], c: Int) extends Constr1IntConst[T] {
+  case class XlteqC[+T](x: Var[T], c: Int) extends Constr1IntConst[T] with PrimitiveConstr[T] {
     override def toScala = x.toScala + " #<= " + c
   }
-  case class XlteqY[+T](x: Var[T], y: Var[T]) extends Constr2[T] {
+  case class XlteqY[+T](x: Var[T], y: Var[T]) extends Constr2[T] with PrimitiveConstr[T] {
     override def toScala = x.toScala + " #<= " + y.toScala
   }
-  case class XltY[+T](x: Var[T], y: Var[T]) extends Constr2[T] {
+  case class XltY[+T](x: Var[T], y: Var[T]) extends Constr2[T] with PrimitiveConstr[T] {
     override def toScala = x.toScala + " #< " + y.toScala
   }
-  case class XneqC[+T](x: Var[T], c: Int) extends Constr1IntConst[T] {
+  case class XneqC[+T](x: Var[T], c: Int) extends Constr1IntConst[T] with PrimitiveConstr[T] {
     override def toScala = x.toScala + " #!= " + c
   }
-  case class XneqY[+T](x: Var[T], y: Var[T]) extends Constr2[T] {
+  case class XneqY[+T](x: Var[T], y: Var[T]) extends Constr2[T] with PrimitiveConstr[T] {
     override def toScala = x.toScala + " #!= " + y.toScala
   }
-  case class XeqBool[+T](x: Var[T], c: Boolean) extends Constr1BoolConst[T]
+  case class XeqBool[+T](x: Var[T], c: Boolean) extends Constr1BoolConst[T] with PrimitiveConstr[T] 
   
-  case class IfThen[+T](c1: Constr[T], c2: Constr[T]) extends CompoundConstr2[T]
+  case class IfThen[+T](c1: PrimitiveConstr[T], c2: PrimitiveConstr[T]) extends CompoundConstr2[T] with PrimitiveConstr[T]
+
+  case class IfThenElse[+T](c1: PrimitiveConstr[T], c2: PrimitiveConstr[T], c3: PrimitiveConstr[T]) extends CompoundConstr3[T] with PrimitiveConstr[T]
+  
+  case class IfThenBool[+T](x: Var[T], y: Var[T], z: Var[T]) extends Constr3[T] with PrimitiveConstr[T]
+  
+  
+  case class Reified[+T](c1: PrimitiveConstr[T], x: Var[T]) extends  CompoundConstr1Var1[T] {
+    override def toScala = "(" + c1.toScala + ") #<=> " + x.toScala
+  }
   
   case class Rectangle[+T](x: Var[T], y: Var[T], dx: Var[T], dy: Var[T]) extends Variables[T] {
     lazy val toVector: Vector[Var[T]] = Vector(x, y, dx, dy)
