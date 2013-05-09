@@ -433,10 +433,11 @@ match argument types ()
           objective: Objective = jacop.Settings.defaultObjective,
           timeOutOption: Option[Long] = None,
           solutionLimitOption: Option[Int] = None,
-          indomain: jacop.Indomain = jacop.Settings.defaultSelect,
+          valueSelection: jacop.ValueSelection = jacop.Settings.defaultValueSelection,
+          variableSelection: jacop.VariableSelection = jacop.Settings.defaultVariableSelection,
           assignOption: Option[Seq[Var[Any]]] = None
         ): Result[Any] = 
-      jacop.Solver(value, objective, timeOutOption, solutionLimitOption, indomain, assignOption).solve
+      jacop.Solver(value, objective, timeOutOption, solutionLimitOption, valueSelection, variableSelection, assignOption).solve
     def toModel = (Model() impose this) satisfy
     def ++(cs: Constraints): Constraints = Constraints(value ++ cs.value)
     override lazy val kind = reqt.Constraints    

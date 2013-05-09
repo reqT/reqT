@@ -13,21 +13,22 @@
 
 package reqt {
   import language.implicitConversions
+  import JaCoP. { search => jsearch, core => jcore, constraints => jcon }  
   
   /**  An interface module that wraps http://www.jacop.eu/
   *    Dependends on JaCoP-3.2.jar: JaCoP.core._,JaCoP.search._,JaCoP.constraints._
   */
   
   class Solutions[T]( 
-          val jacopDomains: Array[Array[JaCoP.core.Domain]], 
-          val jacopVariables: Array[_ <: JaCoP.core.Var],
+          val jacopDomains: Array[Array[jcore.Domain]], 
+          val jacopVariables: Array[_ <: jcore.Var],
           val nSolutions: Int,
           val lastSolution: Map[Var[T], Int]) {
     lazy val nVariables = jacopVariables.length
     lazy val varMap: Map[String, Var[T]] = lastSolution.keys.toSeq.map(v => (v.ref.toString, v)).toMap
     lazy val variables: Array[Var[T]] = jacopVariables.map(v => varMap(v.id))
     lazy val indexOf: Map[Var[T], Int] = variables.zipWithIndex.toMap
-    private def toInt(d: JaCoP.core.Domain): Int = d.asInstanceOf[JaCoP.core.IntDomain].value
+    private def toInt(d: jcore.Domain): Int = d.asInstanceOf[jcore.IntDomain].value
     def domain(solutionIndex: Int, variableIndex: Int) = jacopDomains(solutionIndex)(variableIndex)
     def value(s: Int, v: Int): Int = toInt(domain(s,v))
     def solution(s: Int): Array[Int] = jacopDomains(s).map(toInt)
@@ -43,48 +44,87 @@ package reqt {
     object Settings {
       var defaultInterval: Interval = Interval(-1000, 1000)
       var defaultObjective: Objective = Satisfy
-      var defaultIndomain: Indomain = IndomainRandom
+      var defaultValueSelection: ValueSelection = IndomainRandom
+      var defaultVariableSelection: VariableSelection = InputOrder
       var verbose: Boolean = true
       var debug: Boolean = false
       var warningPrinter: String => Unit = (s: String) => println("WARNING: " + s)
     }
    
-    type JIntVar = JaCoP.core.IntVar
-    type JVar = JaCoP.core.Var
-    type JBooleanVar = JaCoP.core.BooleanVar
+    type JIntVar = jcore.IntVar
+    type JVar = jcore.Var
+    type JBooleanVar = jcore.BooleanVar
     
-    sealed trait Indomain { def toJacop: JaCoP.search.Indomain[JIntVar] }
-    case object IndomainMax  extends Indomain { def toJacop = new JaCoP.search.IndomainMax[JIntVar] }
-    case object IndomainMedian  extends Indomain { def toJacop = new JaCoP.search.IndomainMedian[JIntVar] }
-    case object IndomainMiddle  extends Indomain { def toJacop = new JaCoP.search.IndomainMiddle[JIntVar] }
-    case object IndomainMin  extends Indomain { def toJacop = new JaCoP.search.IndomainMin[JIntVar] }
-    case object IndomainRandom  extends Indomain { def toJacop = new JaCoP.search.IndomainRandom[JIntVar] }
-    case object IndomainSimpleRandom  extends Indomain { def toJacop = new JaCoP.search.IndomainSimpleRandom[JIntVar] }
+    sealed trait ValueSelection { def toJacop: jsearch.Indomain[JIntVar] }
+    case object IndomainMax  extends ValueSelection { def toJacop = new jsearch.IndomainMax[JIntVar] }
+    case object IndomainMedian  extends ValueSelection { def toJacop = new jsearch.IndomainMedian[JIntVar] }
+    case object IndomainMiddle  extends ValueSelection { def toJacop = new jsearch.IndomainMiddle[JIntVar] }
+    case object IndomainMin  extends ValueSelection { def toJacop = new jsearch.IndomainMin[JIntVar] }
+    case object IndomainRandom  extends ValueSelection { def toJacop = new jsearch.IndomainRandom[JIntVar] }
+    case object IndomainSimpleRandom  extends ValueSelection { def toJacop = new jsearch.IndomainSimpleRandom[JIntVar] }
+
+  /* 
+  value selection methods not yet implemented    
+   case object IndomainSetMax  extends ValueSelection { def toJacop = new jsearch.IndomainMax[JSetVar] }
+   case object IndomainSetMin  extends ValueSelection { def toJacop = new jsearch.IndomainMax[JSetVar] }
+   case object IndomainSetRandom  extends ValueSelection { def toJacop = new jsearch.IndomainMax[JSetVar] }
+    case object IndomainHierarchical  extends ValueSelection 
+    case object IndomainList  extends ValueSelection  
+  */
+    sealed trait VariableSelection { 
+      def toJacop(s: jcore.Store, jvs: Array[JIntVar], valSelect: ValueSelection): 
+        jsearch.SelectChoicePoint[JIntVar] 
+    }
+    case object InputOrder extends VariableSelection { 
+      def toJacop(s: jcore.Store, jvs: Array[JIntVar], valSelect: ValueSelection) =
+          new jsearch.InputOrderSelect[JIntVar](s, jvs, valSelect.toJacop) 
+    }
+    case object LargestDomain extends VariableSelection { 
+      def toJacop(s: jcore.Store, jvs: Array[JIntVar], valSelect: ValueSelection) =
+          new jsearch.SimpleSelect[JIntVar](jvs, new jsearch.LargestDomain(), valSelect.toJacop) 
+    }
+    case object SmallestDomain extends VariableSelection { 
+      def toJacop(s: jcore.Store, jvs: Array[JIntVar], valSelect: ValueSelection) =
+          new jsearch.SimpleSelect[JIntVar](jvs, new jsearch.SmallestDomain(), valSelect.toJacop) 
+    }
+    case object LargestMax extends VariableSelection { 
+      def toJacop(s: jcore.Store, jvs: Array[JIntVar], valSelect: ValueSelection) =
+          new jsearch.SimpleSelect[JIntVar](jvs, new jsearch.LargestMax(), valSelect.toJacop) 
+    }
+    case object LargestMin extends VariableSelection { 
+      def toJacop(s: jcore.Store, jvs: Array[JIntVar], valSelect: ValueSelection) =
+          new jsearch.SimpleSelect[JIntVar](jvs, new jsearch.LargestMin(), valSelect.toJacop) 
+    }
+    case object SmallestMax extends VariableSelection { 
+      def toJacop(s: jcore.Store, jvs: Array[JIntVar], valSelect: ValueSelection) =
+          new jsearch.SimpleSelect[JIntVar](jvs, new jsearch.SmallestMax(), valSelect.toJacop) 
+    }
+    case object SmallestMin extends VariableSelection { 
+      def toJacop(s: jcore.Store, jvs: Array[JIntVar], valSelect: ValueSelection) =
+          new jsearch.SimpleSelect[JIntVar](jvs, new jsearch.SmallestMin(), valSelect.toJacop) 
+    }
+    case object MaxRegret extends VariableSelection { 
+      def toJacop(s: jcore.Store, jvs: Array[JIntVar], valSelect: ValueSelection) =
+          new jsearch.SimpleSelect[JIntVar](jvs, new jsearch.MaxRegret(), valSelect.toJacop) 
+    }
+    case object MostConstrainedDynamic extends VariableSelection { 
+      def toJacop(s: jcore.Store, jvs: Array[JIntVar], valSelect: ValueSelection) =
+          new jsearch.SimpleSelect[JIntVar](jvs, new jsearch.MostConstrainedDynamic(), valSelect.toJacop) 
+    }
+    case object MostConstrainedStatic extends VariableSelection { 
+      def toJacop(s: jcore.Store, jvs: Array[JIntVar], valSelect: ValueSelection) =
+          new jsearch.SimpleSelect[JIntVar](jvs, new jsearch.MostConstrainedStatic(), valSelect.toJacop) 
+    }
     
-  //  case object IndomainSetMax  extends Indomain { def toJacop = new JaCoP.search.IndomainMax[JSetVar] }
-  //  case object IndomainSetMin  extends Indomain { def toJacop = new JaCoP.search.IndomainMax[JSetVar] }
-  //  case object IndomainSetRandom  extends Indomain { def toJacop = new JaCoP.search.IndomainMax[JSetVar] }
-    //case object IndomainHierarchical  extends Indomain 
-    //case object IndomainList  extends Indomain  
-  /*   
-    sealed trait Comparator   
-    case object LargestDomain extends Comparator { def toJacop = new JaCoP.search.IndomainMax[JIntVar] }
-    case object LargestMax extends Comparator
-    case object LargestMin extends Comparator
-    case object MaxCardDiff extends Comparator
-    case object MaxGlbCard extends Comparator
-    case object MaxLubCard extends Comparator
-    case object MaxRegret extends Comparator
-    case object MinCardDiff extends Comparator
-    case object MinDomainOverDegree extends Comparator
-    case object MinGlbCard extends Comparator
-    case object MinLubCard extends Comparator
-    case object MostConstrainedDynamic extends Comparator
-    case object MostConstrainedStatic extends Comparator
-    case object SmallestDomain extends Comparator
-    case object SmallestMax extends Comparator
-    case object SmallestMin extends Comparator
-    case object WeightedDegree extends Comparator
+  /* variable selection methods not yet implemented:
+     MaxCardDiff    
+     MaxGlbCard    
+     MaxLubCard    
+     MinCardDiff    
+     MinDomainOverDegree    
+     MinGlbCard    
+     MinLubCard    
+     WeightedDegree    
      */
 
     trait SolverUtils {
@@ -122,12 +162,11 @@ package reqt {
         objective: Objective = jacop.Settings.defaultObjective,
         timeOutOption: Option[Long] = None,
         solutionLimitOption: Option[Int] = None,
-        indomain: Indomain = jacop.Settings.defaultIndomain,
+        valueSelection: ValueSelection = jacop.Settings.defaultValueSelection,
+        variableSelection: VariableSelection = jacop.Settings.defaultVariableSelection,
         assignOption: Option[Seq[Var[T]]] = None
       ) extends SolverUtils {
  
-      import JaCoP. { search => jsearch, core => jcore, constraints => jcon }  
-      
       def toJCon[T](constr: Constr[T], store: jcore.Store, jIntVar: Map[Var[T], JIntVar]): jcon.Constraint = {
         def jVarArray(vs: Seq[Var[T]]) = vs.map(v => jIntVar(v)).toArray
         constr match {
@@ -170,7 +209,7 @@ package reqt {
             new jcon.Diff2(matrix)
           case Binpacking(item, load, size) =>
             new jcon.binpacking.Binpacking(jVarArray(item), jVarArray(load), size.toArray)
-          case c => println("Constr to jacop match error: " + c); ???
+          case c => println("Constr to JaCoP match error: " + c); ???
         }
       }
       
@@ -223,7 +262,7 @@ package reqt {
         val variablesToAssign: Array[JIntVar] = 
           if (!assignOption.isDefined) collectIntVars(store) //assign all in store
           else assignOption.get.map(intVarMap(_)).toArray
-        val select = new jsearch.InputOrderSelect[JIntVar](store, variablesToAssign, indomain.toJacop) 
+        val selectChoicePoint = variableSelection.toJacop(store, variablesToAssign, valueSelection)
         def solutionNotFound = Result[T](SolutionNotFound)
         def solutionInStore = solutionMap(store, nameToVarMap(vs))
         def interuptOpt: Option[SearchInterupt] = 
@@ -240,13 +279,13 @@ package reqt {
         val conclusion = objective match {
           case Satisfy => 
             setup(searchAll = false , recordSolutions = true )
-            oneResult(label.labeling(store, select)) 
+            oneResult(label.labeling(store, selectChoicePoint)) 
           case Count => //count soultions but don't record any solution to save memory
             setup(searchAll = true , recordSolutions = false )
-            countResult(label.labeling(store, select), listener.solutionsNo) 
+            countResult(label.labeling(store, selectChoicePoint), listener.solutionsNo) 
           case FindAll => 
             setup(searchAll = true , recordSolutions = true )
-            val found = label.labeling(store, select)
+            val found = label.labeling(store, selectChoicePoint)
             if (!found) solutionNotFound else {
               //val vmap = nameToVarMap(vs)
               //AARGH! getSolutions() array of array may include null after last solution...
@@ -275,7 +314,7 @@ package reqt {
           case minimize: Minimize[T] => 
             listener.searchAll(false)
             listener.recordSolutions(true)
-            oneResult(label.labeling(store, select, intVarMap(minimize.cost)))
+            oneResult(label.labeling(store, selectChoicePoint, intVarMap(minimize.cost)))
           case m: Maximize[T] =>  
             listener.searchAll(false)
             listener.recordSolutions(true)
@@ -283,7 +322,7 @@ package reqt {
             domainOf(m.cost) foreach (ivl => intDom.addDom( new jcore.IntervalDomain(-ivl.max, -ivl.min)))
             val negCost = new JIntVar(store, minimizeHelpVarName, intDom)
             store.impose( new jcon.XmulCeqZ(intVarMap(m.cost), -1, negCost) )
-            oneResult(label.labeling(store, select, negCost))
+            oneResult(label.labeling(store, selectChoicePoint, negCost))
           case other => 
             println("Search objective not yet implemented: " + other)
             ???

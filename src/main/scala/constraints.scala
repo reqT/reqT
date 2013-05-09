@@ -36,11 +36,14 @@ package reqt {
       newModel
     }
     def solve(
-          objective: Objective, 
-          timeOutOption: Option[Long] = None, 
-          solutionLimitOption: Option[Int] = None
+          objective: Objective = jacop.Settings.defaultObjective,
+          timeOutOption: Option[Long] = None,
+          solutionLimitOption: Option[Int] = None,
+          valueSelection: jacop.ValueSelection = jacop.Settings.defaultValueSelection,
+          variableSelection: jacop.VariableSelection = jacop.Settings.defaultVariableSelection,
+          assignOption: Option[Seq[Var[Any]]] = None
         ): (Model, Result[Any]) = {
-      val r = allConstr.solve(objective, timeOutOption, solutionLimitOption)
+      val r = allConstr.solve(objective, timeOutOption, solutionLimitOption, valueSelection, variableSelection, assignOption)
       if (r.conclusion == SolutionFound) (updateModel(r.lastSolution), r) 
       else { warn(r.conclusion.toString); (Model(), r) } 
     }
