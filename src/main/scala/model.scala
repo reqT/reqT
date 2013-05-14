@@ -690,7 +690,7 @@ package reqt {
         val res = this.run(TestCase(ent))
         if (exp == res) true
         else { 
-          warn("FAILED: " + TestCase(ent) + s"\n  Output:    $res\n  Expectation: $exp" ) 
+          println("*** FAILED: " + TestCase(ent) + s"\n  Output:    $res\n  Expectation: $exp" ) 
           false 
         } 
       } .toSeq
