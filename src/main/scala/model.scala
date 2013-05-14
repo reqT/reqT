@@ -367,7 +367,7 @@ package reqt {
     lazy val entities: Set[Entity] = sources ++ destinations  
     lazy val entityVector: Vector[Entity] = (sourceVector ++ destinationVector).distinct
     lazy val entityIndex: Map[Entity, Int] = entityVector.zipWithIndex.toMap
-    lazy val entitiesOfKind: Map[EntityKind, Vector[Entity]] = entityVector.groupBy(_.kind).withDefaultValue(Vector())
+    lazy val entitiesOfKind: Map[EntityKind, Vector[Entity]] = entityVector.groupBy(_.kind).withDefaultValue(Vector()) + (Requirement -> entityVector.filter(_.isRequirement)) + (Context -> entityVector.filter(_.isContext))
     lazy val undefined: Set[Entity]  = for (e <- destinations; if (!sources.contains(e))) yield e
     lazy val attributes: Set[Attribute[_]] = { 
       for ((k, NodeSet(ns)) <- this; n <- (ns ++ ( k.edge match { 

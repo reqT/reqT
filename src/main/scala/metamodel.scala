@@ -138,6 +138,8 @@ package reqt {
   abstract class Node[T] extends Concept with Value[T] {
     def isAttribute: Boolean = this.isInstanceOf[Attribute[_]]
     def isEntity: Boolean = this.isInstanceOf[Entity]
+    lazy val isRequirement: Boolean = this.isInstanceOf[Requirement]
+    lazy val isContext: Boolean = this.isInstanceOf[Context]
     override def kind: NodeKind
   }
   abstract class Entity extends Node[String] with StringValueToScala {
