@@ -84,7 +84,7 @@ package reqt {
    
   sealed trait Objective   
   case object Satisfy extends Objective
-  case object Count extends Objective
+  case object CountAll extends Objective
   case object FindAll extends Objective //TODO check jacop example gates.java to see how listener is built
   sealed trait Optimize[+T] extends Objective { def cost: Var[T] }
   case class Minimize[+T](cost: Var[T]) extends Optimize[T]
@@ -169,6 +169,13 @@ package reqt {
     val variables: Seq[Var[T]] = Seq(x) ++ seq1 
     override def toScala = prefix + "(" + varSeqToScala(seq1) + "," + x.toScala + ")"
   }
+  trait Constr1Seq1IntConst[+T] extends Constr[T] { 
+    val x: Var[T]
+    val seq1: Seq[Var[T]]
+    val c: Int
+    val variables: Seq[Var[T]] = Seq(x) ++ seq1 
+    override def toScala = prefix + "(" + varSeqToScala(seq1) + "," + x.toScala + c + ")"
+  }
   trait Constr2Seq1[+T] extends Constr[T] { 
     val x: Var[T]; val y: Var[T]
     val seq1: Seq[Var[T]]
@@ -241,6 +248,7 @@ package reqt {
     val seq1 = varSeq
   }
   case class Sum[+T](seq1: Seq[Var[T]], x: Var[T]) extends Constr1Seq1[T] 
+  case class Count[+T](seq1: Seq[Var[T]], x: Var[T], c: Int) extends Constr1Seq1IntConst[T]
   case class XeqC[+T](x: Var[T], c: Int) extends Constr1IntConst[T] with PrimitiveConstr[T] {
     override def toScala = x.toScala + " #== " + c
   }

@@ -36,6 +36,7 @@ package reqt {
       ( for (i <- 0 until nVariables) yield (variables(i), value(s, i)) ) .toMap
     def valueVector(v: Var[T]): Vector[Int] = 
       ( for (s <- 0 until nSolutions) yield value(s, indexOf(v)) ) .toVector   
+    def printSolutions: Unit = for (i <- 0 until nSolutions) println(s"*** Solution $i:\n" + solutionMap(i))
     override def toString = s"Solutions([nSolutions=$nSolutions][nVariables=$nVariables])" 
   }
   
@@ -174,6 +175,7 @@ package reqt {
           case AllDifferent(vs) => new jcon.Alldiff(jVarArray(vs))
           case IndexValue(ix, vs, v) => new jcon.Element(jIntVar(ix), jVarArray(vs), jIntVar(v))
           case Sum(vs, x) => new jcon.Sum(vs.map(v => jIntVar(v)).toArray, jIntVar(x))
+          case Count(vs, x, c) => new jcon.Count(vs.map(v => jIntVar(v)).toArray, jIntVar(x),  c)
           case XeqC(x, c) => new jcon.XeqC(jIntVar(x), c)
           case XeqY(x, y) => new jcon.XeqY(jIntVar(x), jIntVar(y))
           case XdivYeqZ(x, y, z) => new jcon.XdivYeqZ(jIntVar(x), jIntVar(y), jIntVar(z))
@@ -280,7 +282,7 @@ package reqt {
           case Satisfy => 
             setup(searchAll = false , recordSolutions = true )
             oneResult(label.labeling(store, selectChoicePoint)) 
-          case Count => //count soultions but don't record any solution to save memory
+          case CountAll => //count soultions but don't record any solution to save memory
             setup(searchAll = true , recordSolutions = false )
             countResult(label.labeling(store, selectChoicePoint), listener.solutionsNo) 
           case FindAll => 
