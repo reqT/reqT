@@ -670,7 +670,7 @@ match argument types ()
           }
           else false
         }
-        val addSubmodel: Set[Node[_]] = if (mergedSubmodels.isEmpty) Set() else Set(Submodel(mergedSubmodels))
+        val addSubmodel: Set[Node[_]] = Set(Submodel(mergedSubmodels))
         NodeSet(existingAttrNodesRemoved ++ moreNodes.nodes ++ addSubmodel).attrKindsReplacedWithDefault
       } 
     }
