@@ -174,7 +174,7 @@ package reqt {
     val seq1: Seq[Var[T]]
     val c: Int
     val variables: Seq[Var[T]] = Seq(x) ++ seq1 
-    override def toScala = prefix + "(" + varSeqToScala(seq1) + "," + x.toScala + c + ")"
+    override def toScala = prefix + "(" + varSeqToScala(seq1) + "," + x.toScala + "," + c + ")"
   }
   trait Constr2Seq1[+T] extends Constr[T] { 
     val x: Var[T]; val y: Var[T]
