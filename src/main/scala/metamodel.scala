@@ -661,7 +661,7 @@ match argument types ()
       else { //collect+merge submodels, remove duplicates and replace existing attributes
         val mergedSubmodels: Model = submodelsMerged ++ ns.submodelsMerged
         val moreNodes = ns.submodelsRemoved.removeDuplicatePrefixes(keyOpt) 
-        val existingAttrNodesRemoved = nodes.submodelsRemoved filterNot { n =>
+        val existingAttrNodesRemoved = submodelsRemoved filterNot { n =>
           if (n.isAttribute) moreNodes.nodes.exists { n2 => 
             if (n2.hasEqualPrefix(n) && (n2.value != n.value))
               { warn("Overwriting attribute " + n + " with " + n2 + keyStr(keyOpt))
@@ -670,7 +670,9 @@ match argument types ()
           }
           else false
         }
-        val addSubmodel: Set[Node[_]] = Set(Submodel(mergedSubmodels))
+        val addSubmodel: Set[Node[_]] = 
+          if (!(nodes ++ ns).exists( _ <==> Submodel )) Set() 
+          else Set(Submodel(mergedSubmodels))
         NodeSet(existingAttrNodesRemoved ++ moreNodes.nodes ++ addSubmodel).attrKindsReplacedWithDefault
       } 
     }

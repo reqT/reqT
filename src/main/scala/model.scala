@@ -168,12 +168,13 @@ package reqt {
     }    
     def -(el: EdgeToNodes): Model = removeEdgeToNodesToAll(el)
     def -(ns: Node[_] *): Model = { //recursive removal in submodels
-      val removedInNodeSet = map { case (Key(en, ed), ns2) => (Key(en, ed), NodeSet((ns2.nodes diff ns.toSet).filterNot(n =>      
-        ns.exists { 
-          case nk: NodeKind => nk <==> n
-          case _ => false
-        } ))) 
-      }
+      val removedInNodeSet = map { 
+        case (Key(en, ed), ns2) => (Key(en, ed), NodeSet((ns2.nodes diff ns.toSet).filterNot(n =>      
+          ns.exists { 
+            case nk: NodeKind => nk <==> n
+            case _ => false
+          } ))) 
+      } 
       val removedInKeys = removedInNodeSet.filterNot { 
         case (Key(en, _), _) =>  
           ns.exists(_ == en) || ns.exists{ case nk: NodeKind => nk <==> en; case _ => false } 
