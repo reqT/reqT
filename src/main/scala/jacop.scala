@@ -173,8 +173,13 @@ package reqt {
         constr match {
           case AbsXeqY(x, y) => new jcon.AbsXeqY(jIntVar(x), jIntVar(y))
           case AllDifferent(vs) => new jcon.Alldiff(jVarArray(vs))
+          case And(cs) => 
+            new jcon.And(cs.map(c => 
+                toJCon(c, store, jIntVar).asInstanceOf[jcon.PrimitiveConstraint]
+              ).toArray
+            )
           case IndexValue(ix, vs, v) => new jcon.Element(jIntVar(ix), jVarArray(vs), jIntVar(v))
-          case Sum(vs, x) => new jcon.Sum(vs.map(v => jIntVar(v)).toArray, jIntVar(x))
+          case SumEq(vs, x) => new jcon.Sum(vs.map(v => jIntVar(v)).toArray, jIntVar(x))
           case Count(vs, x, c) => new jcon.Count(vs.map(v => jIntVar(v)).toArray, jIntVar(x),  c)
           case XeqC(x, c) => new jcon.XeqC(jIntVar(x), c)
           case XeqY(x, y) => new jcon.XeqY(jIntVar(x), jIntVar(y))
@@ -215,9 +220,10 @@ package reqt {
         }
       }
       
-      lazy val domainOf: Map[Var[T], Seq[Interval]] = buildDomainMap(constraints)
+      lazy val flatConstr = flattenAllConstraints(constraints)
+      lazy val domainOf: Map[Var[Any], Seq[Interval]] = buildDomainMap(flatConstr)
    
-      def varToJIntVar(v: Var[T], s: jcore.Store): JIntVar = {
+      def varToJIntVar[T](v: Var[T], s: jcore.Store): JIntVar = {
         val intDom = new jcore.IntervalDomain()
         domainOf(v).foreach(ivl => intDom.addDom( new jcore.IntervalDomain(ivl.min, ivl.max)))
         new JIntVar(s, v.ref.toString, intDom) 
@@ -228,13 +234,13 @@ package reqt {
       def collectIntVars(s: jcore.Store): Array[JIntVar] = 
         s.vars.collect { case x: JIntVar if (x.id != minimizeHelpVarName) => x } .toArray
               
-      def solutionMap(s: jcore.Store, nameToVar: Map[String, Var[T]] ): Map[Var[T], Int] = 
+      def solutionMap[T](s: jcore.Store, nameToVar: Map[String, Var[T]] ): Map[Var[T], Int] = 
             collectIntVars(s).filter(_.singleton).map(iv => (nameToVar(iv.id), iv.value) ).toMap
  
-      def solve: Result[T] = {
+      def solve: Result[Any] = {
         val store = new jcore.Store
-        val vs = distinctVars(constraints)
-        val cs = collectConstr(constraints)
+        val vs = distinctVars(flatConstr)
+        val cs = collectConstr(flatConstr)
         if (Settings.verbose) println("*** VARIABLES:   " + vs.mkString(","))
         if (Settings.verbose) println("*** CONSTRAINTS: " + cs.mkString(","))
         val duplicates = checkUniqueToString(vs)
@@ -243,9 +249,9 @@ package reqt {
             duplicates.mkString(", "))        )
         if (checkIfNameExists(minimizeHelpVarName, vs)) 
           return Result(SearchFailed("Reserved varable name not allowed:" + minimizeHelpVarName))
-        val intVarMap: Map[Var[T], JIntVar] = vs.map { v => (v, varToJIntVar(v, store)) } .toMap
+        val intVarMap: Map[Var[Any], JIntVar] = vs.map { v => (v, varToJIntVar(v, store)) } .toMap
         Some(objective).collect { //abort if cost variable is not defined
-          case opt: Optimize[T] if (!intVarMap.isDefinedAt(opt.cost)) => 
+          case opt: Optimize[Any] if (!intVarMap.isDefinedAt(opt.cost)) => 
             return Result(SearchFailed("Cost variable not defined:" + opt.cost)) 
         }
         cs foreach { c => store.impose(toJCon(c, store, intVarMap)) }
@@ -265,7 +271,7 @@ package reqt {
           if (!assignOption.isDefined) collectIntVars(store) //assign all in store
           else assignOption.get.map(intVarMap(_)).toArray
         val selectChoicePoint = variableSelection.toJacop(store, variablesToAssign, valueSelection)
-        def solutionNotFound = Result[T](SolutionNotFound)
+        def solutionNotFound = Result[Any](SolutionNotFound)
         def solutionInStore = solutionMap(store, nameToVarMap(vs))
         def interuptOpt: Option[SearchInterupt] = 
           if (label.timeOutOccured) Some(SearchTimeOut) 
@@ -273,10 +279,10 @@ package reqt {
             Some(SolutionLimitReached)
           else None
         def oneResult(ok: Boolean) = 
-          if (ok) Result(SolutionFound, 1, solutionInStore, interuptOpt)  
+          if (ok) Result[Any](SolutionFound, 1, solutionInStore, interuptOpt)  
           else solutionNotFound
         def countResult(ok: Boolean, i: Int) = 
-          if (ok) Result(SolutionFound, i, solutionInStore, interuptOpt) 
+          if (ok) Result[Any](SolutionFound, i, solutionInStore, interuptOpt) 
           else solutionNotFound
         val conclusion = objective match {
           case Satisfy => 
@@ -289,35 +295,18 @@ package reqt {
             setup(searchAll = true , recordSolutions = true )
             val found = label.labeling(store, selectChoicePoint)
             if (!found) solutionNotFound else {
-              //val vmap = nameToVarMap(vs)
-              //AARGH! getSolutions() array of array may include null after last solution...
-              // val aargh = listener.getSolutions()
-              // for (i <- 0 until aargh.size) 
-                // if (aargh(i) == null) println(s"*** DEBUG aargh($i) == null")
-              // val values: Array[Array[Option[Int]]] = 
-                // listener.getSolutions().filterNot(_ == null).map( domains => 
-                  // domains.collect { 
-                    // case intDom: jcore.IntDomain if intDom.singleton() => Some(intDom.value)
-                    // case _ => None
-                  // } 
-                // )
-              // val v: Array[_ <: JVar] = listener.getVariables()
-              // val solutions: Vector[Map[Var[T], Int]] = values.map { d => 
-                // ( for (i <- 0 until d.size if d(i).isDefined) 
-                  // yield (vmap(v(i).id), d(i).get) ).toMap
-              // } .toVector
               val solutions = new Solutions(
                     listener.getSolutions(), 
                     listener.getVariables(), 
                     listener.solutionsNo(), 
                     solutionInStore)
-              Result(SolutionFound, solutions.nSolutions, solutionInStore, interuptOpt, Some(solutions))
+              Result[Any](SolutionFound, solutions.nSolutions, solutionInStore, interuptOpt, Some(solutions))
             }
-          case minimize: Minimize[T] => 
+          case minimize: Minimize[Any] => 
             listener.searchAll(false)
             listener.recordSolutions(true)
             oneResult(label.labeling(store, selectChoicePoint, intVarMap(minimize.cost)))
-          case m: Maximize[T] =>  
+          case m: Maximize[Any] =>  
             listener.searchAll(false)
             listener.recordSolutions(true)
             val intDom = new jcore.IntervalDomain()
