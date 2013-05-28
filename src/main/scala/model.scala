@@ -525,6 +525,20 @@ package reqt {
       if (isDeep) submodels.map(_.constraintsAll).reduce(_ ++ _)
       else Constraints(Vector())
     )
+    
+    lazy val entitiesWithSubmodels: Vector[Entity] =
+      entityVector.collect { case e if (this!(e!Submodel)).isDefined => e }
+    
+    lazy val intValueConstraints: Constraints = {
+      def pathIntValueConstraints(path: Vector[Entity], m: Model): Vector[Constr[Any]] = 
+        m.entityVector.map(e => (m/e).attributes.collect { case a: IntValue => Ref(path :+ e, a.kind) #== (a.value : Int) } ).flatten
+      def getConstr(path: Vector[Entity], m: Model) : Vector[Constr[Any]] = {
+        pathIntValueConstraints(path, m) ++ 
+        m.entitiesWithSubmodels.map( e => getConstr(path :+ e,m(e!Submodel))).flatten
+      }
+      getConstr(Vector(), this ) 
+    }
+    
     // ---- transformation methods  
     def replace(e1: Entity, e2: Entity): Model = { //safer than updateEntities 
       def updateNS(ns: NodeSet): NodeSet = ns.map { 
