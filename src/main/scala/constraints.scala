@@ -85,7 +85,7 @@ package reqt {
   sealed trait Objective   
   case object Satisfy extends Objective
   case object CountAll extends Objective
-  case object FindAll extends Objective //TODO check jacop example gates.java to see how listener is built
+  case object FindAll extends Objective 
   sealed trait Optimize[+T] extends Objective { def cost: Var[T] }
   case class Minimize[+T](cost: Var[T]) extends Optimize[T]
   case class Maximize[+T](cost: Var[T]) extends Optimize[T]
@@ -106,6 +106,9 @@ package reqt {
     def #!=[B >:T](const: Int) = XneqC(this, const)
     def #!=[B >:T](const: Boolean) = XeqBool(this, !const)
     
+    def *[B >:T](that: Var[B]) = MulBuilder(this, that)  
+    def +[B >:T](that: Var[B]) = PlusBuilder(this, that)  
+    
     override def toScala: String = {
       def boxVar(str: String): String = s"Var($str)" 
       ref match {
@@ -116,14 +119,23 @@ package reqt {
       } 
     }
   }
-  // object Var { 
-    // private var nextAnonymousVariableNumber = 0
-    // private def nextVarNum() = { nextAnonymousVariableNumber += 1; nextAnonymousVariableNumber }
-    // def anonVarName() = "v"+nextVarNum
-    // def apply() = new Var(anonVarName()) 
-  // }
-  
 
+  case class SumBuilder[+T](vs: Vector[Var[T]]) { 
+    def #==[B >:T](that: Var[B]) = SumEq(vs, that) 
+  }
+  
+  case class MulBuilder[+T](x: Var[T], y: Var[T]) {
+    def #==[B >:T](z: Var[B]) = XmulYeqZ(x, y, z)
+  }
+  
+  case class PlusBuilder[+T](x: Var[T], y: Var[T]) {
+    def #==[B >:T](z: Var[B]) = XplusYeqZ(x, y, z)
+  }
+  
+  object Sum {
+    def apply[T](v: Var[T], vs: Var[T] *) = SumBuilder(v +: vs.toVector)
+    def apply[T](vs: Seq[Var[T]]) = SumBuilder(vs.toVector)
+  }
   
   trait BoundingConstr //marker trait to enable Bounds filter in jacop.scala
   
@@ -133,7 +145,7 @@ package reqt {
     override def toScala = prefix + variables.map(_.toScala).mkString("(",",",")")
   } 
   
-  trait Constr[+T] extends Variables[T]
+  trait Constr[+T] extends Variables[T] { override def toString = toScala }
   
   trait PrimitiveConstr[+T] extends Constr[T]{  //TODO marker trait to prevent wrong usage of jacob primitive constr
     def #<=>[B >:T](that: Var[B]) = Reified[B](this, that)
@@ -241,13 +253,18 @@ package reqt {
   case class AbsXeqY[+T](x: Var[T], y: Var[T]) extends Constr2[T] with PrimitiveConstr[T]
   
   case class AllDifferent[+T](seq1: Seq[Var[T]]) extends ConstrSeq1[T]
+
+  case class And[+T](constraints: Seq[Constr[T]]) extends CompoundConstr[T]
+  case object And { 
+    def apply[T](c1: Constr[T], c2: Constr[T]) = new And(Seq(c1, c2)) 
+  }
   
   case class IndexValue[T](index: Var[T], varSeq: Seq[Var[T]], value: Var[T]) extends Constr2Seq1[T] {
     val x = index
     val y = value
     val seq1 = varSeq
   }
-  case class Sum[+T](seq1: Seq[Var[T]], x: Var[T]) extends Constr1Seq1[T] 
+  case class SumEq[+T](seq1: Seq[Var[T]], x: Var[T]) extends Constr1Seq1[T] 
   case class Count[+T](seq1: Seq[Var[T]], x: Var[T], c: Int) extends Constr1Seq1IntConst[T]
   case class XeqC[+T](x: Var[T], c: Int) extends Constr1IntConst[T] with PrimitiveConstr[T] {
     override def toScala = x.toScala + " #== " + c
@@ -314,7 +331,7 @@ package reqt {
   case class Diff2[+T](rectangles: Vector[Vector[Var[T]]]) extends ConstrMatrix[T] {
     lazy val matrix = rectangles     
     assert(rectangles.map(_.size).distinct == Vector(4), "size of all rectangle vectors must be 4")
-    override def toString = "Diff2" + rectangles.map(_.mkString("Rectangle(",",",")")).mkString("(",",",")")
+    override def toScala = "Diff2" + rectangles.map(_.mkString("Rectangle(",",",")")).mkString("(",",",")")
   }
   object Diff2 {
     def apply[T](rectangles: Rectangle[T] *) = new Diff2[T](rectangles.toVector.map(_.toVector))
