@@ -427,7 +427,10 @@ match argument types ()
   }
   case object Code extends StringKind   
   
-  case class Constraints(value: Vector[Constr[Any]]) extends ConstrVectorValue {
+  case class Constraints(value: Vector[Constr[Any]]) extends ConstrVectorValue with CompoundConstr[Any] {
+    override lazy val constraints = value
+    override lazy val kind = reqt.Constraints    
+    lazy val flattenAll: Constraints = Constraints(flattenAllConstraints(value).toVector)
     def satisfy = value.solve(Satisfy)
     def maximize(v: Var[Any]) = value.solve(Maximize(v))
     def minimize(v: Var[Any]) = value.solve(Minimize(v))
@@ -441,8 +444,9 @@ match argument types ()
         ): Result[Any] = 
       jacop.Solver(value, objective, timeOutOption, solutionLimitOption, valueSelection, variableSelection, assignOption).solve
     def toModel = (Model() impose this) satisfy
+    def impose(m: Model) = ModelSatisfactionProblem(m, value)
     def ++(cs: Constraints): Constraints = Constraints(value ++ cs.value)
-    override lazy val kind = reqt.Constraints    
+    override def toString = toScala
   }
   case object Constraints extends ConstrVectorKind {
     def apply(cs1: Constr[Any], cs: Constr[Any] * ): Constraints = Constraints(Vector(cs1) ++ cs.toVector)
