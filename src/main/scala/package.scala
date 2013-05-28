@@ -42,7 +42,8 @@ package object reqt {
   implicit def refToVar[T](r: Ref[T]): Var[Ref[T]] = Var(r)
   implicit def seqRefToVar[T](rs: Seq[Ref[T]]) = rs.map(Var(_))
   implicit def rangeToInterval(r: Range): Interval = Interval(r.min, r.max)
-
+  implicit def seqConstrToConstraints[T](cs: Seq[Constr[T]]): Constraints = Constraints(cs.toVector)
+  implicit def constraintsToSeqConstr(cs: Constraints): Seq[Constr[Any]] = cs.value 
   implicit class RangeSeqOps(rs: Seq[Range]) { //to enable > Var("x")::Seq(1 to 10, 12 to 15)
     def ::[T](v: Var[T]): Bounds[T] = Bounds(Seq(v), rs.map(rangeToInterval(_)))
     def ::[T](vs: Seq[Var[T]]): Bounds[T] = Bounds(vs, rs.map(rangeToInterval(_)))
@@ -51,25 +52,28 @@ package object reqt {
     def ::[T](v: Var[T]): Bounds[T] = Bounds(Seq(v), ivls)
     def ::[T](vs: Seq[Var[T]]): Bounds[T] = Bounds(vs, ivls)
   }
-  implicit class ConstrSeqSolve[+T](cs: Seq[Constr[T]]) extends CanGenerateScala {
-    def solve[B >: T](
-          objective: Objective = jacop.Settings.defaultObjective,
-          timeOutOption: Option[Long] = None,
-          solutionLimitOption: Option[Int] = None,
-          valueSelection: jacop.ValueSelection = jacop.Settings.defaultValueSelection,
-          variableSelection: jacop.VariableSelection = jacop.Settings.defaultVariableSelection,
-          assignOption: Option[Seq[Var[B]]] = None
-        ): Result[B] = 
-      jacop.Solver[B](cs, objective, timeOutOption, solutionLimitOption, valueSelection, variableSelection, assignOption).solve
-    def impose(m: Model) = ModelSatisfactionProblem(m, cs)
-    def toModel: Model = Constraints(cs.toVector).toModel
-    override def toScala: String = cs.map(_.toScala).mkString("Vector(",", ",")")
+  def flattenAllConstraints(cs: Seq[Constr[Any]]): Seq[Constr[Any]] = {
+    def flatten(xs: Seq[Constr[Any]]): Seq[Constr[Any]] = 
+      if (xs.isEmpty) xs 
+      else (xs.head match {
+        case cs: Constraints => flatten(cs.value)
+        case c => Seq(c)
+      } ) ++ flatten(xs.tail)
+    flatten(cs)
   }
   //generator functions:
-  def vars[T](vs: T *): Seq[Var[T]] = vs.map(Var(_)).toIndexedSeq
-  def forAllEntities(es:Seq[Entity])(f: Entity => Constr[_]) = es.map(f(_)).toVector
-  def forAllAttributes[T](vs:Seq[Attribute[T]])(f: Attribute[T] => Constr[_]) = vs.map(f(_)).toVector
-  def forAllRefs[T](vs:Seq[Ref[T]])(f: Ref[T] => Constr[_]) = vs.map(f(_)).toVector
+  def vars[T <: AnyRef](vs: T *): Seq[Var[T]] = vs.map(Var(_)).toIndexedSeq
+  def vars(n: Int, prefix: String): Vector[Var[String]] = 
+    (for (i <- 0 until n) yield Var(s"$prefix$i")).toVector
+  def forAll[T](xs:Seq[T])(f: T => Constr[_]) = Constraints(xs.map(f(_)).toVector)
+  def forAll[T1, T2](x1s:Seq[T1], x2s: Seq[T2])(f: (T1, T2) => Constr[_]) = Constraints(
+    ( for (x1 <- x1s; x2 <- x2s) yield f(x1, x2) ) .toVector
+  )
+  def forAll[T1, T2, T3](x1s:Seq[T1], x2s: Seq[T2], x3s: Seq[T3])(f: (T1, T2, T3) => Constr[_]) = Constraints(
+    ( for (x1 <- x1s; x2 <- x2s; x3 <- x3s) yield f(x1, x2, x3) ) .toVector
+  )
+  def sumForAll[T](xs:Seq[T])(f: T => Var[_]) = SumBuilder(xs.map(f(_)).toVector)
+
 
   //conversions functions from Key and NodeSet to scala code string
   def keyNodesToScala(key: Key, nodes: NodeSet): String = "" + key.toScala + ( if (key.edge.isInstanceOf[RelationWithAttribute[_]]) "to " else "") + nodes.toScala
