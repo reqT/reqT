@@ -481,7 +481,7 @@ match argument types ()
     def fromFile: T = makeAttr(load(fileName))
     override def prefix = emptyAttr.prefix
     override def toScala = "External[" + emptyAttr.prefix + "](\"" + fileName + "\")" 
-    override lazy val kind = reqt.Spec
+    override lazy val kind = External
   }
   case object External extends Attribute[String] with StringValueToScala with AttributeKind[String] { 
     val default = "UNDEFINED EXTERNAL" 
@@ -774,7 +774,8 @@ match argument types ()
   
   case class RichString(s: String) {
     def toScala: String = "" + '\"' + convertEscape + '\"'
-    def toModel: Model = Model.interpret(s)
+    def toModel: Model = if (s == "") Model() else Model.interpret(s)
+    def toIntOrZero: Int = try {s.toInt} catch { case e: NumberFormatException => 0}
     def toLevel: Level = levelFromString(s)
     def decapitalize: String = strUtil.decapitalize(s)
     def truncPad(n: Int) = strUtil.truncPad(s, n)
@@ -783,6 +784,7 @@ match argument types ()
     def filterEscape: String = strUtil.filterEscapeChar(s)
     def convertEscape: String = strUtil.escape(s)
     def save(fileName:String) = saveString(s, fileName) 
+    def show { println(s) }
   }
   
   object strUtil { //utilities for strings
