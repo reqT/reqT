@@ -214,6 +214,8 @@ package reqt {
     def toHtml(documentTemplate: DocumentTemplate = defaultDocumentTemplate, 
       htmlGenerator: HtmlGenerator = defaultHtmlGenerator): String = htmlGenerator.generate(this, documentTemplate)
     def toHtml: String = toHtml()
+    def toGraphViz(gvGen: GraphVizGenerator): String = gvGen.toGraphViz(this)
+    def toGraphViz: String = toGraphViz(defaultGraphVizGenerator)
     lazy val ids: Vector[String] = collect { case (Key(ent, _), _) => ent.id } .toVector.distinct  
     def idsToValues(objectName: String) = 
        Model.interpreter.get.interpret(s"object $objectName {" + (ids map { id => s"""val $id = "$id"; """ } mkString) + "}")
@@ -655,6 +657,7 @@ package reqt {
       new Model(newMappings)
     }
 
+    def reverse: Model = Model(toList.reverse:_*)
     
     def backlog(r: Release): Vector[Entity] = {
       val content: Set[Entity] = ( this / r / implements ).destinations
