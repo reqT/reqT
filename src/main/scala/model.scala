@@ -586,8 +586,29 @@ package reqt {
 
     def updateRelations(pf: PartialFunction[Relation, Relation]): Model = {
       val pfoe = pf.orElse[Relation,Relation] { case r => r }
-      map { case (Key(en, ed), ns) => (ed match { case r: Relation => (Key(en, pfoe(r) : Edge), ns); case _ => (Key(en, ed), ns) } ) } 
+      map { case (Key(en, ed), ns) => 
+        val ns2: NodeSet = ns.map { 
+          case Submodel(sm) => Submodel(sm.updateRelations(pf))
+          case n => n
+        }
+        (ed match { 
+            case r: Relation => (Key(en, pfoe(r) : Edge), ns2)
+            case _ => (Key(en, ed), ns2) } ) 
+      } 
     }
+    
+    def updateNodeSets(pf: PartialFunction[NodeSet, NodeSet]): Model = {
+      val pfoe = pf.orElse[NodeSet,NodeSet] { case ns => ns }
+      map { case (k, ns) =>
+        val ns2 = ns.map { 
+          case Submodel(sm) => Submodel(sm.updateNodeSets(pf))
+          case n => n
+        }
+        (k, pfoe(ns2)) 
+      }      
+    }
+    
+    lazy val removeAttributes = updateNodeSets { case ns => ns.filter(_ <==> Submodel) }
     
     def collectNodes[T](pf: PartialFunction[Node[_], T]): Seq[T] = {
       (collect { case (k,ns) => ns.toSeq.collect(pf) } ).toSeq.flatten
