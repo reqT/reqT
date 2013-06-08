@@ -706,8 +706,8 @@ match argument types ()
           // m.relations.size + " relations ...)"
       // ).mkString(" ",",\n ","\n") + ")"
       
-    lazy val merge: Model = reduce(_ ++ _)
-    lazy val overlap: Model = reduce(_ & _)
+    lazy val merge: Model = foldLeft(Model())(_ ++ _)
+    lazy val overlap: Model = foldLeft(Model())(_ & _)
     def split(pivot: Model): ModelVector = {
       val keySeq = models map (_.keySet)
       val splitSeq = keySeq map (pivot.restrictKeys(_))
@@ -725,7 +725,7 @@ match argument types ()
     lazy val checkOverlap = if (!overlap.isEmpty) { 
       warn("Overlapping keys in ModelVector. Try method overlap on ModelVector."); false 
     } else true
-    def check: Boolean = (models.map(_.check) ++ Seq(checkEmpty, checkOverlap)) reduce(_ & _)       
+    def check: Boolean = (models.map(_.check) ++ Seq(checkEmpty, checkOverlap)).foldLeft(true)(_ & _)       
     def save(mf: ModelFiles) = mf save this   
   }
 
