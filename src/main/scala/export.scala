@@ -1,6 +1,6 @@
 package reqt {
   trait GraphVizGenerator {
-    val rankdir="LR" //or "TB"
+    val rankdir="LR" //for Left-Right layout (or "TB" for Top-Down)
     val initSpec = 
       s"""  compound=true;overlap=false;rankdir=$rankdir;clusterrank=local;"""+'\n'+
       """  node [fontname="Helvetica", fontsize=12];"""+'\n'+
