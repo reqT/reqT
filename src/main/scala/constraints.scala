@@ -21,13 +21,7 @@ package reqt {
   //---- integration with class Model: (for implicits conversions see package.scala)
   
   case class ModelSatisfactionProblem(m: Model, cs: Seq[Constr[Any]]) {
-    lazy val intValues: List[(Entity, Attribute[Int])] = (m collect { 
-      case (Key(e,has), NodeSet(ns)) => ns.toList collect { 
-        case a: IntValue => (e,a: Attribute[Int]) 
-      } } ).flatten.toList
-    lazy val intModelConstr: List[Constr[Any]] = intValues.collect { 
-      case (e, a) =>  Var(Ref[Int](Vector(e),a.kind)) #== a.value } .toList
-    lazy val allConstr: Seq[Constr[Any]] = cs ++ intModelConstr
+    lazy val constraints = m.intValueConstraints ++ cs
     //Any propagates because of Map invariance in first Type arg
     def updateModel(vmap: Map[Var[Any], Int]): Model = { 
       var newModel = m
@@ -43,7 +37,7 @@ package reqt {
           variableSelection: jacop.VariableSelection = jacop.Settings.defaultVariableSelection,
           assignOption: Option[Seq[Var[Any]]] = None
         ): (Model, Result[Any]) = {
-      val r = allConstr.solve(objective, timeOutOption, solutionLimitOption, valueSelection, variableSelection, assignOption)
+      val r = constraints.solve(objective, timeOutOption, solutionLimitOption, valueSelection, variableSelection, assignOption)
       if (r.conclusion == SolutionFound) (updateModel(r.lastSolution), r) 
       else { warn(r.conclusion.toString); (Model(), r) } 
     }
