@@ -15,23 +15,40 @@ package reqt {
   import language.implicitConversions
   import JaCoP. { search => jsearch, core => jcore, constraints => jcon }  
   
-  /**  An interface module that wraps http://www.jacop.eu/
+  /**  A module that wraps http://www.jacop.eu/
   *    Dependends on JaCoP-3.2.jar: JaCoP.core._,JaCoP.search._,JaCoP.constraints._
   */
   
-  class Solutions[T]( 
-          val jacopDomains: Array[Array[jcore.Domain]], 
-          val jacopVariables: Array[_ <: jcore.Var],
+  trait Solutions[T] {
+    def nVariables: Int
+    def variables: Array[Var[T]]
+    def varMap: Map[String, Var[T]]
+    def indexOf: Map[Var[T], Int]
+    def nSolutions: Int
+    def lastSolution: Map[Var[T], Int]
+    def solution(solutionIndex: Int): Array[Int]
+    def solutionMap(solutionIndex: Int): Map[Var[T], Int]
+    def value(solutionIndex: Int, variableIndex: Int): Int
+    def valueVector(v: Var[T]): Vector[Int]
+    def coreDomains: Array[Array[JaCoP.core.Domain]] 
+    def coreVariables: Array[_ <: JaCoP.core.Var]
+    def domain(solutionIndex: Int, variableIndex: Int): JaCoP.core.Domain
+    def printSolutions: Unit
+  }
+  
+  class JacopSolutions[T]( 
+          val coreDomains: Array[Array[jcore.Domain]], 
+          val coreVariables: Array[_ <: jcore.Var],
           val nSolutions: Int,
-          val lastSolution: Map[Var[T], Int]) {
-    lazy val nVariables = jacopVariables.length
+          val lastSolution: Map[Var[T], Int]) extends Solutions[T] {
+    lazy val nVariables = coreVariables.length
     lazy val varMap: Map[String, Var[T]] = lastSolution.keys.toSeq.map(v => (v.ref.toString, v)).toMap
-    lazy val variables: Array[Var[T]] = jacopVariables.map(v => varMap(v.id))
+    lazy val variables: Array[Var[T]] = coreVariables.map(v => varMap(v.id))
     lazy val indexOf: Map[Var[T], Int] = variables.zipWithIndex.toMap
     private def toInt(d: jcore.Domain): Int = d.asInstanceOf[jcore.IntDomain].value
-    def domain(solutionIndex: Int, variableIndex: Int) = jacopDomains(solutionIndex)(variableIndex)
+    def domain(solutionIndex: Int, variableIndex: Int): jcore.Domain = coreDomains(solutionIndex)(variableIndex)
     def value(s: Int, v: Int): Int = toInt(domain(s,v))
-    def solution(s: Int): Array[Int] = jacopDomains(s).map(toInt)
+    def solution(s: Int): Array[Int] = coreDomains(s).map(toInt)
     def solutionMap(s: Int): Map[Var[T], Int] = 
       ( for (i <- 0 until nVariables) yield (variables(i), value(s, i)) ) .toMap
     def valueVector(v: Var[T]): Vector[Int] = 
@@ -44,7 +61,7 @@ package reqt {
 
     object Settings {
       var defaultInterval: Interval = Interval(-1000, 1000)
-      var defaultObjective: Objective = Satisfy
+      var defaultSearchType: SearchType = Satisfy
       var defaultValueSelection: ValueSelection = IndomainRandom
       var defaultVariableSelection: VariableSelection = InputOrder
       var verbose: Boolean = true
@@ -160,7 +177,7 @@ package reqt {
      
     case class Solver[T](
         constraints: Seq[Constr[T]] , 
-        objective: Objective = jacop.Settings.defaultObjective,
+        searchType: SearchType = jacop.Settings.defaultSearchType,
         timeOutOption: Option[Long] = None,
         solutionLimitOption: Option[Int] = None,
         valueSelection: ValueSelection = jacop.Settings.defaultValueSelection,
@@ -250,7 +267,7 @@ package reqt {
         if (checkIfNameExists(minimizeHelpVarName, vs)) 
           return Result(SearchFailed("Reserved varable name not allowed:" + minimizeHelpVarName))
         val intVarMap: Map[Var[Any], JIntVar] = vs.map { v => (v, varToJIntVar(v, store)) } .toMap
-        Some(objective).collect { //abort if cost variable is not defined
+        Some(searchType).collect { //abort if cost variable is not defined
           case opt: Optimize[Any] if (!intVarMap.isDefinedAt(opt.cost)) => 
             return Result(SearchFailed("Cost variable not defined:" + opt.cost)) 
         }
@@ -273,18 +290,18 @@ package reqt {
         val selectChoicePoint = variableSelection.toJacop(store, variablesToAssign, valueSelection)
         def solutionNotFound = Result[Any](SolutionNotFound)
         def solutionInStore = solutionMap(store, nameToVarMap(vs))
-        def interuptOpt: Option[SearchInterupt] = 
+        def interruptOpt: Option[SearchInterrupt] = 
           if (label.timeOutOccured) Some(SearchTimeOut) 
           else if (listener.solutionLimitReached && solutionLimitOption.isDefined) 
             Some(SolutionLimitReached)
           else None
         def oneResult(ok: Boolean) = 
-          if (ok) Result[Any](SolutionFound, 1, solutionInStore, interuptOpt)  
+          if (ok) Result[Any](SolutionFound, 1, solutionInStore, interruptOpt)  
           else solutionNotFound
         def countResult(ok: Boolean, i: Int) = 
-          if (ok) Result[Any](SolutionFound, i, solutionInStore, interuptOpt) 
+          if (ok) Result[Any](SolutionFound, i, solutionInStore, interruptOpt) 
           else solutionNotFound
-        val conclusion = objective match {
+        val conclusion = searchType match {
           case Satisfy => 
             setup(searchAll = false , recordSolutions = true )
             oneResult(label.labeling(store, selectChoicePoint)) 
@@ -295,12 +312,12 @@ package reqt {
             setup(searchAll = true , recordSolutions = true )
             val found = label.labeling(store, selectChoicePoint)
             if (!found) solutionNotFound else {
-              val solutions = new Solutions(
+              val solutions: Solutions[Any] = new JacopSolutions(
                     listener.getSolutions(), 
                     listener.getVariables(), 
                     listener.solutionsNo(), 
                     solutionInStore)
-              Result[Any](SolutionFound, solutions.nSolutions, solutionInStore, interuptOpt, Some(solutions))
+              Result[Any](SolutionFound, solutions.nSolutions, solutionInStore, interruptOpt, Some(solutions))
             }
           case minimize: Minimize[Any] => 
             listener.searchAll(false)
@@ -315,7 +332,7 @@ package reqt {
             store.impose( new jcon.XmulCeqZ(intVarMap(m.cost), -1, negCost) )
             oneResult(label.labeling(store, selectChoicePoint, negCost))
           case other => 
-            println("Search objective not yet implemented: " + other)
+            println("This search type is not yet implemented: " + other)
             ???
             solutionNotFound
         }

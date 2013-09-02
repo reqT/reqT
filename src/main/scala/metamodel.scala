@@ -435,14 +435,14 @@ match argument types ()
     def maximize(v: Var[Any]) = value.solve(Maximize(v))
     def minimize(v: Var[Any]) = value.solve(Minimize(v))
     def solve(
-          objective: Objective = jacop.Settings.defaultObjective,
+          searchType: SearchType = jacop.Settings.defaultSearchType,
           timeOutOption: Option[Long] = None,
           solutionLimitOption: Option[Int] = None,
           valueSelection: jacop.ValueSelection = jacop.Settings.defaultValueSelection,
           variableSelection: jacop.VariableSelection = jacop.Settings.defaultVariableSelection,
           assignOption: Option[Seq[Var[Any]]] = None
         ): Result[Any] = 
-      jacop.Solver(value, objective, timeOutOption, solutionLimitOption, valueSelection, variableSelection, assignOption).solve
+      jacop.Solver(value, searchType, timeOutOption, solutionLimitOption, valueSelection, variableSelection, assignOption).solve
     def toModel = (Model() impose this) satisfy
     def impose(m: Model) = ModelSatisfactionProblem(m, value)
     def ++(cs: Constraints): Constraints = Constraints(value ++ cs.value)

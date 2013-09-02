@@ -1,7 +1,7 @@
 @echo OFF
 set _jarfilename=reqT.jar
 echo Compiling reqT ...  %TIME%
-call scalac -feature -deprecation -cp "lib\*" -d target "src\main\scala\*"
+call scalac -feature -deprecation -cp "lib\*" -d target src/main/scala/*
 if %ERRORLEVEL% NEQ 0 goto error
 echo Compilation ready!  %TIME%
 echo Packaging reqT into jar file: %_jarfilename% 

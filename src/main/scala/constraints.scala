@@ -30,14 +30,14 @@ package reqt {
       newModel
     }
     def solve(
-          objective: Objective = jacop.Settings.defaultObjective,
+          searchType: SearchType = jacop.Settings.defaultSearchType,
           timeOutOption: Option[Long] = None,
           solutionLimitOption: Option[Int] = None,
           valueSelection: jacop.ValueSelection = jacop.Settings.defaultValueSelection,
           variableSelection: jacop.VariableSelection = jacop.Settings.defaultVariableSelection,
           assignOption: Option[Seq[Var[Any]]] = None
         ): (Model, Result[Any]) = {
-      val r = constraints.solve(objective, timeOutOption, solutionLimitOption, valueSelection, variableSelection, assignOption)
+      val r = constraints.solve(searchType, timeOutOption, solutionLimitOption, valueSelection, variableSelection, assignOption)
       if (r.conclusion == SolutionFound) (updateModel(r.lastSolution), r) 
       else { warn(r.conclusion.toString); (Model(), r) } 
     }
@@ -62,13 +62,13 @@ package reqt {
     conclusion: Conclusion, 
     solutionCount: Int = 0, 
     lastSolution: Map[Var[T], Int] = Map[Var[T], Int](),
-    interuptOption: Option[SearchInterupt] = None,
+    interruptOption: Option[SearchInterrupt] = None,
     solutionsOption: Option[Solutions[T]] = None
   )  
     
-  sealed trait SearchInterupt 
-  case object SearchTimeOut extends SearchInterupt
-  case object SolutionLimitReached extends SearchInterupt
+  sealed trait SearchInterrupt 
+  case object SearchTimeOut extends SearchInterrupt
+  case object SolutionLimitReached extends SearchInterrupt
  
   sealed trait Conclusion
   case object SolutionFound extends Conclusion
@@ -76,11 +76,11 @@ package reqt {
   case object InconsistencyFound extends Conclusion
   case class SearchFailed(msg: String) extends Conclusion  
    
-  sealed trait Objective   
-  case object Satisfy extends Objective
-  case object CountAll extends Objective
-  case object FindAll extends Objective 
-  sealed trait Optimize[+T] extends Objective { def cost: Var[T] }
+  sealed trait SearchType   
+  case object Satisfy extends SearchType
+  case object CountAll extends SearchType
+  case object FindAll extends SearchType 
+  sealed trait Optimize[+T] extends SearchType { def cost: Var[T] }
   case class Minimize[+T](cost: Var[T]) extends Optimize[T]
   case class Maximize[+T](cost: Var[T]) extends Optimize[T]
 
