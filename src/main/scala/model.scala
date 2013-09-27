@@ -699,8 +699,10 @@ package reqt {
    
     //--- integration with constraints:
     def impose[T](cs: Seq[Constr[T]]) = ModelSatisfactionProblem( this , cs)
-    def impose(cs: Constraints) = ModelSatisfactionProblem( this , cs.value)    
-   
+    def impose(cs: Constraints) = ModelSatisfactionProblem( this , cs.value)  
+    def satisfy: Model = impose(constraints).solve(Satisfy)._1
+    def satisfyAll: Model = impose(constraintsAll).solve(Satisfy)._1
+
     //--- code and testcase execution
     
     def run() = ( this / Code ).loadExternals.attributeMap(Code).collect { 
