@@ -20,8 +20,8 @@ package object reqt {
     println("? <topic>\nwhere <topic> can be: " + helpInstaller.summary)
   }
   
-  val VERSION = "2.3.0_RC1_SNAPSHOT"
-  val SCALA_VERSION = "2.10.1"
+  val VERSION = "2.3.0"
+  val SCALA_VERSION = "2.10.2"
 
   def initInterpreter(intp: scala.tools.nsc.interpreter.IMain) {
     println("** Initializing interpreter ...")
