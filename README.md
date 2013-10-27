@@ -7,12 +7,12 @@ reqT is a free tool for software requirements modelling. For more information se
 ```scala
 
 val about = Model(
-  Feature("create") has Gist("Create requirements and test cases using versatile collections"),
-  Feature("collaborate") has Gist("Work distributed with model chunks in emails, wikis, git repos, tickets, ..."),
-  Feature("express") has Gist("Combine natural language expressiveness with graph-oriented modeling"),
-  Feature("interop") has Gist("Interoperate with spread sheet applications and web publishing"),
+  Feature("create") has Gist("Model requirements as computational entities in Scala"),
+  Feature("collaborate") has Gist("Collaborate using reqT model chunks in emails, wikis,, tickets, ..."),
+  Feature("express") has Gist("Combine flexibel natural language powerful graph-oriented modeling"),
+  Feature("interop") has Gist("Interoperate with spread sheets and web publishing"),
   Feature("scalable") has Gist("Modularize models in hierarchies and script them in Scala"),
-  Feature("open") has Gist("Extend the Scala-internal DSL with your own modeling semantics")
+  Feature("open") has Gist("Extend the Scala-embedded DSL with your own semantics")
 )
 
 ```
@@ -20,10 +20,7 @@ val about = Model(
 How to run reqT
 ---------------
 Preparations:
-* Install Scala 2.10.1 from http://www.scala-lang.org/downloads
-    * Windows: download and run ["Windows (msi)"](http://www.scala-lang.org/downloads/distrib/files/scala-2.10.1.msi) 
-    * MacOSX: see e.g. these [instructions](http://devblog.aprics.net/post/47633194425/scala-install-macosx-macports) 
-    * Linux: see e.g. instructions under heading [Installing Scala](http://simonholywell.com/post/2013/03/install-netbeans-scala-ubuntu.html) 
+* Install Scala from http://www.scala-lang.org/downloads
 * Download the [reqT.jar](http://reqT.org/reqT.jar) and put it in some directory of your chioce, e.g. `\Users\<user>\reqT\lib` (Windows) or `~/reqT/lib` (Linux or MacOS) 
  
 Different ways of running reqT, depending on your preference:
