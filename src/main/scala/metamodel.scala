@@ -97,7 +97,7 @@ package reqt {
 
   trait CanGenerateScala { def toScala: String = toString }  //override with string of code that generates this object
   trait Default[T] { def default : T }
-  trait Value[T] { def value: T }
+  trait HasValue[T] { def value: T }
   trait Prefixed { 
     def productPrefix: String //every case class in Scala has this string member with its class name
     def prefix = productPrefix //alternative name to avoid confusion with the case class Product
@@ -105,13 +105,13 @@ package reqt {
     def <==>(that: Prefixed): Boolean = hasEqualPrefix(that)
   } 
 
-  trait StringValueToScala extends CanGenerateScala with Value[String] with Prefixed {
+  trait StringValueToScala extends CanGenerateScala with HasValue[String] with Prefixed {
     override def toScala: String = prefix + "(" + value.toScala + ")"
   }
-  trait SubmodelValueToScala extends CanGenerateScala with Value[Model] with Prefixed {
+  trait SubmodelValueToScala extends CanGenerateScala with HasValue[Model] with Prefixed {
     override def toScala: String = "Submodel" + value.bodyToScala.indentNewline()
   }
-  trait ConstrVectorValueToScala extends CanGenerateScala with Value[Vector[Constr[Any]]] with Prefixed {
+  trait ConstrVectorValueToScala extends CanGenerateScala with HasValue[Vector[Constr[Any]]] with Prefixed {
     override def toScala: String = prefix + "(" + value.map(_.toScala).mkString(", ") + ")"
   }  
   
@@ -123,7 +123,7 @@ package reqt {
     def apply(): Entity = apply(value) 
     lazy val kind: EntityKind = this
  }
-  trait AttributeKind[T] extends NodeKind with Value[T] with Default[T] with CanGenerateScala { 
+  trait AttributeKind[T] extends NodeKind with HasValue[T] with Default[T] with CanGenerateScala { 
     override def value = default
     override def toScala = prefix + "(" + default + ")"
     def apply(v: T): Attribute[T] 
@@ -135,7 +135,7 @@ package reqt {
   abstract class Element extends CanGenerateScala with Prefixed
   abstract class Concept extends Element { def kind: ConceptKind }
   abstract class Structure extends Element 
-  abstract class Node[T] extends Concept with Value[T] {
+  abstract class Node[T] extends Concept with HasValue[T] {
     def isAttribute: Boolean = this.isInstanceOf[Attribute[_]]
     def isEntity: Boolean = this.isInstanceOf[Entity]
     lazy val isRequirement: Boolean = this.isInstanceOf[Requirement]
@@ -325,7 +325,7 @@ package reqt {
   case object POSTPONED   extends Level { val (up,down) = (PLANNED, POSTPONED) }
   case object DROPPED     extends Level { val (up,down) = (ELICITED, DROPPED) }
   
-  trait CanUpDown extends Value[Level] with Default[Level] { 
+  trait CanUpDown extends HasValue[Level] with Default[Level] { 
     def up = Status(value.up)
     def down = Status(value.down)
     def init = Status(default)
@@ -384,6 +384,24 @@ package reqt {
   
   case class Urgency(value: Int) extends IntValue { override lazy val kind = reqt.Urgency }
   case object Urgency extends IntKind  
+  
+  case class Utility(value: Int) extends IntValue { override lazy val kind = reqt.Utility }
+  case object Utility extends IntKind  
+
+  case class Differentiation(value: Int) extends IntValue { override lazy val kind = reqt.Differentiation }
+  case object Differentiation extends IntKind  
+
+  case class Saturation(value: Int) extends IntValue { override lazy val kind = reqt.Saturation }
+  case object Saturation extends IntKind  
+
+  case class Value(value: Int) extends IntValue { override lazy val kind = reqt.Value }
+  case object Value extends IntKind  
+
+  case class Min(value: Int) extends IntValue { override lazy val kind = reqt.Min }
+  case object Min extends IntKind  
+
+  case class Max(value: Int) extends IntValue { override lazy val kind = reqt. Max }
+  case object Max extends IntKind  
 
   case class Label(value: String) extends StringValue { override lazy val kind = reqt.Label }
   case object Label extends StringKind
@@ -589,6 +607,12 @@ match argument types ()
     def Benefit(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Benefit(value)))
     def Capacity(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Capacity(value)))
     def Urgency(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Urgency(value)))
+    def Utility(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Utility(value)))
+    def Differentiation(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Differentiation(value)))
+    def Saturation(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Saturation(value)))
+    def Value(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Value(value)))
+    def Min(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Min(value)))
+    def Max(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Max(value)))
     def Submodel(value: Model) = EdgeToNodes(has(), NodeSet(reqt.Submodel(value)))
     def Code(value: String) = EdgeToNodes(has(), NodeSet(reqt.Code(value)))
     def Constraints[T](value: Vector[Constr[T]]) = EdgeToNodes(has(), NodeSet(reqt.Constraints(value)))
