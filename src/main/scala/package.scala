@@ -87,7 +87,7 @@ package object reqt {
   lazy val contextKinds: List[Element] = List(Product, Release, Stakeholder, Actor, Resource, Subdomain)
   lazy val scenarioKinds: List[Element] = List(UserStory, UseCase, TestCase, Task, VividScenario)
   lazy val dataKinds: List[Element] = List(Class, Member)
-  lazy val requirementKinds: List[Element] = List(Req, Idea, Goal, Feature, Function, Quality, Interface, Design, Issue, Ticket) ++ scenarioKinds ++ dataKinds
+  lazy val requirementKinds: List[Element] = List(Req, Idea, Goal, Feature, Function, Quality, Barrier, Target, Interface, Design, Issue, Ticket) ++ scenarioKinds ++ dataKinds
   lazy val attributeKinds: List[Attribute[_] with AttributeKind[_]] = 
     List(Gist, Spec, Status, Why, Example, Expectation, Input, Output, Trigger, Precond, Frequency, Critical, Problem, Prio, Order, Cost, Benefit, Capacity, Urgency, Utility, Differentiation, Saturation, Value, Min, Max, Label, Comment, Image, Deprecated, Submodel, Code, Constraints)
   lazy val edgeKinds: List[Element] = List(has) ++ relationKinds ++ relationWithAttributeKinds
@@ -213,6 +213,8 @@ package object reqt {
    "Feature" -> Feature.apply _,
    "Function" -> Function.apply _,
    "Quality" -> Quality.apply _,
+   "Barrier" -> Barrier.apply _,
+   "Target" -> Target.apply _,
    "Interface" -> Interface.apply _,
    "Design" -> Design.apply _,
    "Issue" -> Issue.apply _,

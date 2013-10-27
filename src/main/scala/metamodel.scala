@@ -256,6 +256,10 @@ package reqt {
   case object Function extends Requirement with EntityKind  
   case class Quality(value: String) extends Requirement { override lazy val kind = reqt.Quality }  
   case object Quality extends Requirement with EntityKind   
+  case class Barrier(value: String) extends Requirement { override lazy val kind = reqt.Barrier }  
+  case object Barrier extends Requirement with EntityKind     
+  case class Target(value: String) extends Requirement { override lazy val kind = reqt.Target }  
+  case object Target extends Requirement with EntityKind   
   case class Interface(value: String) extends Requirement { override lazy val kind = reqt.Interface }  
   case object Interface extends Requirement with EntityKind   
   case class Design(value: String) extends Requirement { override lazy val kind = reqt.Design }  
@@ -538,6 +542,8 @@ match argument types ()
     def Class(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Class(id)))
     def Member(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Member(id)))
     def Quality(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Quality(id)))
+    def Barrier(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Barrier(id)))
+    def Target(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Target(id)))
     def Interface(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Interface(id)))
     def Design(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Design(id)))
     def Issue(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Issue(id)))
