@@ -270,10 +270,12 @@ package reqt {
   case object Ticket extends Requirement with EntityKind   
   
   abstract class Data extends Requirement
-  case class Class(value: String) extends Requirement { override lazy val kind = reqt.Class }  
-  case object Class extends Requirement with EntityKind 
-  case class Member(value: String) extends Requirement { override lazy val kind = reqt.Member }  
-  case object Member extends Requirement with EntityKind    
+  case class Class(value: String) extends Data { override lazy val kind = reqt.Class }  
+  case object Class extends Data with EntityKind 
+  case class Relationship(value: String) extends Data { override lazy val kind = reqt.Relationship }  
+  case object Relationship extends Data with EntityKind 
+  case class Member(value: String) extends Data { override lazy val kind = reqt.Member }  
+  case object Member extends Data with EntityKind    
   
   abstract class Scenario extends Requirement
   case class UserStory(value: String) extends Scenario { override lazy val kind = reqt.UserStory } 
