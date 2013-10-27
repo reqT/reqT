@@ -155,6 +155,16 @@ package reqt {
     //construct Key
     def requires() = Key(this, reqt.requires())
     def requires(es:Entity *) = (Key(this, reqt.requires()), NodeSet(es: _*))
+    def relatesTo() = Key(this, reqt.relatesTo())
+    def relatesTo(es:Entity *) = (Key(this, reqt.relatesTo()), NodeSet(es: _*))
+    def relatesToOne() = Key(this, reqt.relatesToOne())
+    def relatesToOne(es:Entity *) = (Key(this, reqt.relatesToOne()), NodeSet(es: _*))
+    def relatesToOneOrMany() = Key(this, reqt.relatesToOneOrMany())
+    def relatesToOneOrMany(es:Entity *) = (Key(this, reqt.relatesToOneOrMany()), NodeSet(es: _*))
+    def relatesToZeroOrMany() = Key(this, reqt.relatesToZeroOrMany())
+    def relatesToZeroOrMany(es:Entity *) = (Key(this, reqt.relatesToZeroOrMany()), NodeSet(es: _*))
+    def relatesToZeroOrOne() = Key(this, reqt.relatesToZeroOrOne())
+    def relatesToZeroOrOne(es:Entity *) = (Key(this, reqt.relatesToZeroOrOne()), NodeSet(es: _*))
     def excludes() = Key(this, reqt.excludes())
     def excludes(es:Entity *) = (Key(this, reqt.excludes()), NodeSet(es: _*))
     def releases() = Key(this, reqt.releases())
@@ -564,6 +574,16 @@ match argument types ()
   case object owns extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
   case class requires() extends RelationWithoutAttribute { override lazy val kind = requires }
   case object requires extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
+  case class relatesTo() extends RelationWithoutAttribute { override lazy val kind = relatesTo }
+  case object relatesTo extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
+  case class relatesToOne() extends RelationWithoutAttribute { override lazy val kind = relatesToOne }
+  case object relatesToOne extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
+  case class relatesToOneOrMany() extends RelationWithoutAttribute { override lazy val kind = relatesToOneOrMany }
+  case object relatesToOneOrMany extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
+  case class relatesToZeroOrMany() extends RelationWithoutAttribute { override lazy val kind = relatesToZeroOrMany }
+  case object relatesToZeroOrMany extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
+  case class relatesToZeroOrOne() extends RelationWithoutAttribute { override lazy val kind = relatesToZeroOrOne }
+  case object relatesToZeroOrOne extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
   case class excludes() extends RelationWithoutAttribute { override lazy val kind = excludes }
   case object excludes extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
   case class releases() extends RelationWithoutAttribute { override lazy val kind = releases }
