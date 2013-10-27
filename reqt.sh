@@ -1,5 +1,4 @@
 #!/bin/bash
-JARFILENAME=~/reqT/lib/reqT.jar
-export CLASSPATH=$CLASSPATH:$JARFILENAME
-scala $JARFILENAME $@
+REQT_JAR=~/reqT/lib/reqT.jar
+scala -toolcp $REQT_JAR $REQT_JAR $@
 
