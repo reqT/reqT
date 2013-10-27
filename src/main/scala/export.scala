@@ -1,4 +1,5 @@
 package reqt {
+
   trait GraphVizGenerator {
     val rankdir="LR" //for Left-Right layout (or "TB" for Top-Down)
     val initSpec = 

@@ -124,6 +124,10 @@ package object reqt {
   implicit def entityToKeyNodeSetPair(e: Entity): (Key,NodeSet) = (Key(e, has()), NodeSet())
   implicit def keyToKeyNodeSetPair(k: Key): (Key,NodeSet) = (k, NodeSet())
   
+  //To help toTable get the "" right
+  lazy val stringValueAttributeNames: Set[String] = 
+    attributeKinds.filter(a => a.isInstanceOf[StringValue]).map(_.toString).toSet
+  
   // Implicits objects for attribute External[T] and makeAttribute
   implicit object makeGist extends AttrFromString[Gist] { def apply(s: String): Gist = Gist(s) }
   implicit object makeSpec extends AttrFromString[Spec] { def apply(s: String): Spec = Spec(s) }
@@ -287,6 +291,11 @@ package object reqt {
     val fn = resolveFileName(fileName)
     try  { loadLines(fn).mkString("\n") } catch  { case e: Throwable => "ERROR " + e }
   }
+  
+  
+  def loadTable(fileName:String, rowSeparator: String = "\t"): Model = 
+    Model.fromTable(load(fileName), rowSeparator)
+  
   //dbg utils to be used in REPL> :wrap timedSec
   def timedSec[T](body: => T): T = {
     val start = System.nanoTime

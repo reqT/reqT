@@ -28,7 +28,7 @@ package reqt {
     def +[B1 >: NodeSet](kv: (Key, B1)): Model =  kv match {
       case (k: Key, ns: NodeSet) =>
         if (!ns.isEmpty || (ns.isEmpty && k.edge == has())) { //allow empty nodesets for Model(Feature("x"))
-          val m2 = mappings.clone
+          val m2 = mappings //.clone  //TODO investigate if clone is really needed???
           new Model( m2 + (k -> { if (!m2.isDefinedAt(k)) ns else m2(k).concatNodes(ns, Some(k))  } ))
         } else this
       case _ => warn("Key must map to NodeSet. Ignored:" + kv._2); this
@@ -198,15 +198,17 @@ package reqt {
     override def toScala: String = stringPrefix + bodyToScala
     def toTable: String = toTable("\t")
     def toTable(columnSeparator: String, headers: Boolean = true) = {
+      def getPrefix[T](n: Node[T]) = 
+        if (n.kind == External) "External["+n.prefix+"]" else n.prefix //TODO check if this should be done in class External 
       val rowSeparator = "\n"
       lazy val headRow = Model.tableHeadings.mkString("",columnSeparator,rowSeparator)  
       val table = for ((Key(entity, edge), NodeSet(nodes)) <- this) yield {
-          val edgeValueStr = edge match {
-            case lwa: RelationWithAttribute[_] => lwa.attribute.prefix + columnSeparator + lwa.attribute.value 
-            case _ => "" + columnSeparator
-          }
-          val nodeList = nodes.toList.map(n => n.prefix + columnSeparator + n.value.toString.toScala)
-          val rowStart = List(entity.prefix, entity.id.toScala, edge.prefix, edgeValueStr).mkString(columnSeparator)
+          // val edgeValueStr = edge match {
+            // case lwa: RelationWithAttribute[_] => lwa.attribute.prefix + columnSeparator + lwa.attribute.value 
+            // case _ => "" + columnSeparator
+          // }
+          val nodeList = nodes.toList.map(n => getPrefix(n) + columnSeparator + n.value)
+          val rowStart = List(entity.prefix, entity.id, edge.prefix).mkString(columnSeparator)
           nodeList map { n => rowStart + columnSeparator + n + rowSeparator} mkString
       }  
       "" + ( if (headers) headRow else "" ) + table.mkString("","",rowSeparator)
@@ -764,16 +766,21 @@ package reqt {
       for (e <- es) {result += e has Gist("undefined")}
       result
     }
-    def fromTable(inFile: String, rowSeparator: String = "\t"): String = {
-      val linesH = loadLines(inFile) map {_.split(rowSeparator).toList}
-      val lines = linesH.dropWhile(_ == tableHeadings)  
-      lines collect { case List(ent, id, link, lAttr, lVal, node, nVal) => 
-        ent + "(" + id + ") " + link + " " +  
-          ( if (lAttr == "") "" else lAttr + "(" + lVal + ") to " ) + 
-            node + "(" + nVal + ")"
-      } mkString("Model(\n  ",",\n  ","\n)\n")
+    
+    lazy val tableHeadings = List("ENTITY", "ID", "LINK", "NODE", "VALUE") 
+
+    def fromTable(table: String, rowSeparator: String = "\t") = {
+      def quoteVal(node: String, nVal: String): String = 
+        if (stringValueAttributeNames.contains(node) || node.startsWith("External") )
+          nVal.toScala  //toScala adds quotes and escape chars 
+        else nVal
+      val linesH = table.split("\n").toList.map { _.split(rowSeparator).toList }
+      val lines: List[List[String]] = linesH.dropWhile(_ == tableHeadings)  
+      val modelLines =  lines collect { case List(ent, id, link, node, nVal) => 
+        ent + "(\"" + id + "\") " + link + " " + node + "(" + quoteVal(node, nVal) + ")"
+      }
+      modelLines.mkString("Model(\n  ",",\n  ","\n)\n").toModel
     }
-    lazy val tableHeadings = List("ENTITY", "ENTITY id", "LINK", "LINK attr", "LINK val", "NODE", "NODE val") 
     var overrideToStringWithToScala = true
     var ppLineLength = 92
     var ppColumnWidth = 33
