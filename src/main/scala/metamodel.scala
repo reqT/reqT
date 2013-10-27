@@ -173,6 +173,7 @@ package reqt {
     def verifies(es:Entity *) = (Key(this, reqt.verifies()), NodeSet(es: _*))
     def deprecates() = Key(this, reqt.deprecates())
     def deprecates(es:Entity *) = (Key(this, reqt.deprecates()), NodeSet(es: _*))
+    
     def assigns[T](a:Attribute[T]) = Key(this, reqt.assigns(a))
 
     //construct Ref 
@@ -559,7 +560,10 @@ match argument types ()
     def attribute: Attribute[T]
     override def toScala: String = prefix + "(" + attribute.toScala + ")"
   } 
-  case class assigns[T](attribute: Attribute[T]) extends RelationWithAttribute[T] { override lazy val kind = assigns }
+  case class assigns[T](attribute: Attribute[T]) extends RelationWithAttribute[T] { 
+    override lazy val kind = assigns 
+    warn("Asssign is deprecated with reqT v2.3.\nUse Submodel instead to associate values with relations.")
+  }
   case object assigns extends RelationWithAttribute[Unit] with EdgeKind { 
     val attribute = NoAttribute 
     override lazy val kind = this 
