@@ -69,7 +69,7 @@ DONE: restrict on sets of entities, can be use eg. to get also relations if an e
 
 TODO?? new relation "exceeds" for greater than on Prio ??
 
-TODO?? add Database as a Data requirement entity ??? or should DataType be the abstract and Data the concrete type
+TODO?? add Database as a DataRequirement requirement entity ??? or should DataType be the abstract and DataRequirement the concrete type
 
 TODO?? NodeSet use SortedSet/TreeSet instead of Set //started... 
 
@@ -279,13 +279,13 @@ package reqt {
   case class Ticket(value: String) extends Requirement { override lazy val kind = reqt.Ticket }  
   case object Ticket extends Requirement with EntityKind   
   
-  abstract class Data extends Requirement
-  case class Class(value: String) extends Data { override lazy val kind = reqt.Class }  
-  case object Class extends Data with EntityKind 
-  case class Relationship(value: String) extends Data { override lazy val kind = reqt.Relationship }  
-  case object Relationship extends Data with EntityKind 
-  case class Member(value: String) extends Data { override lazy val kind = reqt.Member }  
-  case object Member extends Data with EntityKind    
+  abstract class DataRequirement extends Requirement
+  case class Class(value: String) extends DataRequirement { override lazy val kind = reqt.Class }  
+  case object Class extends DataRequirement with EntityKind 
+  case class Relationship(value: String) extends DataRequirement { override lazy val kind = reqt.Relationship }  
+  case object Relationship extends DataRequirement with EntityKind 
+  case class Member(value: String) extends DataRequirement { override lazy val kind = reqt.Member }  
+  case object Member extends DataRequirement with EntityKind    
   
   abstract class ScenarioRequirement extends Requirement
   case class UserStory(value: String) extends ScenarioRequirement { override lazy val kind = reqt.UserStory } 
