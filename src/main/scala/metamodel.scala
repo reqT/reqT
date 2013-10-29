@@ -280,6 +280,8 @@ package reqt {
   case object Ticket extends Requirement with EntityKind   
   
   abstract class DataRequirement extends Requirement
+  case class Data(value: String) extends DataRequirement { override lazy val kind = reqt.Data }  
+  case object Data extends DataRequirement with EntityKind 
   case class Class(value: String) extends DataRequirement { override lazy val kind = reqt.Class }  
   case object Class extends DataRequirement with EntityKind 
   case class Relationship(value: String) extends DataRequirement { override lazy val kind = reqt.Relationship }  
@@ -551,6 +553,7 @@ match argument types ()
     def Goal(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Goal(id)))
     def Feature(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Feature(id)))
     def Function(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Function(id)))
+    def Data(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Data(id)))
     def Class(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Class(id)))
     def Member(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Member(id)))
     def Quality(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Quality(id)))
