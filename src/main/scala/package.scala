@@ -124,6 +124,8 @@ package object reqt {
   implicit def entityToKeyNodeSetPair(e: Entity): (Key,NodeSet) = (Key(e, has()), NodeSet())
   implicit def keyToKeyNodeSetPair(k: Key): (Key,NodeSet) = (k, NodeSet())
   
+  implicit def entityToEntityPath(e: Entity):EntityPath = EntityPath(Vector(e))
+  
   //To help toTable get the "" right
   lazy val stringValueAttributeNames: Set[String] = 
     attributeKinds.filter(a => a.isInstanceOf[StringValue]).map(_.toString).toSet

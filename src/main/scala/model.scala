@@ -651,12 +651,12 @@ package reqt {
    
     def up: Model = updateAttributes { case n: Status => n.up }
     def down: Model = updateAttributes { case n: Status => n.down }
-    def up(e: Entity): Model = 
-      if (this / e ! Status == None) { warn(e + "has no status!"); this} 
-      else (this / e).up ++ (this \ e)
-    def down(e: Entity): Model = 
-      if (this / e ! Status == None) { warn(e + "has no status!"); this} 
-      else (this / e).down ++ (this \ e)
+    def up(e: EntityPath): Model = 
+      get(e ! Status).map(lvl => updated(e ! Status, lvl.up) )
+        .getOrElse { warn(e + " has no status, up ignored") ; this }
+    def down(e: EntityPath): Model = 
+      get(e ! Status).map(lvl => updated(e ! Status, lvl.up) ) 
+        .getOrElse { warn(e + " has no status, down ignored") ; this }
     def drop: Model = this - ( this / Status(DROPPED)).entities
     def loadExternals: Model = updateAttributes { case n: External[_] => n.fromFile}
     
