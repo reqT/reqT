@@ -287,17 +287,17 @@ package reqt {
   case class Member(value: String) extends Data { override lazy val kind = reqt.Member }  
   case object Member extends Data with EntityKind    
   
-  abstract class Scenario extends Requirement
-  case class UserStory(value: String) extends Scenario { override lazy val kind = reqt.UserStory } 
-  case object UserStory extends Scenario with EntityKind  
-  case class UseCase(value: String) extends Scenario  { override lazy val kind = reqt.UseCase }
-  case object UseCase extends Scenario with EntityKind   
-  case class TestCase(value: String) extends Scenario { override lazy val kind = reqt.TestCase } 
-  case object TestCase extends Scenario with EntityKind   
-  case class Task(value: String) extends Scenario { override lazy val kind = reqt.Task } 
-  case object Task extends Scenario with EntityKind  
-  case class VividScenario(value: String) extends Scenario { override lazy val kind = reqt.VividScenario } 
-  case object VividScenario extends Scenario with EntityKind  
+  abstract class ScenarioRequirement extends Requirement
+  case class UserStory(value: String) extends ScenarioRequirement { override lazy val kind = reqt.UserStory } 
+  case object UserStory extends ScenarioRequirement with EntityKind  
+  case class UseCase(value: String) extends ScenarioRequirement  { override lazy val kind = reqt.UseCase }
+  case object UseCase extends ScenarioRequirement with EntityKind   
+  case class TestCase(value: String) extends ScenarioRequirement { override lazy val kind = reqt.TestCase } 
+  case object TestCase extends ScenarioRequirement with EntityKind   
+  case class Task(value: String) extends ScenarioRequirement { override lazy val kind = reqt.Task } 
+  case object Task extends ScenarioRequirement with EntityKind  
+  case class VividScenario(value: String) extends ScenarioRequirement { override lazy val kind = reqt.VividScenario } 
+  case object VividScenario extends ScenarioRequirement with EntityKind  
   
   //************** Attributes **************
   
@@ -662,7 +662,7 @@ match argument types ()
   //values below used for abstract concept arguments to the restriction method in Model:
   case object Context extends Context with EntityKind { override lazy val kind = this ; def apply(id: String) = this }
   case object Requirement extends Requirement with EntityKind { override lazy val kind = this ; def apply(id: String) = this }
-  case object Scenario extends Scenario with EntityKind { override lazy val kind = this ; def apply(id: String) = this }
+  case object ScenarioRequirement extends ScenarioRequirement with EntityKind { override lazy val kind = this ; def apply(id: String) = this }
   case object Relation extends Relation with EdgeKind { override lazy val kind = this ; def apply(id: String) = this } 
   
   //******* Structural elements *******

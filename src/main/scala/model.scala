@@ -227,7 +227,7 @@ package reqt {
     ): Model = elm match {
       case Context => selection(ke => ke._1.entity.isInstanceOf[Context] )
       case Requirement => selection(ke => ke._1.entity.isInstanceOf[Requirement] )
-      case Scenario => selection(ke => ke._1.entity.isInstanceOf[Scenario] )
+      case ScenarioRequirement => selection(ke => ke._1.entity.isInstanceOf[ScenarioRequirement] )
       case Relation => selection(ke => ke._1.edge.isInstanceOf[Relation])
       case a: AttributeKind[_] => a match {
         case e: External.type => selection(ke => ke._2.nodes.exists(_.isInstanceOf[External[_]] ) )
@@ -246,7 +246,7 @@ package reqt {
     ): Model = elm match {
       case Context => selection(ke => ke._1.entity.isInstanceOf[Context] || ke._2.nodes.exists(_.isInstanceOf[Context])) //Extend with destinations
       case Requirement => selection(ke => ke._1.entity.isInstanceOf[Requirement] || ke._2.nodes.exists(_.isInstanceOf[Requirement]))
-      case Scenario => selection(ke => ke._1.entity.isInstanceOf[Scenario] || ke._2.nodes.exists(_.isInstanceOf[Scenario]))
+      case ScenarioRequirement => selection(ke => ke._1.entity.isInstanceOf[ScenarioRequirement] || ke._2.nodes.exists(_.isInstanceOf[ScenarioRequirement]))
       case Relation => selection(ke => ke._1.edge.isInstanceOf[Relation])      
       case a: AttributeKind[_] => a match {
         case e: External.type => selection(ke => ke._2.nodes.exists(_.isInstanceOf[External[_]] ) )
@@ -268,7 +268,7 @@ package reqt {
     ): Model = elm match {
       case Context => selection(ke => ke._2.nodes.exists(_.isInstanceOf[Context])) 
       case Requirement =>  selection(ke => ke._2.nodes.exists(_.isInstanceOf[Requirement]))
-      case Scenario => selection(ke => ke._2.nodes.exists(_.isInstanceOf[Scenario]))
+      case ScenarioRequirement => selection(ke => ke._2.nodes.exists(_.isInstanceOf[ScenarioRequirement]))
       case a: AttributeKind[_] => a match {
         case e: External.type => selection(ke => ke._2.nodes.exists(_.isInstanceOf[External[_]] ) )
         case _ => selection(ke => ke._2.nodes.exists(_ <==> a ) )
