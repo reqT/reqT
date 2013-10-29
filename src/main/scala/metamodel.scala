@@ -296,8 +296,8 @@ package reqt {
   case object TestCase extends ScenarioRequirement with EntityKind   
   case class Task(value: String) extends ScenarioRequirement { override lazy val kind = reqt.Task } 
   case object Task extends ScenarioRequirement with EntityKind  
-  case class VividScenario(value: String) extends ScenarioRequirement { override lazy val kind = reqt.VividScenario } 
-  case object VividScenario extends ScenarioRequirement with EntityKind  
+  case class Scenario(value: String) extends ScenarioRequirement { override lazy val kind = reqt.Scenario } 
+  case object Scenario extends ScenarioRequirement with EntityKind  
   
   //************** Attributes **************
   
@@ -564,7 +564,7 @@ match argument types ()
     def UseCase(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.UseCase(id)))
     def TestCase(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.TestCase(id)))
     def Task(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Task(id)))
-    def VividScenario(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.VividScenario(id)))
+    def Scenario(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Scenario(id)))
   }
   
   abstract class RelationWithoutAttribute extends Relation {
