@@ -724,7 +724,7 @@ match argument types ()
         val existingAttrNodesRemoved = submodelsRemoved filterNot { n =>
           if (n.isAttribute) moreNodes.nodes.exists { n2 => 
             if (n2.hasEqualPrefix(n) && (n2.value != n.value))
-              { warn("Overwriting attribute " + n + " with " + n2 + keyStr(keyOpt))
+              { //warn("Overwriting attribute " + n + " with " + n2 + keyStr(keyOpt)) //TODO
               true }
             else false
           }
