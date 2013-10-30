@@ -418,6 +418,9 @@ package reqt {
   case class Value(value: Int) extends IntValue { override lazy val kind = reqt.Value }
   case object Value extends IntKind  
 
+  case class QualityLevel(value: Int) extends IntValue { override lazy val kind = reqt.QualityLevel }
+  case object QualityLevel extends IntKind    
+  
   case class Min(value: Int) extends IntValue { override lazy val kind = reqt.Min }
   case object Min extends IntKind  
 
@@ -645,6 +648,7 @@ match argument types ()
     def Differentiation(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Differentiation(value)))
     def Saturation(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Saturation(value)))
     def Value(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Value(value)))
+    def QualityLevel(value: Int) = EdgeToNodes(has(), NodeSet(reqt.QualityLevel(value)))
     def Min(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Min(value)))
     def Max(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Max(value)))
     def Submodel(value: Model) = EdgeToNodes(has(), NodeSet(reqt.Submodel(value)))

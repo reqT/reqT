@@ -89,7 +89,7 @@ package object reqt {
   lazy val dataKinds: List[Element] = List(Data, Class, Member, Relationship)
   lazy val requirementKinds: List[Element] = List(Req, Idea, Goal, Feature, Function, Quality, Barrier, Target, Interface, Design, Issue, Ticket) ++ scenarioKinds ++ dataKinds
   lazy val attributeKinds: List[Attribute[_] with AttributeKind[_]] = 
-    List(Gist, Spec, Status, Why, Example, Expectation, Input, Output, Trigger, Precond, Frequency, Critical, Problem, Prio, Order, Cost, Benefit, Capacity, Urgency, Utility, Differentiation, Saturation, Value, Min, Max, Label, Comment, Image, Deprecated, Submodel, Code, Constraints)
+    List(Gist, Spec, Status, Why, Example, Expectation, Input, Output, Trigger, Precond, Frequency, Critical, Problem, Prio, Order, Cost, Benefit, Capacity, Urgency, Utility, Differentiation, Saturation, Value, QualityLevel, Min, Max, Label, Comment, Image, Deprecated, Submodel, Code, Constraints)
   lazy val edgeKinds: List[Element] = List(has) ++ relationKinds // ++ relationWithAttributeKinds
   lazy val relationKinds: List[RelationWithoutAttribute] = List(owns, requires, relatesTo, relatesToOne, relatesToOneOrMany, relatesToZeroOrMany, relatesToZeroOrOne, excludes, releases, helps, hurts, precedes, inherits, implements, verifies, deprecates)
   //lazy val relationWithAttributeKinds: List[RelationWithAttribute[_]] = List(assigns)
@@ -154,6 +154,7 @@ package object reqt {
   implicit object makeDifferentiation extends AttrFromString[Differentiation] { def apply(s: String): Differentiation = Differentiation(s.toIntOrZero) }
   implicit object makeSaturation extends AttrFromString[Saturation] { def apply(s: String): Saturation = Saturation(s.toIntOrZero) }
   implicit object makeValue extends AttrFromString[Value] { def apply(s: String): Value = Value(s.toIntOrZero) }
+  implicit object makeQualityLevel extends AttrFromString[QualityLevel] { def apply(s: String): QualityLevel = QualityLevel(s.toIntOrZero) }
   implicit object makeMin extends AttrFromString[Min] { def apply(s: String): Min = Min(s.toIntOrZero) }
   implicit object makeMax extends AttrFromString[Max] { def apply(s: String): Max = Max(s.toIntOrZero) }
   implicit object makeLabel extends AttrFromString[Label] { def apply(s: String): Label = Label(s) }
@@ -191,6 +192,7 @@ package object reqt {
    "Differentiation" -> makeAttribute[Differentiation] _,
    "Saturation" -> makeAttribute[Saturation] _,
    "Value" -> makeAttribute[Value] _,
+   "QualityLevel" -> makeAttribute[QualityLevel] _,
    "Min" -> makeAttribute[Min] _,
    "Max" -> makeAttribute[Max] _,
    "Label" -> makeAttribute[Label] _,
