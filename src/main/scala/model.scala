@@ -227,6 +227,8 @@ package reqt {
     ): Model = elm match {
       case Context => selection(ke => ke._1.entity.isInstanceOf[Context] )
       case Requirement => selection(ke => ke._1.entity.isInstanceOf[Requirement] )
+      case QualityRequirement => selection(ke => ke._1.entity.isInstanceOf[QualityRequirement] )
+      case DataRequirement => selection(ke => ke._1.entity.isInstanceOf[DataRequirement] )
       case ScenarioRequirement => selection(ke => ke._1.entity.isInstanceOf[ScenarioRequirement] )
       case Relation => selection(ke => ke._1.edge.isInstanceOf[Relation])
       case a: AttributeKind[_] => a match {
@@ -246,6 +248,8 @@ package reqt {
     ): Model = elm match {
       case Context => selection(ke => ke._1.entity.isInstanceOf[Context] || ke._2.nodes.exists(_.isInstanceOf[Context])) //Extend with destinations
       case Requirement => selection(ke => ke._1.entity.isInstanceOf[Requirement] || ke._2.nodes.exists(_.isInstanceOf[Requirement]))
+      case QualityRequirement => selection(ke => ke._1.entity.isInstanceOf[QualityRequirement] || ke._2.nodes.exists(_.isInstanceOf[QualityRequirement]))
+      case DataRequirement => selection(ke => ke._1.entity.isInstanceOf[DataRequirement] || ke._2.nodes.exists(_.isInstanceOf[DataRequirement]))
       case ScenarioRequirement => selection(ke => ke._1.entity.isInstanceOf[ScenarioRequirement] || ke._2.nodes.exists(_.isInstanceOf[ScenarioRequirement]))
       case Relation => selection(ke => ke._1.edge.isInstanceOf[Relation])      
       case a: AttributeKind[_] => a match {
@@ -268,6 +272,8 @@ package reqt {
     ): Model = elm match {
       case Context => selection(ke => ke._2.nodes.exists(_.isInstanceOf[Context])) 
       case Requirement =>  selection(ke => ke._2.nodes.exists(_.isInstanceOf[Requirement]))
+      case QualityRequirement => selection(ke => ke._2.nodes.exists(_.isInstanceOf[QualityRequirement]))
+      case DataRequirement => selection(ke => ke._2.nodes.exists(_.isInstanceOf[DataRequirement]))
       case ScenarioRequirement => selection(ke => ke._2.nodes.exists(_.isInstanceOf[ScenarioRequirement]))
       case a: AttributeKind[_] => a match {
         case e: External.type => selection(ke => ke._2.nodes.exists(_.isInstanceOf[External[_]] ) )

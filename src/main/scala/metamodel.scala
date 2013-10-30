@@ -264,12 +264,15 @@ package reqt {
   case object Feature extends Requirement with EntityKind   
   case class Function(value: String) extends Requirement   { override lazy val kind = reqt.Function }
   case object Function extends Requirement with EntityKind  
-  case class Quality(value: String) extends Requirement { override lazy val kind = reqt.Quality }  
+  
+  abstract class QualityRequirement extends Requirement
+  case class Quality(value: String) extends QualityRequirement { override lazy val kind = reqt.Quality }  
   case object Quality extends Requirement with EntityKind   
-  case class Barrier(value: String) extends Requirement { override lazy val kind = reqt.Barrier }  
+  case class Barrier(value: String) extends QualityRequirement { override lazy val kind = reqt.Barrier }  
   case object Barrier extends Requirement with EntityKind     
-  case class Target(value: String) extends Requirement { override lazy val kind = reqt.Target }  
+  case class Target(value: String) extends QualityRequirement { override lazy val kind = reqt.Target }  
   case object Target extends Requirement with EntityKind   
+  
   case class Interface(value: String) extends Requirement { override lazy val kind = reqt.Interface }  
   case object Interface extends Requirement with EntityKind   
   case class Design(value: String) extends Requirement { override lazy val kind = reqt.Design }  
@@ -665,7 +668,9 @@ match argument types ()
   //values below used for abstract concept arguments to the restriction method in Model:
   case object Context extends Context with EntityKind { override lazy val kind = this ; def apply(id: String) = this }
   case object Requirement extends Requirement with EntityKind { override lazy val kind = this ; def apply(id: String) = this }
-  case object ScenarioRequirement extends ScenarioRequirement with EntityKind { override lazy val kind = this ; def apply(id: String) = this }
+  case object QualityRequirement extends QualityRequirement with EntityKind { override lazy val kind = this ; def apply(id: String) = this }  
+  case object DataRequirement extends DataRequirement with EntityKind { override lazy val kind = this ; def apply(id: String) = this }  
+  case object ScenarioRequirement extends ScenarioRequirement with EntityKind { override lazy val kind = this ; def apply(id: String) = this }  
   case object Relation extends Relation with EdgeKind { override lazy val kind = this ; def apply(id: String) = this } 
   
   //******* Structural elements *******
