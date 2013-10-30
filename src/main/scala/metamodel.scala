@@ -63,7 +63,7 @@ DONE: Removed semantic check causing long execution times for large owns-structu
 DONE: m up Feature("x") == (m / Feature("x").up ++ (m \ Feature("x"))
 DONE: implement new semantic check of owns-relations: m.hasMultiOwners, m.multiOwners
 DONE: implement semantic check missing Specs: m.hasMissingSpecs, m.missingSpecs
-DONE: Ordering of Status and Level: Status(DROPPED) < STATUS(ELICITED)
+DONE: Ordering of Status and StatusLevel: Status(DROPPED) < STATUS(ELICITED)
 DONE: implement check to run all available checks: m.check
 DONE: restrict on sets of entities, can be use eg. to get also relations if an entity has a label: m / (m / Label("aa")).sources
 
@@ -312,14 +312,14 @@ package reqt {
   
   //Marker traits for attribute values
   trait StringValue extends Attribute[String] with StringValueToScala { val default = "???" }
-  trait LevelValue extends Attribute[Level] { val default = ELICITED }
+  trait LevelValue extends Attribute[StatusLevel] { val default = ELICITED }
   trait IntValue extends Attribute[Int] { val default = 0 }
   trait ConstrVectorValue extends Attribute[Vector[Constr[Any]]] with ConstrVectorValueToScala { val default = Vector() }
   trait ModelValue extends Attribute[Model] with SubmodelValueToScala { val default = Model() }
   
   //Marker traits for attribute kinds
   trait StringKind extends StringValue with AttributeKind[String]
-  trait LevelKind extends LevelValue with AttributeKind[Level] 
+  trait LevelKind extends LevelValue with AttributeKind[StatusLevel] 
   trait IntKind extends IntValue with AttributeKind[Int]
   trait ConstrVectorKind extends ConstrVectorValue with AttributeKind[Vector[Constr[Any]]]
   trait ModelKind extends ModelValue with AttributeKind[Model]  
@@ -330,29 +330,29 @@ package reqt {
   case class Spec(value: String) extends StringValue { override lazy val kind = reqt.Spec } 
   case object Spec extends StringKind 
   
-  trait Level extends Ordered[Level] { 
-    def up:Level
-    def down:Level
-    def compare(that: Level) = levelIndex(this) compare levelIndex(that)
+  trait StatusLevel extends Ordered[StatusLevel] { 
+    def up:StatusLevel
+    def down:StatusLevel
+    def compare(that: StatusLevel) = levelIndex(this) compare levelIndex(that)
   }
-  case object ELICITED    extends Level { val (up,down) = (SPECIFIED, DROPPED) }
-  case object SPECIFIED   extends Level { val (up,down) = (VALIDATED, DROPPED) } 
-  case object VALIDATED   extends Level { val (up,down) = (PLANNED, SPECIFIED) } 
-  case object PLANNED     extends Level { val (up,down) = (IMPLEMENTED, POSTPONED) }
-  case object IMPLEMENTED extends Level { val (up,down) = (TESTED, FAILED) }
-  case object TESTED      extends Level { val (up,down) = (RELEASED, FAILED) }
-  case object RELEASED    extends Level { val (up,down) = (RELEASED, FAILED) }
-  case object FAILED      extends Level { val (up,down) = (IMPLEMENTED, DROPPED) }
-  case object POSTPONED   extends Level { val (up,down) = (PLANNED, POSTPONED) }
-  case object DROPPED     extends Level { val (up,down) = (ELICITED, DROPPED) }
+  case object ELICITED    extends StatusLevel { val (up,down) = (SPECIFIED, DROPPED) }
+  case object SPECIFIED   extends StatusLevel { val (up,down) = (VALIDATED, DROPPED) } 
+  case object VALIDATED   extends StatusLevel { val (up,down) = (PLANNED, SPECIFIED) } 
+  case object PLANNED     extends StatusLevel { val (up,down) = (IMPLEMENTED, POSTPONED) }
+  case object IMPLEMENTED extends StatusLevel { val (up,down) = (TESTED, FAILED) }
+  case object TESTED      extends StatusLevel { val (up,down) = (RELEASED, FAILED) }
+  case object RELEASED    extends StatusLevel { val (up,down) = (RELEASED, FAILED) }
+  case object FAILED      extends StatusLevel { val (up,down) = (IMPLEMENTED, DROPPED) }
+  case object POSTPONED   extends StatusLevel { val (up,down) = (PLANNED, POSTPONED) }
+  case object DROPPED     extends StatusLevel { val (up,down) = (ELICITED, DROPPED) }
   
-  trait CanUpDown extends HasValue[Level] with Default[Level] { 
+  trait CanUpDown extends HasValue[StatusLevel] with Default[StatusLevel] { 
     def up = Status(value.up)
     def down = Status(value.down)
     def init = Status(default)
   }
   
-  case class Status(value: Level) extends LevelValue with CanUpDown with Ordered[Status] { 
+  case class Status(value: StatusLevel) extends LevelValue with CanUpDown with Ordered[Status] { 
     def compare(that: Status) = levelIndex(this.value) compare levelIndex(that.value)
     override lazy val kind = reqt.Status
   }
@@ -624,7 +624,7 @@ match argument types ()
   abstract class AttributeEdge extends Edge {
     def Gist(value: String) = EdgeToNodes(has(), NodeSet(reqt.Gist(value)))
     def Spec(value: String) = EdgeToNodes(has(), NodeSet(reqt.Spec(value)))
-    def Status(value: Level) = EdgeToNodes(has(), NodeSet(reqt.Status(value)))
+    def Status(value: StatusLevel) = EdgeToNodes(has(), NodeSet(reqt.Status(value)))
     def Why(value: String) = EdgeToNodes(has(), NodeSet(reqt.Why(value)))
     def Example(value: String) = EdgeToNodes(has(), NodeSet(reqt.Example(value)))
     def Expectation(value: String) = EdgeToNodes(has(), NodeSet(reqt.Expectation(value)))
@@ -840,7 +840,7 @@ match argument types ()
     def toScala: String = "" + '\"' + convertEscape + '\"'
     def toModel: Model = if (s == "") Model() else Model.interpret(s)
     def toIntOrZero: Int = try {s.toInt} catch { case e: NumberFormatException => 0}
-    def toLevel: Level = levelFromString(s)
+    def toLevel: StatusLevel = levelFromString(s)
     def decapitalize: String = strUtil.decapitalize(s)
     def truncPad(n: Int) = strUtil.truncPad(s, n)
     def trunc(n: Int) = strUtil.trunc(s, n)

@@ -93,12 +93,12 @@ package object reqt {
   lazy val edgeKinds: List[Element] = List(has) ++ relationKinds // ++ relationWithAttributeKinds
   lazy val relationKinds: List[RelationWithoutAttribute] = List(owns, requires, relatesTo, relatesToOne, relatesToOneOrMany, relatesToZeroOrMany, relatesToZeroOrOne, excludes, releases, helps, hurts, precedes, inherits, implements, verifies, deprecates)
   //lazy val relationWithAttributeKinds: List[RelationWithAttribute[_]] = List(assigns)
-  lazy val levelVector: Vector[Level] = Vector(DROPPED, ELICITED, SPECIFIED, VALIDATED, POSTPONED, PLANNED, FAILED, IMPLEMENTED, TESTED, RELEASED)
-  lazy val levelIndex: Map[Level, Int] = levelVector.zipWithIndex.toMap
-  lazy val levelFromString: Map[String, Level] = levelVector.map { k => (k.toString, k) } .toMap.withDefaultValue(Status.init.value)
+  lazy val levelVector: Vector[StatusLevel] = Vector(DROPPED, ELICITED, SPECIFIED, VALIDATED, POSTPONED, PLANNED, FAILED, IMPLEMENTED, TESTED, RELEASED)
+  lazy val levelIndex: Map[StatusLevel, Int] = levelVector.zipWithIndex.toMap
+  lazy val levelFromString: Map[String, StatusLevel] = levelVector.map { k => (k.toString, k) } .toMap.withDefaultValue(Status.init.value)
 
-  def levelLessThan(l1: Level, l2: Level): Boolean = levelIndex(l1) < levelIndex(l2)
-  implicit val levelOrdering = Ordering.fromLessThan[Level](levelLessThan) 
+  def levelLessThan(l1: StatusLevel, l2: StatusLevel): Boolean = levelIndex(l1) < levelIndex(l2)
+  implicit val levelOrdering = Ordering.fromLessThan[StatusLevel](levelLessThan) 
   def statusLessThan(s1: Status, s2: Status): Boolean = levelIndex(s1.value) < levelIndex(s2.value)
   implicit val statusOrdering = Ordering.fromLessThan[Status](statusLessThan) 
   def elementLessThan (me1:Element, me2:Element): Boolean = {
