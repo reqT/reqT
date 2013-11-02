@@ -258,43 +258,46 @@ package reqt {
   case object Subdomain extends Context with EntityKind  
   case class Component(value: String) extends Context { override lazy val kind = reqt.Component }
   case object Component extends Context with EntityKind  
-  case class VariationPoint(value: String) extends Context { override lazy val kind = reqt.VariationPoint }
-  case object VariationPoint extends Context with EntityKind  
-  case class Variant(value: String) extends Context { override lazy val kind = reqt.Variant }
-  case object Variant extends Context with EntityKind  
-  
+
   abstract class Requirement extends Entity 
-  case class Req(value: String) extends Requirement { override lazy val kind = reqt.Req }
-  case object Req extends Requirement with EntityKind  
-  case class Idea(value: String) extends Requirement { override lazy val kind = reqt.Idea }
-  case object Idea extends Requirement with EntityKind 
-  case class Label(value: String) extends Requirement { override lazy val kind = reqt.Label }
-  case object Label extends Requirement with EntityKind 
-  case class Goal(value: String) extends Requirement { override lazy val kind = reqt.Goal }
-  case object Goal extends Requirement with EntityKind 
-  case class Wish(value: String) extends Requirement { override lazy val kind = reqt.Wish }
-  case object Wish extends Requirement with EntityKind 
-  case class Feature(value: String) extends Requirement   { override lazy val kind = reqt.Feature }
-  case object Feature extends Requirement with EntityKind   
-  case class Function(value: String) extends Requirement   { override lazy val kind = reqt.Function }
-  case object Function extends Requirement with EntityKind  
   
+  abstract class GenericReq extends Requirement
+  case class Req(value: String) extends GenericReq { override lazy val kind = reqt.Req }
+  case object Req extends GenericReq with EntityKind  
+  case class Idea(value: String) extends GenericReq { override lazy val kind = reqt.Idea }
+  case object Idea extends GenericReq with EntityKind 
+  case class Label(value: String) extends GenericReq { override lazy val kind = reqt.Label }
+  case object Label extends GenericReq with EntityKind 
+  case class Feature(value: String) extends GenericReq   { override lazy val kind = reqt.Feature }
+  case object Feature extends GenericReq with EntityKind   
+  
+  abstract class IntentionalReq extends Requirement
+  case class Goal(value: String) extends IntentionalReq { override lazy val kind = reqt.Goal }
+  case object Goal extends IntentionalReq with EntityKind 
+  case class Wish(value: String) extends IntentionalReq { override lazy val kind = reqt.Wish }
+  case object Wish extends IntentionalReq with EntityKind 
+
   abstract class QualityReq extends Requirement
   case class Quality(value: String) extends QualityReq { override lazy val kind = reqt.Quality }  
-  case object Quality extends Requirement with EntityKind   
+  case object Quality extends QualityReq with EntityKind   
   case class Barrier(value: String) extends QualityReq { override lazy val kind = reqt.Barrier }  
-  case object Barrier extends Requirement with EntityKind     
+  case object Barrier extends QualityReq with EntityKind     
   case class Target(value: String) extends QualityReq { override lazy val kind = reqt.Target }  
-  case object Target extends Requirement with EntityKind   
+  case object Target extends QualityReq with EntityKind   
   
-  case class Interface(value: String) extends Requirement { override lazy val kind = reqt.Interface }  
-  case object Interface extends Requirement with EntityKind   
-  case class Design(value: String) extends Requirement { override lazy val kind = reqt.Design }  
-  case object Design extends Requirement with EntityKind   
-  case class Issue(value: String) extends Requirement { override lazy val kind = reqt.Issue }  
-  case object Issue extends Requirement with EntityKind   
-  case class Ticket(value: String) extends Requirement { override lazy val kind = reqt.Ticket }  
-  case object Ticket extends Requirement with EntityKind   
+  abstract class FunctionalReq extends Requirement
+  case class Function(value: String) extends FunctionalReq   { override lazy val kind = reqt.Function }
+  case object Function extends FunctionalReq with EntityKind  
+  case class Interface(value: String) extends FunctionalReq { override lazy val kind = reqt.Interface }  
+  case object Interface extends FunctionalReq with EntityKind   
+  case class Design(value: String) extends FunctionalReq { override lazy val kind = reqt.Design }  
+  case object Design extends FunctionalReq with EntityKind   
+  
+  abstract class ToDoReq extends Requirement
+  case class Issue(value: String) extends ToDoReq { override lazy val kind = reqt.Issue }  
+  case object Issue extends ToDoReq with EntityKind   
+  case class Ticket(value: String) extends ToDoReq { override lazy val kind = reqt.Ticket }  
+  case object Ticket extends ToDoReq with EntityKind   
   
   abstract class DataReq extends Requirement
   case class Data(value: String) extends DataReq { override lazy val kind = reqt.Data }  
@@ -317,6 +320,12 @@ package reqt {
   case object Task extends ScenarioReq with EntityKind  
   case class Scenario(value: String) extends ScenarioReq { override lazy val kind = reqt.Scenario } 
   case object Scenario extends ScenarioReq with EntityKind  
+
+  abstract class ProductLineReq extends Requirement
+  case class VariationPoint(value: String) extends ProductLineReq { override lazy val kind = reqt.VariationPoint }
+  case object VariationPoint extends ProductLineReq with EntityKind  
+  case class Variant(value: String) extends ProductLineReq { override lazy val kind = reqt.Variant }
+  case object Variant extends ProductLineReq with EntityKind  
   
   //************** Attributes **************
   
@@ -691,9 +700,15 @@ match argument types ()
   //values below used for abstract concept arguments to the restriction method in Model:
   case object Context extends Context with EntityKind { override lazy val kind = this ; def apply(id: String) = this }
   case object Requirement extends Requirement with EntityKind { override lazy val kind = this ; def apply(id: String) = this }
+  
+  case object GenericReq extends GenericReq with EntityKind { override lazy val kind = this ; def apply(id: String) = this }  
+  case object IntentionalReq extends IntentionalReq with EntityKind { override lazy val kind = this ; def apply(id: String) = this }  
   case object QualityReq extends QualityReq with EntityKind { override lazy val kind = this ; def apply(id: String) = this }  
+  case object FunctionalReq extends FunctionalReq with EntityKind { override lazy val kind = this ; def apply(id: String) = this }  
   case object DataReq extends DataReq with EntityKind { override lazy val kind = this ; def apply(id: String) = this }  
   case object ScenarioReq extends ScenarioReq with EntityKind { override lazy val kind = this ; def apply(id: String) = this }  
+  case object ToDoReq extends ToDoReq with EntityKind { override lazy val kind = this ; def apply(id: String) = this }  
+  case object ProductLineReq extends ProductLineReq with EntityKind { override lazy val kind = this ; def apply(id: String) = this }  
   case object Relation extends Relation with EdgeKind { override lazy val kind = this ; def apply(id: String) = this } 
   
   //******* Structural elements *******

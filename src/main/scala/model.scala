@@ -227,9 +227,14 @@ package reqt {
     ): Model = elm match {
       case Context => selection(ke => ke._1.entity.isInstanceOf[Context] )
       case Requirement => selection(ke => ke._1.entity.isInstanceOf[Requirement] )
+      case GenericReq => selection(ke => ke._1.entity.isInstanceOf[GenericReq] )
+      case IntentionalReq => selection(ke => ke._1.entity.isInstanceOf[IntentionalReq] )
       case QualityReq => selection(ke => ke._1.entity.isInstanceOf[QualityReq] )
+      case FunctionalReq => selection(ke => ke._1.entity.isInstanceOf[FunctionalReq] )
       case DataReq => selection(ke => ke._1.entity.isInstanceOf[DataReq] )
       case ScenarioReq => selection(ke => ke._1.entity.isInstanceOf[ScenarioReq] )
+      case ToDoReq => selection(ke => ke._1.entity.isInstanceOf[ToDoReq] )
+      case ProductLineReq => selection(ke => ke._1.entity.isInstanceOf[ProductLineReq] )
       case Relation => selection(ke => ke._1.edge.isInstanceOf[Relation])
       case a: AttributeKind[_] => a match {
         case e: External.type => selection(ke => ke._2.nodes.exists(_.isInstanceOf[External[_]] ) )
@@ -248,9 +253,13 @@ package reqt {
     ): Model = elm match {
       case Context => selection(ke => ke._1.entity.isInstanceOf[Context] || ke._2.nodes.exists(_.isInstanceOf[Context])) //Extend with destinations
       case Requirement => selection(ke => ke._1.entity.isInstanceOf[Requirement] || ke._2.nodes.exists(_.isInstanceOf[Requirement]))
+      case GenericReq => selection(ke => ke._1.entity.isInstanceOf[GenericReq] || ke._2.nodes.exists(_.isInstanceOf[GenericReq]))
+      case IntentionalReq => selection(ke => ke._1.entity.isInstanceOf[IntentionalReq] || ke._2.nodes.exists(_.isInstanceOf[IntentionalReq]))
       case QualityReq => selection(ke => ke._1.entity.isInstanceOf[QualityReq] || ke._2.nodes.exists(_.isInstanceOf[QualityReq]))
+      case FunctionalReq => selection(ke => ke._1.entity.isInstanceOf[FunctionalReq] || ke._2.nodes.exists(_.isInstanceOf[FunctionalReq]))
       case DataReq => selection(ke => ke._1.entity.isInstanceOf[DataReq] || ke._2.nodes.exists(_.isInstanceOf[DataReq]))
-      case ScenarioReq => selection(ke => ke._1.entity.isInstanceOf[ScenarioReq] || ke._2.nodes.exists(_.isInstanceOf[ScenarioReq]))
+      case ToDoReq => selection(ke => ke._1.entity.isInstanceOf[ToDoReq] || ke._2.nodes.exists(_.isInstanceOf[ToDoReq]))
+      case ProductLineReq => selection(ke => ke._1.entity.isInstanceOf[ProductLineReq] || ke._2.nodes.exists(_.isInstanceOf[ProductLineReq]))
       case Relation => selection(ke => ke._1.edge.isInstanceOf[Relation])      
       case a: AttributeKind[_] => a match {
         case e: External.type => selection(ke => ke._2.nodes.exists(_.isInstanceOf[External[_]] ) )
@@ -272,9 +281,14 @@ package reqt {
     ): Model = elm match {
       case Context => selection(ke => ke._2.nodes.exists(_.isInstanceOf[Context])) 
       case Requirement =>  selection(ke => ke._2.nodes.exists(_.isInstanceOf[Requirement]))
+      case GenericReq => selection(ke => ke._2.nodes.exists(_.isInstanceOf[GenericReq]))
+      case IntentionalReq => selection(ke => ke._2.nodes.exists(_.isInstanceOf[IntentionalReq]))
       case QualityReq => selection(ke => ke._2.nodes.exists(_.isInstanceOf[QualityReq]))
+      case FunctionalReq => selection(ke => ke._2.nodes.exists(_.isInstanceOf[FunctionalReq]))
       case DataReq => selection(ke => ke._2.nodes.exists(_.isInstanceOf[DataReq]))
       case ScenarioReq => selection(ke => ke._2.nodes.exists(_.isInstanceOf[ScenarioReq]))
+      case ToDoReq => selection(ke => ke._2.nodes.exists(_.isInstanceOf[ToDoReq]))
+      case ProductLineReq => selection(ke => ke._2.nodes.exists(_.isInstanceOf[ProductLineReq]))
       case a: AttributeKind[_] => a match {
         case e: External.type => selection(ke => ke._2.nodes.exists(_.isInstanceOf[External[_]] ) )
         case _ => selection(ke => ke._2.nodes.exists(_ <==> a ) )
