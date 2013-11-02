@@ -141,7 +141,6 @@ package object reqt {
   implicit object makeOutput extends AttrFromString[Output] { def apply(s: String): Output = Output(s) }
   implicit object makeTrigger extends AttrFromString[Trigger] { def apply(s: String): Trigger = Trigger(s) }
   implicit object makePrecond extends AttrFromString[Precond] { def apply(s: String): Precond = Precond(s) }
-  implicit object makeFrequency extends AttrFromString[Frequency] { def apply(s: String): Frequency = Frequency(s) }
   implicit object makeCritical extends AttrFromString[Critical] { def apply(s: String): Critical = Critical(s) }
   implicit object makeProblem extends AttrFromString[Problem] { def apply(s: String): Problem = Problem(s) }
   implicit object makePrio extends AttrFromString[Prio] { def apply(s: String): Prio = Prio(s.toIntOrZero ) }
@@ -149,6 +148,7 @@ package object reqt {
   implicit object makeCost extends AttrFromString[Cost] { def apply(s: String): Cost = Cost(s.toIntOrZero) }
   implicit object makeBenefit extends AttrFromString[Benefit] { def apply(s: String): Benefit = Benefit(s.toIntOrZero) }
   implicit object makeCapacity extends AttrFromString[Capacity] { def apply(s: String): Capacity = Capacity(s.toIntOrZero) }
+  implicit object makeFrequency extends AttrFromString[Frequency] { def apply(s: String): Frequency = Frequency(s.toIntOrZero) }
   implicit object makeUrgency extends AttrFromString[Urgency] { def apply(s: String): Urgency = Urgency(s.toIntOrZero) }
   implicit object makeUtility extends AttrFromString[Utility] { def apply(s: String): Utility = Utility(s.toIntOrZero) }
   implicit object makeDifferentiation extends AttrFromString[Differentiation] { def apply(s: String): Differentiation = Differentiation(s.toIntOrZero) }

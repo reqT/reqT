@@ -379,9 +379,6 @@ package reqt {
   case class Precond(value: String) extends StringValue { override lazy val kind = reqt.Precond}
   case object Precond extends StringKind 
   
-  case class Frequency(value: String) extends StringValue { override lazy val kind = reqt.Frequency }
-  case object Frequency extends StringKind
-  
   case class Critical(value: String) extends StringValue { override lazy val kind = reqt.Critical }
   case object Critical extends StringKind
   
@@ -402,6 +399,9 @@ package reqt {
 
   case class Capacity(value: Int) extends IntValue { override lazy val kind = reqt.Capacity }
   case object Capacity extends IntKind  
+
+  case class Frequency(value: Int) extends IntValue { override lazy val kind = reqt.Frequency }
+  case object Frequency extends IntKind
   
   case class Urgency(value: Int) extends IntValue { override lazy val kind = reqt.Urgency }
   case object Urgency extends IntKind  
@@ -635,7 +635,6 @@ match argument types ()
     def Output(value: String) = EdgeToNodes(has(), NodeSet(reqt.Output(value)))
     def Trigger(value: String) = EdgeToNodes(has(), NodeSet(reqt.Trigger(value)))
     def Precond(value: String) = EdgeToNodes(has(), NodeSet(reqt.Precond(value)))
-    def Frequency(value: String) = EdgeToNodes(has(), NodeSet(reqt.Frequency(value)))
     def Critical(value: String) = EdgeToNodes(has(), NodeSet(reqt.Critical(value)))
     def Problem(value: String) = EdgeToNodes(has(), NodeSet(reqt.Problem(value)))
     def Prio(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Prio(value)))
@@ -643,6 +642,7 @@ match argument types ()
     def Cost(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Cost(value)))
     def Benefit(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Benefit(value)))
     def Capacity(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Capacity(value)))
+    def Frequency(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Frequency(value)))
     def Urgency(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Urgency(value)))
     def Utility(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Utility(value)))
     def Differentiation(value: Int) = EdgeToNodes(has(), NodeSet(reqt.Differentiation(value)))
