@@ -258,6 +258,10 @@ package reqt {
   case object Subdomain extends Context with EntityKind  
   case class Component(value: String) extends Context { override lazy val kind = reqt.Component }
   case object Component extends Context with EntityKind  
+  case class VariationPoint(value: String) extends Context { override lazy val kind = reqt.VariationPoint }
+  case object VariationPoint extends Context with EntityKind  
+  case class Variant(value: String) extends Context { override lazy val kind = reqt.Variant }
+  case object Variant extends Context with EntityKind  
   
   abstract class Requirement extends Entity 
   case class Req(value: String) extends Requirement { override lazy val kind = reqt.Req }
@@ -560,6 +564,8 @@ match argument types ()
     def Resource(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Resource(id)))
     def Subdomain(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Subdomain(id)))
     def Component(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Component(id)))
+    def VariationPoint(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.VariationPoint(id)))
+    def Variant(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Variant(id)))
     def Req(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Req(id)))
     def Idea(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Idea(id)))
     def Label(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Label(id)))
