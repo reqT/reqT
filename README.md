@@ -123,3 +123,7 @@ There are several ways to build reqT after cloning this repo:
           jar cfe reqT.jar reqt.start -C target/ .
 
 3. Use http://www.scala-sbt.org/ and the file build.sbt
+
+How to generate scaladoc from code
+----------------------------------
+`scaladoc -d api src/*.scala`
