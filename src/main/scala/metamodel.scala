@@ -299,7 +299,7 @@ package reqt {
   case class Ticket(value: String) extends ToDoReq { override lazy val kind = reqt.Ticket }  
   case object Ticket extends ToDoReq with EntityKind   
   
-  abstract class DataReq extends Requirement
+  abstract class DataReq extends FunctionalReq
   case class Data(value: String) extends DataReq { override lazy val kind = reqt.Data }  
   case object Data extends DataReq with EntityKind 
   case class Class(value: String) extends DataReq { override lazy val kind = reqt.Class }  
@@ -309,7 +309,7 @@ package reqt {
   case class Member(value: String) extends DataReq { override lazy val kind = reqt.Member }  
   case object Member extends DataReq with EntityKind    
   
-  abstract class ScenarioReq extends Requirement
+  abstract class ScenarioReq extends FunctionalReq
   case class UserStory(value: String) extends ScenarioReq { override lazy val kind = reqt.UserStory } 
   case object UserStory extends ScenarioReq with EntityKind  
   case class UseCase(value: String) extends ScenarioReq  { override lazy val kind = reqt.UseCase }
