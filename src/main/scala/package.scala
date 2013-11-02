@@ -89,7 +89,7 @@ package object reqt {
   lazy val dataKinds: List[Element] = List(Data, Class, Member, Relationship)
   lazy val requirementKinds: List[Element] = List(Req, Idea, Goal, Feature, Function, Quality, Barrier, Target, Interface, Design, Issue, Ticket) ++ scenarioKinds ++ dataKinds
   lazy val attributeKinds: List[Attribute[_] with AttributeKind[_]] = 
-    List(Gist, Spec, Status, Why, Example, Expectation, Input, Output, Trigger, Precond, Frequency, Critical, Problem, Prio, Order, Cost, Benefit, Capacity, Urgency, Utility, Differentiation, Saturation, Value, QualityLevel, Min, Max, Label, Comment, Image, Deprecated, Submodel, Code, Constraints)
+    List(Gist, Spec, Status, Why, Example, Expectation, Input, Output, Trigger, Precond, Frequency, Critical, Problem, Prio, Order, Cost, Benefit, Capacity, Urgency, Utility, Differentiation, Saturation, Value, QualityLevel, Min, Max, Comment, Image, Deprecated, Submodel, Code, Constraints)
   lazy val edgeKinds: List[Element] = List(has) ++ relationKinds // ++ relationWithAttributeKinds
   lazy val relationKinds: List[RelationWithoutAttribute] = List(owns, requires, relatesTo, relatesToOne, relatesToOneOrMany, relatesToZeroOrMany, relatesToZeroOrOne, excludes, releases, helps, hurts, precedes, inherits, implements, verifies, deprecates)
   //lazy val relationWithAttributeKinds: List[RelationWithAttribute[_]] = List(assigns)
@@ -157,7 +157,6 @@ package object reqt {
   implicit object makeQualityLevel extends AttrFromString[QualityLevel] { def apply(s: String): QualityLevel = QualityLevel(s.toIntOrZero) }
   implicit object makeMin extends AttrFromString[Min] { def apply(s: String): Min = Min(s.toIntOrZero) }
   implicit object makeMax extends AttrFromString[Max] { def apply(s: String): Max = Max(s.toIntOrZero) }
-  implicit object makeLabel extends AttrFromString[Label] { def apply(s: String): Label = Label(s) }
   implicit object makeComment extends AttrFromString[Comment] { def apply(s: String): Comment = Comment(s) }
   implicit object makeImage extends AttrFromString[Image] { def apply(s: String): Image = Image(s) }
   implicit object makeDeprecated extends AttrFromString[Deprecated] { def apply(s: String): Deprecated = Deprecated(s) }
@@ -195,7 +194,6 @@ package object reqt {
    "QualityLevel" -> makeAttribute[QualityLevel] _,
    "Min" -> makeAttribute[Min] _,
    "Max" -> makeAttribute[Max] _,
-   "Label" -> makeAttribute[Label] _,
    "Comment" -> makeAttribute[Comment] _,
    "Image" -> makeAttribute[Image] _,
    "Deprecated" -> makeAttribute[Deprecated] _,

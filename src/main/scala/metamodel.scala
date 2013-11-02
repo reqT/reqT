@@ -427,9 +427,6 @@ package reqt {
   case class Max(value: Int) extends IntValue { override lazy val kind = reqt. Max }
   case object Max extends IntKind  
 
-  case class Label(value: String) extends StringValue { override lazy val kind = reqt.Label }
-  case object Label extends StringKind
-
   case class Comment(value: String) extends StringValue { override lazy val kind = reqt.Comment }
   case object Comment extends StringKind 
   
@@ -655,7 +652,6 @@ match argument types ()
     def Code(value: String) = EdgeToNodes(has(), NodeSet(reqt.Code(value)))
     def Constraints[T](value: Vector[Constr[T]]) = EdgeToNodes(has(), NodeSet(reqt.Constraints(value)))
     def Constraints[T](value: Constr[T] *) = EdgeToNodes(has(), NodeSet(reqt.Constraints(value.toVector)))
-    def Label(value: String) = EdgeToNodes(has(), NodeSet(reqt.Label(value)))
     def Comment(value: String) = EdgeToNodes(has(), NodeSet(reqt.Comment(value)))
     def Image(value: String) = EdgeToNodes(has(), NodeSet(reqt.Image(value)))
     def Deprecated(value: String) = EdgeToNodes(has(), NodeSet(reqt.Deprecated(value)))
