@@ -258,6 +258,8 @@ package reqt {
   case object Req extends Requirement with EntityKind  
   case class Idea(value: String) extends Requirement { override lazy val kind = reqt.Idea }
   case object Idea extends Requirement with EntityKind 
+  case class Label(value: String) extends Requirement { override lazy val kind = reqt.Label }
+  case object Label extends Requirement with EntityKind 
   case class Goal(value: String) extends Requirement { override lazy val kind = reqt.Goal }
   case object Goal extends Requirement with EntityKind 
   case class Feature(value: String) extends Requirement   { override lazy val kind = reqt.Feature }
@@ -553,6 +555,7 @@ match argument types ()
     def Subdomain(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Subdomain(id)))
     def Req(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Req(id)))
     def Idea(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Idea(id)))
+    def Label(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Label(id)))
     def Goal(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Goal(id)))
     def Feature(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Feature(id)))
     def Function(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Function(id)))
