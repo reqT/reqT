@@ -153,6 +153,8 @@ package reqt {
       (Key(this, reqt.owns()), NodeSet())
     }
     //construct Key
+    def holds() = Key(this, reqt.holds())
+    def holds(es:Entity *) = (Key(this, reqt.holds()), NodeSet(es: _*))
     def requires() = Key(this, reqt.requires())
     def requires(es:Entity *) = (Key(this, reqt.requires()), NodeSet(es: _*))
     def relatesTo() = Key(this, reqt.relatesTo())
@@ -177,6 +179,8 @@ package reqt {
     def precedes(es:Entity *) = (Key(this, reqt.precedes()), NodeSet(es: _*))
     def inherits() = Key(this, reqt.inherits())
     def inherits(es:Entity *) = (Key(this, reqt.inherits()), NodeSet(es: _*))
+    def binds() = Key(this, reqt.binds())
+    def binds(es:Entity *) = (Key(this, reqt.binds()), NodeSet(es: _*))
     def implements() = Key(this, reqt.implements())
     def implements(es:Entity *) = (Key(this, reqt.implements()), NodeSet(es: _*))
     def verifies() = Key(this, reqt.verifies())
@@ -581,6 +585,8 @@ match argument types ()
   }
   case class owns() extends RelationWithoutAttribute { override lazy val kind = owns } 
   case object owns extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
+  case class holds() extends RelationWithoutAttribute { override lazy val kind = holds }
+  case object holds extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
   case class requires() extends RelationWithoutAttribute { override lazy val kind = requires }
   case object requires extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
   case class relatesTo() extends RelationWithoutAttribute { override lazy val kind = relatesTo }
@@ -605,6 +611,8 @@ match argument types ()
   case object precedes extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
   case class inherits() extends RelationWithoutAttribute { override lazy val kind = inherits }
   case object inherits extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
+  case class binds() extends RelationWithoutAttribute { override lazy val kind = binds }
+  case object binds extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }
   case class implements() extends RelationWithoutAttribute { override lazy val kind = implements }
   case object implements extends RelationWithoutAttribute with EdgeKind { override lazy val kind = this }  
   case class verifies() extends RelationWithoutAttribute { override lazy val kind = verifies }

@@ -91,7 +91,7 @@ package object reqt {
   lazy val attributeKinds: List[Attribute[_] with AttributeKind[_]] = 
     List(Gist, Spec, Status, Why, Example, Expectation, Input, Output, Trigger, Precond, Frequency, Critical, Problem, Prio, Order, Cost, Benefit, Capacity, Urgency, Utility, Differentiation, Saturation, Value, QualityLevel, Min, Max, Comment, Image, Deprecated, Submodel, Code, Constraints)
   lazy val edgeKinds: List[Element] = List(has) ++ relationKinds // ++ relationWithAttributeKinds
-  lazy val relationKinds: List[RelationWithoutAttribute] = List(owns, requires, relatesTo, relatesToOne, relatesToOneOrMany, relatesToZeroOrMany, relatesToZeroOrOne, excludes, releases, helps, hurts, precedes, inherits, implements, verifies, deprecates)
+  lazy val relationKinds: List[RelationWithoutAttribute] = List(owns, requires, holds, relatesTo, relatesToOne, relatesToOneOrMany, relatesToZeroOrMany, relatesToZeroOrOne, excludes, releases, helps, hurts, precedes, inherits, binds, implements, verifies, deprecates)
   //lazy val relationWithAttributeKinds: List[RelationWithAttribute[_]] = List(assigns)
   lazy val levelVector: Vector[StatusLevel] = Vector(DROPPED, ELICITED, SPECIFIED, VALIDATED, POSTPONED, PLANNED, FAILED, IMPLEMENTED, TESTED, RELEASED)
   lazy val levelIndex: Map[StatusLevel, Int] = levelVector.zipWithIndex.toMap
