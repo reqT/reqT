@@ -87,6 +87,39 @@ package reqt {
     //we also have from Map inherited slice(from,until) 
     
     //----- pretty printing methods:
+    def toTxt:String = {
+      def mkTxt(m: Model, indentation: Int = 0, prefix: String = "MODEL("): String = {
+        def spaces(n: Int) = List.fill(n)( ' ' ).mkString
+        def indentButNotFirst(s: String, n: Int = 2): String = s.replaceAll("\n","\n"+spaces(n))
+        def indent(s: String, n: Int = 2): String = spaces(n) + indentButNotFirst(s,n)
+        val stringSeq = for (i <- 0 until m.size) yield {
+          val ent = m(i)._1.entity
+          val edg: String = m(i)._1.edge match {
+            case r: Relation  => " -- " + r.toScala + " -->"
+            case a => " HAS"
+          }
+          val entString = 
+            indent(ent.kind.toString.toUpperCase + " " + 
+              ent.id + edg,indentation+2)
+          val nodes = m(i)._2.toSeq
+          val nodeString = if (nodes.isEmpty) "  NONE" else
+            nodes.map { n => n match {
+                case Submodel(subm) => 
+                  indent(mkTxt(subm, indentation,"SUBMODEL("), indentation+2) 
+                case _ => 
+                  def sep = if (n.isAttribute) ": " else " "
+                  indent(n.kind.toString.toUpperCase + sep +
+                    indentButNotFirst(n.value.toString, indentation+2), 
+                    indentation+2)
+              }
+            } .mkString("","\n","")
+          entString+"\n"+indent(nodeString,indentation+2)
+        } 
+        indent(prefix + "\n" + stringSeq.mkString("\n\n"),indentation) +
+          indent("\n)", indentation)
+      }
+      mkTxt(this)
+    }
     def print { println(toScala) }
     def p { print }
     def pp { pp(attributeKinds.collect { case a: AttributeKind[_] => a } : _* ) }
