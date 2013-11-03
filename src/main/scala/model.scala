@@ -95,7 +95,7 @@ package reqt {
         val stringSeq = for (i <- 0 until m.size) yield {
           val ent = m(i)._1.entity
           val edg: String = m(i)._1.edge match {
-            case r: Relation  => " -- " + r.toScala + " -->"
+            case r: Relation  => " -- " + r.toScala + ""
             case a => " HAS"
           }
           val entString = 
@@ -107,8 +107,9 @@ package reqt {
                 case Submodel(subm) => 
                   indent(mkTxt(subm, indentation,"SUBMODEL("), indentation+2) 
                 case _ => 
+                  def arrow = if (n.isEntity) "--> " else ""
                   def sep = if (n.isAttribute) ": " else " "
-                  indent(n.kind.toString.toUpperCase + sep +
+                  indent(arrow + n.kind.toString.toUpperCase + sep +
                     indentButNotFirst(n.value.toString, indentation+2), 
                     indentation+2)
               }
@@ -130,8 +131,8 @@ package reqt {
     /** pretty print this Model in txt format */
     def pp { toTxt.show }
     
-    /** list this model, one numbered line per source, long lines truncated */ 
-    def ls { ls(attributeKinds.collect { case a: AttributeKind[_] => a } : _* ) }
+    /** list attribute values and relations of this model, one numbered line per source, long lines truncated */ 
+    def lsa { ls(attributeKinds.collect { case a: AttributeKind[_] => a } : _* ) }
 
     /** list relations and specific attributes of this model, one numbered line per source, long lines truncated */ 
     def ls(as: AttributeKind[_]*) {
@@ -152,7 +153,7 @@ package reqt {
     }
     
     /** list relations and attribute kinds, but no attribute values*/     
-    def lsk {
+    def ls {
       val prefixes = attributeKinds.map(_.prefix)
       def select(prefMap: Map[String, Node[_]]): Seq[String] = 
         prefixes.collect { case s if prefMap.isDefinedAt(s) => s } .toSeq
