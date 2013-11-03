@@ -168,7 +168,7 @@ package reqt {
     }
     
     /** list gists only*/     
-    def lsg { pp(Gist) }
+    def lsg { ls(Gist) }
 	
     //----- apply, updated and remove methods
 
