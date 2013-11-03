@@ -126,4 +126,4 @@ There are several ways to build reqT after cloning this repo:
 
 How to generate scaladoc from code
 ----------------------------------
-`scaladoc -d api src/*.scala`
+`scaladoc -d apidoc src/*.scala`
