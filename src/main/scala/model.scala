@@ -120,10 +120,21 @@ package reqt {
       }
       mkTxt(this)
     }
-    def print { println(toScala) }
-    def p { print }
-    def pp { pp(attributeKinds.collect { case a: AttributeKind[_] => a } : _* ) }
-    def pp(as: AttributeKind[_]*) {
+
+    /** print this Model */
+    def show { println(toScala) }
+
+    /** print this Model */
+    def p { show }
+
+    /** pretty print this Model in txt format */
+    def pp { toTxt.show }
+    
+    /** list this model, one numbered line per source, long lines truncated */ 
+    def ls { ls(attributeKinds.collect { case a: AttributeKind[_] => a } : _* ) }
+
+    /** list relations and specific attributes of this model, one numbered line per source, long lines truncated */ 
+    def ls(as: AttributeKind[_]*) {
       val prefixes = as.map(_.prefix)
       def select(prefMap: Map[String, Node[_]]): Seq[Node[_]] = 
         prefixes.collect { case s if prefMap.isDefinedAt(s) => prefMap(s) } .toSeq
@@ -139,7 +150,9 @@ package reqt {
         }        
       )
     }
-    def ppa {
+    
+    /** list relations and attribute kinds, but no attribute values*/     
+    def lsk {
       val prefixes = attributeKinds.map(_.prefix)
       def select(prefMap: Map[String, Node[_]]): Seq[String] = 
         prefixes.collect { case s if prefMap.isDefinedAt(s) => s } .toSeq
@@ -153,7 +166,9 @@ package reqt {
         }        
       )    
     }
-    def ppg { pp(Gist) }
+    
+    /** list gists only*/     
+    def lsg { pp(Gist) }
 	
     //----- apply, updated and remove methods
 
