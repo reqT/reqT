@@ -859,6 +859,99 @@ package reqt {
       println("Entity visited: " + e + " at level " + level + " count " + count + " #siblings " + nSiblings + "\n" + "Path: " + path + "\n")
       ()
     }
+    
+
+    def fromTxt(s: String): Model = {
+      //A quick and dirty parser for reqT/txt
+      val entityMap = entityKinds.map(e => e.toString.toUpperCase -> e.toString).toMap
+      val attrMap = 
+        attributeKinds.map(a => a.toString.toUpperCase+":" -> a.toString)
+          .filterNot(p => p._1 == "SUBMODEL:").toMap
+      val relMap = relationKinds.map(r => r.toString).zip(relationKinds).toMap
+      val tokenized = s.replaceAll("""\s+""", " ")
+        .replaceFirst("""MODEL\s+\(""", "MODEL(")
+        .replaceAll("""SUBMODEL\s+\(""", "SUBMODEL(")
+        .replaceAll("""\)""", " )")
+        .split(" ").toVector.filterNot(_.isEmpty)
+        
+      def isModel(s: String) = s == "MODEL("
+      def isSubmodel(s: String) = s == "SUBMODEL("
+      def isEntity(s: String) = entityMap.contains(s)
+      def isAttr(s: String) = attrMap.contains(s)
+      def isRel(s: String) = relMap.contains(s)
+      def isHas(s: String) = s == "HAS"
+      def isNode(s: String) = isEntity(s) || isAttr(s)
+      def isEdge(s: String) = isHas(s) || isRel(s)
+      def isEnd(s: String) = s == ")"
+      def isReserved(s: String) = 
+        isNode(s) || isEdge(s) || isModel(s) || isSubmodel(s) || isEnd(s)
+      def isRelSource(s: String) = s == "--"
+      def isRelDest(s: String) = s == "-->"
+        
+      def parseFailed(msg: String, tokens: Vector[String], m: Model): Model = {
+        warn(msg+ ( if (tokens.isEmpty) "." else ": "+tokens.take(5).mkString(" ")) +
+        "\n--- Parsing interupted. Incomplete Model constructed.")
+        m
+      }  
+      
+      def parseModel(tokens: Vector[String], m: Model): Model = tokens match {
+        case ts if !ts.isEmpty && isModel(ts.head)  => 
+          if (ts.last != ")") parseFailed("MODEL must end with )", Vector(), m)
+          else parseEntity(tokens.drop(1),m)   
+        case ts => 
+          parseFailed(s"Found ${ts.headOption} but MODEL( expected", Vector(), m)
+      }
+      
+      def parseEntity(ts: Vector[String], m: Model): Model =
+        if (ts.size < 3) parseFailed("More tokens expected after entity", ts, m)
+        else if (isEntity(ts(0)) && isHas(ts(2))) 
+          parseAttribute(entityFromString(entityMap(ts(0)))(ts(1)),ts.drop(3), m)
+        else if (isEntity(ts(0)) && isRelSource(ts(2))) 
+          parseSource(entityFromString(entityMap(ts(0)))(ts(1)),ts.drop(3), m)
+        else parseFailed("Unexpected token while parsing entity", ts, m)
+        
+      def parseAttribute(e: Entity, ts: Vector[String], m: Model): Model = 
+        if (ts.size < 2) parseFailed("More tokens expected after attribute",ts, m)
+        else {
+          val (strTokens, rest) = ts.drop(1).span(!isReserved(_))
+          val m2 = m + ( if (isAttr(ts(0)))
+              e.has(attributeFromString(attrMap(ts(0)))(strTokens.mkString(" ")))
+            else {
+              warn("SUBMODEL parsing not yet implemented")
+              e.has(Submodel(Model(Label("SUBMODEL parsing not yet implemented")))) //TODO!!!!
+            } )
+          if (rest.isEmpty) 
+            parseFailed("More tokens expected after attribute string", ts, m2)
+          else if (isAttr(rest(0))) parseAttribute(e, rest, m2)
+          else if (isEntity(rest(0))) parseEntity(rest, m2)
+          else if (isEnd(rest(0))) m2 //successful parsing complete
+          else parseFailed("Unexpected token in attribute parsing", rest, m2)
+        }
+        
+      def parseSource(e: Entity, ts: Vector[String], m: Model): Model = 
+        if (ts.size < 4) parseFailed("Incomplete relation",ts, m)
+        else if (isRel(ts(0))) parseDest(e,relMap(ts(0)), ts.drop(1), m)
+        else parseFailed("Relation expected", ts, m)
+      
+      def parseDest(e: Entity, r: Relation, ts: Vector[String], m: Model): Model =
+        if (ts.size < 3) parseFailed("More tokens expected in relation",ts, m)
+        else if (!isRelDest(ts(0))) 
+          parseFailed("Expected --> in relation destination",ts, m)
+        else {
+          val m2 = m + ((Key(e,r),NodeSet(entityFromString(entityMap(ts(1)))(ts(2)))))
+          val rest = ts.drop(3)
+          if (rest.isEmpty)
+            parseFailed("More tokens expected after relation destination", ts, m2)
+          else if (isRelDest(rest(0))) parseDest(e, r, rest, m2)
+          else if (isEntity(rest(0))) parseEntity(rest, m2)
+          else if (isEnd(rest(0))) m2  //successful parsing complete
+          else parseFailed("Unexpected tokens while parsing relation", rest, m2)
+        }
+      
+      //println("Tokens to parse:" + tokenized)
+      parseModel(tokenized, Model())  
+    } // end fromTxt ********
+    
     var interpreter: Option[scala.tools.nsc.interpreter.IMain] = None 
     def interpreterWarning() {
       warn( "No interpreter avialable: result is empty Model()" +
