@@ -20,8 +20,9 @@ package object reqt {
     println("? <topic>\nwhere <topic> can be: " + helpInstaller.summary)
   }
   
-  val VERSION = "2.3.0"
+  val REQT_VERSION = "2.3.0-snapshot"
   val SCALA_VERSION = "2.10.2"
+  val SNAPSHOT_BUILD = ( new java.util.Date ).toString
 
   def initInterpreter(intp: scala.tools.nsc.interpreter.IMain) {
     println("** Initializing interpreter ...")
