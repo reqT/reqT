@@ -25,9 +25,12 @@ object repl {
   //val helpOnReqT: String = "** Type ?? for help on reqT, type :h for help on Scala REPL"
   val helpOnReqT: String = "** Type :h for help on Scala REPL"
   val startMsg: String = 
-    s"\n** Welcome to reqT version $VERSION compiled with Scala version $SCALA_VERSION" +  
-     "\n** Running Java version " + System.getProperty("java.version") +
-    s"\n$reqT_PREAMBLE\n$helpOnReqT" +
+    s"\n** Welcome to reqT version $REQT_VERSION" +
+    s"\n** Snapshot build: $SNAPSHOT_BUILD" + 
+    s"\n** Compiled with Scala version $SCALA_VERSION" +  
+     "\n** Running Java version " + System.getProperty("java.version") +  
+     "\n** Running on " + System.getProperty("java.vm.name") +
+     s"\n$reqT_PREAMBLE\n$helpOnReqT" +
     "\n** Starting reqT ..."
   
   var interpreter: Option[ReqTILoop] = None
