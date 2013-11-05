@@ -2,5 +2,5 @@
 println("---")
 import reqt._
 reqt.initInterpreter(builtins.kojoInterp.interp)
-println(s"Welcome to reqT version $VERSION")
+println(s"Welcome to reqT version $REQT_VERSION from $SNAPSHOT_BUILD")
 println("---")
