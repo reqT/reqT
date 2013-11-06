@@ -747,7 +747,7 @@ match argument types ()
       "Both Entity and Attribute nodes in the same NodeSet is not allowed.")
     def keyStr(keyOpt: Option[Key] = None) = (keyOpt collect { case k => " of " + k.entity } orElse (Some("")) get)
     lazy val submodelsMerged: Model = nodes.collect { case Submodel(m) => m } .fold(Model())(_ ++ _)
-    lazy val submodelsRemoved: Set[Node[_]] = nodes.filterNot( _ <==> Submodel) 
+    lazy val submodelsRemoved: Set[Node[_]] = nodes.filterNot( _.kind == Submodel.kind)  //was bug:  _ <==> Submodel
     def removeDuplicatePrefixes(keyOpt: Option[Key] = None) = {
       def removeDup(l:List[Node[_]]):List[Node[_]] = l match {
         case Nil => Nil
@@ -765,8 +765,8 @@ match argument types ()
     def concatNodes(ns: NodeSet, keyOpt: Option[Key] = None): NodeSet  = {
       if (!ns.hasAttribute) NodeSet(nodes ++ ns.nodes).entityKindsReplacedWithEmptyId
       else { //collect+merge submodels, remove duplicates and replace existing attributes
-        val mergedSubmodels: Model = submodelsMerged ++ ns.submodelsMerged
-        val moreNodes = ns.submodelsRemoved.removeDuplicatePrefixes(keyOpt) 
+        lazy val mergedSubmodels: Model = submodelsMerged ++ ns.submodelsMerged
+        lazy val moreNodes = ns.submodelsRemoved.removeDuplicatePrefixes(keyOpt) 
         val existingAttrNodesRemoved = submodelsRemoved filterNot { n =>
           if (n.isAttribute) moreNodes.nodes.exists { n2 => 
             if (n2.hasEqualPrefix(n) && (n2.value != n.value))
@@ -777,7 +777,7 @@ match argument types ()
           else false
         }
         val addSubmodel: Set[Node[_]] = 
-          if (!(nodes ++ ns).exists( _ <==> Submodel )) Set() 
+          if (!(nodes ++ ns).exists( _.kind == Submodel.kind)) Set() //was bug:  _ <==> Submodel
           else Set(Submodel(mergedSubmodels))
         NodeSet(existingAttrNodesRemoved ++ moreNodes.nodes ++ addSubmodel).attrKindsReplacedWithDefault
       } 
