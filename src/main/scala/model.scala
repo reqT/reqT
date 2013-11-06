@@ -840,13 +840,13 @@ package reqt {
 
     def fromTable(table: String, rowSeparator: String = "\t") = {
       def makeNode(node: String, nVal: String): String = 
-        if (stringValueAttributeNames.contains(node)) 
+        if (attributeNames.contains(node)) 
           attributeFromString(node)(nVal) toScala   
-        else if (node.startsWith("External") ) 
-          node + "(\"" + nVal + "\")"
         else if (entityNames.contains(node))
           entityFromString(node)(nVal) toScala
-        else s"""Comment("ERROR PARSING TABLE ATTRIBUTE $nVal")"""
+        else if (node.startsWith("External") ) 
+          node + "(\"" + nVal + "\")"
+        else s"""Comment("ERROR PARSING TABLE ATTRIBUTE $node($nVal)")"""
       val linesH = table.split("\n").toList.map { _.split(rowSeparator).toList }
       val lines: List[List[String]] = linesH.dropWhile(_ == tableHeadings)  
       val modelLines =  lines collect { case List(ent, id, link, node, nVal) => 
