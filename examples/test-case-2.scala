@@ -6,10 +6,7 @@ val m = Model(
   TestCase("hello2") verifies Feature("hello")
 )
 m.tested.testFailed.foreach { 
-  case (t, (o, e)) => println(s"*** Failed:$t|output:$o|expected:$e|") 
+  case (t, (o, e)) => println(s"*** Failed:$t, output:$o, expected:$e") 
 }
-  
-m.isTestOk 
 
-println("number of failed test cases: " + m.tested.testFailed.size)
-
+m.tested.testFailed.size  // this value is used in test-case-3.scala

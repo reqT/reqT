@@ -1,5 +1,5 @@
 val m1 = Model(
-  TestCase("testTested") has (Code("""
+  TestCase("testHello") has (Code("""
     Model(
       TestCase("pass") has (Code("\"hel\" + \"lo\" "), Expectation("hello")),
       TestCase("fail") has (Code("\"hell\" + \"lo\" "), Expectation("hello"))
@@ -8,7 +8,7 @@ val m1 = Model(
 )
 
 val m2 = Model(
-  TestCase("testTested") has (External[Code]("examples/testCode0.scala"), Expectation("1"))
+  TestCase("externalDemo") has (External[Code]("test-case-2.scala"), Expectation("1"))
 )
 
 val m3 = Model(
@@ -30,3 +30,5 @@ val hello = Model(
     Expectation("hello world")
   )
 )
+
+List(m1, m2, m3, hello).map(_.isTestOk)

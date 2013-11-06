@@ -839,17 +839,22 @@ package reqt {
     lazy val tableHeadings = List("ENTITY", "ID", "LINK", "NODE", "VALUE") 
 
     def fromTable(table: String, rowSeparator: String = "\t") = {
-      def quoteVal(node: String, nVal: String): String = 
-        if (stringValueAttributeNames.contains(node) || node.startsWith("External") )
-          nVal.toScala  //toScala adds quotes and escape chars 
-        else nVal
+      def makeNode(node: String, nVal: String): String = 
+        if (stringValueAttributeNames.contains(node)) 
+          attributeFromString(node)(nVal) toScala   
+        else if (node.startsWith("External") ) 
+          node + "(\"" + nVal + "\")"
+        else if (entityNames.contains(node))
+          entityFromString(node)(nVal) toScala
+        else s"""Comment("ERROR PARSING TABLE ATTRIBUTE $nVal")"""
       val linesH = table.split("\n").toList.map { _.split(rowSeparator).toList }
       val lines: List[List[String]] = linesH.dropWhile(_ == tableHeadings)  
       val modelLines =  lines collect { case List(ent, id, link, node, nVal) => 
-        ent + "(\"" + id + "\") " + link + " " + node + "(" + quoteVal(node, nVal) + ")"
+        ent + "(\"" + id + "\") " + link + " " + makeNode(node, nVal)
       }
       modelLines.mkString("Model(\n  ",",\n  ","\n)\n").toModel
     }
+    
     var overrideToStringWithToScala = true
     var ppLineLength = 92
     var ppColumnWidth = 33

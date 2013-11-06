@@ -130,7 +130,7 @@ package object reqt {
   //To help toTable get the "" right
   lazy val stringValueAttributeNames: Set[String] = 
     attributeKinds.filter(a => a.isInstanceOf[StringValue]).map(_.toString).toSet
-  
+  lazy val entityNames: Set[String]  = entityKinds.map(e => e.toString).toSet
   // Implicits objects for attribute External[T] and makeAttribute
   implicit object makeGist extends AttrFromString[Gist] { def apply(s: String): Gist = Gist(s) }
   implicit object makeSpec extends AttrFromString[Spec] { def apply(s: String): Spec = Spec(s) }

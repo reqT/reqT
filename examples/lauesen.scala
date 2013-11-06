@@ -24,18 +24,23 @@ val contextDiagramExample = Model(
   Actor("Accounting System") requires Interface("AccountingAPI") 
 )
 
-val taskDescriptionExample = Model(
+Model( 
   Task("reception work") owns (Task("check in"), Task("booking")),
-  Task("check in") has (
-    Why("Give guest a room. Mark it as occupied. Start account."),
-    Trigger("A guest arrives"),
-    Frequency("Average 0.5 checkins/room/day"),
-    Critical("Group tour with 50 guests.")
+  Task("check in") has ( 
+    Why("Guest wants room."),
+    Trigger("A guest arrives"), 
+    Frequency(3), 
+    Spec("Give guest a room. Mark it as occupied. Start account. 	Frequency scale: median #check-ins/room/week"),
+    Critical("Group tour with 50 guests.") 
+  ), 
+  Task("check in") owns (
+    Task("find room"), Task("record guest"), Task("deliver key")
   ),
-  Task("check in") owns (Task("find room"), Task("record guest"), Task("deliver key")),
   Task("record guest") has Spec(
-    "variants: a) Guest has booked in advance, b) No suitable room")
+    "variants: a) Guest has booked in advance, b) No suitable room"
+  ) 
 )
+
 
 val qualityReqtExample = Model( 
   Quality("capacity.database") has 
