@@ -903,7 +903,7 @@ match argument types ()
       case '\f' => '\\'+"f"
       case '\r' => '\\'+"r"
       case '\"' => ""+'\\'+'\"'
-      case '\'' => ""+'\\'+ """'"""
+      //case '\'' =>  ""+'\\'+ """'"""
       case '\\' => ""+'\\'+'\\'	
       case _ => c.toString
     }).mkString("")
