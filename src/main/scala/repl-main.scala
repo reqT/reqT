@@ -23,13 +23,13 @@ import java.io._
 
 object repl {
   //val helpOnReqT: String = "** Type ?? for help on reqT, type :h for help on Scala REPL"
-  val helpOnReqT: String = "** Type :h for help on Scala REPL"
-  val startMsg: String = 
-    s"\n** Welcome to reqT version $REQT_VERSION" +
+  val helpOnReqT = "** Type :h for help on Scala REPL"
+  val versionMsg = s"\n** Welcome to reqT version $REQT_VERSION" +
     s"\n** Snapshot build: $SNAPSHOT_BUILD" + 
     s"\n** Compiled with Scala version $SCALA_VERSION" +  
      "\n** Running Java version " + System.getProperty("java.version") +  
-     "\n** Running on " + System.getProperty("java.vm.name") +
+     "\n** Running on " + System.getProperty("java.vm.name")
+  val startMsg = versionMsg +
      s"\n$reqT_PREAMBLE\n$helpOnReqT" +
     "\n** Starting reqT ..."
   
@@ -80,13 +80,14 @@ object repl {
      }
   }
 
-  def startInterpreting = {
+  def startInterpreting() = {
     val out = new PrintWriter( new BufferedWriter( new OutputStreamWriter(System.out) ) )
     val settings = new GenericRunnerSettings(out.println)
     settings.usejavacp.value = true
     interpreter = Some(new ReqTILoop(out))
     interpreter.map(_.process(settings))
   }
+  
 }
 
 object start {
@@ -97,4 +98,5 @@ object start {
       case arg => println("Unknown args: " + args.mkString(" "))
     }
   }
+  
 }

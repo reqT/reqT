@@ -23,8 +23,18 @@ package object reqt {
   val REQT_VERSION = "2.3.0-snapshot"
   val SCALA_VERSION = "2.10.2"
   val SNAPSHOT_BUILD = ( new java.util.Date ).toString
+  
+  def makeIMain(): scala.tools.nsc.interpreter.IMain = {
+    //to be used when no ILoop is needed, e.g. from another main
+    //reqt.initInterpreter()
+    println(repl.versionMsg)
+    val settings = new scala.tools.nsc.Settings()
+    settings.classpath.value = System.getProperty("java.class.path")
+    val writer = new java.io.PrintWriter((new java.io.OutputStreamWriter(Console.out)))
+    new scala.tools.nsc.interpreter.IMain(settings, writer)
+  }
 
-  def initInterpreter(intp: scala.tools.nsc.interpreter.IMain) {
+  def initInterpreter(intp: scala.tools.nsc.interpreter.IMain = makeIMain()) {
     println("** Initializing interpreter ...")
     Model.interpreter = Some(intp)
     intp.quietRun("import scala.language._")
