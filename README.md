@@ -82,6 +82,40 @@ Different ways of running reqT, depending on your preference:
 
             reqT> 
 
+4.  Run reqT as a gui app:
+    * Download http://reqT.org/reqT-gui.jar and save in a dir myDir
+    * Try to double click on the jar. If that does not work, navigate to myDir and run with
+     `java -jar reqT-gui.jar`    
+
+5. Run reqT from a compiled app with a main in Eclipse:
+    * download the Scala ide for Eclipse from http://scala-ide.org/
+    * create a new Scala project and add a new package called `myPackage`
+    * add a new Scala object
+    * right click in the package explorer and choose Build Path -> Configure Build Path... 
+    * in the Libraries tab press the Add external jar... button. Add the reqT.jar and also the scala-compiler.jar and scala-reflect.jar. The latter libraries can be found in your scala installation's lib directory.
+    * Execute `reqt.initInterpreter()` in your main, using something similar to this code: 
+
+            package myPackage
+
+            object myStuff { 
+              import reqt._
+              def makeMyModel: Model = {
+                var m1 = Model()
+                m1 += Feature("hej") has Gist("greeting in Swedish")
+                val m2 = """Model(Feature("modelFromString") has Gist("interpret"))""".toModel
+                m1 ++ m2
+              }
+            }
+
+            object myMain {
+              def main(args: Array[String]): Unit = {
+                reqt.initInterpreter() //will create new IMain
+                println("** ... ready to rock!\n")
+                println(myStuff.makeMyModel)
+              }
+            }
+    
+     
 Hello reqT
 ----------
 Type this at the reqT> prompt, in the Kojo script editor or in the plain scala REPL scala> prompt:
