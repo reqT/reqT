@@ -31,7 +31,7 @@ Different ways of running reqT, depending on your preference:
     
         scala -toolcp reqT.jar reqT.jar
         
-    **Hello reqT** Type this at the reqT> prompt, in the Kojo script editor or in the plain scala REPL scala> prompt:
+    **Hello reqT!** Type this at the prompt reqT> prompt:
            
             var m = Model(Feature("hi") has Gist("Hello reqT!"))
     
