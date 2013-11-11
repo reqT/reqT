@@ -95,27 +95,27 @@ Different ways of running reqT, depending on your preference:
     * in the Libraries tab press the Add external jar... button. Add the reqT.jar and also the scala-compiler.jar and scala-reflect.jar. The latter libraries can be found in your scala installation's lib directory.
     * Execute `reqt.initInterpreter()` in your main, using something similar to this code: 
     
-```scala
-package myPackage
+    ```scala
+    package myPackage
 
-object myStuff { 
-  import reqt._
-  def makeMyModel: Model = {
-    var m1 = Model()
-    m1 += Feature("hej") has Gist("greeting in Swedish")
-    val m2 = """Model(Feature("modelFromString") has Gist("interpret"))""".toModel
-    m1 ++ m2
-  }
-}
+    object myStuff { 
+      import reqt._
+      def makeMyModel: Model = {
+        var m1 = Model()
+        m1 += Feature("hej") has Gist("greeting in Swedish")
+        val m2 = """Model(Feature("modelFromString") has Gist("interpret"))""".toModel
+        m1 ++ m2
+      }
+    }
 
-object myMain {
-  def main(args: Array[String]): Unit = {
-    reqt.initInterpreter() //will create new IMain
-    println("** ... ready to rock!\n")
-    println(myStuff.makeMyModel)
-  }
-}
-```    
+    object myMain {
+      def main(args: Array[String]): Unit = {
+        reqt.initInterpreter() //will create new IMain
+        println("** ... ready to rock!\n")
+        println(myStuff.makeMyModel)
+      }
+    }
+    ```    
      
 Hello reqT
 ----------
