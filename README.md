@@ -94,7 +94,7 @@ Different ways of running reqT, depending on your preference:
     * right click in the package explorer and choose Build Path -> Configure Build Path... 
     * in the Libraries tab press the Add external jar... button. Add the reqT.jar and also the scala-compiler.jar and scala-reflect.jar. The latter libraries can be found in your scala installation's lib directory.
     * Execute `reqt.initInterpreter()` in your main, using something similar to this code: 
-
+            ```scala
             package myPackage
 
             object myStuff { 
@@ -114,7 +114,7 @@ Different ways of running reqT, depending on your preference:
                 println(myStuff.makeMyModel)
               }
             }
-    
+            ```    
      
 Hello reqT
 ----------
