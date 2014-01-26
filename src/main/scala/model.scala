@@ -258,7 +258,8 @@ package reqt {
           // }
           val nodeList = nodes.toList.map(n => getPrefix(n) + columnSeparator + n.value)
           val rowStart = List(entity.prefix, entity.id, edge.prefix).mkString(columnSeparator)
-          nodeList map { n => rowStart + columnSeparator + n + rowSeparator} mkString
+          if (nodeList.isEmpty) rowStart + columnSeparator + columnSeparator + "()" + rowSeparator
+          else nodeList.map { n => rowStart + columnSeparator + n + rowSeparator } .mkString
       }  
       "" + ( if (headers) headRow else "" ) + table.mkString("","",rowSeparator)
     }
@@ -838,16 +839,17 @@ package reqt {
     
     lazy val tableHeadings = List("ENTITY", "ID", "LINK", "NODE", "VALUE") 
 
-    def fromTable(table: String, rowSeparator: String = "\t") = {
+    def fromTable(table: String, columnSeparator: String = "\t") = {
       def makeNode(node: String, nVal: String): String = 
-        if (attributeNames.contains(node)) 
+        if (nVal.trim == "()") " ()"
+        else if (attributeNames.contains(node)) 
           attributeFromString(node)(nVal) toScala   
         else if (entityNames.contains(node))
           entityFromString(node)(nVal) toScala
         else if (node.startsWith("External") ) 
           node + "(\"" + nVal + "\")"
         else s"""Comment("ERROR PARSING TABLE ATTRIBUTE $node($nVal)")"""
-      val linesH = table.split("\n").toList.map { _.split(rowSeparator).toList }
+      val linesH = table.split("\n").toList.map { _.split(columnSeparator).toList }
       val lines: List[List[String]] = linesH.dropWhile(_ == tableHeadings)  
       val modelLines =  lines collect { case List(ent, id, link, node, nVal) => 
         ent + "(\"" + id + "\") " + link + " " + makeNode(node, nVal)
