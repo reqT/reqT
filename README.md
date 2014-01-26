@@ -4,6 +4,12 @@ reqT: Requirements => Code
 ==========================
 reqT is a free tool for software requirements modelling. For more information see http://reqt.org 
 
+WARNING
+----------
+
+THIS BRANCH IS WORK IN PROGRESS AND CURRENTLY UNSTABLE.
+A complete restructuring of the code base is ongoing.
+ 
 ```scala
 
 val about = Model(
@@ -16,6 +22,8 @@ val about = Model(
 )
 
 ```
+
+THIS IS OLD TEXT FROM 2.3 *** SHOULD BE UPDATED FOR 3.0
 
 How to run reqT
 ---------------
