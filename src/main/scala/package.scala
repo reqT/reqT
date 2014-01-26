@@ -95,10 +95,11 @@ package object reqt {
   lazy val elementKinds: List[Element] = nodeKinds ++ edgeKinds
   lazy val nodeKinds: List[Element] = entityKinds ++ attributeKinds
   lazy val entityKinds: List[Element] = contextKinds ++ requirementKinds
-  lazy val contextKinds: List[Element] = List(Product, Release, Stakeholder, Actor, Resource, Subdomain, Component, VariationPoint, Variant)
+  lazy val contextKinds: List[Element] = List(Product, Release, Stakeholder, Actor, Resource, Subdomain, Component)
   lazy val scenarioKinds: List[Element] = List(UserStory, UseCase, TestCase, Task, Scenario)
   lazy val dataKinds: List[Element] = List(Data, Class, Member, Relationship)
-  lazy val requirementKinds: List[Element] = List(Req, Idea, Label, Goal, Wish, Feature, Function, Quality, Barrier, Target, Interface, Design, Issue, Ticket) ++ scenarioKinds ++ dataKinds
+  lazy val productLineKinds: List[Element] = List(Variability, Configuration, VariationPoint, Variant)
+  lazy val requirementKinds: List[Element] = List(Req, Idea, Label, Goal, Wish, Feature, Function, Quality, Barrier, Target, Interface, Design, Issue, Ticket) ++ scenarioKinds ++ dataKinds ++ productLineKinds
   lazy val attributeKinds: List[Attribute[_] with AttributeKind[_]] = 
     List(Gist, Spec, Status, Why, Example, Expectation, Input, Output, Trigger, Precond, Frequency, Critical, Problem, Prio, Order, Cost, Benefit, Capacity, Urgency, Utility, Differentiation, Saturation, Value, QualityLevel, Min, Max, Comment, Image, Deprecated, Submodel, Code, Constraints)
   lazy val edgeKinds: List[Element] = List(has) ++ relationKinds // ++ relationWithAttributeKinds
@@ -223,6 +224,8 @@ package object reqt {
    "Resource" -> Resource.apply _,
    "Subdomain" -> Subdomain.apply _,
    "Component" -> Component.apply _,
+   "Variability" -> Variability.apply _,
+   "Configuration" -> Configuration.apply _,
    "VariationPoint" -> VariationPoint.apply _,
    "Variant" -> Variant.apply _,
    "Req" -> Req.apply _,

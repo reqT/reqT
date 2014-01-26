@@ -322,6 +322,10 @@ package reqt {
   case object Scenario extends ScenarioReq with EntityKind  
 
   abstract class ProductLineReq extends Requirement
+  case class Variability(value: String) extends ProductLineReq { override lazy val kind = reqt.Variability }
+  case object Variability extends ProductLineReq with EntityKind 
+  case class Configuration(value: String) extends ProductLineReq { override lazy val kind = reqt.Configuration }
+  case object Configuration extends ProductLineReq with EntityKind 
   case class VariationPoint(value: String) extends ProductLineReq { override lazy val kind = reqt.VariationPoint }
   case object VariationPoint extends ProductLineReq with EntityKind  
   case class Variant(value: String) extends ProductLineReq { override lazy val kind = reqt.Variant }
@@ -575,6 +579,8 @@ match argument types ()
     def Resource(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Resource(id)))
     def Subdomain(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Subdomain(id)))
     def Component(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Component(id)))
+    def Variability(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Variability(id)))
+    def Configuration(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Configuration(id)))
     def VariationPoint(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.VariationPoint(id)))
     def Variant(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Variant(id)))
     def Req(id: String): EdgeToNodes = EdgeToNodes(this, NodeSet(reqt.Req(id)))
