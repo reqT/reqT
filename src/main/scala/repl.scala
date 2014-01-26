@@ -1,7 +1,7 @@
-/****************************************************************     
+/*     
 **                  _______        
 **                 |__   __|     reqT API  
-**   _ __  ___   __ _ | |        (c) 2011-2013, Lund University  
+**   _ __  ___   __ _ | |        (c) 2011-2014, Lund University  
 **  |  __|/ _ \ / _  || |        http://reqT.org
 **  | |  |  __/| (_| || |   
 **  |_|   \___| \__  ||_|   
@@ -11,12 +11,9 @@
 ** http://opensource.org/licenses/bsd-license.php 
 *****************************************************************/
 
-package reqt
-/*
-scalac repl-main.scala
-jar cfe reqT.jar reqT.start reqT
-scala reqT.jar
-*/
+
+package reqT
+
 import scala.tools.nsc._
 import interpreter._
 import java.io._
@@ -67,7 +64,7 @@ object repl {
      }
      def initReqT() {
        intp.quietBind("$intp", intp) //check if this is really needed??
-       intp.interpret("reqt.initInterpreter($intp)")
+       intp.interpret("reqT.initInterpreter($intp)")
      }
     override def helpCommand(line: String): Result = {
       if (line == "") echo(helpOnReqT)
@@ -86,17 +83,6 @@ object repl {
     settings.usejavacp.value = true
     interpreter = Some(new ReqTILoop(out))
     interpreter.map(_.process(settings))
-  }
-  
-}
-
-object start {
-  def main(args : Array[String]) : Unit =  {
-    if (args.size == 0) repl.startInterpreting
-    else args(0) match {
-      case "hello" => println("hello reqT")
-      case arg => println("Unknown args: " + args.mkString(" "))
-    }
   }
   
 }

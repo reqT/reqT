@@ -11,15 +11,11 @@
 ** http://opensource.org/licenses/bsd-license.php 
 *****************************************************************/
 
-package object reqT extends Init with Licence {
-  import scala.language.implicitConversions
-
-  implicit class ElemSeqToModel(seq: Seq[Elem]) {
-    def toModel = Model(seq:_*)
-  }
-
-  def uuid = java.util.UUID.randomUUID.toString
-
-
-  
+package reqT
+ 
+trait IndexedOrder[T] extends Ordered[T] {
+  self: T => 
+  def order: Vector[T]
+  lazy val indexOf: Map[T, Int] = order.zipWithIndex.toMap 
+  def compare(that: T): Int = indexOf(this).compare(indexOf(that))
 }

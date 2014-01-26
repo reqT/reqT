@@ -11,15 +11,13 @@
 ** http://opensource.org/licenses/bsd-license.php 
 *****************************************************************/
 
-package object reqT extends Init with Licence {
-  import scala.language.implicitConversions
+package reqT
 
-  implicit class ElemSeqToModel(seq: Seq[Elem]) {
-    def toModel = Model(seq:_*)
-  }
-
-  def uuid = java.util.UUID.randomUUID.toString
-
-
-  
+trait Choice extends IndexedOrder[Choice] {
+  def order: Vector[Choice] = Vector(Zero, One, ZeroOrOne, OneOrMany, ZeroOrMany)
 }
+case object Zero extends Choice
+case object One extends Choice
+case object ZeroOrOne extends Choice
+case object OneOrMany extends Choice
+case object ZeroOrMany extends Choice

@@ -11,15 +11,21 @@
 ** http://opensource.org/licenses/bsd-license.php 
 *****************************************************************/
 
-package object reqT extends Init with Licence {
-  import scala.language.implicitConversions
+package reqT
+/*
+scalac Main.scala
+jar cfe reqT.jar reqT.Main reqT
+scala reqT.jar
+*/
 
-  implicit class ElemSeqToModel(seq: Seq[Elem]) {
-    def toModel = Model(seq:_*)
+
+object Main {
+  def main(args : Array[String]) : Unit =  {
+    if (args.size == 0) repl.startInterpreting
+    else args(0) match {
+      case "hello" => println("hello reqT")
+      case arg => println("Unknown args: " + args.mkString(" "))
+    }
   }
-
-  def uuid = java.util.UUID.randomUUID.toString
-
-
   
 }
