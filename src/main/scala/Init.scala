@@ -15,9 +15,6 @@ package reqT
 
 trait Init {
 
-  val REQT_VERSION = "3.0.0-snapshot"
-  val SCALA_VERSION = "2.10.2"
-  val SNAPSHOT_BUILD = ( new java.util.Date ).toString
 
   def makeIMain(): scala.tools.nsc.interpreter.IMain = {
     //to be used when no ILoop is needed, e.g. from another main

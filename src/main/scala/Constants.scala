@@ -13,8 +13,23 @@
 
 package reqT
 
-trait Licence {
-  lazy val reqT_LICENCE = """
+trait Constants { //mixed in by package object reqT
+
+  val VERSION = "3.0.0-snapshot"
+  val SCALA_VERSION = "2.10.2"
+  val BUILD = ( new java.util.Date ).toString
+  lazy val PREAMBLE = """
+**                  _______        
+**                 |__   __|       
+**   _ __  ___   __ _ | |          
+**  |  __|/ _ \ / _  || |        http://reqT.org
+**  | |  |  __/| (_| || |   
+**  |_|   \___| \__  ||_|   
+**                 | |      
+**                 |_|      
+"""  
+  
+  lazy val LICENCE = """
 http://reqT.org/license 
 ======================= 
 
@@ -47,14 +62,5 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 
 """
-  lazy val reqT_PREAMBLE = """
-**                  _______        
-**                 |__   __|       
-**   _ __  ___   __ _ | |          
-**  |  __|/ _ \ / _  || |        http://reqT.org
-**  | |  |  __/| (_| || |   
-**  |_|   \___| \__  ||_|   
-**                 | |      
-**                 |_|      
-"""  
+
 }  

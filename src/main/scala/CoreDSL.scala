@@ -15,19 +15,24 @@ package reqT
 
 /** A base trait for the reqT DSL.
 */
-trait CoreDSL
+trait Base
   
 /** A marker trait for parameters to separation operators on class Model.
 */
 trait Selector 
 
-trait Typed extends CoreDSL with Selector { 
+trait Typed extends Base with Selector { 
   def myType: Type 
 } 
 
 trait HasValue {
   type Value
   def value: Value
+}
+
+trait HasDefault {
+  type Value
+  def default: Value
 }
 
 sealed trait Elem extends Typed { 
@@ -46,7 +51,6 @@ trait Attribute extends Leaf with HasValue {
 
 trait StringAttribute extends Attribute { type Value = String }
 trait IntAttribute    extends Attribute { type Value = Int }
-trait ChoiceAttribute extends Attribute { type Value = Choice }
 
 sealed trait Key extends Selector
 sealed trait LeafKey extends Key
@@ -71,15 +75,18 @@ trait Entity extends Leaf with LeafKey with HeadFactory with RelationFactory {
 }
 
 trait Type extends Selector   
-trait AttributeType[T] extends Type with LeafKey with HasValue { 
+trait AttributeType[T] extends Type with LeafKey with HasDefault { 
   type Value = T 
-  def default = value
+  val default: T 
 }
-trait StringType extends AttributeType[String] { def value = ""}
-trait IntType extends AttributeType[Int] { def value = 0} 
-trait ChoiceType extends AttributeType[Choice] { def value = Zero} 
+trait StringType extends AttributeType[String] { val default = ""}
+trait IntType extends AttributeType[Int] { val default = 0} 
 
-trait EntityType extends Type 
+trait EntityType extends Type {
+  def apply(id: String): Entity
+  def apply(): Entity = apply(nextId)
+  def apply(i: Int): Entity = apply(i.toString)
+}
 
 trait Link extends Type
 

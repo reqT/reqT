@@ -12,12 +12,17 @@
 *****************************************************************/
 
 package reqT
-
-trait Choice extends IndexedOrder[Choice] {
-  def order: Vector[Choice] = Vector(Zero, One, ZeroOrOne, OneOrMany, ZeroOrMany)
+ 
+trait Enum[T <: Ordered[T]] extends Ordered[T] {
+  self : T =>
+  val myType: EnumType[T]
+  import myType._
+  def compare(that: T): Int = indexOf(this).compare(indexOf(that))
+  def toInt: Int = indexOf(this)
 }
-case object Zero extends Choice
-case object One extends Choice
-case object ZeroOrOne extends Choice
-case object OneOrMany extends Choice
-case object ZeroOrMany extends Choice
+
+trait EnumType[T <: Ordered[T]] {
+  val values: Vector[T]
+  lazy val indexOf: Map[T, Int] = values.zipWithIndex.toMap 
+  implicit val ordering = Ordering.fromLessThan[T](_ < _)
+}

@@ -21,13 +21,13 @@ import java.io._
 object repl {
   //val helpOnReqT: String = "** Type ?? for help on reqT, type :h for help on Scala REPL"
   val helpOnReqT = "** Type :h for help on Scala REPL"
-  val versionMsg = s"\n** Welcome to reqT version $REQT_VERSION" +
-    s"\n** Snapshot build: $SNAPSHOT_BUILD" + 
+  val versionMsg = s"\n** Welcome to reqT version $VERSION" +
+    s"\n** Snapshot build: $BUILD" + 
     s"\n** Compiled with Scala version $SCALA_VERSION" +  
      "\n** Running Java version " + System.getProperty("java.version") +  
      "\n** Running on " + System.getProperty("java.vm.name")
   val startMsg = versionMsg +
-     s"\n$reqT_PREAMBLE\n$helpOnReqT" +
+     s"\n$PREAMBLE\n$helpOnReqT" +
     "\n** Starting reqT ..."
   
   var interpreter: Option[ReqTILoop] = None

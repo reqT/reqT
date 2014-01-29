@@ -18,6 +18,7 @@ import scala.language.implicitConversions
 import scala.collection.immutable.MapLike
 import scala.collection.IndexedSeqLike
 import scala.collection.mutable.LinkedHashMap
+import scala.collection.immutable.ListMap
 
 import reqT.BagUtil._
 
@@ -29,7 +30,7 @@ extends Node with Map[Key, Node] with MapLike[Key, Node, Model] {
   //--------------methods required for integration with Map and MapLike:  
   
   def get(key: Key):Option[Node] = myMap.get(key)
-  override def empty = new Model(LinkedHashMap.empty)  // LinkedHashMap keeps insert order
+  override def empty = new Model(LinkedHashMap.empty)  
   def +[B1 >: Node](kn: (Key, B1)): Model = kn match { 
     case (head: Head, submodel: Model) if isDefinedAt(head) => 
       var newSubmodel = this (head)
@@ -309,10 +310,12 @@ object Model extends Type {
     case _ => throw new IllegalArgumentException(kn + " must be (Key, Node)")
   }    
   
-  def apply(nodes: Elem*): Model = {
-    var m = Model.empty
-    for (n <- nodes) m += n
-    m
+  def fromKeyNodes(keyNodes: (Key, Node)*): Model = {
+    new Model(LinkedHashMap(keyNodes:_*))
+  }  
+  
+  def apply(elems: Elem*): Model = {
+    new Model(LinkedHashMap(elems.map(elemToKeyNode):_*))
   }
 }
 
