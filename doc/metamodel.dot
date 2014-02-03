@@ -1,4 +1,4 @@
-digraph G { /* dot -T pdf -o mm3.pdf mm3.dot */
+digraph G { /* dot -T pdf -o metamodel.pdf metamodel.dot */
   fontname = "Sans"
   fontsize = 8
   rankdir = "BT"

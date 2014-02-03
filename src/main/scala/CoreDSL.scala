@@ -1,4 +1,4 @@
-/****************************************************************     
+/*     
 **                  _______        
 **                 |__   __|     reqT API  
 **   _ __  ___   __ _ | |        (c) 2011-2014, Lund University  
@@ -15,78 +15,58 @@ package reqT
 
 /** A base trait for the reqT DSL.
 */
-trait Base
+sealed trait Base
   
 /** A marker trait for parameters to separation operators on class Model.
 */
 trait Selector 
 
-trait HasType { 
-  def myType: Type 
-} 
-
+trait HasType { def myType: Type } 
 trait HasValue[T] { def value: T }
-
 trait HasDefault[T] { def default: T }
-
-sealed trait Elem extends Base with HasType with Selector { 
-  def toPair: (Key, MapTo)
+trait CanMakePair {
+  def toPair: (Key, MapTo)  = (key, mapTo)
   def key: Key
   def mapTo: MapTo
+}
+
+sealed trait Elem extends Base with HasType with CanMakePair with Selector { 
   def isNode: Boolean
   def isAttribute: Boolean
   def isEntity: Boolean = !isAttribute
   def isRelation: Boolean = !isNode
 }
 
-trait MapTo extends Base with HasType  
-sealed trait Node extends MapTo with Elem {
+sealed trait Node extends Elem {
   override def isNode: Boolean = true
 }
 
-trait Attribute[T] extends Node with HasValue[T] {
+sealed trait MapTo extends Base with HasType  
+
+trait Attribute[T] extends Node with MapTo with HasValue[T] with CanMakePair {
   override def myType: AttributeType[T]
-  override def toPair: (AttributeType[T], Attribute[T]) = (myType, this )
   override def key: AttributeType[T] = myType
   override def mapTo: Attribute[T] = this
   override def isAttribute: Boolean = true
 }
 
-trait StringAttribute extends Attribute[String]
-trait IntAttribute    extends Attribute[Int]
+trait Model extends MapTo with ModelImplementation
+object Model extends Type with ModelCompanion with ModelFromMap
 
 sealed trait Key extends Base with Selector
-sealed trait NodeKey extends Key
 
-trait RelationFactory {
-  self: Entity =>
-  def has(elems: Elem*) = Relation(this, reqT.has, Model(elems:_*))
-  def has(submodel: Model) = Relation(this, reqT.has, submodel)
-  def requires(elems: Elem*) =  Relation(this, reqT.requires, Model(elems:_*))
-  def requires(submodel: Model) =  Relation(this, reqT.requires, submodel)
-}
-
-trait HeadFactory {
-  self: Entity =>
-  def has = Head(this, reqT.has)
-  def requires = Head(this, reqT.requires)
-}
-
-trait Entity extends Node with NodeKey with HeadFactory with RelationFactory {
+trait Entity extends Node with HeadFactory with RelationFactory {
   def id: String
-  override def toPair: (Entity, Entity) = ( this , this )
-  override def key: Entity = this 
-  override def mapTo: Entity = this 
+  override def key: Head = Head( this , reqT.has) 
+  override def mapTo: Model = Model() 
   override def myType: EntityType
   override def isAttribute: Boolean = false
 }
 
 trait Type extends Selector   
-trait AttributeType[T] extends Type with NodeKey with HasDefault[T] { 
+trait AttributeType[T] extends Key with Type with HasDefault[T] { 
   val default: T 
 }
-trait StringType extends AttributeType[String] { val default = ""}
-trait IntType extends AttributeType[Int] { val default = 0} 
 
 trait EntityType extends Type {
   def apply(id: String): Entity
@@ -96,19 +76,18 @@ trait EntityType extends Type {
 
 trait RelationType extends Type
 
-case class Head(head: Entity, link: RelationType) extends Key 
+case class Head(entity: Entity, link: RelationType) extends Key 
 
-case class Relation(head: Entity, link: RelationType, tail: Model) extends Elem {
+case class Relation(entity: Entity, link: RelationType, tail: Model) extends Elem {
   val myType = Relation
-  override def toPair: (Head, Model) = (key, tail)
-  override def key: Head = Head(head, link)
+  override def key: Head = Head(entity, link)
   override def mapTo: Model = tail
-  override lazy val toString = s"$head $link ${tail.toStringBody}"
+  override lazy val toString = s"$entity $link ${tail.toStringBody}"
   override def isNode: Boolean = false
   override def isAttribute: Boolean = false
 }
 case object Relation extends Type {
-  def apply(rk: Head, tail: Model): Relation = new Relation(rk.head, rk.link, tail) 
+  def apply(h: Head, tail: Model): Relation = new Relation(h.entity, h.link, tail) 
 }  
   
 

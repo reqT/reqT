@@ -13,6 +13,12 @@
 
 package reqT 
 
+trait StringAttribute extends Attribute[String]
+trait StringType extends AttributeType[String] { val default = ""}
+
+trait IntAttribute    extends Attribute[Int]
+trait IntType extends AttributeType[Int] { val default = 0} 
+
 trait Cardinality extends Enum[Cardinality] { val myType = Cardinality }
 trait CardinalityType extends EnumType[Cardinality] with AttributeType[Cardinality] { 
   val values = Vector(Zero, One, ZeroOrOne, OneOrMany, ZeroOrMany)
@@ -56,6 +62,20 @@ case object Feature extends EntityType
 case object has extends RelationType  
 case object requires extends RelationType
 case object relatesTo extends RelationType
+
+trait RelationFactory {
+  self: Entity =>
+  def has(elems: Elem*) = Relation(this, reqT.has, Model(elems:_*))
+  def has(submodel: Model) = Relation(this, reqT.has, submodel)
+  def requires(elems: Elem*) =  Relation(this, reqT.requires, Model(elems:_*))
+  def requires(submodel: Model) =  Relation(this, reqT.requires, submodel)
+}
+
+trait HeadFactory {
+  self: Entity =>
+  def has = Head(this, reqT.has)
+  def requires = Head(this, reqT.requires)
+}
 
 trait AttrMaker[T <: Attribute[_]] { def apply(s: String): T }
 
