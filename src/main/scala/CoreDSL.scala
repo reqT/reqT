@@ -30,17 +30,17 @@ trait HasValue[T] { def value: T }
 trait HasDefault[T] { def default: T }
 
 sealed trait Elem extends Base with HasType with Selector { 
-  def toPair: (Key, Value)
+  def toPair: (Key, MapTo)
   def key: Key
-  def container: Value
+  def mapTo: MapTo
   def isNode: Boolean
   def isAttribute: Boolean
   def isEntity: Boolean = !isAttribute
   def isRelation: Boolean = !isNode
 }
 
-trait Value extends Base with HasType  
-sealed trait Node extends Value with Elem {
+trait MapTo extends Base with HasType  
+sealed trait Node extends MapTo with Elem {
   override def isNode: Boolean = true
 }
 
@@ -48,7 +48,7 @@ trait Attribute[T] extends Node with HasValue[T] {
   override def myType: AttributeType[T]
   override def toPair: (AttributeType[T], Attribute[T]) = (myType, this )
   override def key: AttributeType[T] = myType
-  override def container: Attribute[T] = this
+  override def mapTo: Attribute[T] = this
   override def isAttribute: Boolean = true
 }
 
@@ -68,15 +68,15 @@ trait RelationFactory {
 
 trait HeadFactory {
   self: Entity =>
-  def has = RelationKey(this, reqT.has)
-  def requires = RelationKey(this, reqT.requires)
+  def has = Head(this, reqT.has)
+  def requires = Head(this, reqT.requires)
 }
 
 trait Entity extends Node with NodeKey with HeadFactory with RelationFactory {
   def id: String
   override def toPair: (Entity, Entity) = ( this , this )
   override def key: Entity = this 
-  override def container: Entity = this 
+  override def mapTo: Entity = this 
   override def myType: EntityType
   override def isAttribute: Boolean = false
 }
@@ -96,19 +96,19 @@ trait EntityType extends Type {
 
 trait RelationType extends Type
 
-case class RelationKey(head: Entity, link: RelationType) extends Key 
+case class Head(head: Entity, link: RelationType) extends Key 
 
 case class Relation(head: Entity, link: RelationType, tail: Model) extends Elem {
   val myType = Relation
-  override def toPair: (RelationKey, Model) = (key, tail)
-  override def key: RelationKey = RelationKey(head, link)
-  override def container: Model = tail
+  override def toPair: (Head, Model) = (key, tail)
+  override def key: Head = Head(head, link)
+  override def mapTo: Model = tail
   override lazy val toString = s"$head $link ${tail.toStringBody}"
   override def isNode: Boolean = false
   override def isAttribute: Boolean = false
 }
 case object Relation extends Type {
-  def apply(rk: RelationKey, tail: Model): Relation = new Relation(rk.head, rk.link, tail) 
+  def apply(rk: Head, tail: Model): Relation = new Relation(rk.head, rk.link, tail) 
 }  
   
 

@@ -21,16 +21,16 @@ import scala.collection.immutable.HashMap
 import reqT.BagUtil._
 import Model.pairToElem
 
-trait Model extends Value {
+trait Model extends MapTo {
 
 //Abstract:
   
-  protected [Model] def myMap: Map[Key, Value]      
-  protected [Model] def newModel(m: Map[Key, Value]): Model  = Model.fromMap(m)
+  protected [Model] def myMap: Map[Key, MapTo]      
+  protected [Model] def newModel(m: Map[Key, MapTo]): Model  = Model.fromMap(m)
 
   def empty: Model 
-  //def toListMap: ListMap[Key, Value]
-  //def toHashMap: HashMap[Key, Value]
+  //def toListMap: ListMap[Key, MapTo]
+  //def toHashMap: HashMap[Key, MapTo]
 
 //Overrides:
 
@@ -45,7 +45,7 @@ trait Model extends Value {
   }
   override def hashCode: Int = myMap.hashCode
 
-  def get(key: Key):Option[Value] = myMap.get(key)
+  def get(key: Key):Option[MapTo] = myMap.get(key)
   def +(e: Elem): Model = e match { 
     case rel: Relation if isDefinedAt(rel.key) => 
       var newSubmodel: Model = apply(rel.key)
@@ -55,7 +55,7 @@ trait Model extends Value {
       newModel(myMap + e.toPair)
   }
   def -(k: Key): Model = newModel(myMap - k)
-  def iterator:Iterator[(Key, Value)] = myMap.iterator
+  def iterator:Iterator[(Key, MapTo)] = myMap.iterator
   def stringPrefix: String = "Model"  
   
   def isDefinedAt(k: Key) = myMap.isDefinedAt(k)
@@ -85,7 +85,7 @@ trait Model extends Value {
   lazy val toVector = elems
   lazy val toSeq = toVector.toSeq
   lazy val toSet: Set[Elem] = elems.toSet
-  lazy val toMap: Map[Key, Value] = myMap
+  lazy val toMap: Map[Key, MapTo] = myMap
   
   def ++(that: Model): Model = Model((elems ++ that.elems):_*)
   
@@ -99,7 +99,7 @@ trait Model extends Value {
   def elemIterator:Iterator[Elem] = iterator.map(pairToElem)
   lazy val elems: Vector[Elem] = elemIterator.toVector
   lazy val topRelations: Vector[Relation] = elems.collect { case r: Relation => r }
-  lazy val topRelationKeys: Vector[RelationKey] = topRelations.map { _.key }
+  lazy val topRelationKeys: Vector[Head] = topRelations.map { _.key }
   lazy val topHeads: Vector[Entity] = topRelations.map { _.head }
   lazy val topHeadSet: Set[Elem] = topHeads.toSet
   lazy val topNodes: Vector[Node] = elems.collect { case n: Node => n }
@@ -125,17 +125,17 @@ trait Model extends Value {
   def apply[T](at: AttributeType[T]): T = myMap(at).asInstanceOf[Attribute[T]].value
   def apply(e: Entity): Entity = myMap(e).asInstanceOf[Entity]
   def apply(et: EntityType): Vector[Entity] = topEntitiesOfType(et) 
-  def apply(h: RelationKey): Model =  myMap(h).asInstanceOf[Model]
+  def apply(h: Head): Model =  myMap(h).asInstanceOf[Model]
 
   def get[T](at: AttributeType[T]): Option[T] = if (isDefinedAt(at)) Some(apply(at)) else None 
   def get(e: Entity): Option[Entity] = if (isDefinedAt(e)) Some(e) else None 
   def get(et: EntityType): Vector[Entity] = topEntitiesOfType(et)
-  def get(h: RelationKey): Option[Model] = if (isDefinedAt(h)) Some(apply(h)) else None 
+  def get(h: Head): Option[Model] = if (isDefinedAt(h)) Some(apply(h)) else None 
 
   def isDefinedAt[T](a: Attribute[T]): Boolean = isDefinedAt(a.myType) && (apply(a.myType) == a)
   def isDefinedAt(et: EntityType): Boolean = !topEntitiesOfType(et).isEmpty
   
-  def existsElem(p: Elem => Boolean): Boolean = myMap.exists((kc: (Key, Value) )=> p(pairToElem(kc))) //??? rename to exists?
+  def existsElem(p: Elem => Boolean): Boolean = myMap.exists((kc: (Key, MapTo) )=> p(pairToElem(kc))) //??? rename to exists?
   
   def visitAll[T](f: PartialFunction[Elem,T]): Vector[T] = elems.flatMap ( e => 
     e match {
@@ -226,11 +226,11 @@ trait Model extends Value {
     }       
     
   def enter(e: Entity): Model = get(e.has).getOrElse(Model())
-  def enter(h: RelationKey): Model = get(h).getOrElse(Model())
+  def enter(h: Head): Model = get(h).getOrElse(Model())
   def enter[T](at: AttributeType[T]): T = get(at).getOrElse(at.default.asInstanceOf[T])
 
   def /(e: Entity): Model = enter(e)
-  def /(h: RelationKey): Model = enter(h)
+  def /(h: Head): Model = enter(h)
   def /[T](at: AttributeType[T]): T = enter(at)
   
   def restrict(s: Selector): Model = separateKeysOrTails(s, filterTop)    
@@ -275,46 +275,46 @@ trait ModelCompanion {
   } 
   def unapplySeq(m: Model): Option[Seq[Elem]] = Some(m.toSeq)
 
-  def apply(m: ListMap[Key, Value]): Model = new ListModel(m)
-  def apply(m: HashMap[Key, Value]): Model = new HashModel(m)
-  def pairToElem(pair: (Key, Value)):Elem = pair match {
+  def apply(m: ListMap[Key, MapTo]): Model = new ListModel(m)
+  def apply(m: HashMap[Key, MapTo]): Model = new HashModel(m)
+  def pairToElem(pair: (Key, MapTo)):Elem = pair match {
     case (_, a: Attribute[_]) => a
     case (e: Entity, _) => e
-    case (head: RelationKey, tail: Model) => Relation(head, tail)
-    case _ => throw new IllegalArgumentException(pair + " must be (Key, Value)")
+    case (head: Head, tail: Model) => Relation(head, tail)
+    case _ => throw new IllegalArgumentException(pair + " must be (Key, MapTo)")
   }   
 }
 
 object Model extends Type with ModelCompanion {
-  def fromMap(m: Map[Key, Value]): Model = m match {
-    case lm: ListMap[Key, Value] => ListModel(lm)
-    case hm: HashMap[Key, Value] => HashModel(hm)
+  def fromMap(m: Map[Key, MapTo]): Model = m match {
+    case lm: ListMap[Key, MapTo] => ListModel(lm)
+    case hm: HashMap[Key, MapTo] => HashModel(hm)
     case otherTypeOfMap => otherTypeOfMap.toSeq.toModel
   }
 }
 
-final class ListModel private [reqT] ( override val myMap: ListMap[Key, Value]) extends Model {
-  type MapType = ListMap[Key, Value]
+final class ListModel private [reqT] ( override val myMap: ListMap[Key, MapTo]) extends Model {
+  type MapType = ListMap[Key, MapTo]
   override def empty: ListModel = ListModel.empty  
   //override def newModel(m: MapType): Model = new ListModel(m) 
-  //override def toListMap: ListMap[Key, Value] = myMap
-  //override def toHashMap: HashMap[Key, Value] = myMap
+  //override def toListMap: ListMap[Key, MapTo] = myMap
+  //override def toHashMap: HashMap[Key, MapTo] = myMap
 }
 
 object ListModel extends ModelCompanion {
   override def empty: ListModel = new ListModel(ListMap.empty)  
 }
 
-final class HashModel private [reqT] ( override val myMap: HashMap[Key, Value]) extends Model {
-  type MapType = HashMap[Key, Value]
+final class HashModel private [reqT] ( override val myMap: HashMap[Key, MapTo]) extends Model {
+  type MapType = HashMap[Key, MapTo]
   override def empty: HashModel = HashModel.empty  
   //override def newModel(m: MapType): Model = new HashModel(m)
 }
 
 object HashModel extends ModelCompanion {
   override def empty: HashModel = new HashModel(HashMap.empty)  
-  //override def toListMap: ListMap[Key, Value] = myMap
-  //override def toHashMap: HashMap[Key, Value] = myMap
+  //override def toListMap: ListMap[Key, MapTo] = myMap
+  //override def toHashMap: HashMap[Key, MapTo] = myMap
 }
 
 
