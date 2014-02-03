@@ -52,12 +52,13 @@ trait ModelImplementation  {
     case _ => 
       newModel(myMap + e.toPair)
   }
-  def -(k: Key): Model = newModel(myMap - k)
+  def -(k: Key): Model = newModel(myMap - k)  //deep???
   def iterator:Iterator[(Key, MapTo)] = myMap.iterator
   def stringPrefix: String = "Model"  
   
   def isDefinedAt(k: Key) = myMap.isDefinedAt(k)
-  lazy val size: Int = myMap.size
+  val size: Int = myMap.size  //rename to topSize???
+  val isEmpty: Boolean = size == 0
   
   def foreach[U](f: Elem => U): Unit = elems.foreach(f)
   def filter(f: Elem => Boolean): Model = elems.filter(f).toModel
@@ -93,15 +94,24 @@ trait ModelImplementation  {
 
   // the vectors allows for traversal in elems order if ListModel and they are as type specific as possible which is not a problem as Vector is covariant
   // the sets allow for fast contains tests but are all of Set[Elem] as Sets are invariant 
-  
-  def elemIterator:Iterator[Elem] = iterator.map(pairToElem)
+
+  def elemIterator:Iterator[Elem] = iterator.map(_.toElem)
   lazy val elems: Vector[Elem] = elemIterator.toVector
+  lazy val topNodes: Vector[Node] = elems.collect { 
+    case Relation(e, l, tail) => e
+    case n: Node => n
+  }  
+  lazy val topNodeSet: Set[Elem] = topNodes.toSet
+  lazy val top: Model = elems.collect {
+    case Relation(e, l, tail) => Relation(e, l, tail.topNodes.toModel)
+    case elem => elem
+  } .toModel
+
+//------------------ check below
   lazy val topRelations: Vector[Relation] = elems.collect { case r: Relation => r }
   lazy val topRelationKeys: Vector[Head] = topRelations.map { _.key }
   lazy val topEntities: Vector[Entity] = topRelations.map { _.entity }
   lazy val topEntitySet: Set[Elem] = topEntities.toSet
-  lazy val topNodes: Vector[Node] = elems.collect { case n: Node => n }
-  lazy val topNodeSet: Set[Elem] = topNodes.toSet
   lazy val topNodesAndHeads: Vector[Node] = elems.collect { 
     case n: Node => n 
     case r: Relation => r.entity      
@@ -115,7 +125,7 @@ trait ModelImplementation  {
   lazy val topDistinct = topElems.filterNot { topEntities.contains(_) } 
   lazy val topEntitiesOfType: Map[EntityType, Vector[Entity]] = 
     Bag(topEntities.map( e => (e.myType, e)):_*).withDefaultValue(Vector())
-  lazy val top: Model = topElems.toModel
+  //lazy val top: Model = topElems.toModel
   def `^`: Model = top
   lazy val topRecursive: Model = ???
   def `^^`: Model = topRecursive
@@ -278,7 +288,10 @@ trait ModelCompanion {
   def pairToElem(pair: (Key, MapTo)):Elem = pair match {
     case (_, a: Attribute[_]) => a
     case (e: Entity, _) => e
-    case (head: Head, tail: Model) => Relation(head, tail)
+    case (head: Head, tail: Model) => head match {
+      case Head(e, has) if tail.isEmpty => e
+      case _ => Relation(head, tail)
+    }
     case _ => throw new IllegalArgumentException(pair + " must be (Key, MapTo)")
   }   
 }
