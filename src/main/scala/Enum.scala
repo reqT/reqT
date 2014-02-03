@@ -23,6 +23,8 @@ trait Enum[T <: Ordered[T]] extends Ordered[T] {
 
 trait EnumType[T <: Ordered[T]] {
   val values: Vector[T]
+  lazy val names: Vector[String] = values.map(_.toString)
+  lazy val valueOf: Map[String, T] = names.zip(values).toMap
   lazy val indexOf: Map[T, Int] = values.zipWithIndex.toMap 
   implicit val ordering = Ordering.fromLessThan[T](_ < _)
 }

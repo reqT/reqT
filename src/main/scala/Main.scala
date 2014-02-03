@@ -18,7 +18,6 @@ jar cfe reqT.jar reqT.Main reqT
 scala reqT.jar
 */
 
-
 object Main {
   def main(args : Array[String]) : Unit =  {
     if (args.size == 0) repl.startInterpreting

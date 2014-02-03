@@ -15,8 +15,8 @@ package reqT
 import scala.language.implicitConversions
 
 object BagUtil {
-  type Bag[Key, Value] = Map[Key, Vector[Value]]
-  //type SetBag[Key, Value] = Map[Key, Set[Value]]
+  type Bag[K, V] = Map[K, Vector[V]]
+  //type SetBag[K, V] = Map[K, Set[V]]
   
   def bagMerge[K,V](m1: Bag[K, V],m2: Bag[K, V]): Bag[K, V] =
     (m1.keys++m2.keys).map(k => (k,m1.getOrElse(k,Vector())++m2.getOrElse(k,Vector()))).toMap

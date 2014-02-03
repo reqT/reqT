@@ -11,15 +11,31 @@
 ** http://opensource.org/licenses/bsd-license.php 
 *****************************************************************/
 
-package object reqT extends Init with Constants with ImplicitFactoryObjects {
+package object reqT 
+extends Init with Constants with ImplicitFactoryObjects {
   import scala.language.implicitConversions
 
-  implicit class ElemSeqToModel(seq: Seq[Elem]) {
-    def toModel = Model(seq:_*)
+  // implicit class ElemSeqToModel(seq: Seq[Elem]) {
+    // def toModel = Model(seq:_*)
+    // def toListModel = ListModel(seq:_*)
+    // def toHashModel = HashModel(seq:_*)
+  // }
+
+  implicit class ListMapToModel(lm: scala.collection.immutable.ListMap[Key, Value]) {
+    def toModel = Model(lm)
   }
 
+  implicit class KeyValueSeqToModel(seq: Seq[(Key, Value)]) {
+    def toModel = Model(seq.map(Model.pairToElem) :_*)
+  }  
   
+  implicit class filterMonadicToModel(fm: scala.collection.generic.FilterMonadic[Elem, Seq[Elem]]) {
+    def toModel = Model(fm.map(x => x):_*)
+  }  
   
+  implicit class pairToElem(p: Tuple2[Key,Value]) { 
+    def toElem: Elem = Model.pairToElem(p) 
+  }
   def uuid = java.util.UUID.randomUUID.toString
 
   def timed[T](block: => T) = {
@@ -31,6 +47,7 @@ package object reqT extends Init with Constants with ImplicitFactoryObjects {
   }
 
   def bigModel(n: Int) = Model((1 to n).map(i => Req(s"$i")):_*)
+  def bigHashModel(n: Int) = HashModel((1 to n).map(i => Req(s"$i")):_*)
   
   object IdGenerator {
     @volatile var myId = 0

@@ -18,7 +18,7 @@ trait CardinalityType extends EnumType[Cardinality] with AttributeType[Cardinali
   val values = Vector(Zero, One, ZeroOrOne, OneOrMany, ZeroOrMany)
   val default = values(0)
 } 
-trait CardinalityAttribute extends Attribute { type Value = Cardinality }
+trait CardinalityAttribute extends Attribute[Cardinality]
 case object Cardinality extends CardinalityType
 case object Zero extends Cardinality
 case object One extends Cardinality
@@ -29,12 +29,13 @@ case object ZeroOrMany extends Cardinality
 object all {
   lazy val typeNameIndex: Map[String, Int] = typeNames.zipWithIndex.toMap.withDefaultValue(-1)
   lazy val typeNames: Vector[String] = types map (_.toString)
-  lazy val types: Vector[Type] = entityTypes ++ attributeTypes ++ linkTypes  
+  lazy val types: Vector[Type] = entityTypes ++ attributeTypes ++ relationTypes  
   lazy val entityTypes: Vector[EntityType] = Vector(Req, Feature)
-  lazy val attributeTypes: Vector[AttributeType[_]] = stringAttributes ++ intAttributes
-  lazy val linkTypes: Vector[Link] = Vector(has, requires, relatesTo)
+  lazy val attributeTypes: Vector[AttributeType[_]] = stringAttributes ++ intAttributes ++ cardinalityAttributes
+  lazy val relationTypes: Vector[RelationType] = Vector(has, requires, relatesTo)
   lazy val stringAttributes = Vector(Spec)
   lazy val intAttributes = Vector(Prio)
+  lazy val cardinalityAttributes = Vector(Opt)
 }
 
 case class Spec(value: String) extends StringAttribute { override val myType = Spec }
@@ -52,19 +53,22 @@ case object Req extends EntityType
 case class Feature(id: String) extends Entity { override val myType: EntityType = Feature }
 case object Feature extends EntityType
 
-case object has extends Link  
-case object requires extends Link
-case object relatesTo extends Link
+case object has extends RelationType  
+case object requires extends RelationType
+case object relatesTo extends RelationType
 
-trait AttrMaker[T <: Attribute] { def apply(s: String): T }
+trait AttrMaker[T <: Attribute[_]] { def apply(s: String): T }
 
 trait CanMakeAttr {
-  def makeAttr[T <: Attribute](value: String)(implicit make: AttrMaker[T]): T = make(value)
+  def makeAttr[T <: Attribute[_]](value: String)(implicit make: AttrMaker[T]): T = make(value)
 }
 
 trait ImplicitFactoryObjects extends CanMakeAttr { //mixed in by package object reqT
-  implicit object makeSpec extends AttrMaker[Spec] { def apply(s: String): Spec = Spec(s) }
-  lazy val attributeFromString = Map[String, String => Attribute](
+  implicit object makeSpec extends AttrMaker[Spec] { def apply(s: String): Spec = Spec(s.toString) }
+  implicit object makePrio extends AttrMaker[Prio] { def apply(s: String): Prio = Prio(s.toInt) }
+  implicit class StringToCardinality(s: String) { def toCardinality = Opt.valueOf(s)}
+  implicit object makeOpt extends AttrMaker[Opt] { def apply(s: String): Opt = Opt(s.toCardinality) }
+  lazy val attributeFromString = Map[String, String => Attribute[_]](
     "Spec" -> makeAttr[Spec] _ ,
     "Prio" -> makeAttr[Prio] _,
     "Opt" -> makeAttr[Opt] _)

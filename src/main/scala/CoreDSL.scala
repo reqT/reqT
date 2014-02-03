@@ -21,62 +21,68 @@ trait Base
 */
 trait Selector 
 
-trait Typed extends Base with Selector { 
+trait HasType { 
   def myType: Type 
 } 
 
-trait HasValue {
-  type Value
-  def value: Value
-}
+trait HasValue[T] { def value: T }
 
-trait HasDefault {
-  type Value
-  def default: Value
-}
+trait HasDefault[T] { def default: T }
 
-sealed trait Elem extends Typed { 
+sealed trait Elem extends Base with HasType with Selector { 
+  def toPair: (Key, Value)
   def key: Key
-  def node: Node
+  def container: Value
+  def isNode: Boolean
+  def isAttribute: Boolean
+  def isEntity: Boolean = !isAttribute
+  def isRelation: Boolean = !isNode
 }
 
-trait Node extends Typed  
-trait Leaf extends Node with Elem
-
-trait Attribute extends Leaf with HasValue {
-  override def myType: AttributeType[Value]
-  override def key: AttributeType[Value] = myType
-  override val node: Attribute = this
+trait Value extends Base with HasType  
+sealed trait Node extends Value with Elem {
+  override def isNode: Boolean = true
 }
 
-trait StringAttribute extends Attribute { type Value = String }
-trait IntAttribute    extends Attribute { type Value = Int }
+trait Attribute[T] extends Node with HasValue[T] {
+  override def myType: AttributeType[T]
+  override def toPair: (AttributeType[T], Attribute[T]) = (myType, this )
+  override def key: AttributeType[T] = myType
+  override def container: Attribute[T] = this
+  override def isAttribute: Boolean = true
+}
 
-sealed trait Key extends Selector
-sealed trait LeafKey extends Key
+trait StringAttribute extends Attribute[String]
+trait IntAttribute    extends Attribute[Int]
+
+sealed trait Key extends Base with Selector
+sealed trait NodeKey extends Key
 
 trait RelationFactory {
   self: Entity =>
-  def has(nodes: Elem*) = Relation(Head( this , reqT.has), Model(nodes:_*))
-  def requires(nodes: Elem*) =  Relation(Head( this , reqT.requires), Model(nodes:_*))
+  def has(elems: Elem*) = Relation(this, reqT.has, Model(elems:_*))
+  def has(submodel: Model) = Relation(this, reqT.has, submodel)
+  def requires(elems: Elem*) =  Relation(this, reqT.requires, Model(elems:_*))
+  def requires(submodel: Model) =  Relation(this, reqT.requires, submodel)
 }
 
 trait HeadFactory {
   self: Entity =>
-  def has = Head(this, reqT.has)
-  def requires = Head(this, reqT.requires)
+  def has = RelationKey(this, reqT.has)
+  def requires = RelationKey(this, reqT.requires)
 }
 
-trait Entity extends Leaf with LeafKey with HeadFactory with RelationFactory {
+trait Entity extends Node with NodeKey with HeadFactory with RelationFactory {
   def id: String
-  override def key: Entity = this
-  override def node: Entity = this
+  override def toPair: (Entity, Entity) = ( this , this )
+  override def key: Entity = this 
+  override def container: Entity = this 
   override def myType: EntityType
+  override def isAttribute: Boolean = false
 }
 
 trait Type extends Selector   
-trait AttributeType[T] extends Type with LeafKey with HasDefault { 
-  type Value = T 
+trait AttributeType[T] extends Type with NodeKey with HasDefault[T] { 
   val default: T 
 }
 trait StringType extends AttributeType[String] { val default = ""}
@@ -88,19 +94,21 @@ trait EntityType extends Type {
   def apply(i: Int): Entity = apply(i.toString)
 }
 
-trait Link extends Type
+trait RelationType extends Type
 
-case class Head(source: Entity, link: Link) extends Key 
+case class RelationKey(head: Entity, link: RelationType) extends Key 
 
-case class Relation(source: Entity, link: Link, submodel: Model) extends Elem {
+case class Relation(head: Entity, link: RelationType, tail: Model) extends Elem {
   val myType = Relation
-  val head = Head(source, link)
-  override def key: Head = head
-  override def node: Model = submodel
-  override lazy val toString = s"$source $link ${submodel.toStringBody}"
+  override def toPair: (RelationKey, Model) = (key, tail)
+  override def key: RelationKey = RelationKey(head, link)
+  override def container: Model = tail
+  override lazy val toString = s"$head $link ${tail.toStringBody}"
+  override def isNode: Boolean = false
+  override def isAttribute: Boolean = false
 }
 case object Relation extends Type {
-  def apply(head: Head, submodel: Model): Relation = new Relation(head.source, head.link, submodel) 
+  def apply(rk: RelationKey, tail: Model): Relation = new Relation(rk.head, rk.link, tail) 
 }  
   
 

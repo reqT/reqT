@@ -15,73 +15,106 @@ package reqT
 
 import scala.language.implicitConversions
 
-import scala.collection.immutable.MapLike
-import scala.collection.IndexedSeqLike
-import scala.collection.mutable.LinkedHashMap
 import scala.collection.immutable.ListMap
+import scala.collection.immutable.HashMap
 
 import reqT.BagUtil._
+import Model.pairToElem
 
-class Model private ( private val myMap: collection.mutable.Map[Key, Node]) 
-extends Node with Map[Key, Node] with MapLike[Key, Node, Model] {
-        
-  import Model.{keyNodeToElem, elemToKeyNode} 
+trait Model extends Value {
 
-  //--------------methods required for integration with Map and MapLike:  
+//Abstract:
   
-  def get(key: Key):Option[Node] = myMap.get(key)
-  override def empty = new Model(LinkedHashMap.empty)  
-  def +[B1 >: Node](kn: (Key, B1)): Model = kn match { 
-    case (head: Head, submodel: Model) if isDefinedAt(head) => 
-      var newSubmodel = this (head)
-      for (knSub <- submodel) newSubmodel += knSub
-      new Model(myMap + (head -> newSubmodel))
-    case (k: Key, n: Node) => new Model(myMap + (k -> n))
-    case _ => throw new IllegalArgumentException(kn + " must be (Key, Node)") 
-  }
-  def -(k: Key): Model = new Model(myMap - k)
-  def iterator:Iterator[(Key, Node)] = myMap.iterator
-  override def stringPrefix: String = "Model" 
-  //--- reqT-specific members
-  
+  protected [Model] def myMap: Map[Key, Value]      
+  protected [Model] def newModel(m: Map[Key, Value]): Model  = Model.fromMap(m)
+
+  def empty: Model 
+  //def toListMap: ListMap[Key, Value]
+  //def toHashMap: HashMap[Key, Value]
+
+//Overrides:
+
   override val myType: Type = Model
-  
-  def ++(that: Model): Model = {
-    var m = this
-    for (kn <- that) m += kn
-    m    
-  }
-  def +(e: Elem): Model = this + (e.key -> e.node)
-  
-  def diffKeys(that: Model): Model = this -- that.keys //should not this be deep????
-  def diff(that: Model): Model = (elems diff that.elems).toModel //should not this be deep????
-  def --(that: Model): Model = diff(that)  //is diff == diffKeys ???
 
-  //SHOULD WE DISTINGUISH LEAFS FROM SOURCES??? DISALLOW BOTH??? Probably not...
+//Implemented:  
+
+  def canEqual(other: Any): Boolean = other.isInstanceOf[Model] //but subclasses to Model are final. is this needed??
+  override def equals(other: Any): Boolean = other match {
+    case that: Model => (that canEqual this) && (myMap == that.myMap)
+    case _ => false
+  }
+  override def hashCode: Int = myMap.hashCode
+
+  def get(key: Key):Option[Value] = myMap.get(key)
+  def +(e: Elem): Model = e match { 
+    case rel: Relation if isDefinedAt(rel.key) => 
+      var newSubmodel: Model = apply(rel.key)
+      for (e <- rel.tail.elems) newSubmodel += e
+      newModel(myMap + (rel.key -> newSubmodel))
+    case _ => 
+      newModel(myMap + e.toPair)
+  }
+  def -(k: Key): Model = newModel(myMap - k)
+  def iterator:Iterator[(Key, Value)] = myMap.iterator
+  def stringPrefix: String = "Model"  
   
-  // the vectors allows for traversal in elems order and they are as type specific as possible which is not a problem as Vector is covariant
+  def isDefinedAt(k: Key) = myMap.isDefinedAt(k)
+  lazy val size: Int = myMap.size
+  
+  def foreach[U](f: Elem => U): Unit = elems.foreach(f)
+  def filter(f: Elem => Boolean): Model = elems.filter(f).toModel
+  def withFilter(f: Elem => Boolean): Model = elems.withFilter(f).toModel
+  def filterNot(f: Elem => Boolean): Model = elems.filterNot(f).toModel
+  
+  def foreachElem[U](f: Elem => U): Unit = elems.foreach { e => 
+    e match {
+      case n: Node     => f(n)
+      case r: Relation => f(r); r.tail.foreach(f)      
+    }
+  }
+  
+  def foreachNode[U](f: Node => U): Unit = elems.foreach { e => 
+    e match {
+      case n: Node     => f(n)
+      case r: Relation => r.tail.foreachNode(f)      
+    }
+  }
+
+  lazy val keys = myMap.keys
+  lazy val keySet = myMap.keySet
+  lazy val toVector = elems
+  lazy val toSeq = toVector.toSeq
+  lazy val toSet: Set[Elem] = elems.toSet
+  lazy val toMap: Map[Key, Value] = myMap
+  
+  def ++(that: Model): Model = Model((elems ++ that.elems):_*)
+  
+  def diffKeys(that: Model): Model = newModel(myMap -- that.keys) //should not this be deep????
+  def diff(that: Model): Model = (elems diff that.elems).toModel //should not this be deep????
+  def --(that: Model): Model = diff(that)  //is diff == diffKeys ??? NO!?
+
+  // the vectors allows for traversal in elems order if ListModel and they are as type specific as possible which is not a problem as Vector is covariant
   // the sets allow for fast contains tests but are all of Set[Elem] as Sets are invariant 
   
-  def elemIterator:Iterator[Elem] = iterator.map(keyNodeToElem)
+  def elemIterator:Iterator[Elem] = iterator.map(pairToElem)
   lazy val elems: Vector[Elem] = elemIterator.toVector
-  lazy val elemSet: Set[Elem] = elems.toSet
   lazy val topRelations: Vector[Relation] = elems.collect { case r: Relation => r }
-  lazy val topHeads: Vector[Head] = topRelations.map { _.head }
-  lazy val topSources: Vector[Entity] = topRelations.map { _.source }
-  lazy val topSourceSet: Set[Elem] = topSources.toSet
-  lazy val topLeafs: Vector[Leaf] = elems.collect { case l: Leaf => l }
-  lazy val topLeafSet: Set[Elem] = topLeafs.toSet
-  lazy val topLeafsAndSources: Vector[Leaf] = elems.collect { 
-    case l: Leaf => l 
-    case r: Relation => r.source      
+  lazy val topRelationKeys: Vector[RelationKey] = topRelations.map { _.key }
+  lazy val topHeads: Vector[Entity] = topRelations.map { _.head }
+  lazy val topHeadSet: Set[Elem] = topHeads.toSet
+  lazy val topNodes: Vector[Node] = elems.collect { case n: Node => n }
+  lazy val topNodeSet: Set[Elem] = topNodes.toSet
+  lazy val topNodesAndHeads: Vector[Node] = elems.collect { 
+    case n: Node => n 
+    case r: Relation => r.head      
   } .distinct
-  lazy val topElems: Vector[Elem] = elems.flatMap { 
-    case r: Relation if !topLeafSet.contains(r.source) => Vector(r.source, r) 
+  lazy val topElems: Vector[Elem] = elems.flatMap { //expand with head entities if not there already
+    case r: Relation if !topNodeSet.contains(r.head) => Vector(r.head, r) 
     case elem => Vector(elem)
-  }   //(elems ++ topSources).distinct will not give this order
+  }   //(elems ++ topHeads).distinct will not give this order
   lazy val topEntities: Vector[Entity] = topElems.collect { case e: Entity => e } 
-  lazy val topAttributes: Vector[Attribute] = topElems.collect { case a: Attribute => a }
-  lazy val topDistinct = topElems.filterNot { topSourceSet.contains(_) } 
+  lazy val topAttributes: Vector[Attribute[_]] = topElems.collect { case a: Attribute[_] => a }
+  lazy val topDistinct = topElems.filterNot { topHeadSet.contains(_) } 
   lazy val topEntitiesOfType: Map[EntityType, Vector[Entity]] = 
     Bag(topEntities.map( e => (e.myType, e)):_*).withDefaultValue(Vector())
   lazy val top: Model = topElems.toModel
@@ -89,146 +122,98 @@ extends Node with Map[Key, Node] with MapLike[Key, Node, Model] {
   lazy val topRecursive: Model = ???
   def `^^`: Model = topRecursive
     
-  def apply[T](at: AttributeType[T]): T = myMap(at).asInstanceOf[Attribute].value.asInstanceOf[T]
+  def apply[T](at: AttributeType[T]): T = myMap(at).asInstanceOf[Attribute[T]].value
   def apply(e: Entity): Entity = myMap(e).asInstanceOf[Entity]
   def apply(et: EntityType): Vector[Entity] = topEntitiesOfType(et) 
-  def apply(h: Head): Model =  myMap(h).asInstanceOf[Model]
+  def apply(h: RelationKey): Model =  myMap(h).asInstanceOf[Model]
 
   def get[T](at: AttributeType[T]): Option[T] = if (isDefinedAt(at)) Some(apply(at)) else None 
   def get(e: Entity): Option[Entity] = if (isDefinedAt(e)) Some(e) else None 
   def get(et: EntityType): Vector[Entity] = topEntitiesOfType(et)
-    //try { topEntitiesOfType(et) } catch { case e: NoSuchElementException => Vector() } 
-  def get(h: Head): Option[Model] = if (isDefinedAt(h)) Some(apply(h)) else None 
+  def get(h: RelationKey): Option[Model] = if (isDefinedAt(h)) Some(apply(h)) else None 
 
-  def isDefinedAt(a: Attribute): Boolean = isDefinedAt(a.myType) && (apply(a.myType) == a)
+  def isDefinedAt[T](a: Attribute[T]): Boolean = isDefinedAt(a.myType) && (apply(a.myType) == a)
   def isDefinedAt(et: EntityType): Boolean = !topEntitiesOfType(et).isEmpty
   
-  def existsElem(p: Elem => Boolean): Boolean = exists((kn: (Key, Node) )=> p(keyNodeToElem(kn)))
+  def existsElem(p: Elem => Boolean): Boolean = myMap.exists((kc: (Key, Value) )=> p(pairToElem(kc))) //??? rename to exists?
   
   def visitAll[T](f: PartialFunction[Elem,T]): Vector[T] = elems.flatMap ( e => 
     e match {
-      case leaf: Leaf if f.isDefinedAt(e) => Vector(f(e))
+      case n: Node if f.isDefinedAt(e) => Vector(f(e))
       case rel: Relation => 
-        ( if (f.isDefinedAt(rel.source)) Vector(f(rel.source)) else Vector[T]() ) ++
+        ( if (f.isDefinedAt(rel.head)) Vector(f(rel.head)) else Vector[T]() ) ++
           ( if (f.isDefinedAt(rel)) Vector(f(rel)) else Vector[T]() ) ++  
-            ( rel.submodel.visitAll(f) )
+            ( rel.tail.visitAll(f) )
       case _ => Vector()
     }
   )
   
   def bfs[T](f: PartialFunction[Elem,T]): Vector[T] = 
-    topElems.collect(f) ++ topRelations.map(_.submodel.bfs(f)).flatten
+    topElems.collect(f) ++ topRelations.map(_.tail.bfs(f)).flatten
 
   def dfs[T](f: PartialFunction[Elem,T]): Vector[T] = 
-    topRelations.map(_.submodel.dfs(f)).flatten ++ topElems.collect(f)
+    topRelations.map(_.tail.dfs(f)).flatten ++ topElems.collect(f)
     
-  def filter(p: Elem => Boolean): Model = filter(keyNodeToElem _ andThen p )
-  def filterNot(p: Elem => Boolean): Model = filterNot(keyNodeToElem _ andThen p )
-    
-  def filterDeep(p: Elem => Boolean): Model = flatMap {
-    case kn if p(keyNodeToElem(kn)) => keyNodeToElem(kn) match {
+  def filterTop(p: Elem => Boolean): Model = topElems.filter(p).toModel 
+  def filterTopNot(p: Elem => Boolean): Model = topElems.filterNot(p).toModel 
+  def filterShallow(p: Elem => Boolean): Model = elems.filter(p).toModel 
+  def filterShallowNot(p: Elem => Boolean): Model = elems.filterNot(p).toModel 
+
+  def filterDeep(p: Elem => Boolean): Model = newModel( myMap.flatMap {
+    case kc if p(pairToElem(kc)) => pairToElem(kc) match {
       case Relation(s,l,tail) =>  
         if (p(s) || tail.existsElem(p)) 
-          Vector(elemToKeyNode(Relation(s, l, tail.filterDeep(p))))
+          Vector(Relation(s, l, tail.filterDeep(p)).toPair)
         else 
           Vector() 
-      case _ => Vector(kn)
+      case _ => Vector(kc)
     }
     case _ => Vector()
-  }
+  } )
 
-  def filterDeepNot(p: Elem => Boolean): Model = flatMap {
-    case kn if p(keyNodeToElem(kn)) => keyNodeToElem(kn) match {
+  def filterDeepNot(p: Elem => Boolean): Model = newModel( myMap.flatMap {
+    case kc if !p(pairToElem(kc)) => pairToElem(kc) match {
       case Relation(s,l,tail) =>  
-        if (p(s) || tail.existsElem(p)) 
-          Vector(elemToKeyNode(Relation(s, l, tail.filterDeepNot(p))))
+        if (!p(s) && !tail.existsElem(p)) 
+          Vector(Relation(s, l, tail.filterDeepNot(p)).toPair)
         else 
           Vector() 
-      case _ => Vector(kn)
+      case _ => Vector(kc)
     }
     case _ => Vector()
-  }
+  } )
   
-  
-  def filterDeep2(p: Elem => Boolean): Model = flatMap {
-    case kn if p(keyNodeToElem(kn)) => keyNodeToElem(kn) match {
-      case Relation(s,l,tail) => 
-        Some(elemToKeyNode(Relation(s, l, tail.filterDeep2(p))))
-      case _ => Some(kn)
-    }
-    case _ => None
-  }
-
-  def filterDeepNot2(p: Elem => Boolean): Model = flatMap {
-    case kn if !p(keyNodeToElem(kn)) => keyNodeToElem(kn) match {
-      case Relation(s,l,tail) => 
-        Some(elemToKeyNode(Relation(s, l, tail.filterDeepNot2(p))))
-      case _ => Some(kn)
-    }
-    case _ => None
-  }
-
-  def tailsExists(p: Elem => Boolean): Model = flatMap {
-    case kn => keyNodeToElem(kn) match {
-      case Relation(s,l,tail) if tail.existsElem(p) => Some(kn)
-      case _ => None
-    }
-  }
-
-  def tailsExistsNot(p: Elem => Boolean): Model = flatMap {
-    case kn => keyNodeToElem(kn) match {
-      case Relation(s,l,tail) if !tail.existsElem(p) => Some(kn)
-      case _ => None
-    }
-  }    
-  
-  def filterTails(p: Elem => Boolean): Model = flatMap {
-    case kn => keyNodeToElem(kn) match {
-      case Relation(s,l,tail) => 
-        Some(elemToKeyNode(Relation(s, l, tail.filter(p))))
-      case _ => Some(kn)
-    }
-  }
-  
-  def filterTailsNot(p: Elem => Boolean): Model = flatMap {
-    case kn => keyNodeToElem(kn) match {
-      case Relation(s,l,tail) => 
-        Some(elemToKeyNode(Relation(s, l, tail.filterNot(p))))
-      case _ => Some(kn)
-    }
-  }
-  
-  def separateKeysOrTails(base: Selector, separator: (Elem => Boolean) => Model): Model = 
-    base match {
+  def separateKeysOrTails(s: Selector, separator: (Elem => Boolean) => Model): Model = 
+    s match {
       case et: EntityType => separator { 
         case e: Entity if e.myType == et => true 
         case Relation(s, _, t) if s.myType == et || t.isDefinedAt(et) => true
         case _ => false
       }
       case at: AttributeType[_] => separator { 
-        case a: Attribute if a.myType == at => true 
+        case a: Attribute[_] if a.myType == at => true 
         case Relation(_, _, tail) if tail.isDefinedAt(at) => true
         case _ => false
       }
-      case _ => throw new scala.NotImplementedError("separate base=" + base)
+      case _ => throw new scala.NotImplementedError("separate on" + s)
     }
 
-  def separateKeys(base: Selector, separator: (Elem => Boolean) => Model): Model = 
-    base match {
+  def separateKeys(s: Selector, separator: (Elem => Boolean) => Model): Model = 
+    s match {
       case et: EntityType => separator { 
         case e: Entity if e.myType == et => true 
         case Relation(s, _, _) if s.myType == et => true
         case _ => false
       }
       case at: AttributeType[_] => separator { 
-        case a: Attribute if a.myType == at => true 
+        case a: Attribute[_] if a.myType == at => true 
         case _ => false
       }
-      case _ => throw new scala.NotImplementedError("separateKeys base=" + base)
+      case _ => throw new scala.NotImplementedError("separateKeys on" + s)
     }      
 
-  def separateTails(base: Selector, separator: (Elem => Boolean) => Model): Model = 
-    base match {
+  def separateTails(s: Selector, separator: (Elem => Boolean) => Model): Model = 
+    s match {
       case et: EntityType => separator { 
         case Relation(_, _, tail) if tail.isDefinedAt(et) => true
         case _ => false
@@ -237,24 +222,24 @@ extends Node with Map[Key, Node] with MapLike[Key, Node, Model] {
         case Relation(_, _, tail) if tail.isDefinedAt(at) => true
         case _ => false
       }
-      case _ => throw new scala.NotImplementedError("separateTails base=" + base)
+      case _ => throw new scala.NotImplementedError("separateTails on" + s)
     }       
     
   def enter(e: Entity): Model = get(e.has).getOrElse(Model())
-  def enter(h: Head): Model = get(h).getOrElse(Model())
+  def enter(h: RelationKey): Model = get(h).getOrElse(Model())
   def enter[T](at: AttributeType[T]): T = get(at).getOrElse(at.default.asInstanceOf[T])
 
   def /(e: Entity): Model = enter(e)
-  def /(h: Head): Model = enter(h)
+  def /(h: RelationKey): Model = enter(h)
   def /[T](at: AttributeType[T]): T = enter(at)
   
-  def restrict(s: Selector): Model = separateKeysOrTails(s, filter)    
+  def restrict(s: Selector): Model = separateKeysOrTails(s, filterTop)    
   def *(s: Selector): Model = restrict(s)
   
-  def restrictTop(s: Selector): Model = separateKeys(s, filter)    
+  def restrictTop(s: Selector): Model = separateKeys(s, filterTop)    
   def *^(s: Selector): Model = restrictTop(s)
   
-  def restrictTails(s: Selector): Model = separateTails(s, filter)   
+  def restrictTails(s: Selector): Model = separateTails(s, filterTop)   
   def *~(s: Selector): Model = restrictTails(s)
 
   def restrictAll(s: Selector): Model = separateKeysOrTails(s, filterDeep)    
@@ -271,60 +256,67 @@ extends Node with Map[Key, Node] with MapLike[Key, Node, Model] {
 
   def excludeAll(s: Selector): Model = separateKeysOrTails(s, filterDeepNot)    
   def \\(s: Selector): Model = excludeAll(s)
-
+ 
   lazy val toStringBody = 
     if (size == 0) "()" 
-    else if (size == 1) elems.mkString 
+    else if (size == 1 && elems(0).isNode) elems.mkString 
     else elems.mkString("(", ", ", ")")
-  override def toString = stringPrefix + elems.mkString("(\n", ",\n", ")\n")
+  override def toString = stringPrefix + elems.mkString("(\n  ", ",\n  ", "\n)")
 }
 
-object Model extends Type {
-  // --- integration with collections:
-  import scala.collection.mutable.{Builder, MapBuilder}
-  import scala.collection.generic.CanBuildFrom
+object defaultEmptyModel { def apply(): ListModel = new ListModel(ListMap.empty) }
 
-  def empty: Model = new Model(LinkedHashMap.empty)  
-  def newBuilder: Builder[(Key, Node), Model] = new MapBuilder[Key, Node, Model](empty)
-  implicit def canBuildFrom: CanBuildFrom[Model, (Key, Node), Model] =
-    new CanBuildFrom[Model, (Key, Node), Model] {
-      def apply(from: Model): Builder[(Key, Node), Model] = newBuilder 
-      def apply(): Builder[(Key, Node), Model] = newBuilder
-    }
-    
-  // --- reqT-specific members
-  def newModelBuilder: Builder[Elem, Model] = new ModelBuilder(Model())  //??? is this needed
-  
-  implicit def canBuildFromModel: CanBuildFrom[Vector[Elem], Elem, Model] = //??? is this needed
-    new CanBuildFrom[Vector[Elem], Elem, Model] {
-      def apply(from: Vector[Elem]): Builder[Elem, Model] = newModelBuilder 
-      def apply(): Builder[Elem, Model] = newModelBuilder
-    }
-  
-  def elemToKeyNode(e: Elem):(Key, Node) = (e.key, e.node)
+trait ModelCompanion {
+  def empty: Model =  defaultEmptyModel() //Default is ListModel
+  def apply(elems: Elem*): Model =   {
+    var result = empty
+    elems.foreach{ e => result += e }
+    result
+  } 
+  def unapplySeq(m: Model): Option[Seq[Elem]] = Some(m.toSeq)
 
-  def keyNodeToElem(kn: (Key, Node)):Elem = kn match {
-    case (_, a: Attribute) => a
+  def apply(m: ListMap[Key, Value]): Model = new ListModel(m)
+  def apply(m: HashMap[Key, Value]): Model = new HashModel(m)
+  def pairToElem(pair: (Key, Value)):Elem = pair match {
+    case (_, a: Attribute[_]) => a
     case (e: Entity, _) => e
-    case (head: Head, submodel: Model) => Relation(head, submodel)
-    case _ => throw new IllegalArgumentException(kn + " must be (Key, Node)")
-  }    
-  
-  def fromKeyNodes(keyNodes: (Key, Node)*): Model = {
-    new Model(LinkedHashMap(keyNodes:_*))
-  }  
-  
-  def apply(elems: Elem*): Model = {
-    new Model(LinkedHashMap(elems.map(elemToKeyNode):_*))
+    case (head: RelationKey, tail: Model) => Relation(head, tail)
+    case _ => throw new IllegalArgumentException(pair + " must be (Key, Value)")
+  }   
+}
+
+object Model extends Type with ModelCompanion {
+  def fromMap(m: Map[Key, Value]): Model = m match {
+    case lm: ListMap[Key, Value] => ListModel(lm)
+    case hm: HashMap[Key, Value] => HashModel(hm)
+    case otherTypeOfMap => otherTypeOfMap.toSeq.toModel
   }
 }
 
-class ModelBuilder( private var myModel: Model) //??? is this needed
-extends scala.collection.mutable.Builder[Elem, Model] {
-  def +=(elem: Elem): this . type = { myModel += elem; this }
-  def clear(): Unit =  { myModel = Model() } 
-  def result(): Model = myModel
+final class ListModel private [reqT] ( override val myMap: ListMap[Key, Value]) extends Model {
+  type MapType = ListMap[Key, Value]
+  override def empty: ListModel = ListModel.empty  
+  //override def newModel(m: MapType): Model = new ListModel(m) 
+  //override def toListMap: ListMap[Key, Value] = myMap
+  //override def toHashMap: HashMap[Key, Value] = myMap
 }
+
+object ListModel extends ModelCompanion {
+  override def empty: ListModel = new ListModel(ListMap.empty)  
+}
+
+final class HashModel private [reqT] ( override val myMap: HashMap[Key, Value]) extends Model {
+  type MapType = HashMap[Key, Value]
+  override def empty: HashModel = HashModel.empty  
+  //override def newModel(m: MapType): Model = new HashModel(m)
+}
+
+object HashModel extends ModelCompanion {
+  override def empty: HashModel = new HashModel(HashMap.empty)  
+  //override def toListMap: ListMap[Key, Value] = myMap
+  //override def toHashMap: HashMap[Key, Value] = myMap
+}
+
 
 
 
