@@ -21,19 +21,19 @@ extends Init with Constants with ImplicitFactoryObjects {
     // def toHashModel = HashModel(seq:_*)
   // }
 
-  implicit class ListMapToModel(lm: scala.collection.immutable.ListMap[Key, Value]) {
+  implicit class ListMapToModel(lm: scala.collection.immutable.ListMap[Key, MapTo]) {
     def toModel = Model(lm)
   }
 
-  implicit class KeyValueSeqToModel(seq: Seq[(Key, Value)]) {
+  implicit class KeyValueSeqToModel(seq: Seq[(Key, MapTo)]) {
     def toModel = Model(seq.map(Model.pairToElem) :_*)
   }  
   
-  implicit class filterMonadicToModel(fm: scala.collection.generic.FilterMonadic[Elem, Seq[Elem]]) {
+  implicit class FilterMonadicToModel(fm: scala.collection.generic.FilterMonadic[Elem, Seq[Elem]]) {
     def toModel = Model(fm.map(x => x):_*)
   }  
   
-  implicit class pairToElem(p: Tuple2[Key,Value]) { 
+  implicit class KeyMapToTuple2ToElem(p: Tuple2[Key,MapTo]) { 
     def toElem: Elem = Model.pairToElem(p) 
   }
   def uuid = java.util.UUID.randomUUID.toString
