@@ -24,17 +24,29 @@ trait Selector
 trait HasType { def myType: Type } 
 trait HasValue[T] { def value: T }
 trait HasDefault[T] { def default: T }
-trait CanMakePair {
-  def toPair: (Key, MapTo)  = (key, mapTo)
+trait CanBeMapped {
+  def toMapping: (Key, MapTo)  = (key, mapTo)
   def key: Key
   def mapTo: MapTo
 }
 
-sealed trait Elem extends Base with HasType with CanMakePair with Selector { 
+sealed trait Elem extends Base with HasType with CanBeMapped with Selector { 
   def isNode: Boolean
   def isAttribute: Boolean
   def isEntity: Boolean = !isAttribute
   def isRelation: Boolean = !isNode
+}
+
+case object NoElem extends Entity with EntityType { 
+  override val id = ""
+  override val isNode: Boolean = false
+  override val isAttribute: Boolean = false
+  override val isEntity: Boolean = false
+  override val isRelation: Boolean = false
+  override val myType = this
+  override def key: Head = NoElem.has
+  override def mapTo: Model  = Model.empty
+  def apply(id: String) = NoElem
 }
 
 sealed trait Node extends Elem {
@@ -43,7 +55,7 @@ sealed trait Node extends Elem {
 
 sealed trait MapTo extends Base with HasType  
 
-trait Attribute[T] extends Node with MapTo with HasValue[T] with CanMakePair {
+trait Attribute[T] extends Node with MapTo with HasValue[T] with CanBeMapped {
   override def myType: AttributeType[T]
   override def key: AttributeType[T] = myType
   override def mapTo: Attribute[T] = this

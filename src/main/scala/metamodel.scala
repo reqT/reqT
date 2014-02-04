@@ -13,6 +13,18 @@
 
 package reqT 
 
+object metamodel {
+  lazy val indexOf: Map[String, Int] = names.zipWithIndex.toMap.withDefaultValue(-1)
+  lazy val names: Vector[String] = types map (_.toString)
+  lazy val types: Vector[Type] = entityTypes ++ attributeTypes ++ relationTypes  
+  lazy val entityTypes: Vector[EntityType] = Vector(Req, Feature)
+  lazy val attributeTypes: Vector[AttributeType[_]] = stringAttributes ++ intAttributes ++ cardinalityAttributes
+  lazy val relationTypes: Vector[RelationType] = Vector(has, requires, relatesTo)
+  lazy val stringAttributes = Vector(Spec)
+  lazy val intAttributes = Vector(Prio)
+  lazy val cardinalityAttributes = Vector(Opt)
+}
+
 trait StringAttribute extends Attribute[String]
 trait StringType extends AttributeType[String] { val default = ""}
 
@@ -32,17 +44,7 @@ case object ZeroOrOne extends Cardinality
 case object OneOrMany extends Cardinality
 case object ZeroOrMany extends Cardinality
 
-object all {
-  lazy val typeNameIndex: Map[String, Int] = typeNames.zipWithIndex.toMap.withDefaultValue(-1)
-  lazy val typeNames: Vector[String] = types map (_.toString)
-  lazy val types: Vector[Type] = entityTypes ++ attributeTypes ++ relationTypes  
-  lazy val entityTypes: Vector[EntityType] = Vector(Req, Feature)
-  lazy val attributeTypes: Vector[AttributeType[_]] = stringAttributes ++ intAttributes ++ cardinalityAttributes
-  lazy val relationTypes: Vector[RelationType] = Vector(has, requires, relatesTo)
-  lazy val stringAttributes = Vector(Spec)
-  lazy val intAttributes = Vector(Prio)
-  lazy val cardinalityAttributes = Vector(Opt)
-}
+
 
 case class Spec(value: String) extends StringAttribute { override val myType = Spec }
 case object Spec extends StringType 
@@ -80,7 +82,7 @@ trait HeadFactory {
 trait AttrMaker[T <: Attribute[_]] { def apply(s: String): T }
 
 trait CanMakeAttr {
-  def makeAttr[T <: Attribute[_]](value: String)(implicit make: AttrMaker[T]): T = make(value)
+  def makeAttr[T <: Attribute[_]](value: String)( implicit make: AttrMaker[T]): T = make(value)
 }
 
 trait ImplicitFactoryObjects extends CanMakeAttr { //mixed in by package object reqT

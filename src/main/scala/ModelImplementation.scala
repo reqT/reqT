@@ -31,10 +31,12 @@ trait ModelImplementation  {
   def empty: Model 
   def toListMap: ListMap[Key, MapTo]
   def toHashMap: HashMap[Key, MapTo]
-
-//Implemented:  
+  
+  //Implemented:  
 
   override val myType: Type = Model
+  def toListModel = Model.fromMap(myMap) 
+  def toHashModel = Model.fromMap(myMap)
 
   def canEqual(other: Any): Boolean = other.isInstanceOf[Model] //but subclasses to Model are final. is this needed??
   override def equals(other: Any): Boolean = other match {
@@ -49,18 +51,22 @@ trait ModelImplementation  {
       var newSubmodel: Model = apply(rel.key)
       for (e <- rel.tail.elems) newSubmodel += e
       newModel(myMap + (rel.key -> newSubmodel))
-    case _ => 
-      newModel(myMap + e.toPair)
+    case  NoElem => this
+    case _ => newModel(myMap + e.toMapping)
   }
   def -(k: Key): Model = newModel(myMap - k)  //deep???
   def iterator:Iterator[(Key, MapTo)] = myMap.iterator
   def stringPrefix: String = "Model"  
   
   def isDefinedAt(k: Key) = myMap.isDefinedAt(k)
-  val size: Int = myMap.size  //rename to topSize???
-  val isEmpty: Boolean = size == 0
+  val mapSize: Int = myMap.size
+  lazy val topSize: Int = top.size
+  lazy val size: Int = { var n = 0 ; foreachElem { n += 1 } ; n }
+  lazy val nodeSize: Int = { var n = 0 ; foreachNode { n += 1 } ; n }
+  val isEmpty: Boolean = mapSize == 0
   
   def foreach[U](f: Elem => U): Unit = elems.foreach(f)
+  def foreach(block: => Unit): Unit = foreach(_ => block)
   def filter(f: Elem => Boolean): Model = elems.filter(f).toModel
   def withFilter(f: Elem => Boolean): Model = elems.withFilter(f).toModel
   def filterNot(f: Elem => Boolean): Model = elems.filterNot(f).toModel
@@ -68,9 +74,10 @@ trait ModelImplementation  {
   def foreachElem[U](f: Elem => U): Unit = elems.foreach { e => 
     e match {
       case n: Node     => f(n)
-      case r: Relation => f(r); r.tail.foreach(f)      
+      case r: Relation => f(r); r.tail.foreachElem(f)      
     }
   }
+  def foreachElem(block: => Unit): Unit = foreachElem { _ => block }
   
   def foreachNode[U](f: Node => U): Unit = elems.foreach { e => 
     e match {
@@ -78,6 +85,7 @@ trait ModelImplementation  {
       case r: Relation => r.tail.foreachNode(f)      
     }
   }
+  def foreachNode(block: => Unit): Unit = foreachNode { _ => block }
 
   lazy val keys = myMap.keys
   lazy val keySet = myMap.keySet
@@ -106,7 +114,11 @@ trait ModelImplementation  {
     case Relation(e, l, tail) => Relation(e, l, tail.topNodes.toModel)
     case elem => elem
   } .toModel
-
+  lazy val tip: Model = elems.collect {
+    case Relation(e, l, tail) => e
+    case elem => elem
+  } .toModel  
+  
 //------------------ check below
   lazy val topRelations: Vector[Relation] = elems.collect { case r: Relation => r }
   lazy val topRelationKeys: Vector[Head] = topRelations.map { _.key }
@@ -116,7 +128,7 @@ trait ModelImplementation  {
     case n: Node => n 
     case r: Relation => r.entity      
   } .distinct
-  lazy val topElems: Vector[Elem] = elems.flatMap { //expand with head entities if not there already
+  lazy val topElems: Vector[Elem] = elems.flatMap { //expand with head entities if not there already ???
     case r: Relation if !topNodeSet.contains(r.entity) => Vector(r.entity, r) 
     case elem => Vector(elem)
   }   //(elems ++ topEntities).distinct will not give this order
@@ -171,7 +183,7 @@ trait ModelImplementation  {
     case kc if p(pairToElem(kc)) => pairToElem(kc) match {
       case Relation(s,l,tail) =>  
         if (p(s) || tail.existsElem(p)) 
-          Vector(Relation(s, l, tail.filterDeep(p)).toPair)
+          Vector(Relation(s, l, tail.filterDeep(p)).toMapping)
         else 
           Vector() 
       case _ => Vector(kc)
@@ -183,7 +195,7 @@ trait ModelImplementation  {
     case kc if !p(pairToElem(kc)) => pairToElem(kc) match {
       case Relation(s,l,tail) =>  
         if (!p(s) && !tail.existsElem(p)) 
-          Vector(Relation(s, l, tail.filterDeepNot(p)).toPair)
+          Vector(Relation(s, l, tail.filterDeepNot(p)).toMapping)
         else 
           Vector() 
       case _ => Vector(kc)
@@ -309,6 +321,7 @@ final class ListModel private [reqT] ( override val myMap: ListMap[Key, MapTo]) 
   override def empty: ListModel = ListModel.empty  
   override def toListMap: ListMap[Key, MapTo] = myMap
   override def toHashMap: HashMap[Key, MapTo] = HashMap(myMap.toSeq:_*)
+  override def toListModel = this
 }
 
 object ListModel extends ModelCompanion {
@@ -320,6 +333,7 @@ final class HashModel private [reqT] ( override val myMap: HashMap[Key, MapTo]) 
   override def empty: HashModel = HashModel.empty  
   override def toListMap: ListMap[Key, MapTo] = ListMap(myMap.toSeq:_*)
   override def toHashMap: HashMap[Key, MapTo] = myMap
+  override def toHashModel = this
 }
 
 object HashModel extends ModelCompanion {
