@@ -1,16 +1,15 @@
-/*     
+/***     
 **                  _______        
-**                 |__   __|     reqT API  
-**   _ __  ___   __ _ | |        (c) 2011-2014, Lund University  
-**  |  __|/ _ \ / _  || |        http://reqT.org
+**                 |__   __|   reqT - a free requriements engineering tool  
+**   _ __  ___   __ _ | |      (c) 2011-2014, Lund University  
+**  |  __|/ _ \ / _  || |      http://reqT.org
 **  | |  |  __/| (_| || |   
 **  |_|   \___| \__  ||_|   
 **                 | |      
 **                 |_|      
 ** reqT is open source, licensed under the BSD 2-clause license: 
 ** http://opensource.org/licenses/bsd-license.php 
-*****************************************************************/
-
+***************************************************************************/
 package reqT 
 
 object metamodel {
@@ -26,25 +25,24 @@ object metamodel {
 }
 
 trait StringAttribute extends Attribute[String]
-trait StringType extends AttributeType[String] { val default = ""}
+trait StringType extends AttributeType[String] { val default = "???"}
 
 trait IntAttribute    extends Attribute[Int]
-trait IntType extends AttributeType[Int] { val default = 0} 
+trait IntType extends AttributeType[Int] { val default = -999999999} 
 
 trait Cardinality extends Enum[Cardinality] { val myType = Cardinality }
 trait CardinalityType extends EnumType[Cardinality] with AttributeType[Cardinality] { 
-  val values = Vector(Zero, One, ZeroOrOne, OneOrMany, ZeroOrMany)
+  val values = Vector(NoOption, Zero, One, ZeroOrOne, OneOrMany, ZeroOrMany)
   val default = values(0)
 } 
 trait CardinalityAttribute extends Attribute[Cardinality]
 case object Cardinality extends CardinalityType
+case object NoOption extends Cardinality
 case object Zero extends Cardinality
 case object One extends Cardinality
 case object ZeroOrOne extends Cardinality
 case object OneOrMany extends Cardinality
 case object ZeroOrMany extends Cardinality
-
-
 
 case class Spec(value: String) extends StringAttribute { override val myType = Spec }
 case object Spec extends StringType 
@@ -71,12 +69,15 @@ trait RelationFactory {
   def has(submodel: Model) = Relation(this, reqT.has, submodel)
   def requires(elems: Elem*) =  Relation(this, reqT.requires, Model(elems:_*))
   def requires(submodel: Model) =  Relation(this, reqT.requires, submodel)
+  def relatesTo(elems: Elem*) =  Relation(this, reqT.relatesTo, Model(elems:_*))
+  def relatesTo(submodel: Model) =  Relation(this, reqT.relatesTo, submodel)
 }
 
 trait HeadFactory {
   self: Entity =>
   def has = Head(this, reqT.has)
   def requires = Head(this, reqT.requires)
+  def relatesTo = Head(this, reqT.relatesTo)
 }
 
 trait AttrMaker[T <: Attribute[_]] { def apply(s: String): T }

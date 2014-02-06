@@ -1,15 +1,15 @@
-/*     
+/***     
 **                  _______        
-**                 |__   __|     reqT API  
-**   _ __  ___   __ _ | |        (c) 2011-2014, Lund University  
-**  |  __|/ _ \ / _  || |        http://reqT.org
+**                 |__   __|   reqT - a free requriements engineering tool  
+**   _ __  ___   __ _ | |      (c) 2011-2014, Lund University  
+**  |  __|/ _ \ / _  || |      http://reqT.org
 **  | |  |  __/| (_| || |   
 **  |_|   \___| \__  ||_|   
 **                 | |      
 **                 |_|      
 ** reqT is open source, licensed under the BSD 2-clause license: 
 ** http://opensource.org/licenses/bsd-license.php 
-*****************************************************************/
+***************************************************************************/
 
 package reqT 
 
@@ -62,7 +62,7 @@ trait Attribute[T] extends Node with MapTo with HasValue[T] with CanBeMapped {
   override def isAttribute: Boolean = true
 }
 
-trait Model extends MapTo with ModelImplementation
+trait Model extends MapTo with ModelImplementation with ModelEquality
 object Model extends Type with ModelCompanion with ModelFromMap
 
 sealed trait Key extends Base with Selector
@@ -73,6 +73,10 @@ trait Entity extends Node with HeadFactory with RelationFactory {
   override def mapTo: Model = Model() 
   override def myType: EntityType
   override def isAttribute: Boolean = false
+  def /(h: Head) = HeadPath(this.has, h)
+  def /(e: Entity) = HeadPath(this.has, e.has)
+  def /[T](at: AttributeType[T]) = AttrRef[T](HeadPath(this.has), at)
+  def /[T](a: Attribute[T]) = AttrVal[T](HeadPath(this.has), a)
 }
 
 trait Type extends Selector   
@@ -88,7 +92,13 @@ trait EntityType extends Type {
 
 trait RelationType extends Type
 
-case class Head(entity: Entity, link: RelationType) extends Key 
+case class Head(entity: Entity, link: RelationType) extends Key {
+  def /(h: Head) = HeadPath(this, h)
+  def /(e: Entity) = HeadPath(this, e.has)
+  def /[T](at: AttributeType[T]) = AttrRef[T](HeadPath(this), at)
+  def /[T](a: Attribute[T]) = AttrVal[T](HeadPath(this), a)
+  override def toString = entity + "." + link
+}
 
 case class Relation(entity: Entity, link: RelationType, tail: Model) extends Elem {
   val myType = Relation

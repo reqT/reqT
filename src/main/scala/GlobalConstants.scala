@@ -1,19 +1,19 @@
 /*     
 **                  _______        
-**                 |__   __|     reqT API  
-**   _ __  ___   __ _ | |        (c) 2011-2014, Lund University  
-**  |  __|/ _ \ / _  || |        http://reqT.org
+**                 |__   __|   reqT - a free requriements engineering tool  
+**   _ __  ___   __ _ | |      (c) 2011-2014, Lund University  
+**  |  __|/ _ \ / _  || |      http://reqT.org
 **  | |  |  __/| (_| || |   
 **  |_|   \___| \__  ||_|   
 **                 | |      
 **                 |_|      
 ** reqT is open source, licensed under the BSD 2-clause license: 
 ** http://opensource.org/licenses/bsd-license.php 
-*****************************************************************/
+***************************************************************************/
 
 package reqT
 
-trait Constants { //mixed in by package object reqT
+trait GlobalConstants { //mixed in by package object reqT
 
   val VERSION = "3.0.0-snapshot"
   val SCALA_VERSION = "2.10.2"
@@ -21,10 +21,10 @@ trait Constants { //mixed in by package object reqT
   lazy val PREAMBLE = """
 **                  _______        
 **                 |__   __|       
-**   _ __  ___   __ _ | |          
-**  |  __|/ _ \ / _  || |        http://reqT.org
-**  | |  |  __/| (_| || |   
-**  |_|   \___| \__  ||_|   
+**   _ __  ___   __ _ | |      reqT - a free requriements engineering tool
+**  |  __|/ _ \ / _  || |      http://reqT.org
+**  | |  |  __/| (_| || |      (c) 2011-2014, Lund University
+**  |_|   \___| \__  ||_|      Free Open Software BSD-2-clause licence
 **                 | |      
 **                 |_|      
 """  

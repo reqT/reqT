@@ -1,25 +1,25 @@
-/*     
+/***     
 **                  _______        
-**                 |__   __|     reqT API  
-**   _ __  ___   __ _ | |        (c) 2011-2014, Lund University  
-**  |  __|/ _ \ / _  || |        http://reqT.org
+**                 |__   __|   reqT - a free requriements engineering tool  
+**   _ __  ___   __ _ | |      (c) 2011-2014, Lund University  
+**  |  __|/ _ \ / _  || |      http://reqT.org
 **  | |  |  __/| (_| || |   
 **  |_|   \___| \__  ||_|   
 **                 | |      
 **                 |_|      
 ** reqT is open source, licensed under the BSD 2-clause license: 
 ** http://opensource.org/licenses/bsd-license.php 
-*****************************************************************/
+***************************************************************************/
 
 package object reqT 
-extends Init with Constants with ImplicitFactoryObjects {
+extends Init with GlobalConstants with ImplicitFactoryObjects {
   import scala.language.implicitConversions
 
-  // implicit class ElemSeqToModel(seq: Seq[Elem]) {
-    // def toModel = Model(seq:_*)
-    // def toListModel = ListModel(seq:_*)
-    // def toHashModel = HashModel(seq:_*)
-  // }
+  implicit class ElemIterableToModel(it: Iterable[Elem]) {
+    def toModel = Model(it.toSeq:_*)
+    def toListModel = ListModel(it.toSeq:_*)
+    def toHashModel = HashModel(it.toSeq:_*)
+  }
 
   implicit class MapToModel(m: scala.collection.Map[Key, MapTo]) {
     def toModel = Model.fromMap(m.toMap)
@@ -34,11 +34,11 @@ extends Init with Constants with ImplicitFactoryObjects {
     def toHashModel = HashModel(seq.map(Model.pairToElem) :_*)
   }  
   
-  implicit class FilterMonadicToModel(fm: scala.collection.generic.FilterMonadic[Elem, Seq[Elem]]) {
-    def toModel = Model(fm.map(x => x):_*)
-    def toListModel = ListModel(fm.map(x => x):_*)
-    def toHashModel = HashModel(fm.map(x => x):_*)
-  }  
+  // implicit class FilterMonadicToModel(fm: scala.collection.generic.FilterMonadic[Elem, Seq[Elem]]) {
+    // def toModel = Model(fm.map(x => x):_*)
+    // def toListModel = ListModel(fm.map(x => x):_*)
+    // def toHashModel = HashModel(fm.map(x => x):_*)
+  // }  
   
   implicit class KeyMapToTuple2ToElem(p: Tuple2[Key,MapTo]) { 
     def toElem: Elem = Model.pairToElem(p) 

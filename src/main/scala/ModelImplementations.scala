@@ -1,21 +1,22 @@
-/*    
+/***     
 **                  _______        
-**                 |__   __|     reqT API  
-**   _ __  ___   __ _ | |        (c) 2011-2014, Lund University  
-**  |  __|/ _ \ / _  || |        http://reqT.org
+**                 |__   __|   reqT - a free requriements engineering tool  
+**   _ __  ___   __ _ | |      (c) 2011-2014, Lund University  
+**  |  __|/ _ \ / _  || |      http://reqT.org
 **  | |  |  __/| (_| || |   
 **  |_|   \___| \__  ||_|   
 **                 | |      
 **                 |_|      
 ** reqT is open source, licensed under the BSD 2-clause license: 
 ** http://opensource.org/licenses/bsd-license.php 
-*****************************************************************/
+***************************************************************************/
 
 package reqT 
 
 import scala.language.implicitConversions
 import scala.collection.immutable.ListMap
 import scala.collection.immutable.HashMap
+import scala.collection.generic.FilterMonadic
 
 trait ModelImplementation  {
   self: Model =>
@@ -38,13 +39,6 @@ trait ModelImplementation  {
   def toListModel = Model.fromMap(myMap) 
   def toHashModel = Model.fromMap(myMap)
 
-  def canEqual(other: Any): Boolean = other.isInstanceOf[Model] //but subclasses to Model are final. is this needed??
-  override def equals(other: Any): Boolean = other match {
-    case that: Model => (that canEqual this) && (myMap == that.myMap)
-    case _ => false
-  }
-  override def hashCode: Int = myMap.hashCode
-
   def get(key: Key):Option[MapTo] = myMap.get(key)
   def +(e: Elem): Model = e match { 
     case rel: Relation if isDefinedAt(rel.key) => 
@@ -55,21 +49,29 @@ trait ModelImplementation  {
     case _ => newModel(myMap + e.toMapping)
   }
   def -(k: Key): Model = newModel(myMap - k)  //deep???
-  def iterator:Iterator[(Key, MapTo)] = myMap.iterator
-  def stringPrefix: String = "Model"  
+
+  def +(p: HeadPath): Model = this ++ p.toModel
+  def +[T](p: AttrVal[T]): Model = this ++ p.toModel
+
+  lazy val toIterable:Iterable[Elem] = myMap.map(_.toElem)
+  lazy val elems: Vector[Elem] = toIterable.toVector
+  def iterator:Iterator[Elem] = toIterable.iterator
+  def mapIterator: Iterator[(Key, MapTo)] = myMap.iterator
+  val stringPrefix: String = "Model"  
   
-  def isDefinedAt(k: Key) = myMap.isDefinedAt(k)
+  def isDefinedAt(k: Key) = myMap.isDefinedAt(k) //??? deep???
   val mapSize: Int = myMap.size
   lazy val topSize: Int = top.size
   lazy val size: Int = { var n = 0 ; foreachElem { n += 1 } ; n }
   lazy val nodeSize: Int = { var n = 0 ; foreachNode { n += 1 } ; n }
   val isEmpty: Boolean = mapSize == 0
   
-  def foreach[U](f: Elem => U): Unit = elems.foreach(f)
+  def foreach[U](f: Elem => U): Unit = toIterable.foreach(f)
   def foreach(block: => Unit): Unit = foreach(_ => block)
-  def filter(f: Elem => Boolean): Model = elems.filter(f).toModel
-  def withFilter(f: Elem => Boolean): Model = elems.withFilter(f).toModel
-  def filterNot(f: Elem => Boolean): Model = elems.filterNot(f).toModel
+  def filter(f: Elem => Boolean): Model = toIterable.filter(f).toModel
+  def filterNot(f: Elem => Boolean): Model = toIterable.filterNot(f).toModel
+  def withFilter(f: Elem => Boolean): FilterMonadic[reqT.Elem,Iterable[reqT.Elem]] = toIterable.withFilter(f)
+  def map[U](f: Elem => U): Iterable[U] = toIterable.map(f)
   
   def foreachElem[U](f: Elem => U): Unit = elems.foreach { e => 
     e match {
@@ -82,7 +84,7 @@ trait ModelImplementation  {
   def foreachNode[U](f: Node => U): Unit = elems.foreach { e => 
     e match {
       case n: Node     => f(n)
-      case r: Relation => r.tail.foreachNode(f)      
+      case r: Relation => f(r.entity); r.tail.foreachNode(f)      
     }
   }
   def foreachNode(block: => Unit): Unit = foreachNode { _ => block }
@@ -94,7 +96,8 @@ trait ModelImplementation  {
   lazy val toSet: Set[Elem] = elems.toSet
   lazy val toMap: Map[Key, MapTo] = myMap
   
-  def ++(that: Model): Model = Model((elems ++ that.elems):_*)
+  def aggregate(that: Model): Model = this ++ that 
+  def ++(that: Model): Model = { var r = this ; that.foreach { r += _ } ; r }
   
   def diffKeys(that: Model): Model = newModel(myMap -- that.keys) //should not this be deep????
   def diff(that: Model): Model = (elems diff that.elems).toModel //should not this be deep????
@@ -103,8 +106,6 @@ trait ModelImplementation  {
   // the vectors allows for traversal in elems order if ListModel and they are as type specific as possible which is not a problem as Vector is covariant
   // the sets allow for fast contains tests but are all of Set[Elem] as Sets are invariant 
 
-  def elemIterator:Iterator[Elem] = iterator.map(_.toElem)
-  lazy val elems: Vector[Elem] = elemIterator.toVector
   lazy val topNodes: Vector[Node] = elems.collect { 
     case Relation(e, l, tail) => e
     case n: Node => n
@@ -220,6 +221,11 @@ trait ModelImplementation  {
 
   def separateKeys(s: Selector, separator: (Elem => Boolean) => Model): Model = 
     s match {
+      case e: Entity => separator {
+        case e2: Entity if e == e2 => true
+        case Relation(e2, _, _) if e == e2 => true
+        case _ => false
+      }
       case et: EntityType => separator { 
         case e: Entity if e.myType == et => true 
         case Relation(s, _, _) if s.myType == et => true
@@ -249,6 +255,13 @@ trait ModelImplementation  {
   def enter(h: Head): Model = get(h).getOrElse(Model())
   def enter[T](at: AttributeType[T]): T = get(at).getOrElse(at.default.asInstanceOf[T])
 
+  def /(p: HeadPath): Model = if (p.isEmpty) this
+    else if (p.isSingle) enter(p.head)
+    else enter(p.head) / p.tail
+  def /[T](p: AttrRef[T]): T = if (p.isEmpty) this / p.last
+    else if (p.isSingle) enter(p.head) / p.last
+    else enter(p.head) / p.tail
+    
   def /(e: Entity): Model = enter(e)
   def /(h: Head): Model = enter(h)
   def /[T](at: AttributeType[T]): T = enter(at)
@@ -295,8 +308,8 @@ trait ModelCompanion {
   } 
   def unapplySeq(m: Model): Option[Seq[Elem]] = Some(m.toSeq)
 
-  def apply(m: ListMap[Key, MapTo]): Model = new ListModel(m)
-  def apply(m: HashMap[Key, MapTo]): Model = new HashModel(m)
+  def apply(m: ListMap[Key, MapTo]): ListModel = new ListModel(m)
+  def apply(m: HashMap[Key, MapTo]): HashModel = new HashModel(m)
   def pairToElem(pair: (Key, MapTo)):Elem = pair match {
     case (_, a: Attribute[_]) => a
     case (e: Entity, _) => e
