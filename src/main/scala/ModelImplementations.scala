@@ -1,6 +1,6 @@
 /***     
 **                  _______        
-**                 |__   __|   reqT - a free requriements engineering tool  
+**                 |__   __|   reqT - a requriements engineering tool  
 **   _ __  ___   __ _ | |      (c) 2011-2014, Lund University  
 **  |  __|/ _ \ / _  || |      http://reqT.org
 **  | |  |  __/| (_| || |   
@@ -9,7 +9,7 @@
 **                 |_|      
 ** reqT is open source, licensed under the BSD 2-clause license: 
 ** http://opensource.org/licenses/bsd-license.php 
-***************************************************************************/
+**************************************************************************/
 
 package reqT 
 
@@ -33,14 +33,26 @@ trait ModelImplementation  {
   def toListMap: ListMap[Key, MapTo]
   def toHashMap: HashMap[Key, MapTo]
   
-  //Implemented:  
-
+//Field from construction:  
   override val myType: Type = Model
+
+//to stuff:  
+  lazy val toVector = elems
+  lazy val toSeq = toVector.toSeq
+  lazy val toSet: Set[Elem] = elems.toSet
+  lazy val toMap: Map[Key, MapTo] = myMap
   def toListModel = Model.fromMap(myMap) 
   def toHashModel = Model.fromMap(myMap)
 
-  def get(key: Key):Option[MapTo] = myMap.get(key)
-  def +(e: Elem): Model = e match { 
+  lazy val toIterable:Iterable[Elem] = myMap.map(_.toElem)
+  lazy val elems: Vector[Elem] = toIterable.toVector
+  def iterator:Iterator[Elem] = toIterable.iterator
+  def mapIterator: Iterator[(Key, MapTo)] = myMap.iterator
+  val stringPrefix: String = "Model"  
+
+//add stuff:
+  def +(e: Elem): Model = append(e)
+  def append(e: Elem): Model = e match { 
     case rel: Relation if isDefinedAt(rel.key) => 
       var newSubmodel: Model = apply(rel.key)
       for (e <- rel.tail.elems) newSubmodel += e
@@ -48,24 +60,26 @@ trait ModelImplementation  {
     case  NoElem => this
     case _ => newModel(myMap + e.toMapping)
   }
-  def -(k: Key): Model = newModel(myMap - k)  //deep???
-
-  def +(p: HeadPath): Model = this ++ p.toModel
-  def +[T](p: AttrVal[T]): Model = this ++ p.toModel
-
-  lazy val toIterable:Iterable[Elem] = myMap.map(_.toElem)
-  lazy val elems: Vector[Elem] = toIterable.toVector
-  def iterator:Iterator[Elem] = toIterable.iterator
-  def mapIterator: Iterator[(Key, MapTo)] = myMap.iterator
-  val stringPrefix: String = "Model"  
   
-  def isDefinedAt(k: Key) = myMap.isDefinedAt(k) //??? deep???
+  def +(p: HeadPath): Model = this ++ p.toModel
+  def +[T](p: AttrVal[T]): Model = this ++ p.toModel  
+  def aggregate(that: Model): Model = this ++ that 
+  def ++(that: Model): Model = { var r = this ; that.foreach { r += _ } ; r }  
+  
+//remove stuff:  
+  def -(k: Key): Model = newModel(myMap - k)  //deep???
+  def diffKeys(that: Model): Model = newModel(myMap -- that.keys) //should not this be deep????
+  def diff(that: Model): Model = (elems diff that.elems).toModel //should not this be deep????
+  def --(that: Model): Model = diff(that)  //is diff == diffKeys ??? NO!?
+  
+//size calculations:
   val mapSize: Int = myMap.size
   lazy val topSize: Int = top.size
   lazy val size: Int = { var n = 0 ; foreachElem { n += 1 } ; n }
   lazy val nodeSize: Int = { var n = 0 ; foreachNode { n += 1 } ; n }
   val isEmpty: Boolean = mapSize == 0
-  
+
+//iteration stuff:  
   def foreach[U](f: Elem => U): Unit = toIterable.foreach(f)
   def foreach(block: => Unit): Unit = foreach(_ => block)
   def filter(f: Elem => Boolean): Model = toIterable.filter(f).toModel
@@ -77,6 +91,7 @@ trait ModelImplementation  {
     e match {
       case n: Node     => f(n)
       case r: Relation => f(r); r.tail.foreachElem(f)      
+      case NoElem =>       
     }
   }
   def foreachElem(block: => Unit): Unit = foreachElem { _ => block }
@@ -84,25 +99,16 @@ trait ModelImplementation  {
   def foreachNode[U](f: Node => U): Unit = elems.foreach { e => 
     e match {
       case n: Node     => f(n)
-      case r: Relation => f(r.entity); r.tail.foreachNode(f)      
+      case r: Relation => f(r.entity); r.tail.foreachNode(f) 
+      case NoElem =>
     }
   }
   def foreachNode(block: => Unit): Unit = foreachNode { _ => block }
 
+//collection of elements:  
   lazy val keys = myMap.keys
   lazy val keySet = myMap.keySet
-  lazy val toVector = elems
-  lazy val toSeq = toVector.toSeq
-  lazy val toSet: Set[Elem] = elems.toSet
-  lazy val toMap: Map[Key, MapTo] = myMap
   
-  def aggregate(that: Model): Model = this ++ that 
-  def ++(that: Model): Model = { var r = this ; that.foreach { r += _ } ; r }
-  
-  def diffKeys(that: Model): Model = newModel(myMap -- that.keys) //should not this be deep????
-  def diff(that: Model): Model = (elems diff that.elems).toModel //should not this be deep????
-  def --(that: Model): Model = diff(that)  //is diff == diffKeys ??? NO!?
-
   // the vectors allows for traversal in elems order if ListModel and they are as type specific as possible which is not a problem as Vector is covariant
   // the sets allow for fast contains tests but are all of Set[Elem] as Sets are invariant 
 
@@ -119,12 +125,17 @@ trait ModelImplementation  {
     case Relation(e, l, tail) => e
     case elem => elem
   } .toModel  
+  def `^`: Model = top
   
 //------------------ check below
-  lazy val topRelations: Vector[Relation] = elems.collect { case r: Relation => r }
-  lazy val topRelationKeys: Vector[Head] = topRelations.map { _.key }
-  lazy val topEntities: Vector[Entity] = topRelations.map { _.entity }
+  lazy val head: Elem = myMap.head.toElem
+  lazy val headOption: Option[Elem] = myMap.headOption.map(_.toElem)
+  lazy val tail: Model = myMap.tail.toModel
+  lazy val topRelations: Vector[Relation] = myMap.collect { case (h: Head, m: Model) => Relation(h,m) } .toVector
+  lazy val topRelationTypes: Vector[RelationType] = topRelations.collect { case r => r.link }
+  lazy val topEntities: Vector[Entity] = myMap.collect { case (h: Head, _) => h.entity } .toVector
   lazy val topEntitySet: Set[Elem] = topEntities.toSet
+  lazy val topHeads: Vector[Head] = myMap.keys.collect { case h: Head => h } .toVector
   lazy val topNodesAndHeads: Vector[Node] = elems.collect { 
     case n: Node => n 
     case r: Relation => r.entity      
@@ -138,24 +149,11 @@ trait ModelImplementation  {
   lazy val topDistinct = topElems.filterNot { topEntities.contains(_) } 
   lazy val topEntitiesOfType: Map[EntityType, Vector[Entity]] = 
     Bag(topEntities.map( e => (e.myType, e)):_*).withDefaultValue(Vector())
-  //lazy val top: Model = topElems.toModel
-  def `^`: Model = top
-  lazy val topRecursive: Model = ???
-  def `^^`: Model = topRecursive
+  lazy val topRelationsOfType: Map[RelationType, Vector[Relation]] =
+    Bag(topRelations.map( r => (r.link, r)):_*).withDefaultValue(Vector())
+  lazy val topHeadsOfType: Map[HeadType, Vector[Head]] =
+    Bag(topHeads.map( h => (HeadType(h.entity.myType, h.link), h)):_*).withDefaultValue(Vector())
     
-  def apply[T](at: AttributeType[T]): T = myMap(at).asInstanceOf[Attribute[T]].value
-//  def apply(e: Entity): Entity = myMap(e).asInstanceOf[Entity]  //????
-  def apply(et: EntityType): Vector[Entity] = topEntitiesOfType(et) 
-  def apply(h: Head): Model =  myMap(h).asInstanceOf[Model]
-
-  def get[T](at: AttributeType[T]): Option[T] = if (isDefinedAt(at)) Some(apply(at)) else None 
-//  def get(e: Entity): Option[Entity] = if (isDefinedAt(e)) Some(e) else None   //???
-  def get(et: EntityType): Vector[Entity] = topEntitiesOfType(et)
-  def get(h: Head): Option[Model] = if (isDefinedAt(h)) Some(apply(h)) else None 
-
-  def isDefinedAt[T](a: Attribute[T]): Boolean = isDefinedAt(a.myType) && (apply(a.myType) == a)
-  def isDefinedAt(et: EntityType): Boolean = !topEntitiesOfType(et).isEmpty
-  
   def existsElem(p: Elem => Boolean): Boolean = myMap.exists((kc: (Key, MapTo) )=> p(pairToElem(kc))) //??? rename to exists?
   
   def visitAll[T](f: PartialFunction[Elem,T]): Vector[T] = elems.flatMap ( e => 
@@ -251,20 +249,7 @@ trait ModelImplementation  {
       case _ => throw new scala.NotImplementedError("separateTails on" + s)
     }       
     
-  def enter(e: Entity): Model = get(e.has).getOrElse(Model())
-  def enter(h: Head): Model = get(h).getOrElse(Model())
-  def enter[T](at: AttributeType[T]): T = get(at).getOrElse(at.default.asInstanceOf[T])
 
-  def /(p: HeadPath): Model = if (p.isEmpty) this
-    else if (p.isSingle) enter(p.head)
-    else enter(p.head) / p.tail
-  def /[T](p: AttrRef[T]): T = if (p.isEmpty) this / p.last
-    else if (p.isSingle) enter(p.head) / p.last
-    else enter(p.head) / p.tail
-    
-  def /(e: Entity): Model = enter(e)
-  def /(h: Head): Model = enter(h)
-  def /[T](at: AttributeType[T]): T = enter(at)
   
   def restrict(s: Selector): Model = separateKeysOrTails(s, filterTop)    
   def *(s: Selector): Model = restrict(s)
@@ -294,7 +279,9 @@ trait ModelImplementation  {
     if (size == 0) "()" 
     else if (size == 1 && elems(0).isNode) elems.mkString 
     else elems.mkString("(", ", ", ")")
-  override def toString = stringPrefix + elems.mkString("(\n  ", ",\n  ", "\n)")
+  override def toString = stringPrefix + ( if (isEmpty) "()" 
+    else if (toStringBody.size < 60) elems.mkString("(", ", ", ")")
+    else elems.mkString("(\n  ", ",\n  ", "\n)") )
 }
 
 object defaultEmptyModel { def apply(): ListModel = new ListModel(ListMap.empty) }
@@ -310,14 +297,13 @@ trait ModelCompanion {
 
   def apply(m: ListMap[Key, MapTo]): ListModel = new ListModel(m)
   def apply(m: HashMap[Key, MapTo]): HashModel = new HashModel(m)
+  
   def pairToElem(pair: (Key, MapTo)):Elem = pair match {
-    case (_, a: Attribute[_]) => a
-    case (e: Entity, _) => e
-    case (head: Head, tail: Model) => head match {
-      case Head(e, has) if tail.isEmpty => e
-      case _ => Relation(head, tail)
-    }
-    case _ => throw new IllegalArgumentException(pair + " must be (Key, MapTo)")
+    case (at: AttributeType[_], a: Attribute[_]) => a
+    case (head: Head, tail: Model) => 
+      if (head.link == has && tail.isEmpty) head.entity
+      else Relation(head, tail)
+    case _ => throw new IllegalArgumentException(s"$pair illegal combination of (Key, MapTo)")
   }   
 }
 

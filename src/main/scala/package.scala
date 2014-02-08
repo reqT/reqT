@@ -7,7 +7,7 @@
 **  |_|   \___| \__  ||_|   
 **                 | |      
 **                 |_|      
-** reqT is open source, licensed under the BSD 2-clause license: 
+** reqT is free open source, licensed under the BSD 2-clause license: 
 ** http://opensource.org/licenses/bsd-license.php 
 ***************************************************************************/
 
@@ -33,12 +33,6 @@ extends Init with GlobalConstants with ImplicitFactoryObjects {
     def toListModel = ListModel(seq.map(Model.pairToElem) :_*)
     def toHashModel = HashModel(seq.map(Model.pairToElem) :_*)
   }  
-  
-  // implicit class FilterMonadicToModel(fm: scala.collection.generic.FilterMonadic[Elem, Seq[Elem]]) {
-    // def toModel = Model(fm.map(x => x):_*)
-    // def toListModel = ListModel(fm.map(x => x):_*)
-    // def toHashModel = HashModel(fm.map(x => x):_*)
-  // }  
   
   implicit class KeyMapToTuple2ToElem(p: Tuple2[Key,MapTo]) { 
     def toElem: Elem = Model.pairToElem(p) 

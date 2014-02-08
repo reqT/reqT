@@ -1,6 +1,6 @@
 /***     
 **                  _______        
-**                 |__   __|   reqT - a free requriements engineering tool  
+**                 |__   __|   reqT - a requriements engineering tool  
 **   _ __  ___   __ _ | |      (c) 2011-2014, Lund University  
 **  |  __|/ _ \ / _  || |      http://reqT.org
 **  | |  |  __/| (_| || |   
@@ -9,7 +9,7 @@
 **                 |_|      
 ** reqT is open source, licensed under the BSD 2-clause license: 
 ** http://opensource.org/licenses/bsd-license.php 
-***************************************************************************/
+**************************************************************************/
 package reqT 
 
 object metamodel {
@@ -78,6 +78,13 @@ trait HeadFactory {
   def has = Head(this, reqT.has)
   def requires = Head(this, reqT.requires)
   def relatesTo = Head(this, reqT.relatesTo)
+}
+
+trait HeadTypeFactory {
+  self: EntityType =>
+  def has = HeadType(this, reqT.has)
+  def requires =  HeadType(this, reqT.requires)
+  def relatesTo =  HeadType(this, reqT.relatesTo)
 }
 
 trait AttrMaker[T <: Attribute[_]] { def apply(s: String): T }

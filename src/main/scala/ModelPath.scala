@@ -1,6 +1,6 @@
 /***     
 **                  _______        
-**                 |__   __|   reqT - a free requriements engineering tool  
+**                 |__   __|   reqT - a requriements engineering tool  
 **   _ __  ___   __ _ | |      (c) 2011-2014, Lund University  
 **  |  __|/ _ \ / _  || |      http://reqT.org
 **  | |  |  __/| (_| || |   
@@ -9,20 +9,20 @@
 **                 |_|      
 ** reqT is open source, licensed under the BSD 2-clause license: 
 ** http://opensource.org/licenses/bsd-license.php 
-***************************************************************************/
+**************************************************************************/
 
 package reqT
 
-trait ModelPath {
+sealed trait Path {
   def heads: Vector[Head]
-  def tail: ModelPath
+  def tail: Path
   val isSingle = heads.size == 1
   val isEmpty = heads.isEmpty
   val head = heads.head
   val headOption: Option[Head] = heads.headOption
 }
 
-case class HeadPath(heads: Vector[Head]) extends ModelPath {
+case class HeadPath(heads: Vector[Head]) extends Path {
   def toModel: Model = if (isEmpty) Model() 
     else if (isSingle) Model(Relation(head, Model())) 
     else Model(Relation(head, tail.toModel)) 
@@ -38,20 +38,20 @@ object HeadPath {
   def apply(hs: Head*) = new HeadPath(hs.toVector)
 }
 
-case class AttrRef[T](init: HeadPath, last: AttributeType[T]) extends ModelPath {
+case class AttrRef[T](init: HeadPath, attrType: AttributeType[T]) extends Path {
   override lazy val heads = init.heads
-  lazy val tail = AttrRef(HeadPath(heads.drop(1)), last)
+  lazy val tail = AttrRef(HeadPath(heads.drop(1)), attrType)
   //def apply(m: Model) = ModelUpdater(m, this)
-  override def toString = init.toString + "/" + last 
+  override def toString = init.toString + "/" + attrType 
 }
 
-case class AttrVal[T](init: HeadPath, last: Attribute[T]) extends ModelPath {
-  def toModel: Model = if (isEmpty) Model(last) 
-    else if (isSingle) Model(Relation(head, Model(last))) 
+case class AttrVal[T](init: HeadPath, attr: Attribute[T]) extends Path {
+  def toModel: Model = if (isEmpty) Model(attr) 
+    else if (isSingle) Model(Relation(head, Model(attr))) 
     else Model(Relation(head, tail.toModel)) 
   override lazy val heads = init.heads
-  lazy val tail = AttrVal(HeadPath(heads.drop(1)), last)
-  override def toString = init.toString + "/" + last 
+  lazy val tail = AttrVal(HeadPath(heads.drop(1)), attr)
+  override def toString = init.toString + "/" + attr 
 }
 
 //case class ModelUpdater[T](m: Model, r: AttrRef[T]) {

@@ -1,6 +1,6 @@
 /***     
 **                  _______        
-**                 |__   __|   reqT - a free requriements engineering tool  
+**                 |__   __|   reqT - a requriements engineering tool  
 **   _ __  ___   __ _ | |      (c) 2011-2014, Lund University  
 **  |  __|/ _ \ / _  || |      http://reqT.org
 **  | |  |  __/| (_| || |   
@@ -9,8 +9,7 @@
 **                 |_|      
 ** reqT is open source, licensed under the BSD 2-clause license: 
 ** http://opensource.org/licenses/bsd-license.php 
-***************************************************************************/
-
+**************************************************************************/
 package reqT 
 
 /** A base trait for the reqT DSL.
@@ -37,14 +36,13 @@ sealed trait Elem extends Base with HasType with CanBeMapped with Selector {
   def isRelation: Boolean = !isNode
 }
 
-case object NoElem extends Entity with EntityType { 
-  override val id = ""
+case object NoElem extends Elem with Type { 
   override val isNode: Boolean = false
   override val isAttribute: Boolean = false
   override val isEntity: Boolean = false
   override val isRelation: Boolean = false
   override val myType = this
-  override def key: Head = NoElem.has
+  override def key: Head = Head(NoEntity, NoLink)
   override def mapTo: Model  = Model.empty
   def apply(id: String) = NoElem
 }
@@ -62,8 +60,14 @@ trait Attribute[T] extends Node with MapTo with HasValue[T] with CanBeMapped {
   override def isAttribute: Boolean = true
 }
 
-trait Model extends MapTo with ModelImplementation with ModelEquality
-object Model extends Type with ModelCompanion with ModelFromMap
+trait Model extends MapTo 
+  with ModelImplementation 
+  with ModelEquality
+  with ModelAccess
+
+object Model extends Type 
+  with ModelCompanion 
+  with ModelFromMap
 
 sealed trait Key extends Base with Selector
 
@@ -78,19 +82,28 @@ trait Entity extends Node with HeadFactory with RelationFactory {
   def /[T](at: AttributeType[T]) = AttrRef[T](HeadPath(this.has), at)
   def /[T](a: Attribute[T]) = AttrVal[T](HeadPath(this.has), a)
 }
+case object NoEntity extends Entity {
+  override val id = ""
+  override val myType = NoEntityType
+}
 
 trait Type extends Selector   
+
 trait AttributeType[T] extends Key with Type with HasDefault[T] { 
   val default: T 
 }
 
-trait EntityType extends Type {
+trait EntityType extends Type with HeadTypeFactory {
   def apply(id: String): Entity
   def apply(): Entity = apply(nextId)
   def apply(i: Int): Entity = apply(i.toString)
 }
+case object NoEntityType extends EntityType {
+  override def apply(id: String): Entity = NoEntity
+}
 
 trait RelationType extends Type
+case object NoLink extends RelationType
 
 case class Head(entity: Entity, link: RelationType) extends Key {
   def /(h: Head) = HeadPath(this, h)
@@ -111,7 +124,8 @@ case class Relation(entity: Entity, link: RelationType, tail: Model) extends Ele
 case object Relation extends Type {
   def apply(h: Head, tail: Model): Relation = new Relation(h.entity, h.link, tail) 
 }  
-  
+
+case class HeadType(entityType: EntityType, link: RelationType) extends Type    
 
 
 
