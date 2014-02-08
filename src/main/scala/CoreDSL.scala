@@ -115,7 +115,8 @@ case class Head(entity: Entity, link: RelationType) extends Key {
 
 case class Relation(entity: Entity, link: RelationType, tail: Model) extends Elem {
   val myType = Relation
-  override def key: Head = Head(entity, link)
+  override val key: Head = Head(entity, link)
+  val head: Head = key
   override def mapTo: Model = tail
   override lazy val toString = s"$entity $link ${tail.toStringBody}"
   override def isNode: Boolean = false

@@ -25,6 +25,7 @@ trait ModelAccess { //isDefinedAt, apply, get, enter
   def isDefinedAt[T](a: Attribute[T]): Boolean = isDefinedAt(a.myType) && (apply(a.myType) == a.value)
   def isDefinedAt(et: EntityType): Boolean = !topEntitiesOfType(et).isEmpty  
   def isDefinedAt(e: Entity): Boolean = isDefinedAt(e.has)  
+  def isDefinedAt(r: Relation): Boolean = isDefinedAt(r.head) && apply(r.head) == r.tail
   def isDefinedAt(rt: RelationType): Boolean = !topRelationsOfType(rt).isEmpty
   def isDefinedAt(ht: HeadType): Boolean = !topHeadsOfType(ht).isEmpty
 
@@ -67,26 +68,40 @@ trait ModelAccess { //isDefinedAt, apply, get, enter
     else if (p.isSingle) apply(p.head) 
     else apply(p.head).apply(p.tail)      
     
-  def get(e: Entity): Option[Model] = if (isDefinedAt(e)) Some(apply(e)) else None   //???
-  def get(et: EntityType): Option[Vector[Model]] = {
-    val topEntModels = topEntitiesOfType(et).map(apply(_))
-    if (topEntModels.isEmpty) None else Some(topEntModels)
-  }
-  def get(h: Head): Option[Model] = myMap.get(h).asInstanceOf[Option[Model]] 
-  def get[T](at: AttributeType[T]): Option[T] = if (isDefinedAt(at)) Some(apply(at)) else None 
+  def get(e: Entity): Option[Model] = if (isDefinedAt(e)) Some(apply(e)) else None   
 
+  def get(h: Head): Option[Model] = myMap.get(h).asInstanceOf[Option[Model]] 
+  
+  def get[T](a: Attribute[T]): Option[T] = 
+    if (isDefinedAt(a.myType) && (apply(a.myType) == a.value)) Some(a.value) else None 
+    
+  def get[T](at: AttributeType[T]): Option[T] = if (isDefinedAt(at)) Some(apply(at)) else None 
+  
+  def get(r: Relation): Option[Model] = if (isDefinedAt(r)) Some(apply(r.head)) else None 
+  
+  def get(et: EntityType): Vector[Model] = topEntitiesOfType(et).flatMap(get(_)).filterNot(_.isEmpty)
+
+  def get(rt: RelationType): Vector[Model] = topRelationsOfType(rt).flatMap(get(_)).filterNot(_.isEmpty)
+    
+  def get(ht: HeadType): Vector[Model]= topHeadsOfType(ht).flatMap(get(_)).filterNot(_.isEmpty)
+  
   def get[T](p: AttrRef[T]): Option[T] = if (p.isEmpty) get(p.attrType) 
     else if (!isDefinedAt(p.head)) None
     else if (p.isSingle) apply(p.head).get(p.attrType)
     else apply(p.head).get(p.tail)
+
+  def get[T](p: AttrVal[T]): Option[T] = 
+    if (p.isEmpty) get(p.attr.myType).collect { case a if a == p.attr.value => a }   
+    else if (!isDefinedAt(p.head)) None
+    else if (p.isSingle) apply(p.head).get(p.attr.myType)
+    else apply(p.head).get(p.tail)    
   
   def get(p: HeadPath): Option[Model] = if (p.isEmpty || !isDefinedAt(p.head)) None 
     else if (p.isSingle) Some(apply(p.head))
     else apply(p.head).get(p.tail)      
   
   def enter(e: Entity): Model = get(e.has).getOrElse(Model())
-  def enter(et: EntityType): Map[Entity, Model] = 
-    topEntitiesOfType(et).filter(_.myType == et).map(e => (e, this / e)).toMap
+
   def enter(h: Head): Model = get(h).getOrElse(Model())
   def enter[T](at: AttributeType[T]): T = get(at).getOrElse(at.default.asInstanceOf[T])
 
@@ -99,7 +114,6 @@ trait ModelAccess { //isDefinedAt, apply, get, enter
     else enter(p.head) / p.tail
   
   def /(e: Entity): Model = enter(e)
-  def /(et: EntityType): Map[Entity, Model] = enter(et)
   def /(h: Head): Model = enter(h)
   def /[T](at: AttributeType[T]): T = enter(at)  
   def /(p: HeadPath): Model = enter(p) 
