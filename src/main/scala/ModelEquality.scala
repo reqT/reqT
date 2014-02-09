@@ -17,22 +17,19 @@ package reqT
     The equals method uses structural equality, not considering order.
     The equals method delegates to the underlying Map implementations.
     
-    Examplea: 
+    Examples: 
     
-    The following expression is true:
+    The following expressions are true:
     reqT> Model(Req("x"), Req("y")) == Model(Req("y"), Req("x"))
     res1: Boolean = true
-    
-    To test equality also with respect to order:
-    reqT> Model(Req("x"), Req("y")).toSeq == Model(Req("y"), Req("x")).toSeq
-    res2: Boolean = false
-    
-    The following expression is true:
+
     reqT> ListModel(Req("x"), Req("y")) == HashModel(Req("y"), Req("x"))
     res2: Boolean = true
     
+    If you want to test equality also with respect to order, use toSeq:
+    reqT> Model(Req("x"), Req("y")).toSeq == Model(Req("y"), Req("x")).toSeq
+    res2: Boolean = false
 */
-
 trait ModelEquality  extends ModelImplementation {
   self: Model =>
   

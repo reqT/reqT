@@ -15,10 +15,9 @@ package reqT
 
 trait Init {
 
-
   def makeIMain(): scala.tools.nsc.interpreter.IMain = {
     //to be used when no ILoop is needed, e.g. from another main
-    //reqt.initInterpreter()
+    //reqT.initInterpreter()
     println(repl.versionMsg)
     val settings = new scala.tools.nsc.Settings()
     settings.classpath.value = System.getProperty("java.class.path")

@@ -13,28 +13,31 @@
 package reqT 
 
 object metamodel {
-  lazy val indexOf: Map[String, Int] = names.zipWithIndex.toMap.withDefaultValue(-1)
   lazy val names: Vector[String] = types map (_.toString)
+  lazy val indexOf: Map[String, Int] = names.zipWithIndex.toMap.withDefaultValue(-1)
   lazy val types: Vector[Type] = entityTypes ++ attributeTypes ++ relationTypes  
   lazy val entityTypes: Vector[EntityType] = Vector(Req, Feature)
   lazy val attributeTypes: Vector[AttributeType[_]] = stringAttributes ++ intAttributes ++ cardinalityAttributes
-  lazy val relationTypes: Vector[RelationType] = Vector(has, requires, relatesTo)
   lazy val stringAttributes = Vector(Spec)
   lazy val intAttributes = Vector(Prio)
   lazy val cardinalityAttributes = Vector(Opt)
+  lazy val relationTypes: Vector[RelationType] = Vector(has, requires, relatesTo)
 }
 
+//Enum types
+trait Cardinality extends Enum[Cardinality] { val myType = Cardinality }
+trait CardinalityType extends EnumType[Cardinality] with AttributeType[Cardinality] { 
+  val values = Vector(NoOption, Zero, One, ZeroOrOne, OneOrMany, ZeroOrMany)
+  val default = NoOption
+} 
+
+//Attribute types
 trait StringAttribute extends Attribute[String]
 trait StringType extends AttributeType[String] { val default = "???"}
 
 trait IntAttribute    extends Attribute[Int]
 trait IntType extends AttributeType[Int] { val default = -999999999} 
 
-trait Cardinality extends Enum[Cardinality] { val myType = Cardinality }
-trait CardinalityType extends EnumType[Cardinality] with AttributeType[Cardinality] { 
-  val values = Vector(NoOption, Zero, One, ZeroOrOne, OneOrMany, ZeroOrMany)
-  val default = values(0)
-} 
 trait CardinalityAttribute extends Attribute[Cardinality]
 case object Cardinality extends CardinalityType
 case object NoOption extends Cardinality
@@ -44,6 +47,7 @@ case object ZeroOrOne extends Cardinality
 case object OneOrMany extends Cardinality
 case object ZeroOrMany extends Cardinality
 
+//Concrete attributes
 case class Spec(value: String) extends StringAttribute { override val myType = Spec }
 case object Spec extends StringType 
 
@@ -53,12 +57,19 @@ case object Prio extends IntType
 case class Opt(value: Cardinality) extends CardinalityAttribute { override val myType = Opt }
 case object Opt extends CardinalityType 
 
-case class Req(id: String) extends Entity { override val myType: EntityType = Req }
+//Abstract entities
+trait Requirement extends Entity
+trait Context extends Entity
+trait Generic extends Requirement
+
+//Concrete entities
+case class Req(id: String) extends Generic { override val myType: EntityType = Req }
 case object Req extends EntityType
 
-case class Feature(id: String) extends Entity { override val myType: EntityType = Feature }
+case class Feature(id: String) extends Generic { override val myType: EntityType = Feature }
 case object Feature extends EntityType
 
+//Concrete relations
 case object has extends RelationType  
 case object requires extends RelationType
 case object relatesTo extends RelationType
@@ -85,12 +96,6 @@ trait HeadTypeFactory {
   def has = HeadType(this, reqT.has)
   def requires =  HeadType(this, reqT.requires)
   def relatesTo =  HeadType(this, reqT.relatesTo)
-}
-
-trait AttrMaker[T <: Attribute[_]] { def apply(s: String): T }
-
-trait CanMakeAttr {
-  def makeAttr[T <: Attribute[_]](value: String)( implicit make: AttrMaker[T]): T = make(value)
 }
 
 trait ImplicitFactoryObjects extends CanMakeAttr { //mixed in by package object reqT

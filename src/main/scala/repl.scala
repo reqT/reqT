@@ -20,8 +20,8 @@ import java.io._
 object repl {
   //val helpOnReqT: String = "** Type ?? for help on reqT, type :h for help on Scala REPL"
   val helpOnReqT = "** Type :h for help on Scala REPL"
-  val versionMsg = s"\n** Welcome to reqT version $VERSION" +
-    s"\n** Snapshot build: $BUILD" + 
+  val versionMsg = s"\n** Welcome to reqT version $reqT_VERSION" +
+    s"\n** Snapshot build: $BUILD_DATE" + 
     s"\n** Compiled with Scala version $SCALA_VERSION" +  
      "\n** Running Java version " + System.getProperty("java.version") +  
      "\n** Running on " + System.getProperty("java.vm.name")
@@ -40,7 +40,7 @@ object repl {
       var j = 0
       while (true) {
         if (j % 1000 == 0) {
-          $intp.interpret("""reqt.repl.reset""")
+          $intp.interpret("""reqT.repl.reset""")
           $intp.bind("j",j)
           $intp.interpret(s"var i = $j")
         }

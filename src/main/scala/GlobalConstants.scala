@@ -14,10 +14,9 @@
 package reqT
 
 trait GlobalConstants { //mixed in by package object reqT
-
-  val VERSION = "3.0.0-snapshot"
+  val reqT_VERSION = "3.0.0-snapshot"
   val SCALA_VERSION = "2.10.2"
-  val BUILD = ( new java.util.Date ).toString
+  val BUILD_DATE = ( new java.util.Date ).toString
   lazy val PREAMBLE = """
 **                  _______        
 **                 |__   __|       

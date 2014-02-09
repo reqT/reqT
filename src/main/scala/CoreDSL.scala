@@ -128,7 +128,11 @@ case object Relation extends Type {
 
 case class HeadType(entityType: EntityType, link: RelationType) extends Type    
 
+trait AttrMaker[T <: Attribute[_]] { def apply(s: String): T }
 
+trait CanMakeAttr {
+  def makeAttr[T <: Attribute[_]](value: String)( implicit make: AttrMaker[T]): T = make(value)
+}
 
 
 
