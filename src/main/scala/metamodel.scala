@@ -12,11 +12,14 @@
 **************************************************************************/
 package reqT 
 
-object metamodel {
-  lazy val names: Vector[String] = types map (_.toString)
-  lazy val indexOf: Map[String, Int] = names.zipWithIndex.toMap.withDefaultValue(-1)
-  lazy val types: Vector[Type] = entityTypes ++ attributeTypes ++ relationTypes  
-  lazy val entityTypes: Vector[EntityType] = Vector(Req, Feature)
+object metamodel extends MetamodelTypes {
+  override lazy val types: Vector[Type] = entityTypes ++ attributeTypes ++ relationTypes  
+  lazy val entityTypes: Vector[EntityType] = generalEntities ++ contextEntities ++ requirementEntities 
+  lazy val generalEntities = Vector(Section) 
+  lazy val contextEntities = Vector(Stakeholder) 
+  lazy val requirementEntities = generalReqs ++ intentionalReqs
+  lazy val generalReqs = Vector(Req, Feature)
+  lazy val intentionalReqs = Vector(Goal, Wish)
   lazy val attributeTypes: Vector[AttributeType[_]] = stringAttributes ++ intAttributes ++ cardinalityAttributes
   lazy val stringAttributes = Vector(Spec)
   lazy val intAttributes = Vector(Prio)
@@ -24,19 +27,12 @@ object metamodel {
   lazy val relationTypes: Vector[RelationType] = Vector(has, requires, relatesTo)
 }
 
-//Enum types
+//Enum traits
 trait Cardinality extends Enum[Cardinality] { val myType = Cardinality }
 trait CardinalityType extends EnumType[Cardinality] with AttributeType[Cardinality] { 
   val values = Vector(NoOption, Zero, One, ZeroOrOne, OneOrMany, ZeroOrMany)
   val default = NoOption
 } 
-
-//Attribute types
-trait StringAttribute extends Attribute[String]
-trait StringType extends AttributeType[String] { val default = "???"}
-
-trait IntAttribute    extends Attribute[Int]
-trait IntType extends AttributeType[Int] { val default = -999999999} 
 
 trait CardinalityAttribute extends Attribute[Cardinality]
 case object Cardinality extends CardinalityType
@@ -46,6 +42,13 @@ case object One extends Cardinality
 case object ZeroOrOne extends Cardinality
 case object OneOrMany extends Cardinality
 case object ZeroOrMany extends Cardinality
+
+//Attribute traits
+trait StringAttribute extends Attribute[String]
+trait StringType extends AttributeType[String] { val default = "???"}
+
+trait IntAttribute    extends Attribute[Int]
+trait IntType extends AttributeType[Int] { val default = -999999999} 
 
 //Concrete attributes
 case class Spec(value: String) extends StringAttribute { override val myType = Spec }
@@ -57,23 +60,38 @@ case object Prio extends IntType
 case class Opt(value: Cardinality) extends CardinalityAttribute { override val myType = Opt }
 case object Opt extends CardinalityType 
 
-//Abstract entities
-trait Requirement extends Entity
-trait Context extends Entity
-trait Generic extends Requirement
+//Abstract requirement traits
+trait GeneralReq extends Requirement
+case object GeneralReq extends AbstractSelector { type AbstractType = GeneralReq } 
+
+trait IntentionalReq extends Requirement
+case object IntentionalReq extends AbstractSelector { type AbstractType = IntentionalReq } 
 
 //Concrete entities
-case class Req(id: String) extends Generic { override val myType: EntityType = Req }
+case class Section(id: String) extends General { override val myType: EntityType = Section }
+case object Section extends EntityType
+
+case class Stakeholder(id: String) extends Context { override val myType: EntityType = Stakeholder }
+case object Stakeholder extends EntityType
+
+case class Req(id: String) extends GeneralReq { override val myType: EntityType = Req }
 case object Req extends EntityType
 
-case class Feature(id: String) extends Generic { override val myType: EntityType = Feature }
+case class Feature(id: String) extends GeneralReq { override val myType: EntityType = Feature }
 case object Feature extends EntityType
+
+case class Goal(id: String) extends IntentionalReq { override val myType: EntityType = Goal }
+case object Goal extends EntityType
+
+case class Wish(id: String) extends IntentionalReq { override val myType: EntityType = Wish }
+case object Wish extends EntityType
 
 //Concrete relations
 case object has extends RelationType  
 case object requires extends RelationType
 case object relatesTo extends RelationType
 
+//factory traits
 trait RelationFactory {
   self: Entity =>
   def has(elems: Elem*) = Relation(this, reqT.has, Model(elems:_*))

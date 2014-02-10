@@ -12,7 +12,7 @@
 ***************************************************************************/
 
 package object reqT 
-extends Init with GlobalConstants with ImplicitFactoryObjects {
+extends Init with GlobalConstants with ImplicitFactoryObjects with StringUtil {
   import scala.language.implicitConversions
 
   implicit class ElemIterableToModel(it: Iterable[Elem]) {

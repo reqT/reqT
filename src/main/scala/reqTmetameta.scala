@@ -15,23 +15,30 @@ package metameta
 
 //this file contains input to the MetaGen metamodel generator
 
-object reqT extends MetaMetamodel {
-  val enumTypes = Map(
-    "Cardinality" -> List("NoOption", "Zero", "One", "ZeroOrOne", "OneOrMany", "ZeroOrMany")
+object model extends MetaMetamodel {
+  import scala.collection.immutable.ListMap
+  
+  override val enums = ListMap(
+    "Alternative" -> List("NoAlternative", "Zero", "One", "ZeroOrOne", "OneOrMany", "ZeroOrMany")
   )
-  val attributesAndDefaults = Map(
+  override val attributes = ListMap(
+    "String" -> List("Gist", "Spec", "Text", "Title"),
+    "Int" -> List("Cost", "Prio"),
+    "Alternative" -> List("Opt")
+  )
+  override val attributeDefault = ListMap(
     "String" -> "\"???\"",
     "Int" -> "-99999999",
-    "Cardinality" -> "NoOption"
+    "Alternative" -> "NoAlternative"
   )
-  val generalEntities = List("Titel", "Text", "Item", "Label")
-  val contextEntities = List("Stakeholder","Product","System")
-  val requirementEntities = Map(
-    "Generic" -> List("Req", "Idea", "Feature"),
-    "Intentional" -> List("Goal","Wish")
+  override val generalEntities = List("Section", "Item", "Label")
+  override val contextEntities = List("Stakeholder","Product","System", "Subdomain")
+  override val requriementEntities = ListMap(
+    "GeneralReq" -> List("Req", "Idea", "Feature"),
+    "IntentionalReq" -> List("Goal","Wish")
   )
-  val defaultRelation = "has"
-  val moreRelations = List("requires","relatesTo")
+  override val defaultRelation = "has"
+  override val moreRelations = List("requires","relatesTo")
 }
 
 

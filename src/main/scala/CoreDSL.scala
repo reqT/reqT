@@ -12,24 +12,35 @@
 **************************************************************************/
 package reqT 
 
-/** A base trait for the reqT DSL.
-*/
-sealed trait Base
+/** The base trait for the reqT DSL (requirements Domain Specific Language). */
+trait DSL { 
+  /** Concrete DSL classes should have an executable string representation.
+      If the default toString is not executable scala-embedded DSL syntax,
+      then this method is overriden by an executable string.
+  */
+  def toScala: String = toString 
+}
   
-/** A marker trait for parameters to separation operators on class Model.
-*/
-trait Selector 
+/** A marker trait for parameters to separation operators on Model. */
+sealed trait Selector 
 
+/** A mixin trait for runtime typing through case object values of type Type. */
 trait HasType { def myType: Type } 
+
+/** A mixin trait for generic values. */
 trait HasValue[T] { def value: T }
+
+/** A mixin trait for generic default values. */
 trait HasDefault[T] { def default: T }
+
+/** A mixin trait for types that can be converted to a Map key-value-pair. */
 trait CanBeMapped {
   def toMapping: (Key, MapTo)  = (key, mapTo)
   def key: Key
   def mapTo: MapTo
 }
 
-sealed trait Elem extends Base with HasType with CanBeMapped with Selector { 
+sealed trait Elem extends DSL with HasType with CanBeMapped with Selector { 
   def isNode: Boolean
   def isAttribute: Boolean
   def isEntity: Boolean = !isAttribute
@@ -51,7 +62,7 @@ sealed trait Node extends Elem {
   override def isNode: Boolean = true
 }
 
-sealed trait MapTo extends Base with HasType  
+sealed trait MapTo extends DSL with HasType  
 
 trait Attribute[T] extends Node with MapTo with HasValue[T] with CanBeMapped {
   override def myType: AttributeType[T]
@@ -59,6 +70,9 @@ trait Attribute[T] extends Node with MapTo with HasValue[T] with CanBeMapped {
   override def mapTo: Attribute[T] = this
   override def isAttribute: Boolean = true
 }
+
+sealed trait Type extends Selector   
+sealed trait Key extends DSL with Selector
 
 trait Model extends MapTo 
   with ModelImplementation 
@@ -69,9 +83,11 @@ object Model extends Type
   with ModelCompanion 
   with ModelFromMap
 
-sealed trait Key extends Base with Selector
 
-trait Entity extends Node with HeadFactory with RelationFactory {
+trait AttributeType[T] extends Key with Type with HasDefault[T] { 
+  val default: T 
+}
+sealed trait Entity extends Node with HeadFactory with RelationFactory {
   def id: String
   override def key: Head = Head( this , reqT.has) 
   override def mapTo: Model = Model() 
@@ -87,11 +103,9 @@ case object NoEntity extends Entity {
   override val myType = NoEntityType
 }
 
-trait Type extends Selector   
-
-trait AttributeType[T] extends Key with Type with HasDefault[T] { 
-  val default: T 
-}
+trait Context extends Entity
+trait General extends Entity
+trait Requirement extends Entity
 
 trait EntityType extends Type with HeadTypeFactory {
   def apply(id: String): Entity
@@ -101,6 +115,14 @@ trait EntityType extends Type with HeadTypeFactory {
 case object NoEntityType extends EntityType {
   override def apply(id: String): Entity = NoEntity
 }
+
+trait AbstractSelector extends Selector {
+  type AbstractType <: Elem
+}
+
+case object Context extends AbstractSelector { type AbstractType = Context } 
+case object General extends AbstractSelector { type AbstractType = General } 
+case object Requirement extends AbstractSelector { type AbstractType = Requirement } 
 
 trait RelationType extends Type
 case object NoLink extends RelationType
@@ -132,6 +154,12 @@ trait AttrMaker[T <: Attribute[_]] { def apply(s: String): T }
 
 trait CanMakeAttr {
   def makeAttr[T <: Attribute[_]](value: String)( implicit make: AttrMaker[T]): T = make(value)
+}
+
+trait MetamodelTypes {
+  def types: Vector[Type]
+  lazy val names: Vector[String] = types map (_.toString)
+  lazy val indexOf: Map[String, Int] = names.zipWithIndex.toMap.withDefaultValue(-1)
 }
 
 
