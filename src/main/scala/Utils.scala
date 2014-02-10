@@ -13,7 +13,7 @@
 
 package reqT
 
-object BagUtil {
+object BagUtils {
   type Bag[K, V] = Map[K, Vector[V]]
   //type SetBag[K, V] = Map[K, Set[V]]
   
@@ -25,8 +25,8 @@ object BagUtil {
   
   implicit class RichMapAsVectorBag[K,V](bag: Map[K,Vector[V]])  {
     def join[B >: V](that: Map[K,Vector[B]]): Map[K,Vector[B]] = bagMerge(this.bag, that)
-    def bagAdd(elem: (K, V)): Map[K,Vector[V]] = BagUtil.bagAdd(this.bag, elem._1, elem._2)  
-    def :+(elem: (K, V)): Map[K,Vector[V]] = BagUtil.bagAdd(this.bag, elem._1, elem._2)  
+    def bagAdd(elem: (K, V)): Map[K,Vector[V]] = BagUtils.bagAdd(this.bag, elem._1, elem._2)  
+    def :+(elem: (K, V)): Map[K,Vector[V]] = BagUtils.bagAdd(this.bag, elem._1, elem._2)  
   }
   
   object Bag {
@@ -38,23 +38,23 @@ object BagUtil {
   }
 } 
 
-trait StringUtil {
+trait StringUtils {
   implicit class EnrichedString(s: String) {
     def toScala: String = "" + '\"' + convertEscape + '\"'
     //def toModel: Model = if (s == "") Model() else Model.interpret(s)
     def toIntOrZero: Int = try {s.toInt} catch { case e: NumberFormatException => 0}
     //def toLevel: StatusLevel = levelFromString(s)
-    def decapitalize: String = strUtil.decapitalize(s)
-    def truncPad(n: Int) = strUtil.truncPad(s, n)
-    def trunc(n: Int) = strUtil.trunc(s, n)
-    def indentNewline(n: Int = 2) = strUtil.indentNewline(s, n)
-    def filterEscape: String = strUtil.filterEscapeChar(s)
-    def convertEscape: String = strUtil.escape(s)
-    //def save(fileName:String) = saveString(s, fileName) 
+    def decapitalize: String = strUtils.decapitalize(s)
+    def truncPad(n: Int) = strUtils.truncPad(s, n)
+    def trunc(n: Int) = strUtils.trunc(s, n)
+    def indentNewline(n: Int = 2) = strUtils.indentNewline(s, n)
+    def filterEscape: String = strUtils.filterEscapeChar(s)
+    def convertEscape: String = strUtils.escape(s)
+    def save(fileName:String) = fileUtils.saveString(s, fileName) 
     def show { println(s) }
   }
   
-  object strUtil { 
+  object strUtils { 
     def decapitalize(s:String) = s.take(1).toLowerCase + s.drop(1)
     def indentNewline(s: String, n: Int) = s.replace("\n","\n"+ (" " * n))
     def quoteIfString(a:Any):String = a match {
@@ -103,3 +103,64 @@ trait StringUtil {
     }
   } 
 }  
+
+trait FileUtils {
+
+  import fileUtils._
+  
+  def pwd { println(workDir)}
+
+  def load(fileName:String): String = {
+    val fn = resolveFileName(fileName)
+    try  { loadLines(fn).mkString("\n") } catch  { case e: Throwable => "ERROR " + e }
+  }
+
+  def ls(d: String): Unit = { println(listFiles(d).getOrElse { 
+        println("ERROR Directory not found:" + d ); List[java.io.File]()
+      } .map { f => f.getName + ( if (f.isDirectory) "/" else "")  }  .mkString("\n")) 
+  }
+  def ls: Unit = { ls(workingDirectory) }
+  def dir: Unit = { ls } 
+  def dir(d: String): Unit = ls(d)
+  def cd(d: String): Unit = { 
+    val dd = if (d == "..") new java.io.File(workingDirectory).getParent.toString  else resolveFileName(d)
+    val f = new java.io.File(dd)
+    if (f.isDirectory && f.exists) workingDirectory = dd else println("ERROR Directory not found:" + dd )
+    pwd  
+  }
+  def cd: Unit = cd(startDir)
+  
+  object fileUtils {
+    def fileSep = System.getProperty("file.separator")
+    def slashify(s:String) = s.replaceAllLiterally(fileSep, "/")
+    val startDir = slashify(System.getProperty("user.dir"))
+    val homeDir = slashify(System.getProperty("user.home"))
+    protected [FileUtils] var workingDirectory = startDir
+    def workDir = workingDirectory
+    def resolveFileName(fileName: String): String = {
+      val f = new java.io.File(fileName)
+      val fn = slashify(f.toString)
+      if (f.isAbsolute || fn.take(1) == "/" || fn.contains(":")) fn else workingDirectory + "/" + fn
+    }
+    def listFiles(dir: String): Option[List[java.io.File]] = 
+      new java.io.File(resolveFileName(dir)).listFiles match { case null => None; case a => Some(a.toList) }
+    def saveString(s:String, fileName:String) = {
+      val fn = resolveFileName(fileName)
+      val outFile = new java.io.FileOutputStream(fn)
+      val outStream = new java.io.PrintStream(outFile)
+      try { outStream.println(s.toString) } finally { outStream.close }
+      println("Saved to file: "+fn) 
+    }
+    def loadLines(fileName:String) = {
+      val fn = resolveFileName(fileName)
+      val source = scala.io.Source.fromFile(fn)
+      val lines = source.getLines.toList
+      source.close
+      lines
+    }
+    
+    // def loadTable(fileName:String, rowSeparator: String = "\t"): Model = 
+      // Model.fromTable(load(fileName), rowSeparator)  
+  }
+
+}

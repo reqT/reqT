@@ -30,7 +30,7 @@ trait MetamodelToScala {
 
   override def toScala: String = 
     mkPreamble + mkObjectMetamodel + mkEnumTraits + mkAttrTraits + 
-      mkConcreteAttrs + mkAbstrReqs + mkConcreteEnts
+      mkConcreteAttrs + mkAbstrReqs + mkConcreteEnts + mkConcreteRels + mkFactoryTraits
 
   lazy val mkPreamble = reqT.PREAMBLE.replaceAll("\n","\n//") + s"""
 // *** THIS IS A GENERATED SOURCE FILE 
@@ -56,12 +56,15 @@ object metamodel {
   $mkReqVectors
 """
   lazy val mkAttributeTypes = aggregateAttrTypes + attrVectors
-  lazy val mkRelationTypes = (defaultRelation::moreRelations).mkString(", ")
+  lazy val relations = (defaultRelation::moreRelations)
+  lazy val entities = generalEntities ++ contextEntities ++ 
+    requriementEntities.collect { case (_, rs) =>  rs  } .flatten
+  lazy val mkRelationTypes = relations.mkString(", ")
   lazy val mkReqVectors = 
     reqTypes.map(r => (r, r.decapitalize + "s")).collect { case (r, decap)  =>
       s"""lazy val $decap = Vector(${requriementEntities(r).mkString(", ")})"""
     } .mkString("\n  ")
-  lazy val mkEnumTraits = "//Enum traits\n" + 
+  lazy val mkEnumTraits = "\n//Enum traits\n" + 
     enums.keysIterator.map(e => enumToScala(e, enums(e), attributeDefault(e))).mkString("\n  ")  
   
   lazy val mkAttrTraits = "//Attribute traits\n" + attributes.collect { 
@@ -78,6 +81,12 @@ object metamodel {
     generalEntities.map(e => caseEntityToScala(e, "General")).mkString +
     contextEntities.map(e => caseEntityToScala(e, "Context")).mkString +
     requriementEntities.collect { case (rt, rs) =>  rs.map(r => caseEntityToScala(r, rt)).mkString } .mkString
+  
+  lazy val mkConcreteRels = "\n//Concrete relations\n" +
+    relations.map(r => s"case object $r extends RelationType").mkString("\n")
+    
+  lazy val mkFactoryTraits = "//factory traits\n" + 
+    mkRelationFactory + mkHeadFactory + mkHeadTypeFactory + mkImplicitFactoryObjects
   
   lazy val reqTypes = requriementEntities.keysIterator.toVector
   lazy val attrTypes = attributes.keysIterator.toVector
@@ -115,6 +124,66 @@ case object $r extends AbstractSelector { type AbstractType = $r }
 case class $e(id: String) extends $extnds { override val myType: EntityType = $e }
 case object $e extends EntityType
 """
+
+  def mkRelationFactory = s"""
+trait RelationFactory {
+  self: Entity =>
+${relations.map(relationMethod).mkString("\n")}
+}
+"""  
+
+  def relationMethod(r: String) = s"  def $r(elems: Elem*) = Relation(this, reqT.$r, Model(elems:_*))"
+
+  def mkHeadFactory = s"""
+trait HeadFactory {
+  self: Entity =>
+${relations.map(headMethod).mkString("\n")}
+}
+"""
+  def headMethod(r: String) = s"  def $r = Head(this, reqT.$r)"
+
+  def mkHeadTypeFactory = s"""
+trait HeadTypeFactory {
+  self: EntityType =>
+${relations.map(headTypeMethod).mkString("\n")}
+}
+"""
+  def headTypeMethod(r: String) = s"  def $r = HeadType(this, reqT.$r)"
+
+  def mkImplicitFactoryObjects = s"""
+trait ImplicitFactoryObjects extends CanMakeAttr { //mixed in by package object reqT
+$mkImplicitAttrMakers
+$mkEnumImplicits
+  lazy val attributeFromString = Map[String, String => Attribute[_]](
+$mkAttrFromStringMappings 
+  )
+  lazy val entityFromString = Map[String, String => Entity](
+$mkEntFromStringMappings
+  )
+}
+"""
+
+  def mkImplicitAttrMakers = attributes.collect { 
+    case (at, as) => as.map(a => attrMakerToScala(a, at)).mkString  } .mkString
+
+  def attrMakerToScala(a: String, tpe: String) = s"""
+  implicit object make$a extends AttrMaker[$a] { def apply(s: String): $a = $a(s.to$tpe) }"""
+  
+  def mkEnumImplicits = enums.collect { 
+    case (e, _) => attributes(e).map(a => enumImplicits(a, e)).mkString  } .mkString
+
+  def enumImplicits(a: String, e: String) = s"""
+  implicit class StringTo$e(s: String) { def to$e = $a.valueOf(s)}
+  implicit object make$a extends AttrMaker[$a] { def apply(s: String): $a = $a(s.to$e) }
+"""
+  def mkAttrFromStringMappings = attributes.collect { 
+    case (_, as) => as.map(attrMapping).mkString(",\n")  } .mkString(",\n") 
+  
+  def mkEntFromStringMappings = entities.map(entMapping).mkString(",\n")
+  
+  def attrMapping(a: String) = s"""    "$a" -> makeAttr[$a] _ """
+  def entMapping(e: String) =  s"""    "$e" -> $e.apply _ """
+
 }
 
 

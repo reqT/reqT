@@ -21,7 +21,7 @@ import scala.collection.generic.FilterMonadic
 trait ModelImplementation  {
   self: Model =>
   
-  import BagUtil._
+  import BagUtils._
   import Model.pairToElem
   import Model.{fromMap => newModel}
 

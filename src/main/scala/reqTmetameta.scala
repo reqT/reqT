@@ -19,17 +19,17 @@ object model extends MetaMetamodel {
   import scala.collection.immutable.ListMap
   
   override val enums = ListMap(
-    "Alternative" -> List("NoAlternative", "Zero", "One", "ZeroOrOne", "OneOrMany", "ZeroOrMany")
+    "Cardinality" -> List("NoOption", "Zero", "One", "ZeroOrOne", "OneOrMany", "ZeroOrMany")
   )
   override val attributes = ListMap(
     "String" -> List("Gist", "Spec", "Text", "Title"),
     "Int" -> List("Cost", "Prio"),
-    "Alternative" -> List("Opt")
+    "Cardinality" -> List("Opt")
   )
   override val attributeDefault = ListMap(
     "String" -> "\"???\"",
     "Int" -> "-99999999",
-    "Alternative" -> "NoAlternative"
+    "Cardinality" -> "NoOption"
   )
   override val generalEntities = List("Section", "Item", "Label")
   override val contextEntities = List("Stakeholder","Product","System", "Subdomain")
