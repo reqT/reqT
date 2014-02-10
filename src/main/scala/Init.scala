@@ -18,7 +18,7 @@ trait Init {
   def makeIMain(): scala.tools.nsc.interpreter.IMain = {
     //to be used when no ILoop is needed, e.g. from another main
     //reqT.initInterpreter()
-    println(repl.versionMsg)
+    println(REPL.versionMsg)
     val settings = new scala.tools.nsc.Settings()
     settings.classpath.value = System.getProperty("java.class.path")
     val writer = new java.io.PrintWriter((new java.io.OutputStreamWriter(Console.out)))
@@ -35,7 +35,7 @@ trait Init {
   }
 
   def init(intp: scala.tools.nsc.interpreter.IMain) {
-    println(repl.startMsg)
+    println(REPL.startMsg)
     initInterpreter(intp)
   }
   

@@ -17,7 +17,7 @@ import scala.tools.nsc._
 import interpreter._
 import java.io._
 
-object repl {
+object REPL {
   //val helpOnReqT: String = "** Type ?? for help on reqT, type :h for help on Scala REPL"
   val helpOnReqT = "** Type :h for help on Scala REPL"
   val versionMsg = s"\n** Welcome to reqT version $reqT_VERSION" +

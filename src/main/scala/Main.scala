@@ -20,7 +20,7 @@ scala reqT.jar
 
 object Main {
   def main(args : Array[String]) : Unit =  {
-    if (args.size == 0) repl.startInterpreting
+    if (args.size == 0) REPL.startInterpreting
     else args(0) match {
       case "hello" => println("hello reqT")
       case arg => println("Unknown args: " + args.mkString(" "))
