@@ -52,7 +52,7 @@ trait StringUtils {
     def filterEscape: String = strUtils.filterEscapeChar(s)
     def convertEscape: String = strUtils.escape(s)
     def save(fileName:String) = fileUtils.saveString(s, fileName) 
-    def show { println(s) }
+    def p { println(s) }
   }
   
   object strUtils { 
