@@ -5,7 +5,7 @@ object todo {
     Req("metaprog") has Spec("generate metamodel automagically"),
     Req("check all operators") has Spec("esp. * *~ *^ "),
     Req("path"),
-    Req("path visit")
+    Req("path visit"),
     Req("UTF-8")
   )
 }
