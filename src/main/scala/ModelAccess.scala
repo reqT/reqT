@@ -99,6 +99,8 @@ trait ModelAccess { //isDefinedAt, apply, get, enter
   def get(p: HeadPath): Option[Model] = if (p.isEmpty || !isDefinedAt(p.head)) None 
     else if (p.isSingle) Some(apply(p.head))
     else apply(p.head).get(p.tail)      
+    
+  def enter(id: String): Model = get(topEntityOfId(id).has).getOrElse(Model())
   
   def enter(e: Entity): Model = get(e.has).getOrElse(Model())
 
@@ -114,6 +116,7 @@ trait ModelAccess { //isDefinedAt, apply, get, enter
     else enter(p.head) / p.tail
   
   def /(e: Entity): Model = enter(e)
+  def /(id: String): Model = enter(id)
   def /(h: Head): Model = enter(h)
   def /[T](at: AttributeType[T]): T = enter(at)  
   def /(p: HeadPath): Model = enter(p) 
