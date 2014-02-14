@@ -15,14 +15,15 @@ package metameta
 
 trait MetaMetamodel extends reqT.DSL with MetamodelToScala {
   import scala.collection.immutable.ListMap
-  def enums: ListMap[String,List[String]]
-  def attributes: ListMap[String,List[String]]
+  def enums: ListMap[String,Seq[String]]
+  def attributes: ListMap[String,Seq[String]]
   def attributeDefault: ListMap[String, String]
-  def generalEntities: List[String]
-  def contextEntities: List[String]
-  def requriementEntities: Map[String,List[String]]
-  def defaultRelation: String
-  def moreRelations: List[String]
+  def generalEntities: Seq[String]
+  def contextEntities: Seq[String]
+  def requriementEntities: Map[String,Seq[String]]
+  def relations: Seq[String]
+  def defaultEntity: EntityType
+  def defaultAttribute: AttributeType[_]
 }
 
 trait MetamodelToScala {
@@ -56,7 +57,6 @@ object metamodel {
   $mkReqVectors
 """
   lazy val mkAttributeTypes = aggregateAttrTypes + attrVectors
-  lazy val relations = (defaultRelation::moreRelations)
   lazy val entities = generalEntities ++ contextEntities ++ 
     requriementEntities.collect { case (_, rs) =>  rs  } .flatten
   lazy val mkRelationTypes = relations.mkString(", ")
@@ -94,7 +94,7 @@ object metamodel {
   lazy val attrVectors = attrTypes.map( a => 
       s"""  lazy val ${a.toLowerCase}Attributes = Vector(${attributes(a).mkString(", ")})""" ).mkString("\n")
     
-  def enumToScala(et: String, values: List[String], default: String) = s"""
+  def enumToScala(et: String, values: Seq[String], default: String) = s"""
 trait $et extends Enum[$et] { val myType = $et }
 trait ${et}Type extends EnumType[$et] with AttributeType[$et] { 
   val values = Vector(${values.mkString(", ")})

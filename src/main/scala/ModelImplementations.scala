@@ -68,6 +68,8 @@ trait ModelImplementation  {
   
 //remove stuff:  
   def -(k: Key): Model = newModel(myMap - k)  //deep???
+  def -(e: Entity): Model = newModel(myMap - e.has)
+  def -(id: String): Model = newModel(myMap - topEntityOfId(id).has)
   def diffKeys(that: Model): Model = newModel(myMap -- that.keys) //should not this be deep????
   def diff(that: Model): Model = (elems diff that.elems).toModel //should not this be deep????
   def --(that: Model): Model = diff(that)  //is diff == diffKeys ??? NO!?
@@ -78,6 +80,7 @@ trait ModelImplementation  {
   lazy val size: Int = { var n = 0 ; foreachElem { n += 1 } ; n }
   lazy val nodeSize: Int = { var n = 0 ; foreachNode { n += 1 } ; n }
   val isEmpty: Boolean = mapSize == 0
+  lazy val isDeep: Boolean = tip != top
 
 //iteration stuff:  
   def foreach[U](f: Elem => U): Unit = toIterable.foreach(f)
@@ -131,7 +134,7 @@ trait ModelImplementation  {
 //------------------ check below
   lazy val head: Elem = myMap.head.toElem
   lazy val headOption: Option[Elem] = myMap.headOption.map(_.toElem)
-  lazy val tail: Model = myMap.tail.toModel
+  lazy val tail: Model = myMap.drop(1).toModel
   lazy val topRelations: Vector[Relation] = myMap.collect { case (h: Head, m: Model) => Relation(h,m) } .toVector
   lazy val topRelationTypes: Vector[RelationType] = topRelations.collect { case r => r.link }
   lazy val topEntities: Vector[Entity] = myMap.collect { case (h: Head, _) => h.entity } .toVector

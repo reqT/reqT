@@ -23,21 +23,27 @@ package metameta {
   trait MetaModel extends HasModel {
     lazy val model = Model(
       Type("Entity") has (
-        Type("General") has  (Type("Section"), Type("Item"), Type("Label")),
-        Type("Context") has (), 
-        Type("Requirement") has ()
+        Type("General") has List("Section", "Item", "Label").toModelOf(Type),
+        Type("Context") has List("Stakeholder","Product","System", "Subdomain").toModelOf(Type), 
+        Type("Requirement") has (
+          Type("GeneralReq") has List("Req", "Idea", "Feature").toModelOf(Type), 
+          Type("IntentionalReq") has List("Goal","Wish").toModelOf(Type)
+        )
       ),
       Type("Attribute") has (
         Type("String") has (Type("Gist"), Type("Spec"), Type("Text"), Type("Title")), 
         Type("Int") has (Type("Prio"), Type("Cost")), 
         Type("Enum") has (
           Type("Cardinality") has (
-            Type("NoOption"), Type("Zero"), Type("One"), Type("ZeroOrOne"), Type("OneOrMany"), Type("ZeroOrMany")
+            Type("attrs") has Type("Opt"),
+            Type("vals") has (
+              Type("NoOption"), Type("Zero"), Type("One"), Type("ZeroOrOne"), Type("OneOrMany"), Type("ZeroOrMany")
+            )
           )
         )
       ),
-      Type("Relation") has (),
-      Type("defaultValues") has (
+      Type("Relation") has List("requires","relatesTo").toModelOf(Type),
+      Type("defaults") has (
         Type("String") has Val("\"???\""),
         Type("Int") has Val("-99999999"),
         Type("Cardinality") has Val("NoOption")      
@@ -45,32 +51,58 @@ package metameta {
     )   
   }
 
-  object generate extends  MetaMetamodel {
+  object make extends  MetaMetamodel {
     import scala.collection.immutable.ListMap
     
-    val enums = {
-      val m = model / "Attribute" / "Enum"
-      ListMap((m.topIds).map(id => (id , (m / id).topIds)):_*)
-    }
-
+    val attr = model / "Attribute" - "Enum"
+    val enum = model / "Attribute" / "Enum"
+    
+    override val enums = ListMap((enum.topIds).map(id => (id , (enum / id / "vals").topIds)):_*)
+    // override val enums = ListMap(
+      // "Cardinality" -> List("NoOption", "Zero", "One", "ZeroOrOne", "OneOrMany", "ZeroOrMany")
+    // )
+    
     override val attributes = ListMap(
-      "String" -> List("Gist", "Spec", "Text", "Title"),
-      "Int" -> List("Cost", "Prio"),
-      "Cardinality" -> List("Opt")
-    )
+      "String" -> (attr / "String").topIds,   
+      "Int"    -> (attr / "Int")   .topIds
+    ) ++ ListMap((enum.topIds).map(id => (id , (enum / id / "attrs").topIds)):_*)
+    // override val attributes = ListMap(
+      // "String" -> List("Gist", "Spec", "Text", "Title"),
+      // "Int" -> List("Cost", "Prio"),
+      // "Cardinality" -> List("Opt")
+    // )
+    
     override val attributeDefault = ListMap(
       "String" -> "\"???\"",
       "Int" -> "-99999999",
       "Cardinality" -> "NoOption"
     )
+    val subentities = ListMap(
+      "General" -> List("Section", "Item", "Label"),
+      "Context" -> List("Stakeholder","Product","System", "Subdomain")
+    )
+    val subsubentities = ListMap(
+      "Requirements" -> ListMap(
+        "GeneralReq" -> List("Req", "Idea", "Feature"),
+        "IntentionalReq" -> List("Goal","Wish")
+      )
+    )
+// reqT> val m = reqT.metameta.model    
+// reqT> (m / "Entity").topIds .flatMap (id => if ((m / "Entity" / id).isDeep) Some(id) else None)
+// res27: scala.collection.immutable.Vector[String] = Vector(Requirement)
+
+// reqT> (m / "Entity").topIds .flatMap (id => if (!(m / "Entity" / id).isDeep) Some(id) else None)
+// res28: scala.collection.immutable.Vector[String] = Vector(General, Context)
+    
     override val generalEntities = List("Section", "Item", "Label")
     override val contextEntities = List("Stakeholder","Product","System", "Subdomain")
     override val requriementEntities = ListMap(
       "GeneralReq" -> List("Req", "Idea", "Feature"),
       "IntentionalReq" -> List("Goal","Wish")
     )
-    override val defaultRelation = "has"
-    override val moreRelations = List("requires","relatesTo")
+    override val defaultEntity = Type
+    override val defaultAttribute = Val
+    override val relations = List("requires","relatesTo")
   }
 }
 

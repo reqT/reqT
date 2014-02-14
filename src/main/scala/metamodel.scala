@@ -86,8 +86,6 @@ case object relatesTo extends RelationType
 //factory traits
 trait RelationFactory {
   self: Entity =>
-  def has(elems: Elem*) = Relation(this, reqT.has, Model(elems:_*))
-  def has(submodel: Model) = Relation(this, reqT.has, submodel)
   def requires(elems: Elem*) =  Relation(this, reqT.requires, Model(elems:_*))
   def requires(submodel: Model) =  Relation(this, reqT.requires, submodel)
   def relatesTo(elems: Elem*) =  Relation(this, reqT.relatesTo, Model(elems:_*))
@@ -96,14 +94,12 @@ trait RelationFactory {
 
 trait HeadFactory {
   self: Entity =>
-  def has = Head(this, reqT.has)
   def requires = Head(this, reqT.requires)
   def relatesTo = Head(this, reqT.relatesTo)
 }
 
 trait HeadTypeFactory {
   self: EntityType =>
-  def has = HeadType(this, reqT.has)
   def requires =  HeadType(this, reqT.requires)
   def relatesTo =  HeadType(this, reqT.relatesTo)
 }
@@ -114,10 +110,12 @@ trait ImplicitFactoryObjects extends CanMakeAttr { //mixed in by package object 
   implicit class StringToCardinality(s: String) { def toCardinality = Opt.valueOf(s)}
   implicit object makeOpt extends AttrMaker[Opt] { def apply(s: String): Opt = Opt(s.toCardinality) }
   lazy val attributeFromString = Map[String, String => Attribute[_]](
+    "Val" -> makeAttr[Val] _ ,
     "Spec" -> makeAttr[Spec] _ ,
     "Prio" -> makeAttr[Prio] _,
     "Opt" -> makeAttr[Opt] _)
   lazy val entityFromString = Map[String, String => Entity](
+    "Type" -> Req.apply _,
     "Req" -> Req.apply _,
     "Feature" -> Feature.apply _)
 }

@@ -90,7 +90,7 @@ object Model extends MetaType
 trait AttributeType[T] extends Key with MetaType with HasDefault[T] { 
   val default: T 
 }
-sealed trait Entity extends Node with HeadFactory with RelationFactory {
+sealed trait Entity extends Node with HeadFactory with RelationFactory  {
   def id: String
   override def key: Head = Head( this , reqT.has) 
   override def mapTo: Model = Model() 
@@ -100,6 +100,9 @@ sealed trait Entity extends Node with HeadFactory with RelationFactory {
   def /(e: Entity) = HeadPath(this.has, e.has)
   def /[T](at: AttributeType[T]) = AttrRef[T](HeadPath(this.has), at)
   def /[T](a: Attribute[T]) = AttrVal[T](HeadPath(this.has), a)
+  def has(elems: Elem*) = Relation(this, reqT.has, Model(elems:_*))
+  def has(submodel: Model) = Relation(this, reqT.has, submodel)
+  def has = Head(this, reqT.has)
 }
 case object NoEntity extends Entity {
   override val id = ""
@@ -110,10 +113,11 @@ trait Context extends Entity
 trait General extends Entity
 trait Requirement extends Entity
 
-trait EntityType extends MetaType with HeadTypeFactory {
+trait EntityType extends MetaType with HeadTypeFactory  {
   def apply(id: String): Entity
   def apply(): Entity = apply(nextId)
   def apply(i: Int): Entity = apply(i.toString)
+  def has = HeadType(this, reqT.has)
 }
 case object NoEntityType extends EntityType {
   override def apply(id: String): Entity = NoEntity
@@ -156,6 +160,7 @@ case class HeadType(entityType: EntityType, link: RelationType) extends MetaType
 trait AttrMaker[T <: Attribute[_]] { def apply(s: String): T }
 
 trait CanMakeAttr {
+  implicit object makeVal extends AttrMaker[Val] { def apply(s: String): Val = Val(s.toString) }
   def makeAttr[T <: Attribute[_]](value: String)( implicit make: AttrMaker[T]): T = make(value)
 }
 
