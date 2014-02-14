@@ -12,7 +12,8 @@
 **************************************************************************/
 package reqT 
 
-/** The base trait for the reqT DSL (requirements Domain Specific Language). */
+/** The base trait for the reqT DSL (a requirement Tool Domain Specific Language). */
+
 trait DSL { 
   /** Concrete DSL classes should have an executable string representation.
       If the default toString is not executable scala-embedded DSL syntax,
@@ -24,13 +25,16 @@ trait DSL {
 /** A marker trait for parameters to separation operators on Model. */
 sealed trait Selector 
 
-/** A mixin trait for runtime typing through case object values of type Type. */
-trait HasType { def myType: Type } 
+/** A marker trait for types of runtime typing using case objects. */
+sealed trait MetaType extends Selector   
 
-/** A mixin trait for generic values. */
+/** A mixin trait for runtime typing through case object values of type MetaType. */
+trait HasType { def myType: MetaType } 
+
+/** A mixin trait for generic attribute values. */
 trait HasValue[T] { def value: T }
 
-/** A mixin trait for generic default values. */
+/** A mixin trait for generic default attribute values. */
 trait HasDefault[T] { def default: T }
 
 /** A mixin trait for types that can be converted to a Map key-value-pair. */
@@ -47,7 +51,7 @@ sealed trait Elem extends DSL with HasType with CanBeMapped with Selector {
   def isRelation: Boolean = !isNode
 }
 
-case object NoElem extends Elem with Type { 
+case object NoElem extends Elem with MetaType { 
   override val isNode: Boolean = false
   override val isAttribute: Boolean = false
   override val isEntity: Boolean = false
@@ -71,7 +75,6 @@ trait Attribute[T] extends Node with MapTo with HasValue[T] with CanBeMapped {
   override def isAttribute: Boolean = true
 }
 
-sealed trait Type extends Selector   
 sealed trait Key extends DSL with Selector
 
 trait Model extends MapTo 
@@ -79,12 +82,12 @@ trait Model extends MapTo
   with ModelEquality
   with ModelAccess
 
-object Model extends Type 
+object Model extends MetaType 
   with ModelCompanion 
   with ModelFromMap
 
 
-trait AttributeType[T] extends Key with Type with HasDefault[T] { 
+trait AttributeType[T] extends Key with MetaType with HasDefault[T] { 
   val default: T 
 }
 sealed trait Entity extends Node with HeadFactory with RelationFactory {
@@ -107,7 +110,7 @@ trait Context extends Entity
 trait General extends Entity
 trait Requirement extends Entity
 
-trait EntityType extends Type with HeadTypeFactory {
+trait EntityType extends MetaType with HeadTypeFactory {
   def apply(id: String): Entity
   def apply(): Entity = apply(nextId)
   def apply(i: Int): Entity = apply(i.toString)
@@ -124,7 +127,7 @@ case object Context extends AbstractSelector { type AbstractType = Context }
 case object General extends AbstractSelector { type AbstractType = General } 
 case object Requirement extends AbstractSelector { type AbstractType = Requirement } 
 
-trait RelationType extends Type
+trait RelationType extends MetaType
 case object NoLink extends RelationType
 
 case class Head(entity: Entity, link: RelationType) extends Key {
@@ -144,11 +147,11 @@ case class Relation(entity: Entity, link: RelationType, tail: Model) extends Ele
   override def isNode: Boolean = false
   override def isAttribute: Boolean = false
 }
-case object Relation extends Type {
+case object Relation extends MetaType {
   def apply(h: Head, tail: Model): Relation = new Relation(h.entity, h.link, tail) 
 }  
 
-case class HeadType(entityType: EntityType, link: RelationType) extends Type    
+case class HeadType(entityType: EntityType, link: RelationType) extends MetaType    
 
 trait AttrMaker[T <: Attribute[_]] { def apply(s: String): T }
 
@@ -157,12 +160,23 @@ trait CanMakeAttr {
 }
 
 trait MetamodelTypes {
-  def types: Vector[Type]
+  def types: Vector[MetaType]
   lazy val names: Vector[String] = types map (_.toString)
   lazy val indexOf: Map[String, Int] = names.zipWithIndex.toMap.withDefaultValue(-1)
 }
 
+//Primitive Attributes traits
+trait StringAttribute extends Attribute[String]
+trait StringType extends AttributeType[String] { val default = "???"}
 
+trait IntAttribute extends Attribute[Int] 
+trait IntType extends AttributeType[Int] { val default = -999999999} 
 
+//Primitive metamodel cases
+case class Type(id: String) extends Entity { override val myType: EntityType = Type }
+case object Type extends EntityType
 
+case class Val(value: String) extends StringAttribute { override val myType = Val }
+case object Val extends StringType 
 
+case object has extends RelationType  

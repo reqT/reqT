@@ -13,7 +13,7 @@
 package reqT 
 
 object metamodel extends MetamodelTypes {
-  override lazy val types: Vector[Type] = entityTypes ++ attributeTypes ++ relationTypes  
+  override lazy val types: Vector[MetaType] = entityTypes ++ attributeTypes ++ relationTypes  
   lazy val entityTypes: Vector[EntityType] = generalEntities ++ contextEntities ++ requirementEntities 
   lazy val generalEntities = Vector(Section) 
   lazy val contextEntities = Vector(Stakeholder) 
@@ -42,13 +42,6 @@ case object One extends Cardinality
 case object ZeroOrOne extends Cardinality
 case object OneOrMany extends Cardinality
 case object ZeroOrMany extends Cardinality
-
-//Attribute traits
-trait StringAttribute extends Attribute[String]
-trait StringType extends AttributeType[String] { val default = "???"}
-
-trait IntAttribute    extends Attribute[Int]
-trait IntType extends AttributeType[Int] { val default = -999999999} 
 
 //Concrete attributes
 case class Spec(value: String) extends StringAttribute { override val myType = Spec }
@@ -87,7 +80,6 @@ case class Wish(id: String) extends IntentionalReq { override val myType: Entity
 case object Wish extends EntityType
 
 //Concrete relations
-case object has extends RelationType  
 case object requires extends RelationType
 case object relatesTo extends RelationType
 

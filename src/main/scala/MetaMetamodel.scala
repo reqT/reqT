@@ -41,7 +41,7 @@ trait MetamodelToScala {
 
   lazy val mkObjectMetamodel = s"""
 object metamodel {
-  lazy val types: Vector[Type] = = entityTypes ++ attributeTypes ++ relationTypes 
+  lazy val types: Vector[MetaType] = = entityTypes ++ attributeTypes ++ relationTypes 
   lazy val entityTypes: Vector[EntityType] = generalEntities ++ contextEntities ++ requirementEntities  
   $mkEntityTypes
   lazy val attributeTypes: Vector[AttributeType[_]] = $mkAttributeTypes

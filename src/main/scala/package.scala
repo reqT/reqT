@@ -37,6 +37,10 @@ extends Init with GlobalConstants with ImplicitFactoryObjects with StringUtils w
   implicit class KeyMapToTuple2ToElem(p: Tuple2[Key,MapTo]) { 
     def toElem: Elem = Model.pairToElem(p) 
   }
+  
+  implicit class StringIterableToModel(it: Iterable[String]) {
+    def toModelOf(et: EntityType) = Model(it.map(id => et(id)).toSeq:_*)
+  }
 
   def timed[T](block: => T) = {
     val tick = System.currentTimeMillis
@@ -57,7 +61,7 @@ extends Init with GlobalConstants with ImplicitFactoryObjects with StringUtils w
     def rndId: String = rndLetters(1) + rndInt(1,9)
     def rndText(n: Int, l: Int): String = List.fill(rndInt(1,n))(rndSpeakable(rndInt(1,l))).mkString(" ").capitalize + "." 
     def rndPick[T](xs: Seq[T]): T = xs(rndInt(xs.size))
-    def rndType: Type = rndPick(metamodel.types)
+    def rndType: MetaType = rndPick(metamodel.types)
     def rndEntityType: EntityType = rndPick(metamodel.entityTypes)
     def rndAttributeType: AttributeType[_] = rndPick(metamodel.attributeTypes)
     def rndEntity: Entity = rndEntityType(rndId)

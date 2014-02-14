@@ -34,7 +34,7 @@ trait ModelImplementation  {
   def toHashMap: HashMap[Key, MapTo]
   
 //Field from construction:  
-  override val myType: Type = Model
+  override val myType: MetaType = Model
 
 //to stuff:  
   lazy val toVector = elems
@@ -106,8 +106,9 @@ trait ModelImplementation  {
   def foreachNode(block: => Unit): Unit = foreachNode { _ => block }
 
 //collection of elements:  
-  lazy val keys = myMap.keys
-  lazy val keySet = myMap.keySet
+  lazy val keys: Iterable[Key] = myMap.keys
+  lazy val keySet: Set[Key] = myMap.keySet
+  lazy val keyVector: Vector[Key] = myMap.collect { case (k,v) => k } .toVector
   
   // the vectors allows for traversal in elems order if ListModel and they are as type specific as possible which is not a problem as Vector is covariant
   // the sets allow for fast contains tests but are all of Set[Elem] as Sets are invariant 
@@ -153,6 +154,9 @@ trait ModelImplementation  {
     Bag(topRelations.map( r => (r.link, r)):_*).withDefaultValue(Vector())
   lazy val topHeadsOfType: Map[HeadType, Vector[Head]] =
     Bag(topHeads.map( h => (HeadType(h.entity.myType, h.link), h)):_*).withDefaultValue(Vector())
+
+  lazy val topIds: Vector[String] = topEntities.map(_.id)
+  lazy val topEntityOfId : Map[String, Entity] = topEntities.map(e => (e.id, e)).toMap.withDefaultValue(NoEntity)
     
   def existsElem(p: Elem => Boolean): Boolean = myMap.exists((kc: (Key, MapTo) )=> p(pairToElem(kc))) //??? rename to exists?
   

@@ -23,7 +23,7 @@ object BagUtils {
   def bagAdd[K,V](bag: Bag[K, V], k: K, v: V): Bag[K, V] = 
     bag.updated(k, ( if (bag.isDefinedAt(k)) bag(k) else Vector()) :+ v)
   
-  implicit class RichMapAsVectorBag[K,V](bag: Map[K,Vector[V]])  {
+  implicit class RichMapVectorBag[K,V](bag: Map[K,Vector[V]])  {
     def join[B >: V](that: Map[K,Vector[B]]): Map[K,Vector[B]] = bagMerge(this.bag, that)
     def bagAdd(elem: (K, V)): Map[K,Vector[V]] = BagUtils.bagAdd(this.bag, elem._1, elem._2)  
     def :+(elem: (K, V)): Map[K,Vector[V]] = BagUtils.bagAdd(this.bag, elem._1, elem._2)  
@@ -37,6 +37,7 @@ object BagUtils {
     }
   }
 } 
+
 
 trait StringUtils {
   implicit class EnrichedString(s: String) {
@@ -108,6 +109,10 @@ trait FileUtils {
 
   import fileUtils._
   
+  implicit class StringSaver(s: String) {
+    def save(fileName: String): Unit = saveString(s, fileName)
+  }
+  
   def pwd { println(workDir)}
 
   def load(fileName:String): String = {
@@ -144,10 +149,10 @@ trait FileUtils {
     }
     def listFiles(dir: String): Option[List[java.io.File]] = 
       new java.io.File(resolveFileName(dir)).listFiles match { case null => None; case a => Some(a.toList) }
-    def saveString(s:String, fileName:String) = {
+    def saveString(s:String, fileName:String, encoding: String = "UTF-8") = {
       val fn = resolveFileName(fileName)
-      val outFile = new java.io.FileOutputStream(fn)
-      val outStream = new java.io.PrintStream(outFile)
+      val outFile = new java.io.File(fn)
+      val outStream = new java.io.PrintStream(outFile,encoding)
       try { outStream.println(s.toString) } finally { outStream.close }
       println("Saved to file: "+fn) 
     }
