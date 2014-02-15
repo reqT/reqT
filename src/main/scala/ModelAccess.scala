@@ -25,6 +25,7 @@ trait ModelAccess { //isDefinedAt, apply, get, enter
   def isDefinedAt[T](a: Attribute[T]): Boolean = isDefinedAt(a.myType) && (apply(a.myType) == a.value)
   def isDefinedAt(et: EntityType): Boolean = !topEntitiesOfType(et).isEmpty  
   def isDefinedAt(e: Entity): Boolean = isDefinedAt(e.has)  
+  def isDefinedAt(id: String): Boolean = !topEntitiesOfId(id).isEmpty  
   def isDefinedAt(r: Relation): Boolean = isDefinedAt(r.head) && apply(r.head) == r.tail
   def isDefinedAt(rt: RelationType): Boolean = !topRelationsOfType(rt).isEmpty
   def isDefinedAt(ht: HeadType): Boolean = !topHeadsOfType(ht).isEmpty
@@ -42,6 +43,7 @@ trait ModelAccess { //isDefinedAt, apply, get, enter
     else isDefinedAt(p.head) && apply(p.head).isDefinedAt(p.tail)  
   
   def apply(e: Entity): Model = apply(e.has)
+  def apply(id: String): Model = apply(topEntityOfId(id).has)
   def apply(et: EntityType): Vector[Model] = {
     val topEnts = topEntitiesOfType(et)
     assert(!topEnts.isEmpty, "No top entities of type $et exists")
@@ -69,6 +71,7 @@ trait ModelAccess { //isDefinedAt, apply, get, enter
     else apply(p.head).apply(p.tail)      
     
   def get(e: Entity): Option[Model] = if (isDefinedAt(e)) Some(apply(e)) else None   
+  def get(id: String): Vector[Model] = topEntitiesOfId(id).toVector.flatMap(get(_)).filterNot(_.isEmpty)   
 
   def get(h: Head): Option[Model] = myMap.get(h).asInstanceOf[Option[Model]] 
   

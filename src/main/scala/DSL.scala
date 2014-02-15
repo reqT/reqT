@@ -12,6 +12,8 @@
 **************************************************************************/
 package reqT 
 
+import scala.language.implicitConversions
+
 /** The base trait for the reqT DSL (a requirement Tool Domain Specific Language). */
 
 trait DSL { 
@@ -103,6 +105,9 @@ sealed trait Entity extends Node with HeadFactory with RelationFactory  {
   def has(elems: Elem*) = Relation(this, reqT.has, Model(elems:_*))
   def has(submodel: Model) = Relation(this, reqT.has, submodel)
   def has = Head(this, reqT.has)
+  def is(elems: Elem*) = Relation(this, reqT.is, Model(elems:_*))
+  def is(submodel: Model) = Relation(this, reqT.is, submodel)
+  def is = Head(this, reqT.is)
 }
 case object NoEntity extends Entity {
   override val id = ""
@@ -118,6 +123,7 @@ trait EntityType extends MetaType with HeadTypeFactory  {
   def apply(): Entity = apply(nextId)
   def apply(i: Int): Entity = apply(i.toString)
   def has = HeadType(this, reqT.has)
+  def is =  HeadType(this, reqT.is)
 }
 case object NoEntityType extends EntityType {
   override def apply(id: String): Entity = NoEntity
@@ -125,6 +131,12 @@ case object NoEntityType extends EntityType {
 
 trait AbstractSelector extends Selector {
   type AbstractType <: Elem
+}
+
+case class StringSelector(s: String) extends Selector
+
+trait ImplicitStringSelector { //to be mixed in by package object reqT
+  implicit def stringToStringSelector(s: String): StringSelector = StringSelector(s)
 }
 
 case object Context extends AbstractSelector { type AbstractType = Context } 
@@ -160,8 +172,8 @@ case class HeadType(entityType: EntityType, link: RelationType) extends MetaType
 trait AttrMaker[T <: Attribute[_]] { def apply(s: String): T }
 
 trait CanMakeAttr {
-  implicit object makeVal extends AttrMaker[Val] { def apply(s: String): Val = Val(s.toString) }
-  def makeAttr[T <: Attribute[_]](value: String)( implicit make: AttrMaker[T]): T = make(value)
+  implicit object makeAttr extends AttrMaker[Attr] { def apply(s: String): Attr = Attr(s.toString) }
+  def makeAttribute[T <: Attribute[_]](value: String)( implicit make: AttrMaker[T]): T = make(value)
 }
 
 trait MetamodelTypes {
@@ -178,10 +190,11 @@ trait IntAttribute extends Attribute[Int]
 trait IntType extends AttributeType[Int] { val default = -999999999} 
 
 //Primitive metamodel cases
-case class Type(id: String) extends Entity { override val myType: EntityType = Type }
-case object Type extends EntityType
+case class Ent(id: String) extends Entity { override val myType: EntityType = Ent }
+case object Ent extends EntityType
 
-case class Val(value: String) extends StringAttribute { override val myType = Val }
-case object Val extends StringType 
+case class Attr(value: String) extends StringAttribute { override val myType = Attr }
+case object Attr extends StringType 
 
 case object has extends RelationType  
+case object is extends RelationType  

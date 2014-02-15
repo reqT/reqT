@@ -181,7 +181,7 @@ $mkEntFromStringMappings
   
   def mkEntFromStringMappings = entities.map(entMapping).mkString(",\n")
   
-  def attrMapping(a: String) = s"""    "$a" -> makeAttr[$a] _ """
+  def attrMapping(a: String) = s"""    "$a" -> makeAttribute[$a] _ """
   def entMapping(e: String) =  s"""    "$e" -> $e.apply _ """
 
 }

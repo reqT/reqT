@@ -12,7 +12,12 @@
 ***************************************************************************/
 
 package object reqT 
-extends Init with GlobalConstants with ImplicitFactoryObjects with StringUtils with FileUtils {
+extends Init with GlobalConstants 
+             with ImplicitFactoryObjects 
+             with ImplicitStringSelector
+             with StringUtils 
+             with FileUtils {
+
   import scala.language.implicitConversions
 
   implicit class ElemIterableToModel(it: Iterable[Elem]) {
@@ -39,7 +44,7 @@ extends Init with GlobalConstants with ImplicitFactoryObjects with StringUtils w
   }
   
   implicit class StringIterableToModel(it: Iterable[String]) {
-    def toModelOf(et: EntityType) = Model(it.map(id => et(id)).toSeq:_*)
+    def as(et: EntityType): Iterable[Entity] = it.map(id => et(id))
   }
 
   def timed[T](block: => T) = {

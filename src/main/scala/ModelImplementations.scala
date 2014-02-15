@@ -130,14 +130,15 @@ trait ModelImplementation  {
     case elem => elem
   } .toModel  
   def `^`: Model = top
+  def `^^`: Model = tip
   
 //------------------ check below
   lazy val head: Elem = myMap.head.toElem
   lazy val headOption: Option[Elem] = myMap.headOption.map(_.toElem)
   lazy val tail: Model = myMap.drop(1).toModel
-  lazy val topRelations: Vector[Relation] = myMap.collect { case (h: Head, m: Model) => Relation(h,m) } .toVector
-  lazy val topRelationTypes: Vector[RelationType] = topRelations.collect { case r => r.link }
-  lazy val topEntities: Vector[Entity] = myMap.collect { case (h: Head, _) => h.entity } .toVector
+  lazy val topRelations: Vector[Relation] = myMap.collect { case (h: Head, m: Model) if !m.isEmpty => Relation(h,m) } .toVector
+  lazy val topRelationTypes: Vector[RelationType] = topRelations.map(_.link)
+  lazy val topEntities: Vector[Entity] = myMap.collect { case (h: Head, _) => h.entity } .toVector //should this include tail tip ents???
   lazy val topEntitySet: Set[Elem] = topEntities.toSet
   lazy val topHeads: Vector[Head] = myMap.keys.collect { case h: Head => h } .toVector
   lazy val topNodesAndHeads: Vector[Node] = elems.collect { 
@@ -154,30 +155,38 @@ trait ModelImplementation  {
   lazy val topEntitiesOfType: Map[EntityType, Vector[Entity]] = 
     Bag(topEntities.map( e => (e.myType, e)):_*).withDefaultValue(Vector())
   lazy val topRelationsOfType: Map[RelationType, Vector[Relation]] =
-    Bag(topRelations.map( r => (r.link, r)):_*).withDefaultValue(Vector())
+    Bag(topRelations.map(r => (r.link, r)) :_*).withDefaultValue(Vector())
   lazy val topHeadsOfType: Map[HeadType, Vector[Head]] =
     Bag(topHeads.map( h => (HeadType(h.entity.myType, h.link), h)):_*).withDefaultValue(Vector())
 
-  lazy val topIds: Vector[String] = topEntities.map(_.id)
-  lazy val topEntityOfId : Map[String, Entity] = topEntities.map(e => (e.id, e)).toMap.withDefaultValue(NoEntity)
-    
+  lazy val topIds: Vector[String] = top.ids
+  lazy val tipIds: Vector[String] = tip.ids
+  lazy val topEntityOfId: Map[String, Entity] = topEntities.map(e => (e.id, e)).toMap.withDefaultValue(NoEntity)
+  lazy val topEntitiesOfId: Map[String, Set[Entity]] = SetBag(topEntities.map(e => (e.id, e)):_*).withDefaultValue(Set())
+  
+  lazy val ids: Vector[String] = collectAll { case e: Entity => e.id } .distinct
+  lazy val entitiesOfId: Map[String, Set[Entity]] = 
+    SetBag(collectAll { case e: Entity => (e.id, e) } :_*).withDefaultValue(Set())
+  lazy val entityOfId: Map[String, Entity] = 
+    entitiesOfId.collect { case (id, es) if !es.isEmpty => (id, es.head) } .toMap.withDefaultValue(NoEntity)
+  
   def existsElem(p: Elem => Boolean): Boolean = myMap.exists((kc: (Key, MapTo) )=> p(pairToElem(kc))) //??? rename to exists?
   
-  def visitAll[T](f: PartialFunction[Elem,T]): Vector[T] = elems.flatMap ( e => 
+  def collectAll[T](f: PartialFunction[Elem,T]): Vector[T] = elems.flatMap ( e =>   //???
     e match {
       case n: Node if f.isDefinedAt(e) => Vector(f(e))
       case rel: Relation => 
         ( if (f.isDefinedAt(rel.entity)) Vector(f(rel.entity)) else Vector[T]() ) ++
           ( if (f.isDefinedAt(rel)) Vector(f(rel)) else Vector[T]() ) ++  
-            ( rel.tail.visitAll(f) )
+            ( rel.tail.collectAll(f) )
       case _ => Vector()
     }
   )
   
-  def bfs[T](f: PartialFunction[Elem,T]): Vector[T] = 
-    topElems.collect(f) ++ topRelations.map(_.tail.bfs(f)).flatten
+  def bfs[T](f: PartialFunction[Elem,T]): Vector[T] =  //funkar inte??? , missar sources
+    topElems.collect(f) ++ topRelations.map { r => Vector(f(r.entity)) ++ r.tail.bfs(f) } .flatten
 
-  def dfs[T](f: PartialFunction[Elem,T]): Vector[T] = 
+  def dfs[T](f: PartialFunction[Elem,T]): Vector[T] = //funkar inte!! funkar inte??? , missar sources
     topRelations.map(_.tail.dfs(f)).flatten ++ topElems.collect(f)
     
   def filterTop(p: Elem => Boolean): Model = topElems.filter(p).toModel 
@@ -186,34 +195,37 @@ trait ModelImplementation  {
   def filterShallowNot(p: Elem => Boolean): Model = elems.filterNot(p).toModel 
 
   def filterDeep(p: Elem => Boolean): Model = newModel( myMap.flatMap {
-    case kc if p(pairToElem(kc)) => pairToElem(kc) match {
-      case Relation(s,l,tail) =>  
-        if (p(s) || tail.existsElem(p)) 
-          Vector(Relation(s, l, tail.filterDeep(p)).toMapping)
-        else 
-          Vector() 
-      case _ => Vector(kc)
+    case kc if p(pairToElem(kc)) => kc match {
+      case (h: Head,tail: Model) =>  Some((h, tail.filterDeep(p)))
+      case _ => Some(kc)
     }
-    case _ => Vector()
+    case _ => None
   } )
 
   def filterDeepNot(p: Elem => Boolean): Model = newModel( myMap.flatMap {
-    case kc if !p(pairToElem(kc)) => pairToElem(kc) match {
-      case Relation(s,l,tail) =>  
-        if (!p(s) && !tail.existsElem(p)) 
-          Vector(Relation(s, l, tail.filterDeepNot(p)).toMapping)
-        else 
-          Vector() 
-      case _ => Vector(kc)
+    case kc if !p(pairToElem(kc)) => kc match {
+      case (h: Head,tail: Model) =>  Some((h, tail.filterDeepNot(p)))
+      case _ => Some(kc)
     }
-    case _ => Vector()
+    case _ => None
   } )
+
   
   def separateKeysOrTails(s: Selector, separator: (Elem => Boolean) => Model): Model = 
     s match {
+      case e: Entity => separator { 
+        case e2: Entity if e == e2 => true 
+        case Relation(e2, _, tail) if e == e2 || tail.isDefinedAt(e) => true
+        case _ => false
+      }
+      case StringSelector(id) => separator {
+        case e2: Entity if topEntitiesOfId(id).contains(e2) => true
+        case Relation(e2, _, tail) if topEntitiesOfId(id).contains(e2) || tail.isDefinedAt(id) => true
+        case _ => false
+      }
       case et: EntityType => separator { 
         case e: Entity if e.myType == et => true 
-        case Relation(s, _, t) if s.myType == et || t.isDefinedAt(et) => true
+        case Relation(s, _, tail) if s.myType == et || tail.isDefinedAt(et) => true
         case _ => false
       }
       case at: AttributeType[_] => separator { 
@@ -221,7 +233,11 @@ trait ModelImplementation  {
         case Relation(_, _, tail) if tail.isDefinedAt(at) => true
         case _ => false
       }
-      case _ => throw new scala.NotImplementedError("separate on" + s)
+      case rt: RelationType => separator { 
+        case Relation(_, link, tail) if link == rt || tail.isDefinedAt(rt) => true
+        case _ => false
+      }
+      case _ => throw new scala.NotImplementedError("separateKeysOrTails TODO: " + s)
     }
 
   def separateKeys(s: Selector, separator: (Elem => Boolean) => Model): Model = 
@@ -229,6 +245,11 @@ trait ModelImplementation  {
       case e: Entity => separator {
         case e2: Entity if e == e2 => true
         case Relation(e2, _, _) if e == e2 => true
+        case _ => false
+      }
+      case StringSelector(id) => separator {
+        case e2: Entity if topEntitiesOfId(id).contains(e2) => true
+        case Relation(e2, _, _) if topEntitiesOfId(id).contains(e2) => true
         case _ => false
       }
       case et: EntityType => separator { 
@@ -240,11 +261,23 @@ trait ModelImplementation  {
         case a: Attribute[_] if a.myType == at => true 
         case _ => false
       }
-      case _ => throw new scala.NotImplementedError("separateKeys on" + s)
+      case rt: RelationType => separator { 
+        case Relation(_, link, _) if link == rt => true
+        case _ => false
+      }
+      case _ => throw new scala.NotImplementedError("separateKeys TODO: " + s)
     }      
 
   def separateTails(s: Selector, separator: (Elem => Boolean) => Model): Model = 
     s match {
+      case e: Entity => separator { 
+        case Relation(_, _, tail) if tail.isDefinedAt(e) => true
+        case _ => false
+      }
+      case StringSelector(id) => separator {
+        case Relation(_, _, tail) if tail.isDefinedAt(id) => true
+        case _ => false
+      }
       case et: EntityType => separator { 
         case Relation(_, _, tail) if tail.isDefinedAt(et) => true
         case _ => false
@@ -253,11 +286,13 @@ trait ModelImplementation  {
         case Relation(_, _, tail) if tail.isDefinedAt(at) => true
         case _ => false
       }
-      case _ => throw new scala.NotImplementedError("separateTails on" + s)
+      case rt: RelationType => separator { 
+        case Relation(_, _, tail) if tail.isDefinedAt(rt) => true
+        case _ => false
+      }      
+      case _ => throw new scala.NotImplementedError("separateTails TODO:" + s)
     }       
     
-
-  
   def restrict(s: Selector): Model = separateKeysOrTails(s, filterTop)    
   def *(s: Selector): Model = restrict(s)
   
@@ -270,17 +305,17 @@ trait ModelImplementation  {
   def restrictAll(s: Selector): Model = separateKeysOrTails(s, filterDeep)    
   def **(s: Selector): Model = restrictAll(s)
   
-  def exclude(s: Selector): Model = separateKeysOrTails(s, filterNot)    
-  def \(s: Selector): Model = exclude(s)
+  def restrictNot(s: Selector): Model = separateKeysOrTails(s, filterNot)    
+  def *!(s: Selector): Model = restrictNot(s)
 
-  def excludeTop(s: Selector): Model = separateKeys(s, filterNot)
-  def \^(s: Selector): Model = excludeTop(s)
+  def restrictTopNot(s: Selector): Model = separateKeys(s, filterNot)
+  def *^!(s: Selector): Model = restrictTopNot(s)
   
-  def excludeTail(s: Selector): Model = separateTails(s, filterNot)
-  def \~(s: Selector): Model = excludeTail(s)
+  def restrictTailNot(s: Selector): Model = separateTails(s, filterNot)
+  def *~!(s: Selector): Model = restrictTailNot(s)
 
-  def excludeAll(s: Selector): Model = separateKeysOrTails(s, filterDeepNot)    
-  def \\(s: Selector): Model = excludeAll(s)
+  def restrictAllNot(s: Selector): Model = separateKeysOrTails(s, filterDeepNot)    
+  def **!(s: Selector): Model = restrictAllNot(s)
  
   lazy val toStringBody = 
     if (size == 0) "()" 

@@ -21,38 +21,74 @@ package metameta {
   trait HasModel { def model: Model }
 
   trait MetaModel extends HasModel {
-    lazy val model = Model(
-      Type("Entity") has (
-        Type("General") has List("Section", "Item", "Label").toModelOf(Type),
-        Type("Context") has List("Stakeholder","Product","System", "Subdomain").toModelOf(Type), 
-        Type("Requirement") has (
-          Type("GeneralReq") has List("Req", "Idea", "Feature").toModelOf(Type), 
-          Type("IntentionalReq") has List("Goal","Wish").toModelOf(Type)
+    val model = Model(
+      Ent("entities") has (
+        Seq("General", "Context", "Requirements").map(Ent(_) is Ent("Entity")) ++
+        Seq("Section", "Item", "Label").map(Ent(_) is Ent("General")) ++
+        Seq("Stakeholder","Product","System", "Subdomain").map(Ent(_) is Ent("Context")) ++
+        Seq("GeneralReq","IntentionalReq").map(Ent(_) is Ent("Requirement")) ++
+        Seq("Req", "Idea", "Feature").map(Ent(_) is Ent("GeneralReq")) ++
+        Seq("Goal","Wish").map(Ent(_) is Ent("IntentionalReq")) :_*
+      ),
+      Ent("relations") has 
+        Seq("requires","relatesTo").map(Ent(_) is Ent("Relation")).toModel,
+      Ent("attributes") has (
+        Seq("Gist", "Spec", "Text", "Title").map(Ent(_) is Ent("String")) ++
+        Seq("Prio", "Cost").map(Ent(_) is Ent("Int")) ++
+        Seq(Ent("Opt") is Ent("Cardinality")) :_*
+      ), 
+      Ent("enums") has (
+        Ent("Cardinality") has (
+          Ent("NoOption"), Ent("Zero"), Ent("One"), Ent("ZeroOrOne"), Ent("OneOrMany"), Ent("ZeroOrMany")
         )
       ),
-      Type("Attribute") has (
-        Type("String") has (Type("Gist"), Type("Spec"), Type("Text"), Type("Title")), 
-        Type("Int") has (Type("Prio"), Type("Cost")), 
-        Type("Enum") has (
-          Type("Cardinality") has (
-            Type("attrs") has Type("Opt"),
-            Type("vals") has (
-              Type("NoOption"), Type("Zero"), Type("One"), Type("ZeroOrOne"), Type("OneOrMany"), Type("ZeroOrMany")
+      Ent("defaults") has (
+        Ent("String") has Attr("\"???\""),
+        Ent("Int") has Attr("-99999999"),
+        Ent("Cardinality") has Attr("NoOption")             
+      )
+    )
+// reqT> (m2 / "entities" *~ "Entity" ^^) .ids
+// res12: Vector[String] = Vector(General, Context, Requirements)
+
+// reqT> m2.enter("entities").restrictTails("Entity" ).tip.ids
+// res13: Vector[String] = Vector(General, Context, Requirements)      
+  
+    lazy val oldModel = Model(
+      Ent("Entity") has (
+        Ent("General") has List("Section", "Item", "Label").as(Ent).toModel,
+        Ent("Context") has List("Stakeholder","Product","System", "Subdomain").as(Ent).toModel, 
+        Ent("Requirement") has (
+          Ent("GeneralReq") has List("Req", "Idea", "Feature").as(Ent).toModel, 
+          Ent("IntentionalReq") has List("Goal","Wish").as(Ent).toModel
+        )
+      ),
+      Ent("Attribute") has (
+        Ent("String") has (Ent("Gist"), Ent("Spec"), Ent("Text"), Ent("Title")), 
+        Ent("Int") has (Ent("Prio"), Ent("Cost")), 
+        Ent("Enum") has (
+          Ent("Cardinality") has (
+            Ent("attrs") has Ent("Opt"),
+            Ent("vals") has (
+              Ent("NoOption"), Ent("Zero"), Ent("One"), Ent("ZeroOrOne"), Ent("OneOrMany"), Ent("ZeroOrMany")
             )
           )
         )
       ),
-      Type("Relation") has List("requires","relatesTo").toModelOf(Type),
-      Type("defaults") has (
-        Type("String") has Val("\"???\""),
-        Type("Int") has Val("-99999999"),
-        Type("Cardinality") has Val("NoOption")      
+      Ent("Relation") has List("requires","relatesTo").as(Ent).toModel,
+      Ent("defaults") has (
+        Ent("String") has Attr("\"???\""),
+        Ent("Int") has Attr("-99999999"),
+        Ent("Cardinality") has Attr("NoOption")      
       )
     )   
   }
 
   object make extends  MetaMetamodel {
     import scala.collection.immutable.ListMap
+    
+    def apply(): String = toScala
+    //def apply(m: Model): String = toScala(m)  aaargh! generalize to make it work for any model
     
     val attr = model / "Attribute" - "Enum"
     val enum = model / "Attribute" / "Enum"
@@ -100,8 +136,8 @@ package metameta {
       "GeneralReq" -> List("Req", "Idea", "Feature"),
       "IntentionalReq" -> List("Goal","Wish")
     )
-    override val defaultEntity = Type
-    override val defaultAttribute = Val
+    override val defaultEntity = Ent
+    override val defaultAttribute = Attr
     override val relations = List("requires","relatesTo")
   }
 }

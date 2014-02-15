@@ -24,7 +24,7 @@ object metamodel extends MetamodelTypes {
   lazy val stringAttributes = Vector(Spec)
   lazy val intAttributes = Vector(Prio)
   lazy val cardinalityAttributes = Vector(Opt)
-  lazy val relationTypes: Vector[RelationType] = Vector(has, requires, relatesTo)
+  lazy val relationTypes: Vector[RelationType] = Vector(has, is, requires, relatesTo)
 }
 
 //Enum traits
@@ -110,12 +110,12 @@ trait ImplicitFactoryObjects extends CanMakeAttr { //mixed in by package object 
   implicit class StringToCardinality(s: String) { def toCardinality = Opt.valueOf(s)}
   implicit object makeOpt extends AttrMaker[Opt] { def apply(s: String): Opt = Opt(s.toCardinality) }
   lazy val attributeFromString = Map[String, String => Attribute[_]](
-    "Val" -> makeAttr[Val] _ ,
-    "Spec" -> makeAttr[Spec] _ ,
-    "Prio" -> makeAttr[Prio] _,
-    "Opt" -> makeAttr[Opt] _)
+    "Attr" -> makeAttribute[Attr] _ ,
+    "Spec" -> makeAttribute[Spec] _ ,
+    "Prio" -> makeAttribute[Prio] _,
+    "Opt" -> makeAttribute[Opt] _)
   lazy val entityFromString = Map[String, String => Entity](
-    "Type" -> Req.apply _,
+    "Ent" -> Req.apply _,
     "Req" -> Req.apply _,
     "Feature" -> Feature.apply _)
 }

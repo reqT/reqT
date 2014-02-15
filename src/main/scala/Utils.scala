@@ -15,13 +15,19 @@ package reqT
 
 object BagUtils {
   type Bag[K, V] = Map[K, Vector[V]]
-  //type SetBag[K, V] = Map[K, Set[V]]
+  type SetBag[K, V] = Map[K, Set[V]]
   
   def bagMerge[K,V](m1: Bag[K, V],m2: Bag[K, V]): Bag[K, V] =
     (m1.keys++m2.keys).map(k => (k,m1.getOrElse(k,Vector())++m2.getOrElse(k,Vector()))).toMap
+    
+  def setBagMerge[K,V](m1: SetBag[K, V],m2: SetBag[K, V]): SetBag[K, V] =
+    (m1.keys++m2.keys).map(k => (k,m1.getOrElse(k,Set())++m2.getOrElse(k,Set()))).toMap    
 
   def bagAdd[K,V](bag: Bag[K, V], k: K, v: V): Bag[K, V] = 
     bag.updated(k, ( if (bag.isDefinedAt(k)) bag(k) else Vector()) :+ v)
+  
+  def setBagAdd[K,V](bag: SetBag[K, V], k: K, v: V): SetBag[K, V] = 
+    bag.updated(k, ( if (bag.isDefinedAt(k)) bag(k) + v else Set(v)))
   
   implicit class RichMapVectorBag[K,V](bag: Map[K,Vector[V]])  {
     def join[B >: V](that: Map[K,Vector[B]]): Map[K,Vector[B]] = bagMerge(this.bag, that)
@@ -29,9 +35,23 @@ object BagUtils {
     def :+(elem: (K, V)): Map[K,Vector[V]] = BagUtils.bagAdd(this.bag, elem._1, elem._2)  
   }
   
+  implicit class RichMapSetBag[K,V](bag: Map[K,Set[V]])  {
+    def join(that: Map[K,Set[V]]): Map[K,Set[V]] = setBagMerge(this.bag, that)
+    def bagAdd(elem: (K, V)): Map[K,Set[V]] = BagUtils.setBagAdd(this.bag, elem._1, elem._2)  
+    def :+(elem: (K, V)): Map[K,Set[V]] = BagUtils.setBagAdd(this.bag, elem._1, elem._2)  
+  }
+  
   object Bag {
     def apply[K,V](elems: (K, V)*): Bag[K,V] = {
       var bag: Bag[K,V] = Map()
+      elems.map(e => bag :+= e)
+      bag
+    }
+  }
+  
+  object SetBag {
+    def apply[K,V](elems: (K, V)*): SetBag[K,V] = {
+      var bag: SetBag[K,V] = Map()
       elems.map(e => bag :+= e)
       bag
     }
