@@ -75,15 +75,13 @@ trait Attribute[T] extends Node with MapTo with HasValue[T] with CanBeMapped {
   override def key: AttributeType[T] = myType
   override def mapTo: Attribute[T] = this
   override def isAttribute: Boolean = true
+  def / = AttrVal(HeadPath(), this)
 }
 
 sealed trait Key extends DSL with Selector
 
-trait Model extends MapTo 
-  with ModelImplementation 
-  with ModelEquality
-  with ModelAccess
-
+trait Model extends MapTo with ModelImplementation 
+  
 object Model extends MetaType 
   with ModelCompanion 
   with ModelFromMap
@@ -91,6 +89,7 @@ object Model extends MetaType
 
 trait AttributeType[T] extends Key with MetaType with HasDefault[T] { 
   val default: T 
+  def / = AttrRef(HeadPath(), this)
 }
 sealed trait Entity extends Node with HeadFactory with RelationFactory  {
   def id: String
@@ -98,6 +97,7 @@ sealed trait Entity extends Node with HeadFactory with RelationFactory  {
   override def mapTo: Model = Model() 
   override def myType: EntityType
   override def isAttribute: Boolean = false
+  def / = HeadPath(this.has)
   def /(h: Head) = HeadPath(this.has, h)
   def /(e: Entity) = HeadPath(this.has, e.has)
   def /[T](at: AttributeType[T]) = AttrRef[T](HeadPath(this.has), at)
@@ -147,6 +147,7 @@ trait RelationType extends MetaType
 case object NoLink extends RelationType
 
 case class Head(entity: Entity, link: RelationType) extends Key {
+  def / = HeadPath(this)
   def /(h: Head) = HeadPath(this, h)
   def /(e: Entity) = HeadPath(this, e.has)
   def /[T](at: AttributeType[T]) = AttrRef[T](HeadPath(this), at)

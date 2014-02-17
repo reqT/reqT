@@ -11,13 +11,14 @@
 ** http://opensource.org/licenses/bsd-license.php 
 **************************************************************************/
 package reqT
+import scala.language.postfixOps
 
 package object metameta extends MetaModel
 
 package metameta {
-
   //this file contains input to the MetaGen metamodel generator
 
+  
   trait HasModel { def model: Model }
 
   trait MetaModel extends HasModel {
@@ -54,7 +55,7 @@ package metameta {
 // reqT> m2.enter("entities").restrictTails("Entity" ).tip.ids
 // res13: Vector[String] = Vector(General, Context, Requirements)      
   
-    lazy val oldModel = Model(
+    lazy val oldModel = { Model(
       Ent("Entity") has (
         Ent("General") has List("Section", "Item", "Label").as(Ent).toModel,
         Ent("Context") has List("Stakeholder","Product","System", "Subdomain").as(Ent).toModel, 
@@ -82,7 +83,7 @@ package metameta {
         Ent("Cardinality") has Attr("NoOption")      
       )
     )   
-  }
+  } }
 
   object make extends  MetaMetamodel {
     import scala.collection.immutable.ListMap
@@ -90,29 +91,28 @@ package metameta {
     def apply(): String = toScala
     //def apply(m: Model): String = toScala(m)  aaargh! generalize to make it work for any model
     
-    val attr = model / "Attribute" - "Enum"
-    val enum = model / "Attribute" / "Enum"
     
-    override val enums = ListMap((enum.topIds).map(id => (id , (enum / id / "vals").topIds)):_*)
+    override val enums = ListMap((model / "enums").tipIds.map(id=> (id, (model / "enums" / id).tipIds)) :_*)
     // override val enums = ListMap(
       // "Cardinality" -> List("NoOption", "Zero", "One", "ZeroOrOne", "OneOrMany", "ZeroOrMany")
     // )
     
-    override val attributes = ListMap(
-      "String" -> (attr / "String").topIds,   
-      "Int"    -> (attr / "Int")   .topIds
-    ) ++ ListMap((enum.topIds).map(id => (id , (enum / id / "attrs").topIds)):_*)
+    val attr = (model / "attributes").reverse(is,has)
+    
+    override val attributes = ListMap(attr.tipIds.map(id => (id, attr / id tipIds)):_*)
     // override val attributes = ListMap(
       // "String" -> List("Gist", "Spec", "Text", "Title"),
       // "Int" -> List("Cost", "Prio"),
       // "Cardinality" -> List("Opt")
     // )
     
-    override val attributeDefault = ListMap(
-      "String" -> "\"???\"",
-      "Int" -> "-99999999",
-      "Cardinality" -> "NoOption"
-    )
+    val defaults = model / "defaults"
+    override val attributeDefault = ListMap(defaults.tipIds.map(id => (id, defaults / id / Attr)):_*)
+    // override val attributeDefault = ListMap(
+      // "String" -> "\"???\"",
+      // "Int" -> "-99999999",
+      // "Cardinality" -> "NoOption"
+    // )
     val subentities = ListMap(
       "General" -> List("Section", "Item", "Label"),
       "Context" -> List("Stakeholder","Product","System", "Subdomain")
@@ -123,22 +123,23 @@ package metameta {
         "IntentionalReq" -> List("Goal","Wish")
       )
     )
-// reqT> val m = reqT.metameta.model    
-// reqT> (m / "Entity").topIds .flatMap (id => if ((m / "Entity" / id).isDeep) Some(id) else None)
-// res27: scala.collection.immutable.Vector[String] = Vector(Requirement)
 
-// reqT> (m / "Entity").topIds .flatMap (id => if (!(m / "Entity" / id).isDeep) Some(id) else None)
-// res28: scala.collection.immutable.Vector[String] = Vector(General, Context)
+    override val generalEntities = model / "entities" *~ "General" tipIds
+    //override val generalEntities = List("Section", "Item", "Label")
+    override val contextEntities = model / "entities" *~ "Context" tipIds
+    //override val contextEntities = List("Stakeholder","Product","System", "Subdomain")
     
-    override val generalEntities = List("Section", "Item", "Label")
-    override val contextEntities = List("Stakeholder","Product","System", "Subdomain")
-    override val requriementEntities = ListMap(
-      "GeneralReq" -> List("Req", "Idea", "Feature"),
-      "IntentionalReq" -> List("Goal","Wish")
-    )
+    val reqs = model / "entities" *~ "Requirement" tipIds 
+    override val requriementEntities = ListMap(reqs.map(r => (r,(model / "entities" *~ r).tipIds)):_*)
+    // override val requriementEntities = ListMap(
+      // "GeneralReq" -> List("Req", "Idea", "Feature"),
+      // "IntentionalReq" -> List("Goal","Wish")
+    // )
     override val defaultEntity = Ent
     override val defaultAttribute = Attr
-    override val relations = List("requires","relatesTo")
+    
+    override val relations = model / "relations" tipIds
+    //override val relations = List("requires","relatesTo")
   }
 }
 

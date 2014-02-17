@@ -15,6 +15,7 @@ package object reqT
 extends Init with GlobalConstants 
              with ImplicitFactoryObjects 
              with ImplicitStringSelector
+             with RootHeadPathFactory
              with StringUtils 
              with FileUtils {
 

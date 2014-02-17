@@ -12,20 +12,15 @@
 **************************************************************************/
 
 package reqT  
-//!!!! beter to apply etc on key 
-//reqT> m.keys.map(k => m(k))
-//<console>:15: error: overloaded method value apply with alternatives:
-//  (p: reqT.HeadPath)reqT.Model <and>
-//!!!!!! TODO add Relation // RelationType as argument in all/some access methods??
 
-trait ModelAccess { //isDefinedAt, apply, get, enter
+trait ModelElemAccess { //isDefinedAt, apply, get, enter
   self: Model =>
 
   def isDefinedAt(k: Key): Boolean = myMap.isDefinedAt(k) 
   def isDefinedAt[T](a: Attribute[T]): Boolean = isDefinedAt(a.myType) && (apply(a.myType) == a.value)
-  def isDefinedAt(et: EntityType): Boolean = !topEntitiesOfType(et).isEmpty  
+  def isDefinedAt(et: EntityType): Boolean = !tipEntitiesOfType(et).isEmpty  
   def isDefinedAt(e: Entity): Boolean = isDefinedAt(e.has)  
-  def isDefinedAt(id: String): Boolean = !topEntitiesOfId(id).isEmpty  
+  def isDefinedAt(id: String): Boolean = !tipEntitiesOfId(id).isEmpty  
   def isDefinedAt(r: Relation): Boolean = isDefinedAt(r.head) && apply(r.head) == r.tail
   def isDefinedAt(rt: RelationType): Boolean = !topRelationsOfType(rt).isEmpty
   def isDefinedAt(ht: HeadType): Boolean = !topHeadsOfType(ht).isEmpty
@@ -43,9 +38,9 @@ trait ModelAccess { //isDefinedAt, apply, get, enter
     else isDefinedAt(p.head) && apply(p.head).isDefinedAt(p.tail)  
   
   def apply(e: Entity): Model = apply(e.has)
-  def apply(id: String): Model = apply(topEntityOfId(id).has)
+  def apply(id: String): Model = apply(tipEntityOfId(id).has)
   def apply(et: EntityType): Vector[Model] = {
-    val topEnts = topEntitiesOfType(et)
+    val topEnts = tipEntitiesOfType(et)
     assert(!topEnts.isEmpty, "No top entities of type $et exists")
     topEnts.map(apply(_))
   }
@@ -71,7 +66,7 @@ trait ModelAccess { //isDefinedAt, apply, get, enter
     else apply(p.head).apply(p.tail)      
     
   def get(e: Entity): Option[Model] = if (isDefinedAt(e)) Some(apply(e)) else None   
-  def get(id: String): Vector[Model] = topEntitiesOfId(id).toVector.flatMap(get(_)).filterNot(_.isEmpty)   
+  def get(id: String): Vector[Model] = tipEntitiesOfId(id).toVector.flatMap(get(_)).filterNot(_.isEmpty)   
 
   def get(h: Head): Option[Model] = myMap.get(h).asInstanceOf[Option[Model]] 
   
@@ -82,7 +77,7 @@ trait ModelAccess { //isDefinedAt, apply, get, enter
   
   def get(r: Relation): Option[Model] = if (isDefinedAt(r)) Some(apply(r.head)) else None 
   
-  def get(et: EntityType): Vector[Model] = topEntitiesOfType(et).flatMap(get(_)).filterNot(_.isEmpty)
+  def get(et: EntityType): Vector[Model] = tipEntitiesOfType(et).flatMap(get(_)).filterNot(_.isEmpty)
 
   def get(rt: RelationType): Vector[Model] = topRelationsOfType(rt).flatMap(get(_)).filterNot(_.isEmpty)
     
@@ -103,7 +98,7 @@ trait ModelAccess { //isDefinedAt, apply, get, enter
     else if (p.isSingle) Some(apply(p.head))
     else apply(p.head).get(p.tail)      
     
-  def enter(id: String): Model = get(topEntityOfId(id).has).getOrElse(Model())
+  def enter(id: String): Model = get(tipEntityOfId(id).has).getOrElse(Model())
   
   def enter(e: Entity): Model = get(e.has).getOrElse(Model())
 

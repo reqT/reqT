@@ -71,7 +71,6 @@ trait StringUtils {
     def indentNewline(n: Int = 2) = strUtils.indentNewline(s, n)
     def filterEscape: String = strUtils.filterEscapeChar(s)
     def convertEscape: String = strUtils.escape(s)
-    def save(fileName:String) = fileUtils.saveString(s, fileName) 
     def p { println(s) }
   }
   
