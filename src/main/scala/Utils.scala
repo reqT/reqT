@@ -13,6 +13,7 @@
 
 package reqT
 
+
 object BagUtils {
   type Bag[K, V] = Map[K, Vector[V]]
   type SetBag[K, V] = Map[K, Set[V]]
@@ -156,10 +157,10 @@ trait FileUtils {
   
   object fileUtils {
     implicit val codec: scala.io.Codec = scala.io.Codec.UTF8
-    def fileSep = System.getProperty("file.separator")
+    def fileSep = java.lang.System.getProperty("file.separator")
     def slashify(s:String) = s.replaceAllLiterally(fileSep, "/")
-    val startDir = slashify(System.getProperty("user.dir"))
-    val homeDir = slashify(System.getProperty("user.home"))
+    val startDir = slashify(java.lang.System.getProperty("user.dir"))
+    val homeDir = slashify(java.lang.System.getProperty("user.home"))
     protected [FileUtils] var workingDirectory = startDir
     def workDir = workingDirectory
     def resolveFileName(fileName: String): String = {

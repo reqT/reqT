@@ -12,15 +12,16 @@
 ***************************************************************************/
 
 package reqT
+import java.lang.{System => JSystem}
 
 trait Init {
 
   def makeIMain(): scala.tools.nsc.interpreter.IMain = {
     //to be used when no ILoop is needed, e.g. from another main
     //reqT.initInterpreter()
-    println(REPL.versionMsg)
+    println(ReadEvaluatePrintLoop.versionMsg)
     val settings = new scala.tools.nsc.Settings()
-    settings.classpath.value = System.getProperty("java.class.path")
+    settings.classpath.value = JSystem.getProperty("java.class.path")
     val writer = new java.io.PrintWriter((new java.io.OutputStreamWriter(Console.out)))
     new scala.tools.nsc.interpreter.IMain(settings, writer)
   }
@@ -35,7 +36,7 @@ trait Init {
   }
 
   def init(intp: scala.tools.nsc.interpreter.IMain) {
-    println(REPL.startMsg)
+    println(ReadEvaluatePrintLoop.startMsg)
     initInterpreter(intp)
   }
   

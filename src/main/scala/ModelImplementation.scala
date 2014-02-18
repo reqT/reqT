@@ -16,7 +16,7 @@ package reqT
 import scala.collection.immutable.ListMap
 import scala.collection.immutable.HashMap
 
-trait ModelImplementation extends ModelCore  //mixins for trait Model in core-DSL
+trait ModelImplementation extends ModelBase  //mixins for trait Model in DSL
   with ModelBasicOps
   with ModelElemAccess
   with ModelEquality
@@ -25,10 +25,10 @@ trait ModelImplementation extends ModelCore  //mixins for trait Model in core-DS
     self: Model => 
 }
 
-trait ModelCore  {
+trait ModelBase  {
   self: Model =>
  
-  protected [ModelCore] def myMap: Map[Key, MapTo]      
+  protected [ModelBase] def myMap: Map[Key, MapTo]      
 
   def empty: Model 
   def toListMap: ListMap[Key, MapTo]

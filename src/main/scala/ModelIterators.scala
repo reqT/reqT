@@ -16,7 +16,7 @@ package reqT
 import scala.collection.generic.FilterMonadic
 
 
-trait ModelIterators extends ModelCore {
+trait ModelIterators extends ModelBase {
   self: Model =>
   
   import Model.{fromMap => newModel}

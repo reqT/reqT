@@ -15,15 +15,16 @@ package metaprog
 
 trait MetamodelGenerator extends reqT.DSL with MetamodelToScala {
   import scala.collection.immutable.ListMap
-  def enums: ListMap[String,Seq[String]]
-  def attributes: ListMap[String,Seq[String]]
+  def enums: ListMap[String,Vector[String]]
+  def attributes: ListMap[String,Vector[String]]
   def attributeDefault: ListMap[String, String]
-  def generalEntities: Seq[String]
-  def contextEntities: Seq[String]
-  def requriementEntities: Map[String,Seq[String]]
-  def relations: Seq[String]
+  def generalEntities: Vector[String]
+  def contextEntities: Vector[String]
+  def requriementEntities: Map[String,Vector[String]]
+  def relations: Vector[String]
   def defaultEntity: EntityType
   def defaultAttribute: AttributeType[_]
+  def defaultRelations: Vector[RelationType]
 }
 
 trait MetamodelToScala {
@@ -43,10 +44,10 @@ trait MetamodelToScala {
   lazy val mkObjectMetamodel = s"""
 object metamodel extends MetamodelTypes {
   override lazy val types: Vector[MetaType] = entityTypes ++ attributeTypes ++ relationTypes
-  lazy val entityTypes: Vector[EntityType] = generalEntities ++ contextEntities ++ requirementEntities
+  lazy val entityTypes: Vector[EntityType] = Vector($defaultEntity) ++ generalEntities ++ contextEntities ++ requirementEntities
   $mkEntityTypes
-  lazy val attributeTypes: Vector[AttributeType[_]] = $mkAttributeTypes
-  lazy val relationTypes: Vector[RelationType] = Vector($mkRelationTypes)
+  lazy val attributeTypes: Vector[AttributeType[_]] = Vector($defaultEntity) ++ $mkAttributeTypes
+  lazy val relationTypes: Vector[RelationType] = ${defaultRelations.map(_.toString)} ++ Vector($mkRelationTypes)
 }
 """
 
@@ -88,7 +89,7 @@ object metamodel extends MetamodelTypes {
   lazy val attrTypes = attributes.keysIterator.toVector
   lazy val aggregateAttrTypes = attrTypes.map(a => a.toLowerCase + "Attributes").mkString(" ++ ") + "\n"
   lazy val attrVectors = attrTypes.map( a => 
-      s"""  lazy val ${a.toLowerCase}Attributes = Vector(${attributes(a).mkString(", ")})""" ).mkString("\n")
+      s"""  lazy val ${a.toLowerCase}Attributes: Vector[${a}Type] = Vector(${attributes(a).mkString(", ")})""" ).mkString("\n")
     
   def enumToScala(et: String, values: Seq[String], default: String) = s"""
 trait $et extends Enum[$et] { val myType = $et }
@@ -174,7 +175,6 @@ $mkEntFromStringMappings
 
   def enumImplicit(a: String, e: String) = s"""
   implicit class StringTo$e(s: String) { def to$e = $a.valueOf(s)}
-  implicit object make$a extends AttrMaker[$a] { def apply(s: String): $a = $a(s.to$e) }
 """
   def mkAttrFromStringMappings = attributes.collect { 
       case (_, as) => as.map(attrMapping).mkString(",\n")  } .mkString(",\n") 

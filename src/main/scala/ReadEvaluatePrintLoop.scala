@@ -16,15 +16,16 @@ package reqT
 import scala.tools.nsc._
 import interpreter._
 import java.io._
+import java.lang.{System => JSystem}
 
-object REPL {
+object ReadEvaluatePrintLoop { 
   //val helpOnReqT: String = "** Type ?? for help on reqT, type :h for help on Scala REPL"
-  val helpOnReqT = "** Type :h for help on Scala REPL"
+  val helpOnReqT = "** Type :help for help on the Scala Read-Evaluate-Print-Loop"
   val versionMsg = s"\n** Welcome to reqT version $reqT_VERSION" +
     s"\n** Snapshot build: $BUILD_DATE" + 
     s"\n** Compiled with Scala version $SCALA_VERSION" +  
-     "\n** Running Java version " + System.getProperty("java.version") +  
-     "\n** Running on " + System.getProperty("java.vm.name")
+     "\n** Running Java version " + JSystem.getProperty("java.version") +  
+     "\n** Running on " + JSystem.getProperty("java.vm.name")
   val startMsg = versionMsg +
      s"\n$PREAMBLE\n$helpOnReqT" +
     "\n** Starting reqT ..."
@@ -77,7 +78,7 @@ object REPL {
   }
 
   def startInterpreting() = {
-    val out = new PrintWriter( new BufferedWriter( new OutputStreamWriter(System.out) ) )
+    val out = new PrintWriter( new BufferedWriter( new OutputStreamWriter(JSystem.out) ) )
     val settings = new GenericRunnerSettings(out.println)
     settings.usejavacp.value = true
     interpreter = Some(new ReqTILoop(out))

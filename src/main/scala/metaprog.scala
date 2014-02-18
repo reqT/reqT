@@ -71,6 +71,7 @@ package metaprog {
       
     override val defaultEntity = Ent
     override val defaultAttribute = Val
+    override val defaultRelations = Vector(has, is)
     
     override val relations = model / "relations" tipIds
   }

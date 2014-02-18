@@ -88,6 +88,7 @@ object Model extends MetaType
 
 
 trait AttributeType[T] extends Key with MetaType with HasDefault[T] { 
+  def apply(value: T): Attribute[T] 
   val default: T 
   def / = AttrRef(HeadPath(), this)
 }
@@ -184,11 +185,33 @@ trait MetamodelTypes {
 }
 
 //Primitive Attributes traits
-trait StringAttribute extends Attribute[String]
-trait StringType extends AttributeType[String] { val default = "???"}
+trait StringAttribute extends Attribute[String] 
+trait StringType extends AttributeType[String] { 
+  val default = "???"
+  override  def apply(value: String): StringAttribute
+}
 
 trait IntAttribute extends Attribute[Int] 
-trait IntType extends AttributeType[Int] { val default = -999999999} 
+trait IntType extends AttributeType[Int] { 
+  val default = -999999999
+  override  def apply(value: Int): IntAttribute
+} 
+
+trait Enum[T <: Ordered[T]] extends Ordered[T] {
+  self : T =>
+  val enumCompanion: EnumCompanion[T]
+  import enumCompanion._
+  def compare(that: T): Int = indexOf(this).compare(indexOf(that))
+  def toInt: Int = indexOf(this)
+}
+
+trait EnumCompanion[T <: Ordered[T]]  {
+  val values: Vector[T]
+  lazy val names: Vector[String] = values.map(_.toString)
+  lazy val valueOf: Map[String, T] = names.zip(values).toMap
+  lazy val indexOf: Map[T, Int] = values.zipWithIndex.toMap 
+  implicit val ordering = Ordering.fromLessThan[T](_ < _)
+}
 
 //Primitive metamodel cases
 case class Ent(id: String) extends Entity { override val myType: EntityType = Ent }

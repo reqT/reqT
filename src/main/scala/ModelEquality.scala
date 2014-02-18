@@ -30,7 +30,7 @@ package reqT
     reqT> Model(Req("x"), Req("y")).toSeq == Model(Req("y"), Req("x")).toSeq
     res2: Boolean = false
 */
-trait ModelEquality extends ModelCore {
+trait ModelEquality extends ModelBase {
   self: Model =>
   
   def canEqual(other: Any): Boolean = other.isInstanceOf[Model] 

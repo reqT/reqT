@@ -49,9 +49,9 @@ extends Init with GlobalConstants
   }
 
   def timed[T](block: => T) = {
-    val tick = System.currentTimeMillis
+    val tick = java.lang.System.currentTimeMillis
     val result = block
-    val tock = System.currentTimeMillis
+    val tock = java.lang.System.currentTimeMillis
     println(s"*** Timed: ${tock-tick} ms")
     result
   }
