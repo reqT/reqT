@@ -155,6 +155,7 @@ trait FileUtils {
   def cd: Unit = cd(startDir)
   
   object fileUtils {
+    implicit val codec: scala.io.Codec = scala.io.Codec.UTF8
     def fileSep = System.getProperty("file.separator")
     def slashify(s:String) = s.replaceAllLiterally(fileSep, "/")
     val startDir = slashify(System.getProperty("user.dir"))
@@ -168,14 +169,15 @@ trait FileUtils {
     }
     def listFiles(dir: String): Option[List[java.io.File]] = 
       new java.io.File(resolveFileName(dir)).listFiles match { case null => None; case a => Some(a.toList) }
-    def saveString(s:String, fileName:String, encoding: String = "UTF-8") = {
+    def saveString(s:String, fileName:String) = {
       val fn = resolveFileName(fileName)
-      val outFile = new java.io.File(fn)
-      val outStream = new java.io.PrintStream(outFile,encoding)
-      try { outStream.println(s.toString) } finally { outStream.close }
+      // val outFile = new java.io.File(fn)
+      // val outStream = new java.io.PrintWriter(outFile,"UTF-8")
+      // try { outStream.println(s.toString) } finally { outStream.close }
+      scala.tools.nsc.io.File(fn).writeAll(s)
       println("Saved to file: "+fn) 
     }
-    def loadLines(fileName:String) = {
+    def loadLines(fileName:String): List[String] = {
       val fn = resolveFileName(fileName)
       val source = scala.io.Source.fromFile(fn)
       val lines = source.getLines.toList

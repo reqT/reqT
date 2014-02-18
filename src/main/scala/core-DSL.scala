@@ -173,7 +173,7 @@ case class HeadType(entityType: EntityType, link: RelationType) extends MetaType
 trait AttrMaker[T <: Attribute[_]] { def apply(s: String): T }
 
 trait CanMakeAttr {
-  implicit object makeAttr extends AttrMaker[Attr] { def apply(s: String): Attr = Attr(s.toString) }
+  implicit object makeAttr extends AttrMaker[Val] { def apply(s: String): Val = Val(s.toString) }
   def makeAttribute[T <: Attribute[_]](value: String)( implicit make: AttrMaker[T]): T = make(value)
 }
 
@@ -194,8 +194,8 @@ trait IntType extends AttributeType[Int] { val default = -999999999}
 case class Ent(id: String) extends Entity { override val myType: EntityType = Ent }
 case object Ent extends EntityType
 
-case class Attr(value: String) extends StringAttribute { override val myType = Attr }
-case object Attr extends StringType 
+case class Val(value: String) extends StringAttribute { override val myType = Val }
+case object Val extends StringType 
 
 case object has extends RelationType  
 case object is extends RelationType  
