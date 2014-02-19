@@ -1,4 +1,6 @@
 @echo OFF
+echo Clean compile, removing directory target\reqT
+rmdir /Q target\reqT
 set _jarfilename=reqT.jar
 echo Compiling reqT ...  %TIME%
 call scalac -feature -deprecation -cp "lib\*" -d target src/main/scala/*
