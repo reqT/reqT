@@ -46,15 +46,15 @@ object metamodel extends MetamodelTypes {
   override lazy val types: Vector[MetaType] = entityTypes ++ attributeTypes ++ relationTypes
   lazy val entityTypes: Vector[EntityType] = Vector($defaultEntity) ++ generalEntities ++ contextEntities ++ requirementEntities
   $mkEntityTypes
-  lazy val attributeTypes: Vector[AttributeType[_]] = Vector($defaultEntity) ++ $mkAttributeTypes
+  lazy val attributeTypes: Vector[AttributeType[_]] = Vector($defaultAttribute) ++ $mkAttributeTypes
   lazy val relationTypes: Vector[RelationType] = ${defaultRelations.map(_.toString)} ++ Vector($mkRelationTypes)
 }
 """
 
   lazy val mkEntityTypes = s"""
-  lazy val generalEntities = Vector(${generalEntities.mkString(", ")}) 
-  lazy val contextEntities = Vector(${contextEntities.mkString(", ")})   
-  lazy val requirementEntities = generalReqs ++ intentionalReqs
+  lazy val generalEntities: Vector[EntityType] = Vector(${generalEntities.mkString(", ")}) 
+  lazy val contextEntities: Vector[EntityType] = Vector(${contextEntities.mkString(", ")})   
+  lazy val requirementEntities: Vector[EntityType] = generalReqs ++ intentionalReqs
   $mkReqVectors
 """
   lazy val mkAttributeTypes = aggregateAttrTypes + attrVectors
@@ -63,7 +63,7 @@ object metamodel extends MetamodelTypes {
   lazy val mkRelationTypes = relations.mkString(", ")
   lazy val mkReqVectors = 
     reqTypes.map(r => (r, r.decapitalize + "s")).collect { case (r, decap)  =>
-      s"""lazy val $decap = Vector(${requriementEntities(r).mkString(", ")})"""
+      s"""lazy val $decap: Vector[EntityType] = Vector(${requriementEntities(r).mkString(", ")})"""
     } .mkString("\n  ")
   lazy val mkEnumTraits = "\n//Enum traits\n" + 
     enums.keysIterator.map(e => enumToScala(e, enums(e), attributeDefault(e))).mkString("\n  ")  
@@ -92,13 +92,17 @@ object metamodel extends MetamodelTypes {
       s"""  lazy val ${a.toLowerCase}Attributes: Vector[${a}Type] = Vector(${attributes(a).mkString(", ")})""" ).mkString("\n")
     
   def enumToScala(et: String, values: Seq[String], default: String) = s"""
-trait $et extends Enum[$et] { val myType = $et }
-trait ${et}Type extends EnumType[$et] with AttributeType[$et] { 
+trait $et extends Enum[$et] { val enumCompanion = $et }
+trait ${et}Companion extends EnumCompanion[$et] { 
   val values = Vector(${values.mkString(", ")})
   val default = $default
 }
 trait ${et}Attribute extends Attribute[$et]
-case object $et extends ${et}Type
+trait ${et}Type extends AttributeType[${et}] {
+  val default = ${et}.default
+  override  def apply(value: ${et}): ${et}Attribute
+}
+case object $et extends ${et}Companion
 ${values.map(v => s"case object $v extends $et").mkString("\n")}
    
 """
@@ -174,7 +178,7 @@ $mkEntFromStringMappings
     case (e, _) => attributes(e).map(a => enumImplicit(a, e)).mkString  } .mkString
 
   def enumImplicit(a: String, e: String) = s"""
-  implicit class StringTo$e(s: String) { def to$e = $a.valueOf(s)}
+  implicit class StringTo$e(s: String) { def to$e = $e.valueOf(s)}
 """
   def mkAttrFromStringMappings = attributes.collect { 
       case (_, as) => as.map(attrMapping).mkString(",\n")  } .mkString(",\n") 

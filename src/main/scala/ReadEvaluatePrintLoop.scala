@@ -30,6 +30,7 @@ object ReadEvaluatePrintLoop {
      s"\n$PREAMBLE\n$helpOnReqT" +
     "\n** Starting reqT ..."
   
+  @volatile
   var interpreter: Option[ReqTILoop] = None
   
   def reset() { 
@@ -56,16 +57,16 @@ object ReadEvaluatePrintLoop {
   }
   
   class ReqTILoop(out : PrintWriter) extends ILoop(None, out) {
-     override val prompt = "\nreqT> "
-     override def loop() {
-    	 if (isAsync) awaitInitialized()
-    	 initReqT()
-    	 super.loop()
-     }
-     def initReqT() {
-       intp.quietBind("$intp", intp) //check if this is really needed??
-       intp.interpret("reqT.initInterpreter($intp)")
-     }
+    override val prompt = "\nreqT> "
+    override def loop() {
+     if (isAsync) awaitInitialized()
+     initReqT()
+     super.loop()
+    }
+    def initReqT() {
+     intp.quietBind("$intp", intp) //check if this is really needed??
+     intp.interpret("reqT.initInterpreter($intp)")
+    }
     override def helpCommand(line: String): Result = {
       if (line == "") echo(helpOnReqT)
       super.helpCommand(line)
@@ -76,6 +77,19 @@ object ReadEvaluatePrintLoop {
        out.flush()
      }
   }
+  
+  class FileRunner(out : PrintWriter, fileName: String) extends ReqTILoop(out : PrintWriter) {
+    override def loop() {
+     if (isAsync) awaitInitialized() 
+     intp.quietBind("$intp", intp) //check if this is really needed??
+     intp.interpret("reqT.initInterpreter($intp)")
+     intp.interpret(reqT.load(fileName))
+    }
+     override def printWelcome(): Unit = {
+       out.println("** reqT FileRunner starting ...")
+       out.flush()
+     }
+  }
 
   def startInterpreting() = {
     val out = new PrintWriter( new BufferedWriter( new OutputStreamWriter(JSystem.out) ) )
@@ -83,6 +97,14 @@ object ReadEvaluatePrintLoop {
     settings.usejavacp.value = true
     interpreter = Some(new ReqTILoop(out))
     interpreter.map(_.process(settings))
+  }
+  
+  def interpretFile(fileName: String) = {
+    val out = new PrintWriter( new BufferedWriter( new OutputStreamWriter(JSystem.out) ) )
+    val settings = new GenericRunnerSettings(out.println)
+    settings.usejavacp.value = true
+    interpreter = Some(new FileRunner(out, fileName))
+    interpreter.map(_.process(settings))    
   }
   
 }

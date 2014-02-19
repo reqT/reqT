@@ -24,12 +24,17 @@ package metaprog {
   object default {
     val metamodel = Model(
       Ent("entities") has (
-        Seq("General", "Context", "Requirements").map(Ent(_) is Ent("Entity")) ++
-        Seq("Section", "Item", "Label").map(Ent(_) is Ent("General")) ++
-        Seq("Stakeholder","Product","System", "Subdomain").map(Ent(_) is Ent("Context")) ++
-        Seq("GeneralReq","IntentionalReq").map(Ent(_) is Ent("Requirement")) ++
+        Seq("General","Context","Requirement").map(Ent(_) is Ent("Entity")) ++
+        Seq("Item","Label","Section").map(Ent(_) is Ent("General")) ++
+        Seq("Actor","Product","Release","Resource","Stakeholder","Subdomain","System").
+          map(Ent(_) is Ent("Context")) ++
+        Seq("GeneralReq","IntentionalReq","FunctionalReq", "QualityReq", "ScenarioReq").map(Ent(_) is Ent("Requirement")) ++
         Seq("Req", "Idea", "Feature").map(Ent(_) is Ent("GeneralReq")) ++
-        Seq("Goal","Wish").map(Ent(_) is Ent("IntentionalReq")) :_*
+        Seq("Goal","Wish").map(Ent(_) is Ent("IntentionalReq")) ++
+        Seq("Function","Interface","Design").map(Ent(_) is Ent("FunctionalReq")) ++
+        Seq("Quality","Target","Barrier").map(Ent(_) is Ent("QualityReq")) ++
+        Seq("Scenario","Task","TestCase","UserStory","UseCase").
+          map(Ent(_) is Ent("ScenarioReq")) :_*
       ),
       Ent("relations") has 
         Seq("requires","relatesTo").map(Ent(_) is Ent("Relation")).toModel,

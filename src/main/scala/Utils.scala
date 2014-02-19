@@ -156,7 +156,7 @@ trait FileUtils {
   def cd: Unit = cd(startDir)
   
   object fileUtils {
-    implicit val codec: scala.io.Codec = scala.io.Codec.UTF8
+    //implicit val codec: scala.io.Codec = scala.io.Codec.UTF8
     def fileSep = java.lang.System.getProperty("file.separator")
     def slashify(s:String) = s.replaceAllLiterally(fileSep, "/")
     val startDir = slashify(java.lang.System.getProperty("user.dir"))
