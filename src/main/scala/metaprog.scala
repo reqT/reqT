@@ -39,7 +39,9 @@ package metaprog {
       Ent("relations") has 
         Seq("requires","relatesTo").map(Ent(_) is Ent("Relation")).toModel,
       Ent("attributes") has (
-        Seq("Gist", "Spec", "Text", "Title").map(Ent(_) is Ent("String")) ++
+        Seq("Text", "Title").map(Ent(_) is Ent("String")) ++
+        Seq("Gist", "Spec", "Why", "Example").map(Ent(_) is Ent("String")) ++
+        Seq("Input", "Output", "Code", "Expectation").map(Ent(_) is Ent("String")) ++
         Seq("Prio", "Cost").map(Ent(_) is Ent("Int")) ++
         Seq(Ent("Opt") is Ent("Cardinality")) :_*
       ), 
