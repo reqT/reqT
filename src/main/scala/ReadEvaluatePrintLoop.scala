@@ -18,7 +18,7 @@ import interpreter._
 import java.io._
 import java.lang.{System => JSystem}
 
-object ReadEvaluatePrintLoop { 
+object repl { 
   //val helpOnReqT: String = "** Type ?? for help on reqT, type :h for help on Scala REPL"
   val helpOnReqT = "** Type :help for help on the Scala Read-Evaluate-Print-Loop"
   val versionMsg = s"\n** Welcome to reqT version $reqT_VERSION" +
@@ -28,11 +28,15 @@ object ReadEvaluatePrintLoop {
      "\n** Running on " + JSystem.getProperty("java.vm.name")
   val startMsg = versionMsg +
      s"\n$PREAMBLE\n$helpOnReqT" +
-    "\n** Starting reqT ..."
+    "\n** Starting the Scala REPL with reqT ..."
   
   @volatile
   var interpreter: Option[ReqTILoop] = None
-  
+  def checkIntp() {
+    if (interpreter == None) 
+      println("Interpreter not available! This is a bug.")
+  }  
+
   def reset() { 
   /*
     //the idea was that this should avoid memory leaks
@@ -106,5 +110,35 @@ object ReadEvaluatePrintLoop {
     interpreter = Some(new FileRunner(out, fileName))
     interpreter.map(_.process(settings))    
   }
+
+  def run(code: String) { 
+    checkIntp() 
+    interpreter .map { i => i.quietRun(code) }
+  }
   
+  def interpret(code: String): Option[Any] = { 
+    checkIntp() 
+    interpreter .map { i =>
+          val result = Array[Any](null)
+          i.beQuietDuring(i.bind("result", "Array[Any]", result))
+          val verdict = i.quietRun("result(0) = " + code)
+          if (verdict == scala.tools.nsc.interpreter.IR.Success)
+            Some(result(0)) 
+          else None          
+    } .getOrElse(None)
+  }
+  
+  def interpretOrElse[T](code: String, orElse: T): T = { 
+    interpret(code).map(_.asInstanceOf[T]).getOrElse(orElse)
+  }
+  
+  def interpretModel(code: String): Model = { 
+    checkIntp() 
+    interpreter .map { i =>
+          val result = Array[Model](Model())
+          i.beQuietDuring(i.bind("result", "Array[reqT.Model]", result))
+          i.quietRun("result(0) = " + code)
+          result(0)          
+    } .getOrElse(Model())
+  }
 }

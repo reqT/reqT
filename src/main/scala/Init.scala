@@ -19,7 +19,7 @@ trait Init {
   def makeIMain(): scala.tools.nsc.interpreter.IMain = {
     //to be used when no ILoop is needed, e.g. from another main
     //reqT.initInterpreter()
-    println(ReadEvaluatePrintLoop.versionMsg)
+    println(repl.versionMsg)
     val settings = new scala.tools.nsc.Settings()
     settings.classpath.value = JSystem.getProperty("java.class.path")
     val writer = new java.io.PrintWriter((new java.io.OutputStreamWriter(Console.out)))
@@ -27,16 +27,18 @@ trait Init {
   }
 
   def initInterpreter(intp: scala.tools.nsc.interpreter.IMain = makeIMain()) {
-    println("** Initializing interpreter ...")
+    println("** Initializing reqT ...")
     //Model.interpreter = Some(intp)
+    println("** import scala.language._")
     intp.quietRun("import scala.language._")
+    println("** import reqT._")
     intp.quietRun("import reqT._")
     //intp.quietRun("import reqT." + reqt.elementNames.mkString("{",", ","}")) //to allow tab completion on model elements
     //intp.quietRun("import reqT.abbrev._")
   }
 
   def init(intp: scala.tools.nsc.interpreter.IMain) {
-    println(ReadEvaluatePrintLoop.startMsg)
+    println(repl.startMsg)
     initInterpreter(intp)
   }
   
