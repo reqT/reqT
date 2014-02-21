@@ -32,9 +32,9 @@ object repl {
   
   @volatile
   var interpreter: Option[ReqTILoop] = None
-  def checkIntp() {
+  def checkIntp() { 
     if (interpreter == None) 
-      println("Interpreter not available! This is a bug.")
+      throw new Error("No interpreter available. Try reqT.initInterpreter() ") 
   }  
 
   def reset() { 
