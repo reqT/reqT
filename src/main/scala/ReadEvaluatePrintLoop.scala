@@ -113,7 +113,7 @@ object repl {
 
   def run(code: String) { 
     checkIntp() 
-    interpreter .map { i => i.quietRun(code) }
+    interpreter .map { i => i.quietRun(s"""$code""") }
   }
   
   def interpret(code: String): Option[Any] = { 
@@ -121,24 +121,37 @@ object repl {
     interpreter .map { i =>
           val result = Array[Any](null)
           i.beQuietDuring(i.bind("result", "Array[Any]", result))
-          val verdict = i.quietRun("result(0) = " + code)
+          val verdict = i.quietRun(s"""result(0) = $code""")
           if (verdict == scala.tools.nsc.interpreter.IR.Success)
             Some(result(0)) 
           else None          
     } .getOrElse(None)
   }
   
+  def interpretString(code: String): Option[String] = {
+    checkIntp() 
+    interpreter .map { i =>
+          val result = Array[String]("ERROR")
+          i.beQuietDuring(i.bind("result", "Array[String]", result))
+          val verdict = i.quietRun(s"""result(0) = $code""")
+          if (verdict == scala.tools.nsc.interpreter.IR.Success)
+            Some(result(0))
+          else None          
+    } .getOrElse(None)  }
+  
   def interpretOrElse[T](code: String, orElse: T): T = { 
     interpret(code).map(_.asInstanceOf[T]).getOrElse(orElse)
   }
   
-  def interpretModel(code: String): Model = { 
+  def interpretModel(code: String): Option[Model] = { 
     checkIntp() 
     interpreter .map { i =>
           val result = Array[Model](Model())
           i.beQuietDuring(i.bind("result", "Array[reqT.Model]", result))
-          i.quietRun("result(0) = " + code)
-          result(0)          
-    } .getOrElse(Model())
+          val verdict = i.quietRun(s"""result(0) = $code""")
+          if (verdict == scala.tools.nsc.interpreter.IR.Success)
+            Some(result(0)) 
+          else None          
+    } .getOrElse(None)
   }
 }

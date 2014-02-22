@@ -17,13 +17,13 @@ trait MetamodelGenerator extends reqT.DSL with MetamodelToScala {
   import scala.collection.immutable.ListMap
   def enums: ListMap[String,Vector[String]]
   def attributes: ListMap[String,Vector[String]]
-  def attributeDefault: ListMap[String, String]
+  def attributeDefaultValues: ListMap[String, String]
   def generalEntities: Vector[String]
   def contextEntities: Vector[String]
   def requriementEntities: Map[String,Vector[String]]
   def relations: Vector[String]
-  def defaultEntity: EntityType
-  def defaultAttribute: AttributeType[_]
+  def defaultEntities: Vector[EntityType]
+  def defaultAttributes: Vector[AttributeType[_]]
   def defaultRelations: Vector[RelationType]
 }
 
@@ -44,9 +44,9 @@ trait MetamodelToScala {
   lazy val mkObjectMetamodel = s"""
 object metamodel extends MetamodelTypes {
   override lazy val types: Vector[MetaType] = entityTypes ++ attributeTypes ++ relationTypes
-  lazy val entityTypes: Vector[EntityType] = Vector($defaultEntity) ++ generalEntities ++ contextEntities ++ requirementEntities
+  lazy val entityTypes: Vector[EntityType] = $defaultEntities ++ generalEntities ++ contextEntities ++ requirementEntities
   $mkEntityTypes
-  lazy val attributeTypes: Vector[AttributeType[_]] = Vector($defaultAttribute) ++ $mkAttributeTypes
+  lazy val attributeTypes: Vector[AttributeType[_]] = $defaultAttributes ++ $mkAttributeTypes
   lazy val relationTypes: Vector[RelationType] = ${defaultRelations.map(_.toString)} ++ Vector($mkRelationTypes)
 }
 """
@@ -66,7 +66,7 @@ object metamodel extends MetamodelTypes {
       s"""lazy val $decap: Vector[EntityType] = Vector(${requriementEntities(r).mkString(", ")})"""
     } .mkString("\n  ")
   lazy val mkEnumTraits = "\n//Enum traits\n" + 
-    enums.keysIterator.map(e => enumToScala(e, enums(e), attributeDefault(e))).mkString("\n  ")  
+    enums.keysIterator.map(e => enumToScala(e, enums(e), attributeDefaultValues(e))).mkString("\n  ")  
   
   lazy val mkConcreteAttrs = "//Concrete attributes" + attributes.collect { 
     case (at, as) => as.map(a => attrToScala(a, at)).mkString 
@@ -150,23 +150,25 @@ ${relations.map(headTypeMethod).mkString("\n")}
   def headTypeMethod(r: String) = s"  def $r = HeadType(this, reqT.$r)"
 
   def mkImplicitFactoryObjects = {
-    val da = defaultAttribute
     s"""
 trait ImplicitFactoryObjects extends CanMakeAttr { //mixed in by package object reqT
-  implicit object make$da extends AttrMaker[$da] { def apply(s: String): $da = $da(s.toString) }
+${defaultAttributes.map(_.toString).map(mkImplObj(_)).mkString("\n")}  
 $mkImplicitAttrMakers
 $mkEnumImplicits
   lazy val attributeFromString = Map[String, String => Attribute[_]](
-    "$defaultAttribute" -> makeAttribute[$defaultAttribute] _ ,
+${defaultAttributes.map(_.toString).map(mkDefaultAttr(_)).mkString("\n")}
 $mkAttrFromStringMappings 
   )
   lazy val entityFromString = Map[String, String => Entity](
-    "$defaultEntity" -> $defaultEntity.apply _ ,
+${defaultEntities.map(_.toString).map(mkDefaultEnt(_)).mkString("\n")}
 $mkEntFromStringMappings
   )
 }
 """
   }
+
+  def mkImplObj(da: String) = 
+    s"""  implicit object make$da extends AttrMaker[$da] { def apply(s: String): $da = $da(s.toString) }"""
 
   def mkImplicitAttrMakers = attributes.collect { 
     case (at, as) => as.map(a => attrMakerToScala(a, at)).mkString  } .mkString
@@ -177,6 +179,9 @@ $mkEntFromStringMappings
   def mkEnumImplicits = enums.collect { 
     case (e, _) => attributes(e).map(a => enumImplicit(a, e)).mkString  } .mkString
 
+  def mkDefaultAttr(da: String) = s"""    "$da" -> makeAttribute[$da] _ ,"""  
+  def mkDefaultEnt (de: String) = s"""    "$de" -> $de.apply _ ,"""  
+    
   def enumImplicit(a: String, e: String) = s"""
   implicit class StringTo$e(s: String) { def to$e = $e.valueOf(s)}
 """

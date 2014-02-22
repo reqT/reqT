@@ -40,8 +40,8 @@ package metaprog {
         Seq("requires","relatesTo").map(Ent(_) is Ent("Relation")).toModel,
       Ent("attributes") has (
         Seq("Text", "Title").map(Ent(_) is Ent("String")) ++
-        Seq("Gist", "Spec", "Why", "Example").map(Ent(_) is Ent("String")) ++
-        Seq("Input", "Output", "Code", "Expectation").map(Ent(_) is Ent("String")) ++
+        Seq("Gist", "Why", "Example").map(Ent(_) is Ent("String")) ++
+        Seq("Input", "Output", "Expectation").map(Ent(_) is Ent("String")) ++
         Seq("Prio", "Cost").map(Ent(_) is Ent("Int")) ++
         Seq(Ent("Opt") is Ent("Cardinality")) :_*
       ), 
@@ -51,7 +51,7 @@ package metaprog {
         )
       ),
       Ent("enumDefaults") has (
-        Ent("Cardinality") has Val("NoOption")             
+        Ent("Cardinality") has Spec("NoOption")             
       )
     )
   }
@@ -66,8 +66,8 @@ package metaprog {
     override val attributes = ListMap(attr.tipIds.map(id => (id, attr / id tipIds)):_*)
     
     val defaults = model / "enumDefaults"
-    override val attributeDefault = 
-      ListMap(defaults.tipIds.map(id => (id, defaults / id / Val)):_*)
+    override val attributeDefaultValues = 
+      ListMap(defaults.tipIds.map(id => (id, defaults / id / Spec)):_*)
 
     override val generalEntities = model / "entities" *~ "General" tipIds
     override val contextEntities = model / "entities" *~ "Context" tipIds
@@ -76,8 +76,8 @@ package metaprog {
     override val requriementEntities = 
       ListMap(reqs.map(r => (r,(model / "entities" *~ r).tipIds)):_*)
       
-    override val defaultEntity = Ent
-    override val defaultAttribute = Val
+    override val defaultEntities = Vector(Ent)
+    override val defaultAttributes = Vector(Spec, Code)
     override val defaultRelations = Vector(has, is)
     
     override val relations = model / "relations" tipIds

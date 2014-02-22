@@ -28,7 +28,6 @@ trait Init {
   
   def initInterpreter(intp: scala.tools.nsc.interpreter.IMain = makeIMain()) {
     println("** Initializing reqT ...")
-    //Model.interpreter = Some(intp)
     println("** import scala.language._")
     intp.quietRun("import scala.language._")
     println("** import reqT._")

@@ -36,18 +36,12 @@ object Main {
     }
   }
   
-  def test() {
-    if (!reqT.specification.test()) java.lang.System.exit(1)
-    else println("reqT.specification.test() OK!")
-  }
-  
   def main(args : Array[String]) : Unit =  {
     if (args.size == 0) repl.startInterpreting
     else args(0) match {
       case arg0 if Set("--hello", "--help", "-h", "-help", "help", "?")(arg0) => help()
       case arg0 if Set("--meta", "-m")(arg0)            => genmeta()
       case arg0 if Set("--interpret", "-i")(arg0)       => interpret(args.drop(1).headOption)
-      case arg0 if Set("--test", "-t")(arg0)            => test()
       case arg0 => println("ERROR Unknown arg: " + args.mkString(" ")); help()
     }
   }

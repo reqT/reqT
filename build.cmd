@@ -4,9 +4,9 @@ echo Cleaning target/reqT ...  %TIME%
 rd /S /Q target\reqT
 if %ERRORLEVEL% NEQ 0 goto error
 
-echo scalac -feature -deprecation -cp "lib\*" -d target src/main/scala/* src/test/scala/*
+echo scalac -feature -deprecation -cp "lib\*" -d target src/main/scala/* 
 echo Start compilation  ...  %TIME%
-call scalac -feature -deprecation -cp "lib\*" -d target src/main/scala/* src/test/scala/*
+call scalac -feature -deprecation -cp "lib\*" -d target src/main/scala/* 
 if %ERRORLEVEL% NEQ 0 goto error
 echo Compilation ready!  %TIME%
 

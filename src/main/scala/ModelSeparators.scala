@@ -13,9 +13,6 @@
 
 package reqT 
 
-import scala.collection.generic.FilterMonadic
-
-
 trait ModelSeparators {
   self: Model =>
   

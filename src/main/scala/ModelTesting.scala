@@ -10,18 +10,11 @@
 ** reqT is open source, licensed under the BSD 2-clause license: 
 ** http://opensource.org/licenses/bsd-license.php 
 **************************************************************************/
-package reqT
 
-object specification extends Testable {
-  import reqT._
-  
-  def spec = Model(
-    TestCase("addAttr") has (
-      Code(""" Model(Spec("x")) + Model(Spec("y")) == Model(Spec("y")) """),
-      Expectation("true")
-    )
-  )
-  
+package reqT 
+
+trait ModelTesting {
+  self: Model =>
+
+  def test = ???
 }
-
-  

@@ -174,7 +174,6 @@ case class HeadType(entityType: EntityType, link: RelationType) extends MetaType
 trait AttrMaker[T <: Attribute[_]] { def apply(s: String): T }
 
 trait CanMakeAttr {
-  implicit object makeAttr extends AttrMaker[Val] { def apply(s: String): Val = Val(s.toString) }
   def makeAttribute[T <: Attribute[_]](value: String)( implicit make: AttrMaker[T]): T = make(value)
 }
 
@@ -213,12 +212,24 @@ trait EnumCompanion[T <: Ordered[T]]  {
   implicit val ordering = Ordering.fromLessThan[T](_ < _)
 }
 
-//Primitive metamodel cases
+//Primitive metamodel classes
 case class Ent(id: String) extends Entity { override val myType: EntityType = Ent }
 case object Ent extends EntityType
 
-case class Val(value: String) extends StringAttribute { override val myType = Val }
-case object Val extends StringType 
+case class Spec(value: String) extends StringAttribute { override val myType = Spec }
+case object Spec extends StringType 
+
+case class Code(value: String) extends StringAttribute { override val myType = Code }
+case object Code extends StringType 
 
 case object has extends RelationType  
 case object is extends RelationType  
+
+//Special metamodel attribute implicits
+trait ImplicitAttributeEnrichments {
+  implicit class CodeRunnable(code: Code) {
+    def run: String = repl.interpretString(s"""{
+${code.value}
+}.toString""").getOrElse("")
+  }
+}

@@ -62,8 +62,8 @@ object BagUtils {
 
 trait StringUtils {
   implicit class EnrichedString(s: String) {
+    def toModel: Model = repl.interpretModel(s).get
     def toScala: String = "" + '\"' + convertEscape + '\"'
-    //def toModel: Model = if (s == "") Model() else Model.interpret(s)
     def toIntOrZero: Int = try {s.toInt} catch { case e: NumberFormatException => 0}
     //def toLevel: StatusLevel = levelFromString(s)
     def decapitalize: String = strUtils.decapitalize(s)
@@ -72,7 +72,10 @@ trait StringUtils {
     def indentNewline(n: Int = 2) = strUtils.indentNewline(s, n)
     def filterEscape: String = strUtils.filterEscapeChar(s)
     def convertEscape: String = strUtils.escape(s)
-    def p { println(s) }
+    def p: Unit       = Console.println(s)
+    def print: Unit   = Console.print(s)
+    def println: Unit = Console.println(s) 
+    def show: Unit    = Console.println(s) 
   }
   
   object strUtils { 
@@ -189,5 +192,60 @@ trait FileUtils {
     // def loadTable(fileName:String, rowSeparator: String = "\t"): Model = 
       // Model.fromTable(load(fileName), rowSeparator)  
   }
-
+ 
 }
+
+trait RandomUtils {
+  object rnd {
+    private val sing = Vector("do", "re", "mi", "fa", "so", "la", "ti")
+    def rndUUID = java.util.UUID.randomUUID.toString
+    def rndInt(until: Int): Int = util.Random.nextInt(until)
+    def rndInt(from: Int, to: Int): Int = rndInt(to+1-from) + from
+    def rndLetters(n: Int) = List.fill(n)(rndInt(97,122).toChar).mkString
+    def rndSpeakable: String = rndPick(sing)
+    def rndSpeakable(n: Int): String = List.fill(n)(rndSpeakable).mkString 
+    def rndId: String = rndLetters(1) + rndInt(1,9)
+    def rndText(n: Int, l: Int): String = List.fill(rndInt(1,n))(rndSpeakable(rndInt(1,l))).mkString(" ").capitalize + "." 
+    def rndPick[T](xs: Seq[T]): T = xs(rndInt(xs.size))
+    def rndType: MetaType = rndPick(metamodel.types)
+    def rndEntityType: EntityType = rndPick(metamodel.entityTypes)
+    def rndAttributeType: AttributeType[_] = rndPick(metamodel.attributeTypes)
+    def rndEntity: Entity = rndEntityType(rndId)
+    def rndStringAttribute: StringAttribute = rndPick(metamodel.stringAttributes)(rndText(3,5))
+    def rndIntAttribute: IntAttribute = rndPick(metamodel.intAttributes)(rndInt(1,10))
+    def rndRelationType: RelationType = rndPick(metamodel.relationTypes)
+    def rndElem(n: Int, div: Int): Elem = rndInt(0,100) match {
+      case i if i < 30 => rndEntity
+      case i if i < 50 => rndStringAttribute
+      case i if i < 60 => rndIntAttribute
+      case _ => Relation(rndEntity, rndRelationType, rndModel(n/div, div)) 
+    }
+    def rndModel(n: Int = 7, div: Int = 2): Model = if (n > 0) List.fill(n)(rndElem(n, div max 2)).toHashModel else HashModel()
+  }
+}
+
+trait DebugUtils {  
+  def bigModel(n: Int) = Model((1 to n).map(i => Req(s"$i")):_*)
+  def bigHashModel(n: Int) = HashModel((1 to n).map(i => Req(s"$i")):_*)
+  
+  object IdGenerator {
+    @volatile var myId = 0
+    def next: Int = synchronized {
+      myId += 1
+      myId
+    }
+    def reset: Unit = synchronized { myId = 0 }
+  }
+  
+  def nextId: Int = IdGenerator.next  
+ 
+  def timed[T](block: => T): T = {
+    val tick = java.lang.System.currentTimeMillis
+    val result = block
+    val tock = java.lang.System.currentTimeMillis
+    println(s"*** Timed: ${tock-tick} ms")
+    result
+  }
+}
+
+
