@@ -23,7 +23,9 @@ trait ModelTesting {
   }  
   lazy val testCode: Map[TestCase, Code] = 
     entityAttributePairs.collect { case (e: TestCase, a: Code) => (e,a) } .toMap
-  def testOutputMap(): Map[TestCase, Output] = testCode.map { case (e,c) => (e, Output(c.run)) }
+  def testOutputMap(): Map[TestCase, Output] = testCode.map { 
+    case (e,c) => (e, Output(c.interpretString.getOrElse("INTERPRETATION ERROR! Fix test bug."))) 
+  }
   def test(): Map[TestCase, Output] = testOutputMap.flatMap { 
     case (e, o) if o.value != "" => println(s"$e: ${o.value}"); Some((e,o)) 
     case (e, o) => println(s"$e OK!"); None

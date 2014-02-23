@@ -62,7 +62,7 @@ object BagUtils {
 
 trait StringUtils {
   implicit class EnrichedString(s: String) {
-    def toModel: Model = repl.interpretModel(s).get
+    def toModel: Model = repl.interpretModel(s).getOrElse(Model())
     def toScala: String = "" + '\"' + convertEscape + '\"'
     def toIntOrZero: Int = try {s.toInt} catch { case e: NumberFormatException => 0}
     //def toLevel: StatusLevel = levelFromString(s)

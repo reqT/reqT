@@ -228,8 +228,9 @@ case object is extends RelationType
 //Special metamodel attribute implicits
 trait ImplicitAttributeEnrichments {
   implicit class CodeRunnable(code: Code) {
-    def run: String = repl.interpretString(s"""{
-${code.value}
+    def run: String = repl.interpretString(s"""
+{
+  ${code.value}
 }.toString""").getOrElse("")
     def isTrue: Boolean = repl.interpretBoolean(code.value) == Some(true)
     def interpretBoolean: Option[Boolean] = repl.interpretBoolean(code.value)

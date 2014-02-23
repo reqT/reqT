@@ -26,7 +26,7 @@ trait Init {
     new scala.tools.nsc.interpreter.IMain(settings, writer)
   }
   
-  def initInterpreter(intp: scala.tools.nsc.interpreter.IMain = makeIMain()) {
+  def initInterpreter(intp: scala.tools.nsc.interpreter.IMain = makeIMain() )  {
     println("** Initializing reqT ...")
     println("** import scala.language._")
     intp.quietRun("import scala.language._")
@@ -34,6 +34,11 @@ trait Init {
     intp.quietRun("import reqT._")
     //intp.quietRun("import reqT." + reqt.elementNames.mkString("{",", ","}")) //to allow tab completion on model elements
     //intp.quietRun("import reqT.abbrev._")
+  }
+  
+  def initInterpreterQuietly(intp: scala.tools.nsc.interpreter.IMain = makeIMain() )  {
+    intp.quietRun("import scala.language._")
+    intp.quietRun("import reqT._")
   }
 
   def init(intp: scala.tools.nsc.interpreter.IMain) {

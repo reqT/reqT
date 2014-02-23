@@ -94,12 +94,24 @@ object repl {
        out.flush()
      }
   }
+  
+  class CodeRunner(out : PrintWriter, code: String) extends ReqTILoop(out : PrintWriter) {
+    override def loop() {
+     if (isAsync) awaitInitialized() 
+     intp.quietBind("$intp", intp) //check if this is really needed??
+     intp.interpret("reqT.initInterpreterQuietly($intp)")
+     intp.interpret(s"{$code}")
+    }
+     override def printWelcome(): Unit = {
+       out.flush()
+     }
+  }
 
   def startInterpreting() = {
     val out = new PrintWriter( new BufferedWriter( new OutputStreamWriter(JSystem.out) ) )
     val settings = new GenericRunnerSettings(out.println)
     settings.usejavacp.value = true
-    interpreter = Some(new ReqTILoop(out))
+    interpreter = Some( new ReqTILoop(out) )
     interpreter.map(_.process(settings))
   }
   
@@ -107,10 +119,19 @@ object repl {
     val out = new PrintWriter( new BufferedWriter( new OutputStreamWriter(JSystem.out) ) )
     val settings = new GenericRunnerSettings(out.println)
     settings.usejavacp.value = true
-    interpreter = Some(new FileRunner(out, fileName))
+    interpreter = Some( new FileRunner(out, fileName) )
     interpreter.map(_.process(settings))    
   }
 
+  def initInterpreterAndRun(code: String) = {
+    val out = new PrintWriter( new BufferedWriter( new OutputStreamWriter(JSystem.out) ) )
+    val settings = new GenericRunnerSettings(out.println)
+    settings.usejavacp.value = true
+    interpreter = Some( new CodeRunner(out, code) )
+    interpreter.map(_.process(settings))    
+  }
+  
+  
   def run(code: String) { 
     checkIntp() 
     interpreter .map { i => i.quietRun(s"""$code""") }
