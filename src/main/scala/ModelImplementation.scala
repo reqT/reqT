@@ -21,7 +21,8 @@ trait ModelImplementation extends ModelBase  //mixins for trait Model in DSL
   with ModelElemAccess
   with ModelEquality
   with ModelIterators 
-  with ModelSeparators { 
+  with ModelSeparators 
+  with ModelTesting { 
     self: Model => 
 }
 

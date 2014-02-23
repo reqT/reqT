@@ -15,6 +15,11 @@ package reqT
 
 trait ModelTesting {
   self: Model =>
-
-  def test = ???
+  def test = flatMapDeep {
+    case Relation(TestCase(id),l,t) if l == has =>
+        val result: Option[String] = t.get(Code).map(Code(_).run)
+        Some(Relation(TestCase(id),l,result.map(s => t + Output(s)).getOrElse(t)))
+    case e => Some(e)
+  }  
 }
+

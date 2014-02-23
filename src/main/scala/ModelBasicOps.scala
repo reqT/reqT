@@ -77,7 +77,7 @@ trait ModelBasicOps  {
   def `^`: Model = top
   def `^^`: Model = tip
 
-  lazy val flattenDeep: Model = mapDeep( m => m).toModel.top
+  lazy val flattenDeep: Model = mapDeep( m => m).toModel.top  //????
   lazy val elemsWithTip: Vector[Elem] = elems.flatMap { //was topElems was elemsExpanded was expandTip
     case r: Relation => Vector(r.entity, r) 
     case elem => Vector(elem)
@@ -145,7 +145,8 @@ trait ModelBasicOps  {
     case n: Node => n 
     case r: Relation => r.entity      
   } .distinct
-  lazy val topAttributes: Vector[Attribute[_]] = elems.collect { case a: Attribute[_] => a }
+  lazy val tipAttributes: Vector[Attribute[_]] = elems.collect { case a: Attribute[_] => a }
+  lazy val tipAttributeSet: Set[Attribute[_]] = tipAttributes.toSet
   lazy val tipEntitiesOfType: Map[EntityType, Vector[Entity]] = 
     Bag(tipEntities.map( e => (e.myType, e)):_*).withDefaultValue(Vector())
   lazy val topRelationsOfType: Map[RelationType, Vector[Relation]] =
@@ -165,5 +166,9 @@ trait ModelBasicOps  {
     entitiesOfId.collect { case (id, es) if !es.isEmpty => (id, es.head) } .toMap.withDefaultValue(NoEntity)
   
   def existsElem(p: Elem => Boolean): Boolean = myMap.exists((kc: (Key, MapTo) )=> p(kc.toElem)) //??? rename to exists? Deep???
+  
+  def entityAttributePairs: Vector[(Entity, Attribute[_])] = collectLeafPaths { 
+    case AttrVal(p,a) => (p.heads.lastOption.getOrElse(reqT./), a)
+  } .collect { case (Head(e,l),a) if l == has => (e,a) }
   
 }
