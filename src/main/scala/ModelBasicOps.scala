@@ -167,8 +167,13 @@ trait ModelBasicOps  {
   
   def existsElem(p: Elem => Boolean): Boolean = myMap.exists((kc: (Key, MapTo) )=> p(kc.toElem)) //??? rename to exists? Deep???
   
-  def entityAttributePairs: Vector[(Entity, Attribute[_])] = collectLeafPaths { 
+  lazy val entityAttributePairs: Vector[(Entity, Attribute[_])] = collectLeafPaths { 
     case AttrVal(p,a) => (p.heads.lastOption.getOrElse(reqT./), a)
   } .collect { case (Head(e,l),a) if l == has => (e,a) }
+  lazy val entHas: Map[Entity,Attribute[_]] = entityAttributePairs.toMap
   
+  lazy val headAttributePairs: Vector[(Head, Attribute[_])] = collectLeafPaths { 
+    case AttrVal(p,a) => (p.heads.lastOption.getOrElse(reqT./), a)
+  } .collect { case (h: Head,a) => (h,a) }
+  lazy val attrOf: Map[Head,Attribute[_]] = headAttributePairs.toMap
 }
