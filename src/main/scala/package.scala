@@ -23,4 +23,4 @@ extends Init
    with FileUtils 
    with RandomUtils 
    with DebugUtils 
-   with NanoTest
+   with NanoZap
