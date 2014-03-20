@@ -1,18 +1,18 @@
 @echo OFF
 set _jarfilename=reqT.jar
-echo Cleaning target/reqT ...  %TIME%
-rd /S /Q target\reqT
+echo Cleaning bin/reqT ...  %TIME%
+rd /S /Q bin\reqT
 if %ERRORLEVEL% NEQ 0 goto error
 
-echo scalac -feature -deprecation -cp "lib\*" -d target src/main/scala/* 
+echo scalac -feature -deprecation -cp "lib\*" -d bin src/reqT/* 
 echo Start compilation  ...  %TIME%
-call scalac -feature -deprecation -cp "lib\*" -d target src/main/scala/* 
+call scalac -feature -deprecation -cp "lib\*" -d bin src/reqT/* 
 if %ERRORLEVEL% NEQ 0 goto error
 echo Compilation ready!  %TIME%
 
 echo Packaging reqT into jar file: %_jarfilename% 
 echo Start packaging ... %TIME%
-call jar cfe %_jarfilename% reqT.Main -C target/ .
+call jar cfe %_jarfilename% reqT.Main -C bin/ .
 if %ERRORLEVEL% NEQ 0 goto error
 echo Packaging ready!    %TIME%
 if not exist "%USERPROFILE%\.kojo\lite\libk" goto checklibdir
