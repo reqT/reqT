@@ -75,6 +75,7 @@ trait Attribute[T] extends Node with MapTo with HasValue[T] with CanBeMapped {
   override def key: AttributeType[T] = myType
   override def mapTo: Attribute[T] = this
   override def isAttribute: Boolean = true
+  override def toScala: String =  myType + "(" + value + ")"
   def / = AttrVal(HeadPath(), this)
 }
 
@@ -98,6 +99,7 @@ sealed trait Entity extends Node with HeadFactory with RelationFactory  {
   override def mapTo: Model = Model() 
   override def myType: EntityType
   override def isAttribute: Boolean = false
+  override def toScala: String = myType + "(" + id.toScala + ")"
   def / = HeadPath(this.has)
   def /(h: Head) = HeadPath(this.has, h)
   def /(e: Entity) = HeadPath(this.has, e.has)
@@ -184,7 +186,9 @@ trait MetamodelTypes {
 }
 
 //Primitive Attributes traits
-trait StringAttribute extends Attribute[String] 
+trait StringAttribute extends Attribute[String] {
+  override def toScala: String =  myType + "(" + value.toScala + ")"
+}
 trait StringType extends AttributeType[String] { 
   val default = "???"
   override  def apply(value: String): StringAttribute

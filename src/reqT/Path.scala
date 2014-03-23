@@ -16,23 +16,37 @@ package reqT
 sealed trait Path {
   def heads: Vector[Head]
   def tail: Path
+  def init: Path 
   val isSingle = heads.size == 1
   val isEmpty = heads.size == 0
   def level: Int
+  def / = this
+  def pathError(a: Any) = 
+    throw new java.lang.UnsupportedOperationException(s"$this / $a") 
+  def /(h: Head): HeadPath = pathError(h)
+  def /(e: Entity): HeadPath = pathError(e)
+  def /[T](at: AttributeType[T]): AttrRef[T] = pathError(at)
+  def /[T](a: Attribute[T]):AttrVal[T] = pathError(a)
+  
   lazy val head = heads.head
   lazy val headOption: Option[Head] = heads.headOption
 }
 
-case class HeadPath(heads: Vector[Head]) extends Path {
+sealed trait NodePath extends Path {
+  def lastNode: Node
+}
+
+case class HeadPath(heads: Vector[Head]) extends NodePath {
   def toModel: Model = if (isEmpty) Model() 
     else if (isSingle) Model(Relation(head, Model())) 
     else Model(Relation(head, tail.toModel)) 
-  def /(h: Head) = HeadPath(heads :+ h)
-  def /(e: Entity) = HeadPath(heads :+ e.has)
-  def /[T](at: AttributeType[T]) = AttrRef[T](this, at)
-  def /[T](a: Attribute[T]) = AttrVal[T](this, a)
-  def / = this
+  override def /(h: Head) = HeadPath(heads :+ h)
+  override def /(e: Entity) = HeadPath(heads :+ e.has)
+  override def /[T](at: AttributeType[T]) = AttrRef[T](this, at)
+  override def /[T](a: Attribute[T]) = AttrVal[T](this, a)
   lazy val tail = HeadPath(heads.tail)
+  lazy val init = HeadPath(heads.init)
+  lazy val lastNode: Entity = heads.lastOption.map(_.entity).getOrElse(NoEntity)
   override lazy val level = heads.size 
   override lazy val toString = heads.mkString("", "/","/")
 }
@@ -40,24 +54,23 @@ object HeadPath {
   def apply(hs: Head*) = new HeadPath(hs.toVector)
 }
 
-case class AttrRef[T](init: HeadPath, attrType: AttributeType[T]) extends Path {
-  def / = this
-  override lazy val heads = init.heads
-  lazy val tail = AttrRef(HeadPath(heads.drop(1)), attrType)
-  //def apply(m: Model) = ModelUpdater(m, this)
-  override def level = heads.size + 1
-  override def toString = ( if (init.isEmpty) "" else init.toString )  + attrType + "/"
-}
-
-case class AttrVal[T](init: HeadPath, attr: Attribute[T]) extends Path {
-  def / = this
+case class AttrVal[T](init: HeadPath, attr: Attribute[T]) extends NodePath {
   def toModel: Model = if (isEmpty) Model(attr) 
     else if (isSingle) Model(Relation(head, Model(attr))) 
     else Model(Relation(head, tail.toModel)) 
   override lazy val heads = init.heads
   lazy val tail = AttrVal(HeadPath(heads.drop(1)), attr)
+  lazy val lastNode: Attribute[T] = attr 
   override lazy val level = heads.size + 1
   override lazy val toString = ( if (init.isEmpty) "" else init.toString )  + attr + "/"
+}
+
+case class AttrRef[T](init: HeadPath, attrType: AttributeType[T]) extends Path {
+  override lazy val heads = init.heads
+  lazy val tail = AttrRef(HeadPath(heads.drop(1)), attrType)
+  //def apply(m: Model) = ModelUpdater(m, this)
+  override def level = heads.size + 1
+  override def toString = ( if (init.isEmpty) "" else init.toString )  + attrType + "/"
 }
 
 trait RootHeadPathFactory {

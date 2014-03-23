@@ -25,17 +25,22 @@ trait ModelElemAccess { //isDefinedAt, apply, get, enter
   def isDefinedAt(rt: RelationType): Boolean = !topRelationsOfType(rt).isEmpty
   def isDefinedAt(ht: HeadType): Boolean = !topHeadsOfType(ht).isEmpty
 
-  def isDefinedAt[T](p: AttrRef[T]): Boolean = if (p.isEmpty) isDefinedAt(p.attrType) 
-    else if (p.isSingle) isDefinedAt(p.head) && apply(p.head).isDefinedAt(p.attrType)
-    else isDefinedAt(p.head) && apply(p.head).isDefinedAt(p.tail)
-
-  def isDefinedAt[T](p: AttrVal[T]): Boolean = if (p.isEmpty) isDefinedAt(p.attr) 
-    else if (p.isSingle) isDefinedAt(p.head) && apply(p.head).isDefinedAt(p.attr)
-    else isDefinedAt(p.head) && apply(p.head).isDefinedAt(p.tail)  
-  
-  def isDefinedAt(p: HeadPath): Boolean = if (p.isEmpty) true 
-    else if (p.isSingle) isDefinedAt(p.head) 
-    else isDefinedAt(p.head) && apply(p.head).isDefinedAt(p.tail)  
+  def isDefinedAt[T](path: Path): Boolean = path match {
+    case np: NodePath => np match {
+      case p: HeadPath => 
+        if (p.isEmpty) true 
+        else if (p.isSingle) isDefinedAt(p.head) 
+        else isDefinedAt(p.head) && apply(p.head).isDefinedAt(p.tail)  
+      case p: AttrVal[_] => 
+        if (p.isEmpty) isDefinedAt(p.attr) 
+        else if (p.isSingle) isDefinedAt(p.head) && apply(p.head).isDefinedAt(p.attr)
+        else isDefinedAt(p.head) && apply(p.head).isDefinedAt(p.tail)  
+    }
+    case p: AttrRef[_] =>
+      if (p.isEmpty) isDefinedAt(p.attrType) 
+      else if (p.isSingle) isDefinedAt(p.head) && apply(p.head).isDefinedAt(p.attrType)
+      else isDefinedAt(p.head) && apply(p.head).isDefinedAt(p.tail)
+  }
   
   def apply(e: Entity): Model = apply(e.has)
   def apply(id: String): Model = apply(tipEntityOfId(id).has)

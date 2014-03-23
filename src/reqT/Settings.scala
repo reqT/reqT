@@ -13,5 +13,8 @@
 package reqT
 
 object Settings {
-  var indentStep: Int = 2
+  var intentSpacing = 2
+  var lineLength = 72
+  var defaultModelToString: exporters.ModelExporter[String] = exporters.Pretty
 }
+

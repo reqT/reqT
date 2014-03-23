@@ -56,9 +56,12 @@ trait ModelBase  {
     else if (size == 1 && elems(0).isNode) elems.mkString 
     else elems.mkString("(", ", ", ")")
     
-  override def toString = stringPrefix + ( if (isEmpty) "()" 
-    else if (toStringBody.size < 60) elems.mkString("(", ", ", ")")
-    else elems.mkString("(\n  ", ",\n  ", "\n)") )
+  lazy val toStringSimple = stringPrefix +  toStringBody
+  lazy val toStringSimpleLineBreak =  stringPrefix + ( if (isEmpty) "()" 
+    else if (toStringBody.size < Settings.lineLength) elems.mkString("(", ", ", ")")
+    else elems.mkString("(\n  ", ",\n  ", "\n)") ) 
+  
+  override def toString = Settings.defaultModelToString(this) 
 }
 
 object defaultEmptyModel { def apply(): ListModel = new ListModel(ListMap.empty) }

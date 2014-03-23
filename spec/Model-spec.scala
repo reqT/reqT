@@ -67,7 +67,7 @@ Model(Req("a"), Feature("b"), Req("b")) * Req == Model(Req("a"),Req("b"))
 
 Model(Feature("a") requires (Req("b"), Feature("a"))) * Req == Model(Req("a"),Req("b"))
 
-} +
+} 
 
 
 
