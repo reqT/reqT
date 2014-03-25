@@ -1,22 +1,17 @@
 //script for reqT metaspecification
-"AGREGATION should be idempotent over empty model".test { 
-
+"Aggregation should be idempotent over empty model".test { 
 Model() ++ Model() == Model()
-
-} +"Aggregation should be idempotent over entity".test {
-
+} +
+"Aggregation should be idempotent over entity".test {
 Model(Req("r")) ++ Model(Req("r")) == Model(Req("r")) 
-
-} + "Aggregation should be idempotent over attribute".test {
-
+} + 
+"Aggregation should be idempotent over attribute".test {
 Model(Spec("s")) ++ Model(Spec("s")) == Model(Spec("s")) 
-
-} + "Aggregation should be idempotent over relation".test {
-
+} + 
+"Aggregation should be idempotent over relation".test {
 Model(Req("r") has Spec("s")) ++ Model(Req("r") has Spec("s")) == Model(Req("r") has Spec("s")) 
-
-} + "Aggregation should join tails".test {
-
+} + 
+"Aggregation should join tails".test {
 Model(Req("a") has Spec("s")) ++ Model(Req("a") has Prio(2)) == Model(Req("a") has (Spec("s"),Prio(2))) 
 
 } + "Add entity to empty model".test { 
