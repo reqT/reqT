@@ -15,6 +15,6 @@ package reqT
 object Settings {
   var intentSpacing = 2
   var lineLength = 72
-  var defaultModelToString: exporters.ModelExporter[String] = exporters.Pretty
+  var defaultModelToString: exporters.ModelExporter[String] = exporters.ScalaCompact
 }
 
