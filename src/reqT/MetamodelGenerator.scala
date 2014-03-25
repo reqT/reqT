@@ -24,6 +24,7 @@ trait MetamodelGenerator extends reqT.DSL with MetamodelToScala {
   def relations: Vector[String]
   def defaultEntities: Vector[EntityType]
   def defaultAttributes: Vector[AttributeType[_]]
+  def defaultInterpretedAttributes: Vector[AttributeType[_]]
   def defaultRelations: Vector[RelationType]
 }
 
@@ -46,8 +47,9 @@ object metamodel extends MetamodelTypes {
   override lazy val types: Vector[MetaType] = entityTypes ++ attributeTypes ++ relationTypes
   lazy val entityTypes: Vector[EntityType] = $defaultEntities ++ generalEntities ++ contextEntities ++ requirementEntities
   $mkEntityTypes
-  lazy val attributeTypes: Vector[AttributeType[_]] = $defaultAttributes ++ $mkAttributeTypes
+  lazy val attributeTypes: Vector[AttributeType[_]] = $defaultAttributes ++ interpretedAttributes ++ $mkAttributeTypes 
   lazy val relationTypes: Vector[RelationType] = ${defaultRelations.map(_.toString)} ++ Vector($mkRelationTypes)
+  lazy val interpretedAttributes: Vector[AttributeType[_]] = $defaultInterpretedAttributes
 }
 """
 
@@ -153,10 +155,13 @@ ${relations.map(headTypeMethod).mkString("\n")}
     s"""
 trait ImplicitFactoryObjects extends CanMakeAttr { //mixed in by package object reqT
 ${defaultAttributes.map(_.toString).map(mkImplObj(_)).mkString("\n")}  
+${defaultInterpretedAttributes.map(_.toString).map(mkImplObj(_)).mkString("\n")}  
 $mkImplicitAttrMakers
+
 $mkEnumImplicits
   lazy val attributeFromString = Map[String, String => Attribute[_]](
 ${defaultAttributes.map(_.toString).map(mkDefaultAttr(_)).mkString("\n")}
+${defaultInterpretedAttributes.map(_.toString).map(mkDefaultAttr(_)).mkString("\n")}
 $mkAttrFromStringMappings 
   )
   lazy val entityFromString = Map[String, String => Entity](

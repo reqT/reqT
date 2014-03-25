@@ -10,14 +10,16 @@
 ** reqT is open source, licensed under the BSD 2-clause license: 
 ** http://opensource.org/licenses/bsd-license.php 
 **************************************************************************/
-/* This is the bootstrap metamodel to be used when fresh metamodel is needed
+
+// This is the bootstrap metamodel to be used when a fresh metamodel is needed
 //1. copy this file to the name "GENERATED-metamodel.scala" (replacing the old if any)
-//2. decomment the code 
+//2. uncomment the code below
 //3. compile reqT
 //4. generate new metamodel using reqT on the command line the -m parameter:
 //    $> scala -toolcp reqT.jar reqT.Main -m
 //5. copy the generated file into src/main/scala/.
 
+/* <- uncomment here and last line
 package reqT
 
 object metamodel extends MetamodelTypes {
@@ -33,11 +35,12 @@ object metamodel extends MetamodelTypes {
   lazy val qualityReqs: Vector[EntityType] = Vector(Quality, Target, Barrier)
   lazy val scenarioReqs: Vector[EntityType] = Vector(Scenario, Task, TestCase, UserStory, UseCase)
 
-  lazy val attributeTypes: Vector[AttributeType[_]] = Vector(Spec, Code) ++ stringAttributes ++ intAttributes ++ cardinalityAttributes
-  lazy val stringAttributes: Vector[StringType] = Vector(Text, Title, Gist, Why, Example, Input, Output, Expectation)
+  lazy val attributeTypes: Vector[AttributeType[_]] = Vector(Attr, Code) ++ interpretedAttributes ++ stringAttributes ++ intAttributes ++ cardinalityAttributes
+  lazy val stringAttributes: Vector[StringType] = Vector(Text, Title, Spec, Gist, Why, Example, Input, Output, Expectation)
   lazy val intAttributes: Vector[IntType] = Vector(Prio, Cost)
-  lazy val cardinalityAttributes: Vector[CardinalityType] = Vector(Opt)
+  lazy val cardinalityAttributes: Vector[CardinalityType] = Vector(Opt) 
   lazy val relationTypes: Vector[RelationType] = Vector(has, is) ++ Vector(requires, relatesTo)
+  lazy val interpretedAttributes: Vector[AttributeType[_]] = Vector(Constraints)
 }
 
 //Enum traits
@@ -66,6 +69,9 @@ case object Text extends StringType
 
 case class Title(value: String) extends StringAttribute { override val myType = Title }
 case object Title extends StringType 
+
+case class Spec(value: String) extends StringAttribute { override val myType = Spec }
+case object Spec extends StringType 
 
 case class Gist(value: String) extends StringAttribute { override val myType = Gist }
 case object Gist extends StringType 
@@ -215,11 +221,13 @@ trait HeadTypeFactory {
 }
 
 trait ImplicitFactoryObjects extends CanMakeAttr { //mixed in by package object reqT
-  implicit object makeSpec extends AttrMaker[Spec] { def apply(s: String): Spec = Spec(s.toString) }
+  implicit object makeAttr extends AttrMaker[Attr] { def apply(s: String): Attr = Attr(s.toString) }
   implicit object makeCode extends AttrMaker[Code] { def apply(s: String): Code = Code(s.toString) }  
+  implicit object makeConstraints extends AttrMaker[Constraints] { def apply(s: String): Constraints = Constraints(s.toString) }  
 
   implicit object makeText extends AttrMaker[Text] { def apply(s: String): Text = Text(s.toString) }
   implicit object makeTitle extends AttrMaker[Title] { def apply(s: String): Title = Title(s.toString) }
+  implicit object makeSpec extends AttrMaker[Spec] { def apply(s: String): Spec = Spec(s.toString) }
   implicit object makeGist extends AttrMaker[Gist] { def apply(s: String): Gist = Gist(s.toString) }
   implicit object makeWhy extends AttrMaker[Why] { def apply(s: String): Why = Why(s.toString) }
   implicit object makeExample extends AttrMaker[Example] { def apply(s: String): Example = Example(s.toString) }
@@ -230,13 +238,16 @@ trait ImplicitFactoryObjects extends CanMakeAttr { //mixed in by package object 
   implicit object makeCost extends AttrMaker[Cost] { def apply(s: String): Cost = Cost(s.toInt) }
   implicit object makeOpt extends AttrMaker[Opt] { def apply(s: String): Opt = Opt(s.toCardinality) }
 
+
   implicit class StringToCardinality(s: String) { def toCardinality = Cardinality.valueOf(s)}
 
   lazy val attributeFromString = Map[String, String => Attribute[_]](
-    "Spec" -> makeAttribute[Spec] _ ,
+    "Attr" -> makeAttribute[Attr] _ ,
     "Code" -> makeAttribute[Code] _ ,
+    "Constraints" -> makeAttribute[Constraints] _ ,
     "Text" -> makeAttribute[Text] _ ,
     "Title" -> makeAttribute[Title] _ ,
+    "Spec" -> makeAttribute[Spec] _ ,
     "Gist" -> makeAttribute[Gist] _ ,
     "Why" -> makeAttribute[Why] _ ,
     "Example" -> makeAttribute[Example] _ ,
