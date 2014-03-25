@@ -28,6 +28,10 @@ trait ModelBasicOps  {
       var newSubmodel: Model = apply(rel.key)
       for (e <- rel.tail.elems) newSubmodel += e
       newModel(myMap + (rel.key -> newSubmodel))
+    case va: VectorAttribute[_] if isDefinedAt(va.key) =>
+      val existingVector = apply(va.key)
+      newModel(myMap + (va.key -> va.key.apply(existingVector ++ va.value)))
+    case ent: Entity if isDefinedAt(ent.has) => this
     case  NoElem => this
     case _ => newModel(myMap + e.toMapping)
   }
@@ -38,12 +42,31 @@ trait ModelBasicOps  {
   def ++(that: Model): Model = { var r = this ; that.foreach { r += _ } ; r }  
   
 //remove stuff:  
-  def -(k: Key): Model = newModel(myMap - k)  //deep???
-  def -(e: Entity): Model = newModel(myMap - e.has)
-  def -(id: String): Model = newModel(myMap - tipEntityOfId(id).has)
-  def diffKeys(that: Model): Model = newModel(myMap -- that.keys) //should not this be deep????
-  def diff(that: Model): Model = (elems diff that.elems).toModel //should not this be deep????
+  def -(e: Elem): Model = remove(e)
+  def remove(e: Elem): Model = e match {
+    case rel: Relation if isDefinedAt(rel.key) => 
+      if (rel.tail == apply(rel.key)) newModel(myMap - rel.key) else {
+        var newSubmodel: Model = apply(rel.key)
+        for (e <- rel.tail.elems) newSubmodel -= e
+        if (newSubmodel.isEmpty && !apply(rel.key).isEmpty) newModel(myMap - rel.key)  //???
+        else newModel(myMap - rel.key + (rel.key -> newSubmodel))      
+      }
+    case ent: Entity if isDefinedAt(ent.has) && apply(ent).isEmpty => newModel(myMap - ent.has) 
+    case va: VectorAttribute[_] if isDefinedAt(va.key) =>
+      val newVector = apply(va.key) diff va.value
+      newModel(myMap - va.key + (va.key -> va.key.apply(newVector)))
+    case a: Attribute[_] if isDefinedAt(a.key) && myMap(a.key) == a => newModel(myMap - a.key)  
+    case _ => this
+  }
+
+  //def diff(that: Model): Model = (elems diff that.elems).toModel //should not this be deep????
+  def diff(that: Model): Model = { var r = this ; that.foreach { r -= _ } ; r }  //is this right?
   def --(that: Model): Model = diff(that)  //is diff == diffKeys ??? NO!?
+  
+  //def -(k: Key): Model = newModel(myMap - k)  //deep???
+  //wrong:???def -(e: Entity): Model = newModel(myMap - e.has)
+  //???def -(id: String): Model =  remove(tipEntityOfId(id))  //newModel(myMap - tipEntityOfId(id).has)
+  def diffKeys(that: Model): Model = newModel(myMap -- that.keys) //should not this be deep????
   
 //size calculations:
   val mapSize: Int = myMap.size
@@ -51,8 +74,7 @@ trait ModelBasicOps  {
   lazy val size: Int = { var n = 0 ; foreachDeep { n += 1 } ; n }
   lazy val nodeSize: Int = { var n = 0 ; foreachNodeDeep { n += 1 } ; n }
   val isEmpty: Boolean = mapSize == 0
-  lazy val isDeep: Boolean = tip != top
-
+  lazy val isDeep: Boolean = tip != top  // better:  maxDepth > 2 ???
 
 //collection of elements:  
   lazy val keys: Iterable[Key] = myMap.keys

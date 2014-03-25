@@ -25,7 +25,13 @@ trait DSL {
 }
   
 /** A marker trait for parameters to separation operators on Model. */
-sealed trait Selector 
+sealed trait Selector {
+  def isTypeMatch(that: HasType): Boolean = this.isInstanceOf[MetaType] && that.myType == this 
+  def selects(that: Selector): Boolean = ( this == that ) || ( that match {
+      case Relation(e,l,t) if this.isInstanceOf[HeadType] => HeadType(e.myType, l) == this 
+      case ht: HasType => isTypeMatch(ht)
+      case _ => false } )
+}
 
 /** A marker trait for types of runtime typing using case objects. */
 sealed trait MetaType extends Selector   
@@ -146,7 +152,7 @@ case object Context extends AbstractSelector { type AbstractType = Context }
 case object General extends AbstractSelector { type AbstractType = General } 
 case object Requirement extends AbstractSelector { type AbstractType = Requirement } 
 
-trait RelationType extends MetaType
+trait RelationType extends MetaType with HasType { def myType = this }
 case object NoLink extends RelationType
 
 case class Head(entity: Entity, link: RelationType) extends Key {
@@ -200,6 +206,22 @@ trait IntType extends AttributeType[Int] {
   override  def apply(value: Int): IntAttribute
 } 
 
+trait VectorAttribute[T] extends Attribute[Vector[T]] {
+  override def toScala: String = myType + "(" + value.map(_.toString).mkString(",") + ")"
+}
+trait VectorType[T] extends AttributeType[Vector[T]] {
+  val default: Vector[T] = Vector()
+  override def apply(cs: Vector[T]): VectorAttribute[T]
+}
+
+case class Constr(cnstr: String)
+
+trait ConstrVectorAttribute extends VectorAttribute[Constr] 
+trait ConstrVectorType extends VectorType[Constr] {
+  override def apply(cs: Vector[Constr]) = Constraints(cs)
+  def apply(cs: Constr*): Constraints = Constraints(cs.toVector)
+}
+
 trait Enum[T <: Ordered[T]] extends Ordered[T] {
   self : T =>
   val enumCompanion: EnumCompanion[T]
@@ -220,11 +242,19 @@ trait EnumCompanion[T <: Ordered[T]]  {
 case class Ent(id: String) extends Entity { override val myType: EntityType = Ent }
 case object Ent extends EntityType
 
-case class Spec(value: String) extends StringAttribute { override val myType = Spec }
-case object Spec extends StringType 
+case class Attr(value: String) extends StringAttribute { override val myType = Attr }
+case object Attr extends StringType 
 
 case class Code(value: String) extends StringAttribute { override val myType = Code }
 case object Code extends StringType 
+
+case class Constraints(value: Vector[Constr]) extends ConstrVectorAttribute { override val myType = Constraints }
+case object Constraints extends ConstrVectorType {
+  def apply(s: String): Constraints = reqT.repl.interpret(s). map ( _ match { 
+    case c: Constraints => c 
+    case _ => Constraints(Vector()) 
+  } ).get 
+}
 
 case object has extends RelationType  
 case object is extends RelationType  

@@ -16,109 +16,58 @@ package reqT
 trait ModelSeparators {
   self: Model =>
   
-  def separateKeysOrTails(s: Selector, separator: (Elem => Boolean) => Model): Model = 
-    s match {
-      case e: Entity => separator { 
-        case e2: Entity if e == e2 => true 
-        case Relation(e2, _, tail) if e == e2 || tail.isDefinedAt(e) => true
-        case _ => false
-      }
-      case StringSelector(id) => separator {
-        case e2: Entity if tipEntitiesOfId(id).contains(e2) => true
-        case Relation(e2, _, tail) if tipEntitiesOfId(id).contains(e2) || tail.isDefinedAt(id) => true
-        case _ => false
-      }
-      case et: EntityType => separator { 
-        case e: Entity if e.myType == et => true 
-        case Relation(s, _, tail) if s.myType == et || tail.isDefinedAt(et) => true
-        case _ => false
-      }
-      case at: AttributeType[_] => separator { 
-        case a: Attribute[_] if a.myType == at => true 
-        case Relation(_, _, tail) if tail.isDefinedAt(at) => true
-        case _ => false
-      }
-      case rt: RelationType => separator { 
-        case Relation(_, link, tail) if link == rt || tail.isDefinedAt(rt) => true
-        case _ => false
-      }
-      case _ => throw new scala.NotImplementedError("separateKeysOrTails TODO: " + s)
-    }
+  def count(s: Selector): Int = elems. map {
+    case e if s.selects(e) => 1
+    case Relation(e, l, t) if s.selects(e) || s == l || s == Head(e,l) => 1
+    case Relation(e, l, t) => t.count(s) 
+    case _ => 0
+  } .sum 
+  
+  def contains(s: Selector): Boolean = elems. map {
+    case e if s.selects(e) =>  true 
+    case Relation(e, l, t) if s.selects(e) || s == l || s == Head(e,l) =>  true 
+    case Relation(e, l, t) =>  t.contains(s)
+    case _ =>  false 
+  } .contains(true)
+  
+  def containsTipHeads(s: Selector): Boolean = elems. map {
+    case e: Entity if s.selects(e) =>  true 
+    case a: Attribute[_] if s.selects(a) =>  true 
+    case Relation(e, l, t) if s.selects(e) || s == l || s == Head(e,l) => true 
+    case r: Relation if s.isInstanceOf[HeadType] && s.selects(r) =>  true 
+    case _ =>  false 
+  } .contains(true)
 
-  def separateKeys(s: Selector, separator: (Elem => Boolean) => Model): Model = 
-    s match {
-      case e: Entity => separator {
-        case e2: Entity if e == e2 => true
-        case Relation(e2, _, _) if e == e2 => true
-        case _ => false
-      }
-      case StringSelector(id) => separator {
-        case e2: Entity if tipEntitiesOfId(id).contains(e2) => true
-        case Relation(e2, _, _) if tipEntitiesOfId(id).contains(e2) => true
-        case _ => false
-      }
-      case et: EntityType => separator { 
-        case e: Entity if e.myType == et => true 
-        case Relation(s, _, _) if s.myType == et => true
-        case _ => false
-      }
-      case at: AttributeType[_] => separator { 
-        case a: Attribute[_] if a.myType == at => true 
-        case _ => false
-      }
-      case rt: RelationType => separator { 
-        case Relation(_, link, _) if link == rt => true
-        case _ => false
-      }
-      case _ => throw new scala.NotImplementedError("separateKeys TODO: " + s)
-    }      
-
-  def separateTails(s: Selector, separator: (Elem => Boolean) => Model): Model = 
-    s match {
-      case e: Entity => separator { 
-        case Relation(_, _, tail) if tail.isDefinedAt(e) => true
-        case _ => false
-      }
-      case StringSelector(id) => separator {
-        case Relation(_, _, tail) if tail.isDefinedAt(id) => true
-        case _ => false
-      }
-      case et: EntityType => separator { 
-        case Relation(_, _, tail) if tail.isDefinedAt(et) => true
-        case _ => false
-      }
-      case at: AttributeType[_] => separator { 
-        case Relation(_, _, tail) if tail.isDefinedAt(at) => true
-        case _ => false
-      }
-      case rt: RelationType => separator { 
-        case Relation(_, _, tail) if tail.isDefinedAt(rt) => true
-        case _ => false
-      }      
-      case _ => throw new scala.NotImplementedError("separateTails TODO:" + s)
-    }       
-    
-  def restrict(s: Selector): Model = separateKeysOrTails(s, filter)    
+  def restrict(s: Selector): Model = elems.filter(e => Model(e).contains(s)).toModel
   def *(s: Selector): Model = restrict(s)
   
-  def restrictTop(s: Selector): Model = separateKeys(s, filter)    
-  def *^(s: Selector): Model = restrictTop(s)
-  
-  def restrictTails(s: Selector): Model = separateTails(s, filter)   
-  def *~(s: Selector): Model = restrictTails(s)
-
-  def restrictAll(s: Selector): Model = separateKeysOrTails(s, filterDeep)    
-  def **(s: Selector): Model = restrictAll(s)
-  
-  def restrictNot(s: Selector): Model = separateKeysOrTails(s, filterNot)    
+  def restrictNot(s: Selector): Model = elems.filter(e => !Model(e).contains(s)).toModel
   def *!(s: Selector): Model = restrictNot(s)
 
-  def restrictTopNot(s: Selector): Model = separateKeys(s, filterNot)
-  def *^!(s: Selector): Model = restrictTopNot(s)
+  def restrictTipHeads(s: Selector): Model = elems.filter(e => Model(e).containsTipHeads(s)).toModel    
+  def *^(s: Selector): Model = restrictTipHeads(s)
   
-  def restrictTailNot(s: Selector): Model = separateTails(s, filterNot)
-  def *~!(s: Selector): Model = restrictTailNot(s)
+  //def restrict(s: Selector): Model = separateKeysOrTails(s, filter)    
+  //def *(s: Selector): Model = restrict(s)
+  
+  //def restrictTop(s: Selector): Model = separateKeys(s, filter)    
+  //def *^(s: Selector): Model = restrictTop(s)
+  
+  //def restrictTails(s: Selector): Model = separateTails(s, filter)   
+  def *~(s: Selector): Model = ???
 
-  def restrictAllNot(s: Selector): Model = separateKeysOrTails(s, filterDeepNot)    
-  def **!(s: Selector): Model = restrictAllNot(s)
+  //def restrictAll(s: Selector): Model = separateKeysOrTails(s, filterDeep)    
+  //def **(s: Selector): Model = restrictAll(s)
+  
+  //def restrictNot(s: Selector): Model = separateKeysOrTails(s, filterNot)    
+  //def *!(s: Selector): Model = restrictNot(s)
+
+  //def restrictTopNot(s: Selector): Model = separateKeys(s, filterNot)
+  //def *^!(s: Selector): Model = restrictTopNot(s)
+  
+  //def restrictTailNot(s: Selector): Model = separateTails(s, filterNot)
+  //def *~!(s: Selector): Model = restrictTailNot(s)
+
+  //def restrictAllNot(s: Selector): Model = separateKeysOrTails(s, filterDeepNot)    
+  //def **!(s: Selector): Model = restrictAllNot(s)
 } 
