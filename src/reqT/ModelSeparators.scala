@@ -16,51 +16,65 @@ package reqT
 trait ModelSeparators {
   self: Model =>
   
-  def count(s: Selector): Int = elems. map {
-    case e if s.selects(e) => 1
-    case Relation(e, l, t) if s.selects(e) || s == l || s == Head(e,l) => 1
-    case Relation(e, l, t) => t.count(s) 
-    case _ => 0
-  } .sum 
+  def count(s: Selector): Int = s match {
+    case AndSelector(left, right) => (this * s).count(left) + (this * s).count(right) //???
+    case OrSelector(left, right)  => (this * s).count(left) + (this * s).count(right) //???
+    case _ => elems. map {
+      case n: Node if s.selects(n)  =>  1 
+      case Relation(e, l, t) if s.selects(e) || s.selects(l) || s.selects(Head(e,l)) => 1 + t.count(s) 
+      case Relation(e, l, t) => t.count(s) 
+      case _ => 0
+    } .sum
+  }  
   
-  def contains(s: Selector): Boolean = elems. map {
-    case e if s.selects(e) =>  true 
-    case Relation(e, l, t) if s.selects(e) || s == l || s == Head(e,l) =>  true 
-    case Relation(e, l, t) =>  t.contains(s)
-    case _ =>  false 
-  } .contains(true)
-  
-  def containsTipHeads(s: Selector): Boolean = elems. map {
-    case e: Entity if s.selects(e) =>  true 
-    case a: Attribute[_] if s.selects(a) =>  true 
-    case Relation(e, l, t) if s.selects(e) || s == l || s == Head(e,l) => true 
+  def contains(s: Selector): Boolean = s match {
+    case AndSelector(left, right) if contains(left) && contains(right) => true
+    case OrSelector(left, right)  if contains(left) || contains(right) => true
+    case _ => elems. map {
+      case n: Node if s.selects(n)  =>  true 
+      case Relation(e, l, t) if s.selects(e) || s.selects(l) || s.selects(Head(e,l)) =>  true 
+      case Relation(e, l, t) =>  t.contains(s)
+      case _ =>  false 
+    } .contains(true)
+  }
+ 
+  def containsTipAndHeads(s: Selector): Boolean = elems. map {
+    case n: Node if s.selects(n)  =>  true 
+    case Relation(e, l, t) if s.selects(e) || s.selects(l) || s.selects(Head(e,l)) => true 
     case r: Relation if s.isInstanceOf[HeadType] && s.selects(r) =>  true 
     case _ =>  false 
   } .contains(true)
 
+  def containsTails(s: Selector): Boolean = elems. map {
+    case Relation(e, l, t) if t.contains(s)=> true 
+    case _ =>  false 
+  } .contains(true)
+  
   def restrict(s: Selector): Model = elems.filter(e => Model(e).contains(s)).toModel
   def *(s: Selector): Model = restrict(s)
   
   def restrictNot(s: Selector): Model = elems.filter(e => !Model(e).contains(s)).toModel
   def *!(s: Selector): Model = restrictNot(s)
 
-  def restrictTipHeads(s: Selector): Model = elems.filter(e => Model(e).containsTipHeads(s)).toModel    
-  def *^(s: Selector): Model = restrictTipHeads(s)
+  def restrictTipAndHeads(s: Selector): Model = elems.filter(e => Model(e).containsTipAndHeads(s)).toModel    
+  def *^(s: Selector): Model = restrictTipAndHeads(s)
   
-  //def restrict(s: Selector): Model = separateKeysOrTails(s, filter)    
-  //def *(s: Selector): Model = restrict(s)
+  def restrictTails(s: Selector): Model = elems.filter(e => Model(e).containsTails(s)).toModel  
+  def *~(s: Selector): Model = restrictTails(s)
   
-  //def restrictTop(s: Selector): Model = separateKeys(s, filter)    
-  //def *^(s: Selector): Model = restrictTop(s)
-  
-  //def restrictTails(s: Selector): Model = separateTails(s, filter)   
-  def *~(s: Selector): Model = ???
-
-  //def restrictAll(s: Selector): Model = separateKeysOrTails(s, filterDeep)    
-  //def **(s: Selector): Model = restrictAll(s)
-  
-  //def restrictNot(s: Selector): Model = separateKeysOrTails(s, filterNot)    
-  //def *!(s: Selector): Model = restrictNot(s)
+  def extractNodes(s: Selector): Vector[Node] = s match {
+    case AndSelector(left, right) => (this * s).extractNodes(left) ++ (this * s).extractNodes(right) //???
+    case OrSelector(left, right)  => (this * s).extractNodes(left) ++ (this * s).extractNodes(right) //???
+    case _ => elems .flatMap {
+      case n: Node if s.selects(n) =>  Vector(n) 
+      case Relation(e, l, t) if s.selects(e) => Vector(e) ++ t.extractNodes(s)
+      case Relation(e, l, t) if s.selects(l) => Vector(e) ++ t.extractNodes(s)
+      case Relation(e, l, t) if s.selects(Head(e,l)) => Vector(e) ++ t.extractNodes(s)
+      case Relation(e, l, t) => t.extractNodes(s) 
+      case _ =>  Vector()
+    } 
+  }
+  def \(s: Selector): Vector[Node] = extractNodes(s: Selector)
 
   //def restrictTopNot(s: Selector): Model = separateKeys(s, filterNot)
   //def *^!(s: Selector): Model = restrictTopNot(s)

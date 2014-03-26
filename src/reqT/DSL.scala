@@ -28,10 +28,18 @@ trait DSL {
 sealed trait Selector {
   def isTypeMatch(that: HasType): Boolean = this.isInstanceOf[MetaType] && that.myType == this 
   def selects(that: Selector): Boolean = ( this == that ) || ( that match {
+      case Head(e,l) if this.isInstanceOf[HeadType] => HeadType(e.myType, l) == this 
       case Relation(e,l,t) if this.isInstanceOf[HeadType] => HeadType(e.myType, l) == this 
       case ht: HasType => isTypeMatch(ht)
       case _ => false } )
+  def && (that: Selector): AndSelector = AndSelector(this, that)
+  def || (that: Selector): OrSelector = OrSelector(this, that)
+  def restrict(that: Model): Model = that * this
+  def * (that: Model): Model = that * this
 }
+
+case class AndSelector(left: Selector, right: Selector) extends Selector 
+case class OrSelector (left: Selector, right: Selector) extends Selector
 
 /** A marker trait for types of runtime typing using case objects. */
 sealed trait MetaType extends Selector   

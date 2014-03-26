@@ -96,8 +96,15 @@ trait ModelBasicOps  {
   } .toModel
   
   lazy val tip: Model = tipNodes.toModel  
-  def `^`: Model = top
-  def `^^`: Model = tip
+  lazy val tipHeads: Vector[Head] = elems.collect {
+    case r: Relation => r.head
+  }
+  
+  lazy val tipAndHeads: Vector[Selector] = elems.collect { 
+    case r: Relation => r.head 
+    case n: Node => n
+  }  
+  lazy val `^`: Vector[Selector] = tipAndHeads
 
   lazy val flattenDeep: Model = mapDeep( m => m).toModel.top  //????
   lazy val elemsWithTip: Vector[Elem] = elems.flatMap { //was topElems was elemsExpanded was expandTip
@@ -152,7 +159,7 @@ trait ModelBasicOps  {
   lazy val submodels: Vector[Model] = ??? //all models dfs in a flat vector 
   lazy val tails: Vector[Model] = myMap.collect { case (h: Head, tail: Model) if !tail.isEmpty => tail } .toVector
   lazy val tailsMerged: Model = tails.foldLeft(Model())(_ ++ _)
-  lazy val `~`: Model = tailsMerged
+  lazy val `~`: Vector[Model] = tails
   lazy val topRelations: Vector[Relation] = myMap.collect { case (h: Head, m: Model) if !m.isEmpty => Relation(h,m) } .toVector
   lazy val topRelationTypes: Vector[RelationType] = topRelations.map(_.link)
   lazy val tipEntities: Vector[Entity] = myMap.collect { case (h: Head, _) => h.entity } .toVector .distinct
