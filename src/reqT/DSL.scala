@@ -43,28 +43,29 @@ sealed trait Selector {
     case _ if this == that || ( this.isInstanceOf[MetaType] && this == that.myType) => true
     case HeadType(thisEntType, thisLink) => that match {
       case Relation(thatEnt, thatLink, _) if thisEntType == thatEnt.myType && thisLink == thatLink => true   
-      case Relation(_, _, thatModel) => thatModel.contains2( this )
+      case Relation(_, _, thatModel) => thatModel.contains( this )
       case _ => false
     }
     case Head(thisEnt, thisLink) => that match {
       case Relation(thatEnt, thatLink, _) if thisEnt == thatEnt && thisLink == thatLink => true   
-      case Relation(_, _, thatModel) => thatModel.contains2( this )
+      case Relation(_, _, thatModel) => thatModel.contains( this )
       case _ => false
     }
     case Relation(thisEntity, thisLink, thisModel) => that match {
       case Relation(thatEnt, thatLink, thatModel) if thisEntity == thatEnt && thisLink == thatLink =>
         thisModel == thatModel ||
           thisModel.elems.map(e => thatModel.elems.contains(e)).fold(true)(_ && _) ||
-            thatModel.contains2( this ) 
-      case Relation(_, _, thatModel) => thatModel.contains2( this )
+            thatModel.contains( this ) 
+      case Relation(_, _, thatModel) => thatModel.contains( this )
       case _ => false
     }
     case _ => that match {
       case Relation(thatEnt, thatLink, thatModel) => 
-        this =*= thatEnt || this == thatLink || thatModel.contains2( this )
+        this =*= thatEnt || this == thatLink || thatModel.contains( this )
       case _ => false
     }
   }
+  
   def && (that: Selector): AndSelector = AndSelector(this, that)
   def || (that: Selector): OrSelector = OrSelector(this, that)
   def unary_!  = NotSelector(this)

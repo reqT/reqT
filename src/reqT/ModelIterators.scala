@@ -63,6 +63,14 @@ trait ModelIterators extends ModelBase {
     }
   )
   
+  def collectElems[T](f: PartialFunction[Elem,T]): Vector[T] = elems.flatMap ( e =>   //???
+    e match {
+      case n: Node if f.isDefinedAt(e) => Vector(f(e))
+      case rel: Relation if f.isDefinedAt(rel) => Vector(f(rel)) ++ rel.tail.collectElems(f) 
+      case _ => Vector()
+    }
+  )
+  
   def foreach[U](f: Elem => U): Unit = toIterable.foreach(f)
   def foreach(block: => Unit): Unit = foreach(_ => block)
   def filter(f: Elem => Boolean): Model = toIterable.filter(f).toModel
