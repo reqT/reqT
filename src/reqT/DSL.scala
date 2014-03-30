@@ -26,20 +26,55 @@ trait DSL {
   
 /** A marker trait for parameters to separation operators on Model. */
 sealed trait Selector {
+  //*** old to be removed
   def isTypeMatch(that: HasType): Boolean = this.isInstanceOf[MetaType] && that.myType == this 
   def selects(that: Selector): Boolean = ( this == that ) || ( that match {
       case Head(e,l) if this.isInstanceOf[HeadType] => HeadType(e.myType, l) == this 
       case Relation(e,l,t) if this.isInstanceOf[HeadType] => HeadType(e.myType, l) == this 
       case ht: HasType => isTypeMatch(ht)
       case _ => false } )
+  //***---
+  
+  def =*=(that: Elem): Boolean = isMatch(that)
+  def isMatch(that: Elem): Boolean = this match {
+    case NotSelector(ns)   => ! ( ns =*= that )
+    case AndSelector(s1, s2) => ( s1 =*= that ) && ( s2 =*= that )  
+    case OrSelector (s1, s2) => ( s1 =*= that ) || ( s2 =*= that )
+    case _ if this == that || ( this.isInstanceOf[MetaType] && this == that.myType) => true
+    case HeadType(thisEntType, thisLink) => that match {
+      case Relation(thatEnt, thatLink, _) if thisEntType == thatEnt.myType && thisLink == thatLink => true   
+      case Relation(_, _, thatModel) => thatModel.contains2( this )
+      case _ => false
+    }
+    case Head(thisEnt, thisLink) => that match {
+      case Relation(thatEnt, thatLink, _) if thisEnt == thatEnt && thisLink == thatLink => true   
+      case Relation(_, _, thatModel) => thatModel.contains2( this )
+      case _ => false
+    }
+    case Relation(thisEntity, thisLink, thisModel) => that match {
+      case Relation(thatEnt, thatLink, thatModel) if thisEntity == thatEnt && thisLink == thatLink =>
+        thisModel == thatModel ||
+          thisModel.elems.map(e => thatModel.elems.contains(e)).fold(true)(_ && _) ||
+            thatModel.contains2( this ) 
+      case Relation(_, _, thatModel) => thatModel.contains2( this )
+      case _ => false
+    }
+    case _ => that match {
+      case Relation(thatEnt, thatLink, thatModel) => 
+        this =*= thatEnt || this == thatLink || thatModel.contains2( this )
+      case _ => false
+    }
+  }
   def && (that: Selector): AndSelector = AndSelector(this, that)
   def || (that: Selector): OrSelector = OrSelector(this, that)
+  def unary_!  = NotSelector(this)
   def restrict(that: Model): Model = that * this
   def * (that: Model): Model = that * this
 }
 
 case class AndSelector(left: Selector, right: Selector) extends Selector 
 case class OrSelector (left: Selector, right: Selector) extends Selector
+case class NotSelector(selector: Selector) extends Selector 
 
 /** A marker trait for types of runtime typing using case objects. */
 sealed trait MetaType extends Selector   
@@ -185,7 +220,7 @@ case object Relation extends MetaType {
   def apply(h: Head, tail: Model): Relation = new Relation(h.entity, h.link, tail) 
 }  
 
-case class HeadType(entityType: EntityType, link: RelationType) extends MetaType    
+case class HeadType(entityType: EntityType, link: RelationType) extends MetaType 
 
 trait AttrMaker[T <: Attribute[_]] { def apply(s: String): T }
 

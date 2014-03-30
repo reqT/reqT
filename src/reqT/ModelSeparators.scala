@@ -17,8 +17,12 @@ trait ModelSeparators {
   self: Model =>
   
   def count(s: Selector): Int = s match {
-    case AndSelector(left, right) => (this * s).count(left) + (this * s).count(right) //???
-    case OrSelector(left, right)  => (this * s).count(left) + (this * s).count(right) //???
+    case AndSelector(left, right) => 
+      val restricted = this * s
+      restricted.count(left) + restricted.count(right) //???
+    case OrSelector(left, right)  => 
+      val restricted = this * s
+      restricted.count(left) + restricted.count(right) //???
     case _ => elems. map {
       case n: Node if s.selects(n)  =>  1 
       case Relation(e, l, t) if s.selects(e) || s.selects(l) || s.selects(Head(e,l)) => 1 + t.count(s) 
@@ -37,6 +41,12 @@ trait ModelSeparators {
       case _ =>  false 
     } .contains(true)
   }
+  
+  def contains2(s: Selector): Boolean = {
+    for ( e <- elems)  { if (s =*= e) return true else () } 
+    false 
+  }
+  def restrict2(s: Selector): Model = elems. filter { s =*= _ } .toModel
  
   def containsTipAndHeads(s: Selector): Boolean = elems. map {
     case n: Node if s.selects(n)  =>  true 
@@ -50,22 +60,35 @@ trait ModelSeparators {
     case _ =>  false 
   } .contains(true)
   
-  def restrict(s: Selector): Model = elems.filter(e => Model(e).contains(s)).toModel
-  def *(s: Selector): Model = restrict(s)
+  def restrict(s: Selector): Model = s match {
+    case NotSelector(s) => elems.filter(e => !Model(e).contains(s)).toModel
+    case _ =>              elems.filter(e => Model(e).contains(s)).toModel
+  }
+  def *(s: Selector): Model = restrict2(s)
   
   def restrictNot(s: Selector): Model = elems.filter(e => !Model(e).contains(s)).toModel
   def *!(s: Selector): Model = restrictNot(s)
 
   def restrictTipAndHeads(s: Selector): Model = elems.filter(e => Model(e).containsTipAndHeads(s)).toModel    
   def *^(s: Selector): Model = restrictTipAndHeads(s)
+
+  def restrictTipAndHeadsNot(s: Selector): Model = elems.filter(e => !Model(e).containsTipAndHeads(s)).toModel
+  def *^!(s: Selector): Model = restrictTipAndHeadsNot(s)
   
   def restrictTails(s: Selector): Model = elems.filter(e => Model(e).containsTails(s)).toModel  
   def *~(s: Selector): Model = restrictTails(s)
+
+  def restrictTailsNot(s: Selector): Model = elems.filter(e => !Model(e).containsTails(s)).toModel  
+  def *~!(s: Selector): Model = restrictTailsNot(s)
   
   def extractNodes(s: Selector): Vector[Node] = s match {
-    case AndSelector(left, right) => (this * s).extractNodes(left) ++ (this * s).extractNodes(right) //???
-    case OrSelector(left, right)  => (this * s).extractNodes(left) ++ (this * s).extractNodes(right) //???
-    case _ => elems .flatMap {
+    case AndSelector(left, right) => 
+      val restricted = this * s
+      restricted.extractNodes(left) ++ restricted.extractNodes(right) //???
+    case OrSelector(left, right)  => 
+      val restricted = this * s
+      restricted.extractNodes(left) ++ restricted.extractNodes(right) //???
+    case _ => elems.flatMap {
       case n: Node if s.selects(n) =>  Vector(n) 
       case Relation(e, l, t) if s.selects(e) => Vector(e) ++ t.extractNodes(s)
       case Relation(e, l, t) if s.selects(l) => Vector(e) ++ t.extractNodes(s)
@@ -76,12 +99,4 @@ trait ModelSeparators {
   }
   def \(s: Selector): Vector[Node] = extractNodes(s: Selector)
 
-  //def restrictTopNot(s: Selector): Model = separateKeys(s, filterNot)
-  //def *^!(s: Selector): Model = restrictTopNot(s)
-  
-  //def restrictTailNot(s: Selector): Model = separateTails(s, filterNot)
-  //def *~!(s: Selector): Model = restrictTailNot(s)
-
-  //def restrictAllNot(s: Selector): Model = separateKeysOrTails(s, filterDeepNot)    
-  //def **!(s: Selector): Model = restrictAllNot(s)
 } 
