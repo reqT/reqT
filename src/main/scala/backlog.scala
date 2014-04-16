@@ -77,6 +77,11 @@ package reqt {
         Gist("Generate markdown textual output from models"),
         Prio(3)
       ),
+      Feature("generateGraphML") has (
+        Gist("Generate GraphML of model to enable another visualization"),
+        Status(PLANNED),
+        Prio(5)
+      ),
       Feature("setupTeardown") has (
         Gist("Add TestCase attributes Setup Teardown"),
         Status(ELICITED),
