@@ -35,7 +35,7 @@ trait ModelBase  {
   def toListMap: ListMap[Key, MapTo]
   def toHashMap: HashMap[Key, MapTo]
   
-  override val myType: MetaType = Model
+  override val myType: TypeObject = Model
   val stringPrefix: String = "Model"  
 
   lazy val toIterable:Iterable[Elem] = myMap.map(_.toElem)

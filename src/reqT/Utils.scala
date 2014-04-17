@@ -207,7 +207,7 @@ trait RandomUtils {
     def rndId: String = rndLetters(1) + rndInt(1,9)
     def rndText(n: Int, l: Int): String = List.fill(rndInt(1,n))(rndSpeakable(rndInt(1,l))).mkString(" ").capitalize + "." 
     def rndPick[T](xs: Seq[T]): T = xs(rndInt(xs.size))
-    def rndType: MetaType = rndPick(metamodel.types)
+    def rndType: TypeObject = rndPick(metamodel.types)
     def rndEntityType: EntityType = rndPick(metamodel.entityTypes)
     def rndAttributeType: AttributeType[_] = rndPick(metamodel.attributeTypes)
     def rndEntity: Entity = rndEntityType(rndId)
