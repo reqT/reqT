@@ -51,7 +51,7 @@ trait ModelIterators extends ModelBase {
     iter(this, HeadPath())
   }
   
-  def collect[T](f: PartialFunction[Elem,T]): Vector[T] = elems.collect(f) 
+  //def collect[T](f: PartialFunction[Elem,T]): Vector[T] = elems.collect(f) 
   def collectDeep[T](f: PartialFunction[Elem,T]): Vector[T] = elems.flatMap ( e =>   //???
     e match {
       case n: Node if f.isDefinedAt(e) => Vector(f(e))
@@ -63,13 +63,13 @@ trait ModelIterators extends ModelBase {
     }
   )
   
-  def collectElems[T](f: PartialFunction[Elem,T]): Vector[T] = elems.flatMap ( e =>   //???
-    e match {
-      case n: Node if f.isDefinedAt(e) => Vector(f(e))
-      case rel: Relation if f.isDefinedAt(rel) => Vector(f(rel)) ++ rel.tail.collectElems(f) 
-      case _ => Vector()
-    }
-  )
+  // def collectElems[T](f: PartialFunction[Elem,T]): Vector[T] = elems.flatMap ( e =>   //???
+    // e match {
+      // case n: Node if f.isDefinedAt(e) => Vector(f(e))
+      // case rel: Relation if f.isDefinedAt(rel) => Vector(f(rel)) ++ rel.tail.collectElems(f) 
+      // case _ => Vector()
+    // }
+  // )
   
   def foreach[U](f: Elem => U): Unit = toIterable.foreach(f)
   def foreach(block: => Unit): Unit = foreach(_ => block)
