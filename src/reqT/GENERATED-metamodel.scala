@@ -15,7 +15,7 @@
 package reqT
 
 object metamodel extends MetamodelTypes {
-  override lazy val types: Vector[MetaType] = entityTypes ++ attributeTypes ++ relationTypes
+  override lazy val types: Vector[TypeObject] = entityTypes ++ attributeTypes ++ relationTypes
   lazy val entityTypes: Vector[EntityType] = Vector(Ent) ++ generalEntities ++ contextEntities ++ requirementEntities
   
   lazy val generalEntities: Vector[EntityType] = Vector(Item, Label, Section) 
