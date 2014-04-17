@@ -25,15 +25,21 @@ trait ModelSeparators {
   def restrict(s: Selector): Model = elems. filter { s =*= _ } .toModel
   def *(s: Selector): Model = restrict(s)
  
-  def restrictTipAndHeads(s: Selector): Model = ???    
+  def restrictTipAndHeads(s: Selector): Model = elems .collect { 
+    case n: Node if s =*= n => n
+    case r @ Relation(e,l,_) if s =*= Relation(e,l,Model()) => r 
+  } .toModel    
   def *^(s: Selector): Model = restrictTipAndHeads(s)
 
-  def restrictTails(s: Selector): Model = ???  
+  def restrictTails(s: Selector): Model = elems .collect { 
+    case r @ Relation(_,_,t) if t ? s => r 
+  } .toModel
   def *~(s: Selector): Model = restrictTails(s)
 
-  def extractElems(s: Selector): Vector[Elem] = collectElems { case e if s =*= e => e }
-  def \(s: Selector): Vector[Elem] = extractElems(s)
+  def extract(s: Selector): Vector[Elem] = elems collect { case e if s =*= e => e }
+  def \(s: Selector): Vector[Elem] = extract(s)
   
-  def count(s: Selector) = extractElems(s).size
+  def count(s: Selector): Int = extract(s).size
+  def \#(s: Selector): Int = count(s)
   
 } 

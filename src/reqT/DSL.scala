@@ -26,23 +26,26 @@ trait DSL {
   
 /** A marker trait for parameters to separation operators on Model. */
 sealed trait Selector {
-  //*** old to be removed
-  def isTypeMatch(that: HasType): Boolean = this.isInstanceOf[MetaType] && that.myType == this 
+  /*** old to be removed
+  def isTypeMatch(that: HasType): Boolean = this.isInstanceOf[TypeObject] && that.myType == this 
   def selects(that: Selector): Boolean = ( this == that ) || ( that match {
       case Head(e,l) if this.isInstanceOf[HeadType] => HeadType(e.myType, l) == this 
       case Relation(e,l,t) if this.isInstanceOf[HeadType] => HeadType(e.myType, l) == this 
       case ht: HasType => isTypeMatch(ht)
       case _ => false } )
-  //***---
+  ***---*/
   
   def =*=(that: Elem): Boolean = isMatch(that)
   def isMatch(that: Elem): Boolean = this match {
     case NotSelector(ns)   => ! ( ns =*= that )
     case AndSelector(s1, s2) => ( s1 =*= that ) && ( s2 =*= that )  
     case OrSelector (s1, s2) => ( s1 =*= that ) || ( s2 =*= that )
-    case _ if this == that || ( this.isInstanceOf[MetaType] && this == that.myType) => true
+    case Select(ifMatches) => ifMatches(that) //är detta egentligen användbart??
+    case _ if this == that || 
+      ( this.isInstanceOf[TypeObject] && this == that.myType) => true
     case HeadType(thisEntType, thisLink) => that match {
-      case Relation(thatEnt, thatLink, _) if thisEntType == thatEnt.myType && thisLink == thatLink => true   
+      case Relation(thatEnt, thatLink, _) if thisEntType == thatEnt.myType && 
+        thisLink == thatLink => true   
       case Relation(_, _, thatModel) => thatModel.contains( this )
       case _ => false
     }
@@ -76,12 +79,13 @@ sealed trait Selector {
 case class AndSelector(left: Selector, right: Selector) extends Selector 
 case class OrSelector (left: Selector, right: Selector) extends Selector
 case class NotSelector(selector: Selector) extends Selector 
+case class Select(predicate: Elem => Boolean) extends Selector
 
 /** A marker trait for types of runtime typing using case objects. */
-sealed trait MetaType extends Selector   
+sealed trait TypeObject extends Selector   
 
-/** A mixin trait for runtime typing through case object values of type MetaType. */
-trait HasType { def myType: MetaType } 
+/** A mixin trait for runtime typing through case object values of type TypeObject. */
+trait HasType { def myType: TypeObject } 
 
 /** A mixin trait for generic attribute values. */
 trait HasValue[T] { def value: T }
@@ -103,7 +107,7 @@ sealed trait Elem extends DSL with HasType with CanBeMapped with Selector {
   def isRelation: Boolean = !isNode
 }
 
-case object NoElem extends Elem with MetaType { 
+case object NoElem extends Elem with TypeObject { 
   override val isNode: Boolean = false
   override val isAttribute: Boolean = false
   override val isEntity: Boolean = false
@@ -133,12 +137,12 @@ sealed trait Key extends DSL with Selector
 
 trait Model extends MapTo with ModelImplementation 
   
-object Model extends MetaType 
+object Model extends TypeObject 
   with ModelCompanion 
   with ModelFromMap
 
 
-trait AttributeType[T] extends Key with MetaType with HasDefault[T] { 
+trait AttributeType[T] extends Key with TypeObject with HasDefault[T] { 
   def apply(value: T): Attribute[T] 
   val default: T 
   def / = AttrRef(HeadPath(), this)
@@ -161,6 +165,9 @@ sealed trait Entity extends Node with HeadFactory with RelationFactory  {
   def is(elems: Elem*) = Relation(this, reqT.is, Model(elems:_*))
   def is(submodel: Model) = Relation(this, reqT.is, submodel)
   def is = Head(this, reqT.is)
+  def superOf(elems: Elem*) = Relation(this, reqT.superOf, Model(elems:_*))
+  def superOf(submodel: Model) = Relation(this, reqT.superOf, submodel)
+  def superOf = Head(this, reqT.superOf)
 }
 case object NoEntity extends Entity {
   override val id = ""
@@ -171,12 +178,13 @@ trait Context extends Entity
 trait General extends Entity
 trait Requirement extends Entity
 
-trait EntityType extends MetaType with HeadTypeFactory  {
+trait EntityType extends TypeObject with HeadTypeFactory  {
   def apply(id: String): Entity
   def apply(): Entity = apply(nextId)
   def apply(i: Int): Entity = apply(i.toString)
   def has = HeadType(this, reqT.has)
   def is =  HeadType(this, reqT.is)
+  def superOf =  HeadType(this, reqT.superOf)
 }
 case object NoEntityType extends EntityType {
   override def apply(id: String): Entity = NoEntity
@@ -196,7 +204,7 @@ case object Context extends AbstractSelector { type AbstractType = Context }
 case object General extends AbstractSelector { type AbstractType = General } 
 case object Requirement extends AbstractSelector { type AbstractType = Requirement } 
 
-trait RelationType extends MetaType with HasType { def myType = this }
+trait RelationType extends TypeObject with HasType { def myType = this }
 case object NoLink extends RelationType
 
 case class Head(entity: Entity, link: RelationType) extends Key {
@@ -217,11 +225,11 @@ case class Relation(entity: Entity, link: RelationType, tail: Model) extends Ele
   override def isNode: Boolean = false
   override def isAttribute: Boolean = false
 }
-case object Relation extends MetaType {
+case object Relation extends TypeObject {
   def apply(h: Head, tail: Model): Relation = new Relation(h.entity, h.link, tail) 
 }  
 
-case class HeadType(entityType: EntityType, link: RelationType) extends MetaType 
+case class HeadType(entityType: EntityType, link: RelationType) extends TypeObject 
 
 trait AttrMaker[T <: Attribute[_]] { def apply(s: String): T }
 
@@ -230,7 +238,7 @@ trait CanMakeAttr {
 }
 
 trait MetamodelTypes {
-  def types: Vector[MetaType]
+  def types: Vector[TypeObject]
   lazy val names: Vector[String] = types map (_.toString)
   lazy val indexOf: Map[String, Int] = names.zipWithIndex.toMap.withDefaultValue(-1)
 }
@@ -283,6 +291,9 @@ trait EnumCompanion[T <: Ordered[T]]  {
 }
 
 //Primitive metamodel classes
+case class Meta(id: String) extends Entity { override val myType: EntityType = Meta }
+case object Meta extends EntityType
+
 case class Ent(id: String) extends Entity { override val myType: EntityType = Ent }
 case object Ent extends EntityType
 
@@ -302,7 +313,8 @@ case object Constraints extends ConstrVectorType {
 
 case object has extends RelationType  
 case object is extends RelationType  
-
+case object superOf extends RelationType  
+  
 //Special metamodel attribute implicits
 trait ImplicitAttributeEnrichments {
   implicit class CodeRunnable(code: Code) {
