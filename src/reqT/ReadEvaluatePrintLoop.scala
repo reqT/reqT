@@ -23,12 +23,12 @@ object repl {
   val helpOnReqT = "** Type :help for help on the Scala Read-Evaluate-Print-Loop"
   val versionMsg = s"\n** Welcome to reqT version $reqT_VERSION" +
     s"\n** Snapshot build: $BUILD_DATE" + 
-    s"\n** Compiled with Scala version $SCALA_VERSION" +  
+    s"\n** Compiled with Scala $SCALA_VERSION" +  
      "\n** Running Java version " + JSystem.getProperty("java.version") +  
      "\n** Running on " + JSystem.getProperty("java.vm.name")
   val startMsg = versionMsg +
      s"\n$PREAMBLE\n$helpOnReqT" +
-    "\n** Starting the Scala REPL with reqT ..."
+    "\n** Starting the Scala REPL extended with reqT ..."
   
   @volatile
   var interpreter: Option[ReqTILoop] = None
