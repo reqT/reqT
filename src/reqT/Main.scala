@@ -18,24 +18,31 @@ object Main {
   def help() {
     println("reqT is a requriements engineering tool, visit http://reqT.org")
     println("<no arg>     Start reqT inside the Scala Read-Evaluate-Print-Loop")
-    println("--help       -h   Print this message")
-    println("--interpret  -i   <file> Interpret file")
-    println("--test       -t   <file> Test script with reqT.Model")
-    println("--meta       -m   Generate metamodel to file GENERATED-metamodel.scala")
+    println("--help  -h   Print this message")
+    println("--in    -i   <file> Interpret file")
+    println("--test  -t   <file> Run test script with Model in file")
+    println("--meta  -m   [<from>] Generate metamodel [<from>] to GENERATED-metamodel.scala")
   }
   
-  def genmeta() {
-        println("Generating metamodel...")
-        reqT.meta.gen().save("GENERATED-metamodel.scala")
+  def genMeta(args : Array[String]) {
+        println(s"Generating metamodel ${args.mkString(",")} ...")
+        if (args.isEmpty) reqT.meta.gen().save("GENERATED-metamodel.scala")
+        else repl.initInterpreterAndRun { 
+          val q3 = "\"\"\"" // trippel " avoids trouble when backslash in file names
+          s"""
+            val modelString = load(${q3}${args(0)}${q3})
+            repl.interpretModel(modelString) match {
+              case Some(model) => reqT.meta.gen(model).save("GENERATED-metamodel.scala")
+              case _ => println("ERROR in reqT.Main.genMeta: interpretation failed.")
+            }
+          """
+        }
   }
   
   def interpretFile(args : Array[String]) {
-    println("reqT --interpret ") 
     if (args.isEmpty) println("ERROR no file; usage reqT -i <filename>")
-    args.map { s => print(s"  $s "); repl.interpretFile(s) } .collect { 
-      case Some(true) => println("DONE!")
-      case _ => println("FAILED!")
-    }
+    args.foreach { s => println(s"interpreting file: $s "); repl.interpretFile(s) } 
+    println("")
   }
 
   def test(args : Array[String]) {
@@ -56,11 +63,12 @@ object Main {
   def main(args : Array[String]) : Unit =  {
     if (args.size == 0) repl.startInterpreting
     else args(0) match {
-      case arg0 if Set("--hello", "--help", "-h", "-help", "help", "?")(arg0) => help()
-      case arg0 if Set("--meta", "-m")(arg0)            => genmeta()
-      case arg0 if Set("--interpret", "-i")(arg0)       => interpretFile(args.drop(1))
-      case arg0 if Set("--test", "-t")(arg0)       => test(args.drop(1))
-      case arg0 => println("ERROR Unknown arg: " + args.mkString(" ")); help()
+      case a if Set("--hello", "--help", "-h", "-help", "help", "?")(a) => help()
+      case a if Set("--meta", "-m")(a) => genMeta(args.drop(1))
+      case a if Set("--in",   "-i")(a)   => interpretFile(args.drop(1))
+      case a if Set("--test", "-t")(a) => test(args.drop(1))
+      case _ => 
+        println("ERROR Unknown arg: " + args.mkString(" ")); help()
     }
   }
   

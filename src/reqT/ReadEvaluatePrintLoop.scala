@@ -20,7 +20,7 @@ import java.lang.{System => JSystem}
 
 object repl { 
   //val helpOnReqT: String = "** Type ?? for help on reqT, type :h for help on Scala REPL"
-  val helpOnReqT = "** Type :help for help on the Scala Read-Evaluate-Print-Loop"
+  val helpOnReqT = "** Type :help for help on the Scala interpreter"
   val versionMsg = s"\n** Welcome to reqT version $reqT_VERSION" +
     s"\n** Snapshot build: $BUILD_DATE" + 
     s"\n** Compiled with Scala $SCALA_VERSION" +  
@@ -28,7 +28,7 @@ object repl {
      "\n** Running on " + JSystem.getProperty("java.vm.name")
   val startMsg = versionMsg +
      s"\n$PREAMBLE\n$helpOnReqT" +
-    "\n** Starting the Scala REPL extended with reqT ..."
+    "\n** Firing up reqT ..."
   
   @volatile
   var interpreter: Option[ReqTILoop] = None
@@ -43,8 +43,8 @@ object repl {
     //https://issues.scala-lang.org/browse/SI-4331
     //but it does not seem to help...
     //test case:
-      var j = 0
-      while (true) {
+      var j = 0L
+      while (j<100000L) {
         if (j % 1000 == 0) {
           $intp.interpret("""reqT.repl.reset""")
           $intp.bind("j",j)
@@ -69,7 +69,7 @@ object repl {
     }
     def initReqT() {
      intp.quietBind("$intp", intp) //check if this is really needed??
-     intp.interpret("reqT.initInterpreter($intp)")
+     intp.quietRun("reqT.initInterpreter($intp)")
     }
     override def helpCommand(line: String): Result = {
       if (line == "") echo(helpOnReqT)
@@ -86,11 +86,11 @@ object repl {
     override def loop() {
      if (isAsync) awaitInitialized() 
      intp.quietBind("$intp", intp) //check if this is really needed??
-     intp.interpret("reqT.initInterpreter($intp)")
-     intp.interpret(reqT.load(fileName))
+     intp.quietRun("reqT.initInterpreter($intp)")
+     intp.quietRun(reqT.load(fileName))
     }
      override def printWelcome(): Unit = {
-       out.println("** reqT FileRunner starting ...")
+       //out.println("** reqT FileRunner starting ...")
        out.flush()
      }
   }
@@ -99,15 +99,15 @@ object repl {
     override def loop() {
      if (isAsync) awaitInitialized() 
      intp.quietBind("$intp", intp) //check if this is really needed??
-     intp.interpret("reqT.initInterpreterQuietly($intp)")
-     intp.interpret(s"{$code}")
+     intp.quietRun("reqT.initInterpreter($intp)")
+     intp.quietRun(s"{$code}")
     }
      override def printWelcome(): Unit = {
        out.flush()
      }
   }
 
-  def startInterpreting() = {
+  def startInterpreting() {
     val out = new PrintWriter( new BufferedWriter( new OutputStreamWriter(JSystem.out) ) )
     val settings = new GenericRunnerSettings(out.println)
     settings.usejavacp.value = true
@@ -115,7 +115,7 @@ object repl {
     interpreter.map(_.process(settings))
   }
   
-  def interpretFile(fileName: String) = {
+  def interpretFile(fileName: String) {
     val out = new PrintWriter( new BufferedWriter( new OutputStreamWriter(JSystem.out) ) )
     val settings = new GenericRunnerSettings(out.println)
     settings.usejavacp.value = true
@@ -123,12 +123,12 @@ object repl {
     interpreter.map(_.process(settings))    
   }
 
-  def initInterpreterAndRun(code: String) = {
+  def initInterpreterAndRun(code: String) {
     val out = new PrintWriter( new BufferedWriter( new OutputStreamWriter(JSystem.out) ) )
     val settings = new GenericRunnerSettings(out.println)
     settings.usejavacp.value = true
     interpreter = Some( new CodeRunner(out, code) )
-    interpreter.map(_.process(settings))    
+    interpreter.map(_.process(settings))      
   }
   
   

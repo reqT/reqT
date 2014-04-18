@@ -15,35 +15,31 @@ package reqT
 import java.lang.{System => JSystem}
 
 trait Init {
-
-  def makeIMain(msg: String = repl.versionMsg): scala.tools.nsc.interpreter.IMain = {
+  import scala.tools.nsc.interpreter.IMain
+  def makeIMain(): IMain = {
     //to be used when no ILoop is needed, e.g. from another main
     //reqT.initInterpreter()
-    println(msg)
+    println("** Starting Scala interpreter ...")
     val settings = new scala.tools.nsc.Settings()
     settings.classpath.value = JSystem.getProperty("java.class.path")
     val writer = new java.io.PrintWriter((new java.io.OutputStreamWriter(Console.out)))
-    new scala.tools.nsc.interpreter.IMain(settings, writer)
+    new IMain(settings, writer)
   }
   
-  def initInterpreter(intp: scala.tools.nsc.interpreter.IMain = makeIMain() )  {
+  def initInterpreter(intp: IMain = makeIMain() ): IMain = {
     //println("** Initializing reqT ...")
-    //println("** import scala.language._")
     intp.quietRun("import scala.language._")
-    //println("** import reqT._")
     intp.quietRun("import reqT._")
     //intp.quietRun("import reqT." + reqt.elementNames.mkString("{",", ","}")) //to allow tab completion on model elements
     //intp.quietRun("import reqT.abbrev._")
+    intp
   }
   
-  def initInterpreterQuietly(intp: scala.tools.nsc.interpreter.IMain = makeIMain() )  {
-    intp.quietRun("import scala.language._")
-    intp.quietRun("import reqT._")
-  }
-
-  def init(intp: scala.tools.nsc.interpreter.IMain) {
+  def init(intp: IMain = makeIMain() ): Unit = {
     println(repl.startMsg)
+    println(repl.versionMsg)
     initInterpreter(intp)
+    ()
   }
 
 }
