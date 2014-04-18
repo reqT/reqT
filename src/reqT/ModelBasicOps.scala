@@ -154,7 +154,7 @@ trait ModelBasicOps  {
     case anyElem => Vector(anyElem)
   } .flatten.toModel
   
-  def reverse = elems.reverse.toModel
+  def reverse = elems.reverse.toModel  //order dependent - not meaningful for HashModel!?
 
   
 //------------------ check below
