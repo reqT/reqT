@@ -26,7 +26,7 @@ object Main {
   
   def genmeta() {
         println("Generating metamodel...")
-        reqT.metaprog.makeMetamodel().save("GENERATED-metamodel.scala")
+        reqT.meta.gen().save("GENERATED-metamodel.scala")
   }
   
   def interpretFile(args : Array[String]) {
