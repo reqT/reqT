@@ -27,10 +27,10 @@ trait Init {
   }
   
   def initInterpreter(intp: scala.tools.nsc.interpreter.IMain = makeIMain() )  {
-    println("** Initializing reqT ...")
-    println("** import scala.language._")
+    //println("** Initializing reqT ...")
+    //println("** import scala.language._")
     intp.quietRun("import scala.language._")
-    println("** import reqT._")
+    //println("** import reqT._")
     intp.quietRun("import reqT._")
     //intp.quietRun("import reqT." + reqt.elementNames.mkString("{",", ","}")) //to allow tab completion on model elements
     //intp.quietRun("import reqT.abbrev._")
