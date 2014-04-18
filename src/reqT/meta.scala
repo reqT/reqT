@@ -20,8 +20,10 @@ package object meta {
       Meta("General") superOf (
         Meta("Item"), Meta("Label"), Meta("Section")),
       Meta("Context") superOf (
-        Meta("Actor"), Meta("Product"), Meta("Release"), Meta("Resource"), 
-        Meta("Stakeholder"), Meta("Subdomain"), Meta("System")),
+        Meta("Contributor") superOf (
+          Meta("Actor"), Meta("Stakeholder"), Meta("Resource"), Meta("User")),
+        Meta("Container") superOf (
+          Meta("Domain"), Meta("Product"), Meta("Release"), Meta("System"))),
       Meta("Requirement") superOf (
         Meta("GeneralReq") superOf (
           Meta("Req"), Meta("Idea"), Meta("Feature"), Meta("Goal")), 
@@ -46,6 +48,36 @@ package object meta {
         Meta("ZeroOrOne"), Meta("OneOrMany"), Meta("ZeroOrMany"))),
     Meta("enumDefaults") has (
       Meta("Cardinality") has Meta("NoOption")))  
+  
+  def toGraphViz: String = {
+    val m = model * superOf reverse(superOf, is)
+    val body = m.elems .
+      collect { case Relation(Meta(id1), is, Model(Meta(id2))) => s"$id1 -> $id2" } .
+      mkString(";\n")
+    val preamble = """
+      // reqT metamodel ind dot language for input to GraphViz 
+      // compile with dot -T pdf -o filename.pdf filename.dot 
+      compound=true;overlap=false;rankdir=BT;clusterrank=local;
+      ordering=out;nojustify=true;
+      node [fontname=Sans, fontsize=9, shape=record];
+      edge [fontname=Sans, fontsize=9, arrowhead = empty];
+      { rank = same; Elem;  Model; RelationType; }
+      { rank = same; Node_; Relation; }
+      { rank = same;  Entity; Attribute;  }
+
+      Node_ [label = "Node"]
+      Attribute [label = "{Attribute[T]|val value: T}"]
+      Entity [label = "{Entity|val id: String}"]
+      Relation [label = "{Relation|val entity: Entity\lval link: RelationType\lval tail: Model\l }"]
+      Model [label = "{Model|def toVector: Vector[Elem]}"]
+
+      Node_ -> Elem
+      Relation -> Elem
+      Attribute -> Node_
+      Entity -> Node_
+    """
+    s"digraph G {\n $preamble\n $body\n}" 
+  }
 }
 
 package meta {
