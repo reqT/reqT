@@ -1,22 +1,31 @@
 package reqT
 package exporters
 
-trait ModelExporter[T] {
-  def apply(model: Model): T
-}
-
-case object Simple extends ModelExporter[String] {
-  def apply(model: Model): String = model.toStringSimple
-}
-
-trait ModelToString extends ModelExporter[String] {
-  def emptyModelString: String = "()"
-  
+trait Exporter {
+  //utilities:
+  val q: String = '\"'.toString
+  val q3: String = q*3
+  val nl = "\n"
+  def nlLitteral = """\n"""
   def levelTab(level: Int): String   = " " * (level * Settings.intentSpacing)
-  def indent(n: Int): String = "\n" + levelTab(n)
+  def indent(n: Int): String = levelTab(n)
   
+  //stubbs to override:
+  def preamble(m: Model): String = ""
+  def ending(m: Model): String = ""
+  def body(m: Model): String  
+  def apply(m: Model): String = preamble(m) + body(m) + ending(m)
+}
+
+case object Simple extends Exporter {
+  override def body(m: Model): String = m.toStringSimple
+}
+
+trait ModelToString extends Exporter {
+  def emptyModelString: String = "()"
+
   def indentCheck(m: Model, path: NodePath): String = {
-    val space = indent(path.level + 1)
+    val space = "\n" + indent(path.level + 1)
     if (m.toStringBody.length > (Settings.lineLength - space.length)) space else ""
   }
   
@@ -46,20 +55,18 @@ trait ModelToString extends ModelExporter[String] {
   def exportEntity(e: Entity, path: NodePath): String = e.toString
   def exportAttribute[T](a: Attribute[T], path: NodePath): String =  a.toString
   
-  def preamble: String = "Model("
-  def ending(m: Model): String = ")"
-
-  def apply(model: Model): String = preamble + exportModel(model, /) + ending(model)
+  override def preamble(m: Model): String = "Model("
+  override def ending(m: Model): String = ")"
+  override def body(m: Model): String = exportModel(m, /)
 }
 
 
 trait NewLineEnding { self: ModelToString =>
-  override def modelPost(model: Model, path: NodePath) = indentCheck(model, path) + ")"
-  override def ending(model: Model) = if (model.toStringBody.length > Settings.lineLength) "\n)" else ")" 
+  override def modelPost(m: Model, path: NodePath) = indentCheck(m, path) + ")"
+  override def ending(m: Model) = if (m.toStringBody.length > Settings.lineLength) "\n)" else ")" 
 }  
 
 case object PrettyCompact extends ModelToString 
-
 case object Pretty extends ModelToString with NewLineEnding
 
 trait ScalaGenerators { self: ModelToString =>
@@ -68,8 +75,60 @@ trait ScalaGenerators { self: ModelToString =>
 }
 
 case object ScalaCompact extends ModelToString with ScalaGenerators 
-
 case object Scala extends ModelToString with ScalaGenerators with NewLineEnding
+
+trait GraphVizGenerator extends Exporter {
+  def formats = """
+  compound=true;overlap=false;rankdir=LR;clusterrank=local;
+  node [fontname="Sans", fontsize=9];
+  edge [fontname="Sans", fontsize=9];
+"""
+  
+  def style(elem: Elem): String = elem match {
+    case e: Entity => 
+      val (row1, row2) = (e.myType, e.id) 
+      s" [label=$q$row1$nlLitteral$row2$q, shape=box]"
+    case a: Attribute[_] => 
+      val (row1, row2) = (a.myType, a.value) 
+      s" [label=$q$row1$nlLitteral$row2$q, shape=box, style=rounded]"
+    case _ => ""
+  }
+  
+  def node(e: Elem, path: NodePath): String = s"  $q$path$e$q"
+  
+  def singleSubnodeLink(from: Entity, link: RelationType, to: Elem, path: NodePath): String = 
+    indent(path.level) + node(from, path) + style(from) + ";\n" +
+    indent(path.level) + node(to, path/from) + style(to) + ";\n" +
+    indent(path.level) + node(from, path) + " -> " + node(to, path/from) + s"[label=$link]" + ";\n"
+      
+  def subGraphPre(from: Entity, link: RelationType, to: Elem, path: NodePath): String =
+    indent(path.level) + node(from, path) + style(from) + ";\n" +
+    indent(path.level) + node(from, path) + " -> " + node(to, path/from) + 
+    s" [label=$link, lhead=${q}cluster_$from$q]" + ";\n" +
+    indent(path.level) + s"  subgraph ${q}cluster_$from$q { \n"
+
+  def exportModel(m: Model, path: NodePath): String = m.collect {
+    case n: Node => indent(path.level) + node(n, path) + style(n) +";\n"
+    case Relation(e1,l1,sub) => sub match {
+      case Model() => indent(path.level) + node(e1, path) + style(e1) +";\n" 
+      case Model(e2) if e2.isNode => singleSubnodeLink(e1, l1, e2, path)
+      case Model(Relation(e2, _ , Model())) => singleSubnodeLink(e1, l1, e2, path)
+      case Model(Relation(e2, l2, sub2)) if sub2.tip.size == 1 => 
+        singleSubnodeLink(e1, l1, e2, path) + 
+        singleSubnodeLink(e2, l2, sub2.tip.elems.head, path/e1) +
+        exportModel(sub2, path/e1/e2)
+      case _ => 
+        subGraphPre(e1, l1, sub.tip.elems.head, path) +
+        exportModel(sub, path/e1)  + indent(path.level + 1) + "}\n"
+    }
+  } .mkString
+    
+  override def preamble(m: Model): String = s"""digraph ${q}reqT.Model${q} { $nl$formats$nl"""
+  override def ending(m: Model): String = "\n}"
+  override def body(m: Model): String = exportModel(m.reverse,/)
+}
+
+case object NestedGV extends GraphVizGenerator  
 
 
 
