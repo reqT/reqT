@@ -72,7 +72,7 @@ trait ModelIterators extends ModelBase {
   // )
   
   def foreach[U](f: Elem => U): Unit = toIterable.foreach(f)
-  def foreach(block: => Unit): Unit = foreach(_ => block)
+  //def foreach(block: => Unit): Unit = foreach(_ => block)
   def filter(f: Elem => Boolean): Model = toIterable.filter(f).toModel
   def filterNot(f: Elem => Boolean): Model = toIterable.filterNot(f).toModel
   def withFilter(f: Elem => Boolean): FilterMonadic[reqT.Elem,Iterable[reqT.Elem]] = 
