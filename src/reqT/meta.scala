@@ -50,7 +50,7 @@ package object meta {
       Meta("Cardinality") has Meta("NoOption")))  
   
   def toGraphViz: String = {
-    val m = model * superOf reverse(superOf, is)
+    val m = model * superOf inverse(superOf, is)
     val body = m.elems .
       collect { case Relation(Meta(id1), is, Model(Meta(id2))) => s"$id1 -> $id2" } .
       mkString(";\n")

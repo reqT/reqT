@@ -43,7 +43,7 @@ trait ModelBasicOps  {
   
 //remove stuff:  
   def -(e: Elem): Model = remove(e)
-  def remove(e: Elem): Model = e match {
+  def remove(e: Elem): Model = e match {  //?? should this be deep???
     case rel: Relation if isDefinedAt(rel.key) => 
       if (rel.tail == apply(rel.key)) newModel(myMap - rel.key) else {
         var newSubmodel: Model = apply(rel.key)
@@ -123,7 +123,7 @@ trait ModelBasicOps  {
     case _ => false
   } 
   
-  def reverseTop(from: RelationType, to: RelationType): Model =  elems.collect { 
+  def inverseTop(from: RelationType, to: RelationType): Model =  elems.collect { 
     case Relation(e1, r1, tail1) if from == r1 => tail1.elems.collect {
       case Relation(e2, has, Model()) => Vector(Relation(e2, to, Model(e1)))
       case Relation(e2, r2, tail2) => 
@@ -134,25 +134,27 @@ trait ModelBasicOps  {
     case anyElem => Vector(anyElem)
   } .flatten.toModel
 
-  def reverseTails(from: RelationType, to: RelationType): Model =  elems.collect { 
-    case Relation(e, r, tail) => Relation(e, r, tail.reverseTop(from, to))
+  def inverseTails(from: RelationType, to: RelationType): Model =  elems.collect { 
+    case Relation(e, r, tail) => Relation(e, r, tail.inverseTop(from, to))
     case anyElem => anyElem
   } .toModel
 
-  def reverse(from: RelationType, to: RelationType): Model =  elems.collect {  // ??? requires deep thinking
+  def inverse(from: RelationType, to: RelationType): Model =  elems.collect {  // ??? requires deep thinking
     case Relation(e1, r1, tail1) if from == r1 => tail1.elems.collect {
       case Relation(e2, has, Model()) => Vector(Relation(e2, to, Model(e1)))
       case Relation(e2, r2, tail2) =>
         Vector(
           Vector(Relation(e2, to, Model(e1))), //lift the reversed relation
-          Vector(Model(Relation(e2, r2, tail2)).reverse(from,to).elems:_*) //recursive call
+          Vector(Model(Relation(e2, r2, tail2)).inverse(from,to).elems:_*) //recursive call
         ).flatten  //is this right  ^ ???
       case e2: Entity => Vector(Relation(e2, to, Model(e1)))
       case a: Attribute[_] => Vector(Relation(e1, r1, Model(a))) //is this right???
     } .flatten
-    case Relation(e,r,tail) => Vector(Relation(e,r,tail.reverse(from, to))) //recursive call for other tails
+    case Relation(e,r,tail) => Vector(Relation(e,r,tail.inverse(from, to))) //recursive call for other tails
     case anyElem => Vector(anyElem)
   } .flatten.toModel
+  
+  def reverse = elems.reverse.toModel
 
   
 //------------------ check below
