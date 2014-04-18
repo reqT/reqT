@@ -51,7 +51,7 @@ trait ModelIterators extends ModelBase {
     iter(this, HeadPath())
   }
   
-  //def collect[T](f: PartialFunction[Elem,T]): Vector[T] = elems.collect(f) 
+  def collect[T](f: PartialFunction[Elem,T]): Vector[T] = elems.collect(f) 
   def collectDeep[T](f: PartialFunction[Elem,T]): Vector[T] = elems.flatMap ( e =>   //???
     e match {
       case n: Node if f.isDefinedAt(e) => Vector(f(e))
@@ -71,15 +71,14 @@ trait ModelIterators extends ModelBase {
     // }
   // )
   
-  def foreach[U](f: Elem => U): Unit = toIterable.foreach(f)
-  //def foreach(block: => Unit): Unit = foreach(_ => block)
-  def filter(f: Elem => Boolean): Model = toIterable.filter(f).toModel
-  def filterNot(f: Elem => Boolean): Model = toIterable.filterNot(f).toModel
+  def foreach[U](f: Elem => U): Unit = elems.foreach(f)
+  def filter(f: Elem => Boolean): Model = elems.filter(f).toModel
+  def filterNot(f: Elem => Boolean): Model = elems.filterNot(f).toModel
   def withFilter(f: Elem => Boolean): FilterMonadic[reqT.Elem,Iterable[reqT.Elem]] = 
     toIterable.withFilter(f) //needed to make for-comprehensions work over Model
-  def map[U](f: Elem => U): Iterable[U] = toIterable.map(f)
+  def map[U](f: Elem => U): Vector[U] = elems.map(f)
 
-  def filterDeep(p: Elem => Boolean): Model = newModel( myMap.flatMap {
+  def filterDeep(p: Elem => Boolean): Model = newModel( myMap.flatMap {  //???
     case km if p(km.toElem) => km match {
       case (h: Head,tail: Model) =>  Some((h, tail.filterDeep(p)))
       case _ => Some(km)
@@ -87,7 +86,7 @@ trait ModelIterators extends ModelBase {
     case _ => None
   } )
 
-  def filterDeepNot(p: Elem => Boolean): Model = newModel( myMap.flatMap {
+  def filterDeepNot(p: Elem => Boolean): Model = newModel( myMap.flatMap { //???
     case km if !p(km.toElem) => km match {
       case (h: Head,tail: Model) =>  Some((h, tail.filterDeepNot(p)))
       case _ => Some(km)
@@ -131,8 +130,6 @@ trait ModelIterators extends ModelBase {
     }
   }
   def foreachNodeDeep(block: => Unit): Unit = foreachNodeDeep { _ => block }  
-  
-
   
   def bfs[T](f: PartialFunction[Elem,T]): Vector[T] =  //funkar ??? , eller missar sources ???
     elemsWithTip.collect(f) ++ topRelations.map(r => r.tail.bfs(f)).flatten
