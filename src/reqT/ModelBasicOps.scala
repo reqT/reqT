@@ -172,6 +172,8 @@ trait ModelBasicOps  {
     myMap.collect { case (h: Head, m: Model) if !m.isEmpty=> m.tipEntities } .toVector .flatten .distinct
   lazy val topDestinationSet: Set[Entity] = topDestinations.toSet
   lazy val topHeads: Vector[Head] = myMap.keys.collect { case h: Head => h } .toVector
+  lazy val tipLeafs: Model = collect { case n: Node => n } .toModel
+  lazy val tipLeafsRemoved: Model = filterNot{ case n: Node => true; case _ => false}
   lazy val topNodesAndHeads: Vector[Node] = elems.collect { 
     case n: Node => n 
     case r: Relation => r.entity      
@@ -207,4 +209,16 @@ trait ModelBasicOps  {
     case AttrVal(p,a) => (p.heads.lastOption.getOrElse(reqT./), a)
   } .collect { case (h: Head,a) => (h,a) }
   lazy val attrOf: Map[Head,Attribute[_]] = headAttributePairs.toMap
+  
+  lazy val atoms: Vector[Elem] = {
+    def iter(m: Model, isTopLevel: Boolean): Vector[Elem] = m.elems.flatMap { 
+      case e: Entity if isTopLevel => Vector(e)
+      case Relation(e,l,sub) => sub.tipNodes.map(n => Relation(e,l,Model(n))) ++ iter(sub, false)
+      case a: Attribute[_] if isTopLevel => Vector(a)
+      case _ => Vector()
+    }
+    iter(this, true).distinct
+  }
+  
+  lazy val flat: Model = atoms.toModel
 }
