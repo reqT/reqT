@@ -12,11 +12,9 @@
 **************************************************************************/
 package reqT
 
-import exporters._
-
 object Settings {
   var intentSpacing = 2
   var lineLength = 72
-  var defaultModelToString: Exporter = ScalaCompact
+  var defaultModelToString: export.StringExporter = export.toScalaCompact
 }
 
