@@ -11,12 +11,12 @@ object toStringCompact extends ModelToString
 object toStringPaired extends ModelToString with NewLineEnding
 object toScalaCompact extends ModelToString with ScalaGenerators 
 object toScalaPaired extends ModelToString with ScalaGenerators with NewLineEnding
-object toNestedGV extends GraphVizGenerator  
+object toGraphVizNested extends GraphVizNested  
+object toGraphVizFlat extends GraphVizFlat  
 
 trait Exporter[T] { def apply(m: Model): T }
 
 trait StringExporter extends Exporter[String] {
-
   override def apply(m: Model): String = preamble(m) + body(m) + ending(m)
   def body(m: Model): String 
   def preamble(m: Model): String = ""
@@ -75,18 +75,22 @@ trait NewLineEnding { self: ModelToString =>
   override def ending(m: Model) = if (m.toStringBody.length > Settings.lineLength) "\n)" else ")" 
 }  
 
-
 trait ScalaGenerators { self: ModelToString =>
   override def exportEntity(e: Entity, path: NodePath): String = e.toScala
   override def exportAttribute[T](a: Attribute[T], path: NodePath): String =  a.toScala
 }
 
-trait GraphVizGenerator extends StringExporter {
+trait GraphViz extends StringExporter {
   def formats = """
   compound=true;overlap=false;rankdir=LR;clusterrank=local;
   node [fontname="Sans", fontsize=9];
   edge [fontname="Sans", fontsize=9];
 """
+  override def preamble(m: Model): String = s"""digraph ${q}reqT.Model${q} { $nl$formats$nl"""
+  override def ending(m: Model): String = "\n}"  
+}
+
+trait GraphVizNested extends GraphViz {
   
   def style(elem: Elem): String = elem match {
     case e: Entity => 
@@ -127,11 +131,35 @@ trait GraphVizGenerator extends StringExporter {
     }
   } .mkString
     
-  override def preamble(m: Model): String = s"""digraph ${q}reqT.Model${q} { $nl$formats$nl"""
-  override def ending(m: Model): String = "\n}"
   override def body(m: Model): String = exportModel(m.reverse,/)
 }
 
+trait GraphVizFlat extends GraphViz {
+  
+  def node(elem: Elem): String = elem match {
+    case n: Node => s"$q$n$q" 
+    case _ => ""
+  }
+  
+  def nodeStyle(elem: Elem): String = elem match {
+    case e: Entity => 
+      val (row1, row2) = (e.myType, e.id) 
+      node(e) + s" [label=$q$row1$nlLitteral$row2$q, shape=box];\n"
+    case a: Attribute[_] => 
+      val (row1, row2) = (a.myType, a.value) 
+      node(a) + s" [label=$q$row1$nlLitteral$row2$q, shape=box, style=rounded];\n"
+    case _ => ""
+  }
+  
+  override def body(m: Model): String = m.atoms.map {
+    case n: Node => nodeStyle(n)
+    case Relation(from,link,Model(to)) => 
+      nodeStyle(from) + nodeStyle(to) +
+      node(from) + " -> " + node(to) + s" [label=$link]" + ";\n" 
+    case _ => ""
+  } .mkString
+
+}
 
 
 
