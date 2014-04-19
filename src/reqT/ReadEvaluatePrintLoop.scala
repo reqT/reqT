@@ -27,8 +27,7 @@ object repl {
      "\n** Running Java version " + JSystem.getProperty("java.version") +  
      "\n** Running on " + JSystem.getProperty("java.vm.name")
   val startMsg = versionMsg +
-     s"\n$PREAMBLE\n$helpOnReqT" +
-    "\n** Firing up reqT ..."
+     s"\n$PREAMBLE\n$helpOnReqT"  
   
   @volatile
   var interpreter: Option[ReqTILoop] = None
