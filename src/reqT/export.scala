@@ -1,27 +1,36 @@
 package reqT
-package exporters
+package export
 
-trait Exporter {
-  //utilities:
+//exporters with apply method that generates string output
+
+object toStringSimple extends StringExporter {
+  override def body(m: Model): String = m.toStringSimple
+}
+
+object toStringCompact extends ModelToString 
+object toStringPaired extends ModelToString with NewLineEnding
+object toScalaCompact extends ModelToString with ScalaGenerators 
+object toScalaPaired extends ModelToString with ScalaGenerators with NewLineEnding
+object toNestedGV extends GraphVizGenerator  
+
+trait Exporter[T] { def apply(m: Model): T }
+
+trait StringExporter extends Exporter[String] {
+
+  override def apply(m: Model): String = preamble(m) + body(m) + ending(m)
+  def body(m: Model): String 
+  def preamble(m: Model): String = ""
+  def ending(m: Model): String = ""
+
+  //string utilities:  (move to Utils ??)
   val q: String = '\"'.toString
   val q3: String = q*3
   val nl = "\n"
   def nlLitteral = """\n"""
-  def levelTab(level: Int): String   = " " * (level * Settings.intentSpacing)
-  def indent(n: Int): String = levelTab(n)
-  
-  //stubbs to override:
-  def preamble(m: Model): String = ""
-  def ending(m: Model): String = ""
-  def body(m: Model): String  
-  def apply(m: Model): String = preamble(m) + body(m) + ending(m)
+  def indent(n: Int): String = " " * (n * Settings.intentSpacing)
 }
 
-case object Simple extends Exporter {
-  override def body(m: Model): String = m.toStringSimple
-}
-
-trait ModelToString extends Exporter {
+trait ModelToString extends StringExporter {
   def emptyModelString: String = "()"
 
   def indentCheck(m: Model, path: NodePath): String = {
@@ -66,18 +75,13 @@ trait NewLineEnding { self: ModelToString =>
   override def ending(m: Model) = if (m.toStringBody.length > Settings.lineLength) "\n)" else ")" 
 }  
 
-case object PrettyCompact extends ModelToString 
-case object Pretty extends ModelToString with NewLineEnding
 
 trait ScalaGenerators { self: ModelToString =>
   override def exportEntity(e: Entity, path: NodePath): String = e.toScala
   override def exportAttribute[T](a: Attribute[T], path: NodePath): String =  a.toScala
 }
 
-case object ScalaCompact extends ModelToString with ScalaGenerators 
-case object Scala extends ModelToString with ScalaGenerators with NewLineEnding
-
-trait GraphVizGenerator extends Exporter {
+trait GraphVizGenerator extends StringExporter {
   def formats = """
   compound=true;overlap=false;rankdir=LR;clusterrank=local;
   node [fontname="Sans", fontsize=9];
@@ -128,7 +132,6 @@ trait GraphVizGenerator extends Exporter {
   override def body(m: Model): String = exportModel(m.reverse,/)
 }
 
-case object NestedGV extends GraphVizGenerator  
 
 
 
