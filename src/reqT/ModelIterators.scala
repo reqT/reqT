@@ -21,7 +21,7 @@ trait ModelIterators extends ModelBase {
   
   import Model.{fromMap => newModel}
   
-  def mapLeafPaths[T](f: Path => T): Vector[T] = {
+  def mapLeafPaths[T](f: NodePath => T): Vector[T] = {
     def iter(m: Model, p: HeadPath): Vector[T] = m.myMap.toVector.flatMap {
       case (at: AttributeType[_], a: Attribute[_]) => Vector(f(p/a))
       case (h: Head, tail: Model) if tail.isEmpty => Vector(f(p / h))
@@ -31,7 +31,7 @@ trait ModelIterators extends ModelBase {
     iter(this, HeadPath())
   }
 
-  def collectLeafPaths[T](f: PartialFunction[Path,T]): Vector[T] = {
+  def collectLeafPaths[T](f: PartialFunction[NodePath,T]): Vector[T] = {
     def iter(m: Model, p: HeadPath): Vector[T] = m.myMap.toVector.flatMap {
       case (at: AttributeType[_], a: Attribute[_]) if f.isDefinedAt(p/a) => Vector(f(p/a))
       case (h: Head, tail: Model) if tail.isEmpty && f.isDefinedAt(p/h) => Vector(f(p / h))

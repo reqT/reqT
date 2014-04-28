@@ -120,6 +120,7 @@ case object NoElem extends Elem with TypeObject {
 
 sealed trait Node extends Elem {
   override def isNode: Boolean = true
+  def toScalaBody: String
 }
 
 sealed trait MapTo extends DSL with HasType  
@@ -129,7 +130,8 @@ trait Attribute[T] extends Node with MapTo with HasValue[T] with CanBeMapped {
   override def key: AttributeType[T] = myType
   override def mapTo: Attribute[T] = this
   override def isAttribute: Boolean = true
-  override def toScala: String =  myType + "(" + value + ")"
+  override def toScalaBody: String = value.toString
+  override def toScala: String =  myType + "(" + toScalaBody + ")"
   def / = AttrVal(HeadPath(), this)
 }
 
@@ -153,7 +155,8 @@ sealed trait Entity extends Node with HeadFactory with RelationFactory  {
   override def mapTo: Model = Model() 
   override def myType: EntityType
   override def isAttribute: Boolean = false
-  override def toScala: String = myType + "(" + id.toScala + ")"
+  override def toScalaBody = id.toScala
+  override def toScala: String = myType + "(" + toScalaBody + ")"
   def / = HeadPath(this.has)
   def /(h: Head) = HeadPath(this.has, h)
   def /(e: Entity) = HeadPath(this.has, e.has)
@@ -214,6 +217,7 @@ case class Head(entity: Entity, link: RelationType) extends Key {
   def /[T](at: AttributeType[T]) = AttrRef[T](HeadPath(this), at)
   def /[T](a: Attribute[T]) = AttrVal[T](HeadPath(this), a)
   override def toString = entity + "." + link
+  override def toScala = entity.toScala + "." + link
 }
 
 case class Relation(entity: Entity, link: RelationType, tail: Model) extends Elem {
@@ -245,7 +249,7 @@ trait MetamodelTypes {
 
 //Primitive Attributes traits
 trait StringAttribute extends Attribute[String] {
-  override def toScala: String =  myType + "(" + value.toScala + ")"
+  override def toScalaBody = value.toScala
 }
 trait StringType extends AttributeType[String] { 
   val default = "???"

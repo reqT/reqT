@@ -15,6 +15,8 @@ package reqT
 object Settings {
   var intentSpacing = 2
   var lineLength = 72
+  var columnSeparator = ";"
+  var rowSeparator = "\n"
   var defaultModelToString: export.StringExporter = export.toScalaCompact
 }
 

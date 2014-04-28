@@ -13,7 +13,7 @@
 
 package reqT
 
-sealed trait Path {
+sealed trait Path extends DSL {
   def heads: Vector[Head]
   def tail: Path
   def init: Path 
@@ -30,6 +30,7 @@ sealed trait Path {
   
   lazy val head = heads.head
   lazy val headOption: Option[Head] = heads.headOption
+  override lazy val toScala = heads.map(_.toScala).mkString("","/","/")
 }
 
 sealed trait NodePath extends Path {
@@ -63,14 +64,16 @@ case class AttrVal[T](init: HeadPath, attr: Attribute[T]) extends NodePath {
   lazy val lastNode: Attribute[T] = attr 
   override lazy val level = heads.size + 1
   override lazy val toString = ( if (init.isEmpty) "" else init.toString )  + attr + "/"
+  override lazy val toScala = ( if (init.isEmpty) "" else init.toScala ) + attr.toScala + "/"
 }
 
 case class AttrRef[T](init: HeadPath, attrType: AttributeType[T]) extends Path {
   override lazy val heads = init.heads
   lazy val tail = AttrRef(HeadPath(heads.drop(1)), attrType)
   //def apply(m: Model) = ModelUpdater(m, this)
-  override def level = heads.size + 1
-  override def toString = ( if (init.isEmpty) "" else init.toString )  + attrType + "/"
+  override lazy val level = heads.size + 1
+  override lazy val toString = ( if (init.isEmpty) "" else init.toString )  + attrType + "/"
+  override lazy val toScala = ( if (init.isEmpty) "" else init.toScala ) + attrType + "/"
 }
 
 trait RootHeadPathFactory {

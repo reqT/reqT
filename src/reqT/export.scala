@@ -13,6 +13,7 @@ object toScalaCompact extends ModelToString with ScalaGenerators
 object toScalaPaired extends ModelToString with ScalaGenerators with NewLineEnding
 object toGraphVizNested extends GraphVizNested  
 object toGraphVizFlat extends GraphVizFlat  
+object toTable extends Table
 
 trait Exporter[T] { def apply(m: Model): T }
 
@@ -161,6 +162,15 @@ trait GraphVizFlat extends GraphViz {
 
 }
 
+trait Table extends StringExporter {
+  def body(m: Model): String = {
+    val row =  m.mapLeafPaths { n => 
+      Seq(n.init.toScala, n.lastNode.myType, n.lastNode.toScalaBody) .
+        mkString(Settings.columnSeparator) 
+    }
+    row.mkString(Settings.rowSeparator)
+  }
+}
 
 
 
