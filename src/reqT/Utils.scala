@@ -67,6 +67,7 @@ trait StringUtils {
     def toIntOrZero: Int = try {s.toInt} catch { case e: NumberFormatException => 0}
     //def toLevel: StatusLevel = levelFromString(s)
     def decapitalize: String = strUtils.decapitalize(s)
+    def trimUnquote: String = strUtils.trimUnquote(s)
     def truncPad(n: Int) = strUtils.truncPad(s, n)
     def trunc(n: Int) = strUtils.trunc(s, n)
     def indentNewline(n: Int = 2) = strUtils.indentNewline(s, n)
@@ -84,6 +85,14 @@ trait StringUtils {
     def quoteIfString(a:Any):String = a match {
       case s:String => "\"" + s + "\""
       case _ => a.toString
+    }
+    def trimUnquote(str: String): String = { 
+      val s = str.trim
+      if (s.length > 1) {
+        val (first, last) = (s.take(1)(0), s(s.length-1))
+        if (first == '\"' && last == '\"') s.drop(1).take(s.length-2) 
+        else s
+      } else s
     }
     def escapeSeq(s:String):String = (for (c <- s) yield c match {
       case '\b' => '\\'+"b"
