@@ -28,6 +28,8 @@ sealed trait Path extends DSL {
   def /[T](at: AttributeType[T]): AttrRef[T] = pathError(at)
   def /[T](a: Attribute[T]):AttrVal[T] = pathError(a)
   
+  def startsWith(that: Path): Boolean 
+  
   lazy val head = heads.head
   lazy val headOption: Option[Head] = heads.headOption
   override lazy val toScala = heads.map(_.toScala).mkString("","/","/")
@@ -45,6 +47,11 @@ case class HeadPath(heads: Vector[Head]) extends NodePath {
   override def /(e: Entity) = HeadPath(heads :+ e.has)
   override def /[T](at: AttributeType[T]) = AttrRef[T](this, at)
   override def /[T](a: Attribute[T]) = AttrVal[T](this, a)
+  def startsWith(that: Path): Boolean = that match {
+    case HeadPath(thatHeads) => heads.startsWith(thatHeads) 
+    case _ => false
+  }
+  
   lazy val tail = HeadPath(heads.tail)
   lazy val init = HeadPath(heads.init)
   lazy val lastNode: Entity = heads.lastOption.map(_.entity).getOrElse(NoEntity)
@@ -62,6 +69,11 @@ case class AttrVal[T](init: HeadPath, attr: Attribute[T]) extends NodePath {
   override lazy val heads = init.heads
   lazy val tail = AttrVal(HeadPath(heads.drop(1)), attr)
   lazy val lastNode: Attribute[T] = attr 
+  def startsWith(that: Path): Boolean = that match {
+    case HeadPath(thatHeads) => heads.startsWith(thatHeads)
+    case ar: AttrRef[T] => ar.init == init && ar.attrType == attr.myType
+    case av: AttrVal[T] => av == this
+  }
   override lazy val level = heads.size + 1
   override lazy val toString = ( if (init.isEmpty) "" else init.toString )  + attr + "/"
   override lazy val toScala = ( if (init.isEmpty) "" else init.toScala ) + attr.toScala + "/"
@@ -70,7 +82,13 @@ case class AttrVal[T](init: HeadPath, attr: Attribute[T]) extends NodePath {
 case class AttrRef[T](init: HeadPath, attrType: AttributeType[T]) extends Path {
   override lazy val heads = init.heads
   lazy val tail = AttrRef(HeadPath(heads.drop(1)), attrType)
-  //def apply(m: Model) = ModelUpdater(m, this)
+  lazy val toDefaultAttrVal = AttrVal(init, attrType(attrType.default))
+  def toAttrVal(v: T) = AttrVal(init, attrType(v))
+  def startsWith(that: Path): Boolean = that match {
+    case HeadPath(thatHeads) => heads.startsWith(thatHeads)
+    case ar: AttrRef[T] => ar == this
+    case _ => false
+  }
   override lazy val level = heads.size + 1
   override lazy val toString = ( if (init.isEmpty) "" else init.toString )  + attrType + "/"
   override lazy val toScala = ( if (init.isEmpty) "" else init.toScala ) + attrType + "/"
@@ -79,7 +97,3 @@ case class AttrRef[T](init: HeadPath, attrType: AttributeType[T]) extends Path {
 trait RootHeadPathFactory {
   def / = HeadPath()
 }
-//case class ModelUpdater[T](m: Model, r: AttrRef[T]) {
-  // //to enable DSL syntax Stakeholder("a")/Req("x")/Prio(Model()) := 3 
-  //def :=(value: T): Model =  m.updated(r, value)
-// }

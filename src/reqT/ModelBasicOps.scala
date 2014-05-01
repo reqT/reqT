@@ -43,22 +43,39 @@ trait ModelBasicOps  {
   
 //remove stuff:  
   def -(e: Elem): Model = remove(e)
-  def remove(e: Elem): Model = e match {  //?? should this be deep???
-    case rel: Relation if isDefinedAt(rel.key) => 
-      if (rel.tail == apply(rel.key)) newModel(myMap - rel.key) else {
-        var newSubmodel: Model = apply(rel.key)
-        for (e <- rel.tail.elems) newSubmodel -= e
-        if (newSubmodel.isEmpty && !apply(rel.key).isEmpty) newModel(myMap - rel.key)  //???
-        else newModel(myMap - rel.key + (rel.key -> newSubmodel))      
-      }
-    case ent: Entity if isDefinedAt(ent.has) && apply(ent).isEmpty => newModel(myMap - ent.has) 
-    case va: VectorAttribute[_] if isDefinedAt(va.key) =>
-      val newVector = apply(va.key) diff va.value
-      newModel(myMap - va.key + (va.key -> va.key.apply(newVector)))
-    case a: Attribute[_] if isDefinedAt(a.key) && myMap(a.key) == a => newModel(myMap - a.key)  
-    case _ => this
-  }
+  def remove(elm: Elem): Model = elems.map { 
+    case e: Entity if e == elm => NoElem
+    case a: Attribute[_] if a == elm => NoElem
+    case r@Relation(e, l, _) if r == elm || e == elm => NoElem
+    case Relation(e, l, sub) => Relation(e, l, sub.remove(elm))  
+    case e => e
+  } .toModel
+  
+  def -(t: TypeObject): Model = remove(t)
+  def remove(t: TypeObject): Model = elems.map { 
+    case e: Entity if e.myType == t => NoElem
+    case a: Attribute[_] if a.myType == t => NoElem
+    case r@Relation(e, l, _) if l == t || e.myType == t || HeadType(e.myType,l) == t => NoElem
+    case Relation(e, l, sub) => Relation(e, l, sub.remove(t))  
+    case e => e
+  } .toModel
 
+  
+  def -(h: Head): Model = remove(h)
+  def remove(h: Head): Model = elems.map { 
+    case Relation(e, l, _) if Head(e,l) == h => NoElem
+    case Relation(e, l, sub) => Relation(e, l, sub.remove(h))  
+    case e => e
+  } .toModel
+
+  def -(p: Path): Model = remove(p)
+  def remove(p: Path): Model = leafPaths.map { _ match { 
+    case hp: HeadPath if hp startsWith p => HeadPath()
+    case av: AttrVal[_] if av startsWith p => HeadPath() 
+    case any => any
+  } }.toModel
+  
+  
   //def diff(that: Model): Model = (elems diff that.elems).toModel //should not this be deep????
   def diff(that: Model): Model = { var r = this ; that.foreach { r -= _ } ; r }  //is this right?
   def --(that: Model): Model = diff(that)  //is diff == diffKeys ??? NO!?
@@ -173,6 +190,7 @@ trait ModelBasicOps  {
   lazy val topDestinationSet: Set[Entity] = topDestinations.toSet
   lazy val topHeads: Vector[Head] = myMap.keys.collect { case h: Head => h } .toVector
   lazy val tipLeafs: Model = collect { case n: Node => n } .toModel
+  lazy val leafPaths: Vector[NodePath] = mapLeafPaths(p => p)
   lazy val tipLeafsRemoved: Model = filterNot{ case n: Node => true; case _ => false}
   lazy val topNodesAndHeads: Vector[Node] = elems.collect { 
     case n: Node => n 

@@ -20,6 +20,21 @@ trait ImplicitModelElemEnrichments {
     def toListModel = ListModel(it.toSeq:_*)
     def toHashModel = HashModel(it.toSeq:_*)
   }
+  
+  implicit class PathIterableToModel(ps: Iterable[Path]) {
+    private def addPathsToModel(start: Model): Model = {
+      var m = start
+      ps.foreach { _ match {
+        case hp: HeadPath => m += hp
+        case av: AttrVal[_] => m += av
+        case ar: AttrRef[_] => m += ar.toDefaultAttrVal
+      } }
+      m
+    }
+    def toModel = addPathsToModel(Model())
+    def toListModel = addPathsToModel(ListModel())
+    def toHashModel = addPathsToModel(HashModel())
+  }
 
   implicit class MapToModel(m: scala.collection.Map[Key, MapTo]) {
     def toModel = Model.fromMap(m.toMap)
