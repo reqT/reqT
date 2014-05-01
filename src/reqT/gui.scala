@@ -22,13 +22,19 @@ object gui {
   private var nextModelViewerNum = 1
   
   def runnable(code: => Unit) = new Runnable { def run = code }
-  def runInSwingThread(code: => Unit) { 
-    SwingUtilities.invokeLater(runnable(code))
-  }
+  def runInSwingThread(code: => Unit) { SwingUtilities.invokeLater(runnable(code)) }
   def onEvent(act: ActionEvent => Unit): ActionListener = new ActionListener { 
     def actionPerformed(e: ActionEvent) = act(e)
   }
   def onAction(act: => Unit): ActionListener = onEvent( _ => act)
+  
+  def saveToChosenFile(s: String, c: Component): Unit = {
+     val fileChooser = new JFileChooser();
+      if (fileChooser.showSaveDialog(c) == JFileChooser.APPROVE_OPTION) {
+        val file = fileChooser.getSelectedFile();
+        s.save(file.getCanonicalPath)
+      }    
+  }
   
   
   class SwingModelViewer( val initModel: Model) extends JPanel 
@@ -42,15 +48,13 @@ object gui {
         if (node == null) return
         val nodeInfo = node.getUserObject();
         if (node.isLeaf()) {
-            //BookInfo book = (BookInfo)nodeInfo;
-            //displayURL(book.bookURL);
             println(s"leaf selected: $nodeInfo" )
         } else {
             println(s"branch selected: $nodeInfo") 
         }
     }  
     
-    def createNodes(root: DefaultMutableTreeNode) = {
+    def createNodes(root: DefaultMutableTreeNode): Unit = {
       def mkNode(n: Any) = new DefaultMutableTreeNode(n)
       def iter(model: Model, node: DefaultMutableTreeNode): Unit = model.elems.foreach { 
         case a: Attribute[_] => node.add(mkNode(a))
@@ -65,44 +69,36 @@ object gui {
       iter(currentModel, root)
     }
     
-    def doSave(): Unit = {
-      val fileChooser = new JFileChooser();
-      if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-        val file = fileChooser.getSelectedFile();
-        currentModel.toString.save(file.getCanonicalPath)
-      }
-    }
-    
+    def doSaveAs()           = saveToChosenFile(currentModel.toString, this)
+    def doToGraphVizNested() = saveToChosenFile(export.toGraphVizNested(currentModel), this)
+    def doToGraphVizFlat()   = saveToChosenFile(export.toGraphVizFlat(currentModel), this)
     
     def mkMenuItem(name: String, menu: JMenu, shortcut: (Int, Int, Int)) 
-        (action: => Unit): JMenuItem = {
+        (action: => Unit): Unit = {
       val mi = new JMenuItem(name, shortcut._1)
       mi.addActionListener( onAction { action } ) 
-      mi.setAccelerator(KeyStroke.getKeyStroke(shortcut._2, shortcut._3))
+      if (shortcut._2 != 0) 
+        mi.setAccelerator(KeyStroke.getKeyStroke(shortcut._2, shortcut._3))
       menu.add(mi)
     }
     
-    val saveShortcut = (KeyEvent.VK_A, KeyEvent.VK_S, ActionEvent.CTRL_MASK)
+    val saveKey             = (KeyEvent.VK_A, KeyEvent.VK_S, ActionEvent.CTRL_MASK)
+    val toGraphVizNestedKey = (KeyEvent.VK_N, 0, 0)
+    val toGraphVizFlatKey   = (KeyEvent.VK_F, 0, 0)
     
-    def mkMenuBar(frame: JFrame): JMenuBar = {
+    def mkMenuBar(frame: JFrame): Unit = {
         val menuBar = new JMenuBar()
         val (fileMenu, exportMenu) = ( new JMenu("File"), new JMenu("Export"))
+
         fileMenu.setMnemonic(KeyEvent.VK_F);
         exportMenu.setMnemonic(KeyEvent.VK_E);
         
-        // val saveAs = new JMenuItem("Save As ...", KeyEvent.VK_A)
-        // saveAs.addActionListener( onAction { doSave() } ) 
-        // saveAs.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
-        // fileMenu.add(saveAs)
-        
-        mkMenuItem("Save As ...", fileMenu, saveShortcut) { doSave() }
+        mkMenuItem("Save As ...", fileMenu, saveKey) { doSaveAs() }
+        mkMenuItem("To GraphViz (Nested) ...", exportMenu, toGraphVizNestedKey) { doToGraphVizNested() }
+        mkMenuItem("To GraphViz (Flat) ...", exportMenu, toGraphVizFlatKey) { doToGraphVizFlat() }
 
-        val toGraphViz = new JMenuItem("To GraphViz ...", KeyEvent.VK_G)
-
-        exportMenu.add(toGraphViz)
         Seq(fileMenu, exportMenu).foreach(m => menuBar.add(m))
         frame.setJMenuBar(menuBar)
-        menuBar
     }
     
     //init:
@@ -123,19 +119,19 @@ object gui {
     val splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
     splitPane.setTopComponent(treeView);
     splitPane.setBottomComponent(htmlView);
-    val startHeight = 500
-    val smallestDim = new Dimension(100, 50);
-    val prefferedDim = new Dimension(startHeight, 300)
+    val (startHeight, startWidth) = (640, 640)
+    val smallestDim = new Dimension(100, 100);
+    val prefferedDim = new Dimension(startWidth, startHeight)
     val dividerAt = startHeight / 2
     htmlView.setMinimumSize(smallestDim);
     treeView.setMinimumSize(smallestDim);
-    splitPane.setDividerLocation(100); 
+    splitPane.setDividerLocation(dividerAt); 
     splitPane.setPreferredSize(prefferedDim);
     add(splitPane);
   }
 
   
-  def view(m: Model = Model()) = {
+  def view(m: Model = Model()): Unit = {
     val frame = new JFrame(s"ModelViewer m$nextModelViewerNum")
     frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
     val smv = new SwingModelViewer(m)
