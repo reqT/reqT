@@ -20,7 +20,7 @@ object gui {
   import javax.swing.event._
  
   private var nextModelViewerNum = 1
-  
+ 
   def runnable(code: => Unit) = new Runnable { def run = code }
   def runInSwingThread(code: => Unit) { SwingUtilities.invokeLater(runnable(code)) }
   def onEvent(act: ActionEvent => Unit): ActionListener = new ActionListener { 
@@ -36,17 +36,20 @@ object gui {
       }    
   }
   
-  
   class SwingModelViewer( val initModel: Model) extends JPanel 
       with TreeSelectionListener  {
-      
+
+    case object ModelRoot { override val toString = "Model" }  
+    
     private var currentModel: Model = initModel
     nextModelViewerNum += 1
-
+    
     def valueChanged(e: TreeSelectionEvent) {//Required by TreeSelectionListener
         val node = tree.getLastSelectedPathComponent().asInstanceOf[DefaultMutableTreeNode]
         if (node == null) return
-        val nodeInfo = node.getUserObject();
+        if (node.eq(top)) printTree(tree.getModel, top)
+        val nodeInfo = node.getUserObject
+        println(s"path: ${node.getUserObjectPath.map(p => println(p.toString + '/'.toString))}")
         if (node.isLeaf()) {
             println(s"leaf selected: $nodeInfo" )
         } else {
@@ -54,7 +57,39 @@ object gui {
         }
     }  
     
-    def createNodes(root: DefaultMutableTreeNode): Unit = {
+    def printTree(t: TreeModel, obj: Any) {
+      val n = t.getChildCount(obj)
+      for ( i <- 0 until n) {
+        val child = t.getChild(obj, i);
+        if (t.isLeaf(child))
+          println(child.toString());
+        else {
+          println(child.toString()+"--");
+          printTree(t,child ); 
+        }
+       }
+     }
+     
+    def toModel: Model = {
+      val t = tree.getModel
+      def castToElem(obj: Any): Elem = //this is ugly Java stuff!
+        obj.asInstanceOf[DefaultMutableTreeNode].getUserObject.asInstanceOf[Elem]
+      def castToHead(obj: Any): Head = //this is ugly Java stuff!
+        obj.asInstanceOf[DefaultMutableTreeNode].getUserObject.asInstanceOf[Head]
+      def iter(obj: Any): Model = {
+        var elems: Vector[Elem] = Vector() 
+        val n = t.getChildCount(obj)
+        for ( i <- 0 until n) {
+          val child: Any = t.getChild(obj, i);
+          if (t.isLeaf(child)) elems = elems :+ castToElem(child)
+          else elems = elems :+ Relation(castToHead(child), iter(child))
+        }
+        elems.toModel
+      }
+      iter(top)
+    }
+    
+    def createNodes(start: DefaultMutableTreeNode): Unit = {
       def mkNode(n: Any) = new DefaultMutableTreeNode(n)
       def iter(model: Model, node: DefaultMutableTreeNode): Unit = model.elems.foreach { 
         case a: Attribute[_] => node.add(mkNode(a))
@@ -66,12 +101,48 @@ object gui {
         case e => println("Unkown element: " + e)
       }
 
-      iter(currentModel, root)
+      iter(currentModel, start)
     }
     
+    def treeModel = tree.getModel.asInstanceOf[DefaultTreeModel]
+    
+    def removeCurrentNode() {
+      val currentSelection: TreePath = tree.getSelectionPath();
+      if (currentSelection != null) {
+        val currentNode =
+          currentSelection.getLastPathComponent().asInstanceOf[DefaultMutableTreeNode]
+        val parent = currentNode.getParent().asInstanceOf[MutableTreeNode]
+        if (parent != null) 
+          treeModel.removeNodeFromParent(currentNode);
+        else top.removeAllChildren
+        treeModel.reload
+        currentModel = toModel
+        updateHtmlPane
+      } else println("Nothing selected!")
+    }
+    
+    def revertToInitModel() {
+      currentModel = initModel
+      top.removeAllChildren
+      createNodes(top)
+      treeModel.reload
+    }
+    
+    def updateHtmlPane() { htmlPane.setText(currentModel.toString) }
+    
+    def doNew()              = gui(Model())
     def doSaveAs()           = saveToChosenFile(currentModel.toString, this)
+    def doDelete()           = removeCurrentNode()
+    def doUndoAll()          = revertToInitModel()
     def doToGraphVizNested() = saveToChosenFile(export.toGraphVizNested(currentModel), this)
     def doToGraphVizFlat()   = saveToChosenFile(export.toGraphVizFlat(currentModel), this)
+
+    val newKey              = (KeyEvent.VK_N, KeyEvent.VK_N, ActionEvent.CTRL_MASK)
+    val saveKey             = (KeyEvent.VK_A, KeyEvent.VK_S, ActionEvent.CTRL_MASK)
+    val delKey              = (KeyEvent.VK_D, KeyEvent.VK_D, ActionEvent.CTRL_MASK)
+    val undoAllKey          = (KeyEvent.VK_U, KeyEvent.VK_U, ActionEvent.CTRL_MASK)
+    val toGraphVizNestedKey = (KeyEvent.VK_N, 0, 0)
+    val toGraphVizFlatKey   = (KeyEvent.VK_F, 0, 0)
     
     def mkMenuItem(name: String, menu: JMenu, shortcut: (Int, Int, Int)) 
         (action: => Unit): Unit = {
@@ -82,39 +153,48 @@ object gui {
       menu.add(mi)
     }
     
-    val saveKey             = (KeyEvent.VK_A, KeyEvent.VK_S, ActionEvent.CTRL_MASK)
-    val toGraphVizNestedKey = (KeyEvent.VK_N, 0, 0)
-    val toGraphVizFlatKey   = (KeyEvent.VK_F, 0, 0)
+    def mkMenu(name: String, mnemonic: Int): JMenu = {
+      val jm = new JMenu(name)
+      jm.setMnemonic(mnemonic)
+      jm
+    }
     
     def mkMenuBar(frame: JFrame): Unit = {
         val menuBar = new JMenuBar()
-        val (fileMenu, exportMenu) = ( new JMenu("File"), new JMenu("Export"))
-
-        fileMenu.setMnemonic(KeyEvent.VK_F);
-        exportMenu.setMnemonic(KeyEvent.VK_E);
+        val (fileMenu, editMenu, exportMenu) = 
+          (mkMenu("File", KeyEvent.VK_F),
+           mkMenu("Edit", KeyEvent.VK_E),
+           mkMenu("Export",KeyEvent.VK_X))
         
+        mkMenuItem("New ...", fileMenu, newKey) { doNew() }
         mkMenuItem("Save As ...", fileMenu, saveKey) { doSaveAs() }
+        
+        mkMenuItem("Delete", editMenu, delKey) { doDelete() }
+        mkMenuItem("Undo all", editMenu, undoAllKey) { doUndoAll() }
+
         mkMenuItem("To GraphViz (Nested) ...", exportMenu, toGraphVizNestedKey) { doToGraphVizNested() }
         mkMenuItem("To GraphViz (Flat) ...", exportMenu, toGraphVizFlatKey) { doToGraphVizFlat() }
 
-        Seq(fileMenu, exportMenu).foreach(m => menuBar.add(m))
+        Seq(fileMenu, editMenu, exportMenu).foreach(m => menuBar.add(m))
         frame.setJMenuBar(menuBar)
     }
     
     //init:
     
     setLayout(new GridLayout(1,0))
-    val top = new DefaultMutableTreeNode("Model")
+    var top = new DefaultMutableTreeNode(ModelRoot)
     createNodes(top)
     val tree = new JTree(top);
+    //tree.setEditable(true) ???
     tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+    tree.setSelectionPath(new TreePath(top))
     tree.addTreeSelectionListener(this);
     val treeView = new JScrollPane(tree);
     val htmlPane = new JEditorPane();
     htmlPane.setEditable(false);
     htmlPane.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
     //htmlPane.setContentType("text/html");
-    htmlPane.setText(initModel.toString);
+    updateHtmlPane()
     val htmlView = new JScrollPane(htmlPane);
     val splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
     splitPane.setTopComponent(treeView);
@@ -131,7 +211,7 @@ object gui {
   }
 
   
-  def view(m: Model = Model()): Unit = {
+  def apply(m: Model = Model()): SwingModelViewer = {
     val frame = new JFrame(s"ModelViewer m$nextModelViewerNum")
     frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
     val smv = new SwingModelViewer(m)
@@ -139,5 +219,6 @@ object gui {
     smv.mkMenuBar(frame)
     frame.pack()
     frame.setVisible(true)
+    smv
   }
 }
