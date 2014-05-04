@@ -158,7 +158,10 @@ object repl {
     interpret(s"""{$code}: Boolean""").map(_.asInstanceOf[Boolean])    
   
   def interpretModel(code: String): Option[Model] =  
-    interpret(s"""{$code}: reqT.Model""").map(_.asInstanceOf[Model])
+    interpret(
+s"""{
+$code
+}: reqT.Model""").map(_.asInstanceOf[Model])
 
     
   // def interpretString(code: String): Option[String] = {
