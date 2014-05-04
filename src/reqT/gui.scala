@@ -210,17 +210,43 @@ object gui {
         case Some(newModel) =>
           if (currentNode == top) setTopTo(newModel)
           else {
+            //tricky business...
+            
             val parent = currentNode.getParent().asInstanceOf[DefaultMutableTreeNode]
             val currentPath = currentSelectionPath
             val parentPath = toTreePath(parent)
-
+            
+            def insertTail(tail: Seq[Elem]) {
+              var i = parent.getIndex(currentNode)
+              tail.foreach { e =>
+                val newChild:  DefaultMutableTreeNode  = 
+                  if (e.isNode) new DefaultMutableTreeNode(e)
+                  else new DefaultMutableTreeNode(e.key)
+                i += 1
+                parent.insert(newChild, i)
+                treeModel.nodeStructureChanged(parent)
+                if (!e.isNode) {
+                  addModelElemsToTreeNode(e.mapTo.asInstanceOf[Model], newChild)
+                  treeModel.nodeStructureChanged(newChild)
+                }
+              }
+              if (!tail.isEmpty) {
+                //rebuild submodel to remove duplicates
+                val newModelFromParent = createModelFromTreeNode(parent)
+                parent.removeAllChildren
+                addModelElemsToTreeNode(newModelFromParent, parent)
+                treeModel.nodeStructureChanged(parent)
+                expandSelectFocus(parentPath)
+              }
+            }
+            
             newModel match {
               case Model() => removeCurrentNode()
               case Model(e, tail@_*) if e.isNode => 
                 currentNode.setUserObject(e)
                 treeModel.nodeChanged(currentNode)
                 expandSelectFocus(currentPath)
-                println("TODO: add tail")
+                if (!tail.isEmpty) insertTail(tail)
               case Model(Relation(e,l,t), tail@_*) => 
                 currentNode.setUserObject(Head(e,l))
                 treeModel.nodeChanged(currentNode)
@@ -228,9 +254,10 @@ object gui {
                 addModelElemsToTreeNode(t, currentNode)
                 treeModel.nodeStructureChanged(currentNode)
                 expandSelectFocus(currentPath)
-                println("TODO: add tail")
+                if (!tail.isEmpty) insertTail(tail)
               case _ => ???
             }
+            
           }
         case None => msgParseError
       }
