@@ -15,6 +15,9 @@ object toScalaCompactBody extends ModelToString with ScalaGenerators {
   override def apply(m: Model): String = body(m).trim
 }
 object toScalaPaired extends ModelToString with ScalaGenerators with NewLineEnding
+object toScalaExpanded extends ModelToString with ScalaGenerators  {
+  override def indentCheck(m: Model, path: NodePath) = "\n" + indent(path.level + 1)
+}
 object toGraphVizNested extends GraphVizNested  
 object toGraphVizFlat extends GraphVizFlat  
 object toTable extends Table
