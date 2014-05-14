@@ -239,4 +239,5 @@ trait ModelBasicOps  {
   }
   
   lazy val flat: Model = atoms.toModel
+  
 }

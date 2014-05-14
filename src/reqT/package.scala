@@ -18,6 +18,8 @@ extends Init
    with ImplicitStringSelector
    with ImplicitAttributeEnrichments
    with ImplicitModelElemEnrichments
+   with ImplicitContraints
+   with ConstraintGenerators
    with RootHeadPathFactory
    with StringUtils 
    with FileUtils 

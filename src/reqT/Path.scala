@@ -75,23 +75,23 @@ case class AttrVal[T](init: HeadPath, attr: Attribute[T]) extends NodePath {
     case av: AttrVal[T] => av == this
   }
   override lazy val level = heads.size + 1
-  override lazy val toString = ( if (init.isEmpty) "" else init.toString )  + attr + "/"
-  override lazy val toScala = ( if (init.isEmpty) "" else init.toScala ) + attr.toScala + "/"
+  override lazy val toString = ( if (init.isEmpty) "" else init.toString )  + attr 
+  override lazy val toScala = ( if (init.isEmpty) "" else init.toScala ) + attr.toScala 
 }
 
 case class AttrRef[T](init: HeadPath, attrType: AttributeType[T]) extends Path {
   override lazy val heads = init.heads
   lazy val tail = AttrRef(HeadPath(heads.drop(1)), attrType)
   lazy val toDefaultAttrVal = AttrVal(init, attrType(attrType.default))
-  def toAttrVal(v: T) = AttrVal(init, attrType(v))
+  def apply(v: T) = AttrVal(init, attrType(v))
   def startsWith(that: Path): Boolean = that match {
     case HeadPath(thatHeads) => heads.startsWith(thatHeads)
     case ar: AttrRef[T] => ar == this
     case _ => false
   }
   override lazy val level = heads.size + 1
-  override lazy val toString = ( if (init.isEmpty) "" else init.toString )  + attrType + "/"
-  override lazy val toScala = ( if (init.isEmpty) "" else init.toScala ) + attrType + "/"
+  override lazy val toString = ( if (init.isEmpty) "" else init.toString )  + attrType 
+  override lazy val toScala = ( if (init.isEmpty) "" else init.toScala ) + attrType 
 }
 
 trait RootHeadPathFactory {

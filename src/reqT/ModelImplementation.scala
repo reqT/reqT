@@ -101,6 +101,7 @@ final class ListModel private [reqT] ( override val myMap: ListMap[Key, MapTo]) 
   override def toListMap: ListMap[Key, MapTo] = myMap
   override def toHashMap: HashMap[Key, MapTo] = HashMap(myMap.toSeq:_*)
   override def toListModel = this
+  override def productPrefix = "ListModel"
 }
 
 object ListModel extends ModelCompanion {
@@ -113,6 +114,7 @@ final class HashModel private [reqT] ( override val myMap: HashMap[Key, MapTo]) 
   override def toListMap: ListMap[Key, MapTo] = ListMap(myMap.toSeq:_*)
   override def toHashMap: HashMap[Key, MapTo] = myMap
   override def toHashModel = this
+  override def productPrefix = "HashModel"
 }
 
 object HashModel extends ModelCompanion {

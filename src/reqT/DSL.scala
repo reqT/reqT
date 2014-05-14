@@ -18,10 +18,12 @@ import scala.language.implicitConversions
 
 trait DSL { 
   /** Concrete DSL classes should have an executable string representation.
-      If the default toString is not executable scala-embedded DSL syntax,
-      then this method is overriden by an executable string.
+      If the default toString is not executable Scala-embedded DSL syntax,
+      then this method is overridden by an executable string.
   */
-  def toScala: String = toString 
+  def toScala: String = toString
+  def productPrefix: String  //every Scala case class has this method
+  def prefix: String = productPrefix  //shorthand
 }
   
 /** A marker trait for parameters to separation operators on Model. */
@@ -130,6 +132,7 @@ trait Attribute[T] extends Node with MapTo with HasValue[T] with CanBeMapped {
   override def key: AttributeType[T] = myType
   override def mapTo: Attribute[T] = this
   override def isAttribute: Boolean = true
+  def isInt: Boolean = false
   override def toScalaBody: String = value.toString
   override def toScala: String =  myType + "(" + toScalaBody + ")"
   def / = AttrVal(HeadPath(), this)
@@ -147,6 +150,7 @@ object Model extends TypeObject
 trait AttributeType[T] extends Key with TypeObject with HasDefault[T] { 
   def apply(value: T): Attribute[T] 
   val default: T 
+  def isInt: Boolean = false
   def / = AttrRef(HeadPath(), this)
 }
 sealed trait Entity extends Node with HeadFactory with RelationFactory  {
@@ -256,9 +260,12 @@ trait StringType extends AttributeType[String] {
   override  def apply(value: String): StringAttribute
 }
 
-trait IntAttribute extends Attribute[Int] 
+trait IntAttribute extends Attribute[Int] {
+  override def isInt: Boolean = true  //used by constraint solving
+}
 trait IntType extends AttributeType[Int] { 
   val default = -999999999
+  override def isInt: Boolean = true  //used by constraint solving
   override  def apply(value: Int): IntAttribute
 } 
 
@@ -270,12 +277,11 @@ trait VectorType[T] extends AttributeType[Vector[T]] {
   override def apply(cs: Vector[T]): VectorAttribute[T]
 }
 
-case class Constr(cnstr: String)
+trait ConstrVectorAttribute extends VectorAttribute[Constr[Any]] 
 
-trait ConstrVectorAttribute extends VectorAttribute[Constr] 
-trait ConstrVectorType extends VectorType[Constr] {
-  override def apply(cs: Vector[Constr]) = Constraints(cs)
-  def apply(cs: Constr*): Constraints = Constraints(cs.toVector)
+trait ConstrVectorType extends VectorType[Constr[Any]] {
+  //override def apply(cs: Vector[Constr[Any]]) = Constraints(cs)
+  def apply(cs: Constr[Any]*): Constraints = Constraints(cs.toVector)
 }
 
 trait Enum[T <: Ordered[T]] extends Ordered[T] {
@@ -307,7 +313,7 @@ case object Attr extends StringType
 case class Code(value: String) extends StringAttribute { override val myType = Code }
 case object Code extends StringType 
 
-case class Constraints(value: Vector[Constr]) extends ConstrVectorAttribute { override val myType = Constraints }
+case class Constraints(value: Vector[Constr[Any]]) extends ConstrVectorAttribute { override val myType = Constraints }
 case object Constraints extends ConstrVectorType {
   def apply(s: String): Constraints = reqT.repl.interpret(s). map ( _ match { 
     case c: Constraints => c 

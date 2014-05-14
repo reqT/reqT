@@ -13,7 +13,7 @@
 package reqT
 package meta 
 
-trait MetaGen extends reqT.DSL with MetaGenToScala {
+trait MetaGen extends MetaGenImplementation {
   import scala.collection.immutable.ListMap
   def enums: ListMap[String,Vector[String]]
   def attributes: ListMap[String,Vector[String]]
@@ -26,9 +26,10 @@ trait MetaGen extends reqT.DSL with MetaGenToScala {
   def defaultAttributes: Vector[AttributeType[_]]
   def defaultInterpretedAttributes: Vector[AttributeType[_]]
   def defaultRelations: Vector[RelationType]
+  def toScala: String
 }
 
-trait MetaGenToScala {
+trait MetaGenImplementation {
   self: MetaGen =>
 
   override def toScala: String = 
