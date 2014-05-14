@@ -12,6 +12,19 @@
 **************************************************************************/
 package reqT
 
+/* TODO
+  + grey menu items on null selection
+  + add templates (or "patterns")
+  + add more exports
+  + make export only of current selection; if null selected take whole model
+  + add texteditor window for exports with simple save as
+  + add structure in entity menu
+  + add constraints solving
+  + add code running
+  + add playing a sequence of images
+  + add import of tables for constraint solving
+*/
+
 object gui {
   import java.awt._
   import java.awt.event._
@@ -97,7 +110,10 @@ object gui {
         }
       }
       if (isExpand) tree.expandPath(parent)
-      else tree.collapsePath(parent);
+      else { 
+        tree.collapsePath(parent)
+        treeModel.reload
+      }
     }
      
     def createModelFromTreeNode(fromNode: DefaultMutableTreeNode): Model = {
@@ -264,48 +280,7 @@ object gui {
       case None => msgNothingSelected
     }
     
-    def setModelToSelectedBuggy() = {
-      selectedOpt match { 
-        case Some(currentNode) =>
-          repl.interpretModel(editor.getText) match {
-            case Some(m) => 
-              var parent = currentNode.getParent().asInstanceOf[DefaultMutableTreeNode]
-              println("parent = " + parent)  ////
-              if (parent == null) {
-                currentModel = m
-                setTopTo(m)
-              } else {
-                val cix = parent.getIndex(currentNode)
-                println("cix = " + cix) /////
-                var i = cix
-                var lastNewChild:  DefaultMutableTreeNode = null
-                m.elems.foreach { e => 
-                  val newChild:  DefaultMutableTreeNode  = 
-                    if (e.isNode) new DefaultMutableTreeNode(e)
-                    else new DefaultMutableTreeNode(e.key)
-                  i += 1
-                  parent.insert(newChild, i)
-                  treeModel.nodeStructureChanged(parent)
-                  if (!e.isNode) addModelElemsToTreeNode(e.mapTo.asInstanceOf[Model], newChild)
-                  lastNewChild = newChild
-                  println("insterted at index i = " + i) /////
-                }
-                treeModel.removeNodeFromParent(currentNode)
-                treeModel.nodeStructureChanged(parent) 
-                currentModel = createModelFromTreeNode(top)
-                val newModelFromParent = createModelFromTreeNode(parent)
-                addModelElemsToTreeNode(newModelFromParent, parent)  //rebuild submodel to remove duplicates
-                var tp = toTreePath(parent)
-                if ( lastNewChild != null ) tp.pathByAddingChild(lastNewChild)
-                tree.expandPath(tp)
-                tree.setSelectionPath(tp) 
-              }
-            case None => msgParseError
-          }
-        case None => msgNothingSelected
-      }
-    }
-    
+  
     def setEditorToModel(m: Model) { editor.setText(export.toScalaExpanded(m)) }
     
     def setEditorToSelection() {
