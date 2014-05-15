@@ -20,7 +20,7 @@ trait ImplicitContraints { // mixed into reqT package object
   
   implicit def constrVectorToConst[T](cs: Vector[Constr[T]]): Constraints = Constraints(cs)
   implicit def constraintsToVector(cs: Constraints): Vector[Constr[Any]] = cs.value
-  //implicit def seqConstrToConstraints[T](cs: Seq[Constr[T]]): Constraints = Constraints(cs.toVector)
+  //implicit def seqConstrToConstraints[T](cs: Seq[Constr[T]]): Constraints = Constraints(cs.toVector)  ???
   
   implicit def constraintsToCSP(cs: Constraints): CSP = CSP(Model(), cs)
   implicit def constrVectorToCSP[T](cs: Vector[Constr[T]]): CSP = CSP(Model(), Constraints(cs))
@@ -30,7 +30,6 @@ trait ImplicitContraints { // mixed into reqT package object
       Constraints( m.collectDeep { case Constraints(cs) => cs }.flatten )
   }
   implicit def attrRefToVar(ar: AttrRef[Int]): Var[AttrRef[Int]] = Var(ar) 
-  //implicit def refToVar[T](r: Ref[T]): Var[Ref[T]] = Var(r)
   
   implicit def seqAttrRefToVar(rs: Seq[AttrRef[Int]]) = rs.map(Var(_))
   implicit def rangeToInterval(r: Range): Interval = Interval(r.min, r.max)
