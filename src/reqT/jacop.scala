@@ -319,6 +319,7 @@ value selection methods not yet implemented
       if (Settings.debug) println(store)
       if (!store.consistency) return Result(InconsistencyFound)
       val label = new jsearch.DepthFirstSearch[JIntVar]
+      label.setPrintInfo(Settings.verbose) 
       def listener = label.getSolutionListener().asInstanceOf[jsearch.SimpleSolutionListener[JIntVar]]
       def setup(searchAll: Boolean, recordSolutions: Boolean): Unit =  {
         //this must be done in the right order as JaCoP may overwrite solutionLimit if
