@@ -17,26 +17,34 @@ import JaCoP. { search => jsearch, core => jcore, constraints => jcon }
 
 /**  http://www.jacop.eu/  */
 
-trait Solutions[T] {
+trait Solutions {
   def nVariables: Int
-  def variables: Array[Var[T]]
-  def varMap: Map[String, Var[T]]
-  def indexOf: Map[Var[T], Int]
+  def variables: Array[Var]
+  def varMap: Map[String, Var]
+  def indexOf: Map[Var, Int]
   def nSolutions: Int
-  def lastSolution: Map[Var[T], Int]
+  def lastSolution: Map[Var, Int]
   def solution(solutionIndex: Int): Array[Int]
-  def solutionMap(solutionIndex: Int): Map[Var[T], Int]
+  def solutionMap(solutionIndex: Int): Map[Var, Int]
   def value(solutionIndex: Int, variableIndex: Int): Int
-  def valueVector(v: Var[T]): Vector[Int]
+  def valueVector(v: Var): Vector[Int]
   def coreDomains: Array[Array[JaCoP.core.Domain]] 
   def coreVariables: Array[_ <: JaCoP.core.Var]
   def domain(solutionIndex: Int, variableIndex: Int): JaCoP.core.Domain
   def printSolutions: Unit
 }
 
+case class Search(
+      searchType: SearchType = jacop.Settings.defaultSearchType,
+      timeOutOption: Option[Long] = None,
+      solutionLimitOption: Option[Int] = None,
+      valueSelection: jacop.ValueSelection = jacop.Settings.defaultValueSelection,
+      variableSelection: jacop.VariableSelection = jacop.Settings.defaultVariableSelection,
+      assignOption: Option[Seq[Var]] = None)
+
 case class CSP(m: Model, cs: Constraints) {
   //Any propagates because of Map invariance in first Type argument:
-  def updateModel(vmap: Map[Var[Any], Int]): Model = { 
+  def updateModel(vmap: Map[Var, Int]): Model = { 
     var newModel = m
     val modelVariables = vmap collect { 
       case (Var(ar @ AttrRef(_,t)), i) if t.isInt => ar(i)  
@@ -46,15 +54,9 @@ case class CSP(m: Model, cs: Constraints) {
     newModel
   }
 
-  def solve(
-      searchType: SearchType = jacop.Settings.defaultSearchType,
-      timeOutOption: Option[Long] = None,
-      solutionLimitOption: Option[Int] = None,
-      valueSelection: jacop.ValueSelection = jacop.Settings.defaultValueSelection,
-      variableSelection: jacop.VariableSelection = jacop.Settings.defaultVariableSelection,
-      assignOption: Option[Seq[Var[Any]]] = None
-   ): (Model, Result[Any]) =  {
-    val r = jacop.Solver(cs, searchType, timeOutOption, solutionLimitOption, valueSelection, variableSelection, assignOption).solve
+  def solve(): (Model, Result) = solve(Search())
+  def solve(search: Search): (Model, Result) =  {
+    val r = jacop.Solver(cs, search).solve
     if (r.conclusion == SolutionFound) (updateModel(r.lastSolution), r) 
     else { 
       jacop.Settings.warningPrinter(r.conclusion.toString)
@@ -62,29 +64,29 @@ case class CSP(m: Model, cs: Constraints) {
     } 
   }
   
-  def satisfy: Model = solve(Satisfy)._1
-  private def optimum(mr: (Model, Result[Any]), v: Var[Any]): (Model, Option[Int]) = 
+  def satisfy: Model = solve(Search(Satisfy))._1
+  private def optimum(mr: (Model, Result), v: Var): (Model, Option[Int]) = 
     (mr._1, mr._2.lastSolution.get(v))
-  def maximize(v: Var[Any]): (Model, Option[Int]) = optimum(solve(Maximize(v)), v)
-  def minimize(v: Var[Any]): (Model, Option[Int]) = optimum(solve(Minimize(v)), v) 
+  def maximize(v: Var): (Model, Option[Int]) = optimum(solve(Search(Maximize(v))), v)
+  def minimize(v: Var): (Model, Option[Int]) = optimum(solve(Search(Minimize(v))), v) 
 }
   
-class JacopSolutions[T]( 
+class JacopSolutions( 
         val coreDomains: Array[Array[jcore.Domain]], 
         val coreVariables: Array[_ <: jcore.Var],
         val nSolutions: Int,
-        val lastSolution: Map[Var[T], Int]) extends Solutions[T] {
+        val lastSolution: Map[Var, Int]) extends Solutions {
   lazy val nVariables = coreVariables.length
-  lazy val varMap: Map[String, Var[T]] = lastSolution.keys.toSeq.map(v => (v.ref.toString, v)).toMap
-  lazy val variables: Array[Var[T]] = coreVariables.map(v => varMap(v.id))
-  lazy val indexOf: Map[Var[T], Int] = variables.zipWithIndex.toMap
+  lazy val varMap: Map[String, Var] = lastSolution.keys.toSeq.map(v => (v.ref.toString, v)).toMap
+  lazy val variables: Array[Var] = coreVariables.map(v => varMap(v.id))
+  lazy val indexOf: Map[Var, Int] = variables.zipWithIndex.toMap
   private def toInt(d: jcore.Domain): Int = d.asInstanceOf[jcore.IntDomain].value
   def domain(solutionIndex: Int, variableIndex: Int): jcore.Domain = coreDomains(solutionIndex)(variableIndex)
   def value(s: Int, v: Int): Int = toInt(domain(s,v))
   def solution(s: Int): Array[Int] = coreDomains(s).map(toInt)
-  def solutionMap(s: Int): Map[Var[T], Int] = 
+  def solutionMap(s: Int): Map[Var, Int] = 
     ( for (i <- 0 until nVariables) yield (variables(i), value(s, i)) ) .toMap
-  def valueVector(v: Var[T]): Vector[Int] = 
+  def valueVector(v: Var): Vector[Int] = 
     ( for (s <- 0 until nSolutions) yield value(s, indexOf(v)) ) .toVector   
   def printSolutions: Unit = for (i <- 0 until nSolutions) println(s"*** Solution $i:\n" + solutionMap(i))
   override def toString = s"Solutions([nSolutions=$nSolutions][nVariables=$nVariables])" 
@@ -98,7 +100,7 @@ object jacop {
     var defaultSearchType: SearchType = Satisfy
     var defaultValueSelection: ValueSelection = IndomainRandom
     var defaultVariableSelection: VariableSelection = InputOrder
-    var verbose: Boolean = true
+    var verbose: Boolean = false
     var debug: Boolean = false
     var warningPrinter: String => Unit = (s: String) => println("WARNING: " + s)
   }
@@ -180,12 +182,12 @@ value selection methods not yet implemented
    */
 
   trait SolverUtils {
-    type Ivls[T] = Map[Var[T], Seq[Interval]]
-    def distinctVars[T](cs: Seq[Constr[T]]): Seq[Var[T]] = cs.map { _.variables } .flatten.distinct
-    def collectBounds[T](cs: Seq[Constr[T]]): Seq[Bounds[T]] = cs collect { case b: Bounds[T] => b }
-    def collectConstr[T](cs: Seq[Constr[T]]): Seq[Constr[T]] = cs filter { case b: BoundingConstr => false ; case _ => true }
-    def intervals[T](b: Bounds[T]): Map[Var[T], Seq[Interval]] = b.variables.map(v => (v, b.domain)).toMap
-    def mergeIntervals[T](ivls1: Ivls[T], ivls2: Ivls[T]): Ivls[T] = {
+    type Ivls = Map[Var, Seq[Interval]]
+    def distinctVars(cs: Seq[Constr]): Seq[Var] = cs.map { _.variables } .flatten.distinct
+    def collectBounds(cs: Seq[Constr]): Seq[Bounds] = cs collect { case b: Bounds => b }
+    def collectConstr(cs: Seq[Constr]): Seq[Constr] = cs filter { case b: BoundingConstr => false ; case _ => true }
+    def intervals(b: Bounds): Map[Var, Seq[Interval]] = b.variables.map(v => (v, b.domain)).toMap
+    def mergeIntervals(ivls1: Ivls, ivls2: Ivls): Ivls = {
       var result = ivls1
       for ((v, ivls) <- ivls2) { 
         if (result.isDefinedAt(v)) result += v -> (result(v) ++ ivls) 
@@ -193,23 +195,23 @@ value selection methods not yet implemented
       }
       result
     }
-    def buildDomainMap[T](cs: Seq[Constr[T]]): Ivls[T] = {
-      var result = collectBounds(cs).map(intervals(_)).foldLeft(Map(): Ivls[T])(mergeIntervals(_,_))
+    def buildDomainMap(cs: Seq[Constr]): Ivls = {
+      var result = collectBounds(cs).map(intervals(_)).foldLeft(Map(): Ivls)(mergeIntervals(_,_))
       for (v <- distinctVars(cs)) {
         if (!result.isDefinedAt(v)) result += v -> Seq(jacop. Settings.defaultInterval)
       }
       result
     }
-    def nameToVarMap[T](vs: Seq[Var[T]]): Map[String, Var[T]] = vs.map(v => (v.ref.toString, v)).toMap
-    def checkUniqueToString[T](vs: Seq[Var[T]]): Set[String] = {
+    def nameToVarMap(vs: Seq[Var]): Map[String, Var] = vs.map(v => (v.ref.toString, v)).toMap
+    def checkUniqueToString(vs: Seq[Var]): Set[String] = {
       val strings = vs.map(_.ref.toString)
       strings.diff(strings.distinct).toSet
     }
-    def checkIfNameExists[T](name: String, vs: Seq[Var[T]]): Boolean = 
+    def checkIfNameExists(name: String, vs: Seq[Var]): Boolean = 
       vs.exists { case Var(ref) => ref.toString == name }
     
-  def flattenAllConstraints(cs: Seq[Constr[Any]]): Seq[Constr[Any]] = {
-      def flatten(xs: Seq[Constr[Any]]): Seq[Constr[Any]] = 
+  def flattenAllConstraints(cs: Seq[Constr]): Seq[Constr] = {
+      def flatten(xs: Seq[Constr]): Seq[Constr] = 
         if (xs.isEmpty) xs 
         else (xs.head match {
           case cs: Constraints => flatten(cs.value)
@@ -219,18 +221,13 @@ value selection methods not yet implemented
     }
  }         
    
-  case class Solver[T](
-      constraints: Seq[Constr[T]] , 
-      searchType: SearchType = jacop.Settings.defaultSearchType,
-      timeOutOption: Option[Long] = None,
-      solutionLimitOption: Option[Int] = None,
-      valueSelection: ValueSelection = jacop.Settings.defaultValueSelection,
-      variableSelection: VariableSelection = jacop.Settings.defaultVariableSelection,
-      assignOption: Option[Seq[Var[T]]] = None
+  case class Solver(search: Search)
     ) extends SolverUtils {
-
-    def toJCon[T](constr: Constr[T], store: jcore.Store, jIntVar: Map[Var[T], JIntVar]): jcon.Constraint = {
-      def jVarArray(vs: Seq[Var[T]]) = vs.map(v => jIntVar(v)).toArray
+    
+    import search._
+    
+    def toJCon(constr: Constr, store: jcore.Store, jIntVar: Map[Var, JIntVar]): jcon.Constraint = {
+      def jVarArray(vs: Seq[Var]) = vs.map(v => jIntVar(v)).toArray
       constr match {
         case AbsXeqY(x, y) => new jcon.AbsXeqY(jIntVar(x), jIntVar(y))
         case AllDifferent(vs) => new jcon.Alldiff(jVarArray(vs))
@@ -282,9 +279,9 @@ value selection methods not yet implemented
     }
     
     lazy val flatConstr = flattenAllConstraints(constraints)
-    lazy val domainOf: Map[Var[Any], Seq[Interval]] = buildDomainMap(flatConstr)
+    lazy val domainOf: Map[Var, Seq[Interval]] = buildDomainMap(flatConstr)
  
-    def varToJIntVar[T](v: Var[T], s: jcore.Store): JIntVar = {
+    def varToJIntVar(v: Var, s: jcore.Store): JIntVar = {
       val intDom = new jcore.IntervalDomain()
       domainOf(v).foreach(ivl => intDom.addDom( new jcore.IntervalDomain(ivl.min, ivl.max)))
       new JIntVar(s, v.ref.toString, intDom) 
@@ -295,10 +292,10 @@ value selection methods not yet implemented
     def collectIntVars(s: jcore.Store): Array[JIntVar] = 
       s.vars.collect { case x: JIntVar if (x.id != minimizeHelpVarName) => x } .toArray
             
-    def solutionMap[T](s: jcore.Store, nameToVar: Map[String, Var[T]] ): Map[Var[T], Int] = 
+    def solutionMap(s: jcore.Store, nameToVar: Map[String, Var] ): Map[Var, Int] = 
           collectIntVars(s).filter(_.singleton).map(iv => (nameToVar(iv.id), iv.value) ).toMap
 
-    def solve: Result[Any] = {
+    def solve: Result = {
       val store = new jcore.Store
       val vs = distinctVars(flatConstr)
       val cs = collectConstr(flatConstr)
@@ -310,9 +307,9 @@ value selection methods not yet implemented
           duplicates.mkString(", "))        )
       if (checkIfNameExists(minimizeHelpVarName, vs)) 
         return Result(SearchFailed("Reserved varable name not allowed:" + minimizeHelpVarName))
-      val intVarMap: Map[Var[Any], JIntVar] = vs.map { v => (v, varToJIntVar(v, store)) } .toMap
+      val intVarMap: Map[Var, JIntVar] = vs.map { v => (v, varToJIntVar(v, store)) } .toMap
       Some(searchType).collect { //abort if cost variable is not defined
-        case opt: Optimize[Any] if (!intVarMap.isDefinedAt(opt.cost)) => 
+        case opt: Optimize if (!intVarMap.isDefinedAt(opt.cost)) => 
           return Result(SearchFailed("Cost variable not defined:" + opt.cost)) 
       }
       cs foreach { c => store.impose(toJCon(c, store, intVarMap)) }
@@ -333,7 +330,7 @@ value selection methods not yet implemented
         if (!assignOption.isDefined) collectIntVars(store) //assign all in store
         else assignOption.get.map(intVarMap(_)).toArray
       val selectChoicePoint = variableSelection.toJacop(store, variablesToAssign, valueSelection)
-      def solutionNotFound = Result[Any](SolutionNotFound)
+      def solutionNotFound = Result(SolutionNotFound)
       def solutionInStore = solutionMap(store, nameToVarMap(vs))
       def interruptOpt: Option[SearchInterrupt] = 
         if (label.timeOutOccured) Some(SearchTimeOut) 
@@ -341,10 +338,10 @@ value selection methods not yet implemented
           Some(SolutionLimitReached)
         else None
       def oneResult(ok: Boolean) = 
-        if (ok) Result[Any](SolutionFound, 1, solutionInStore, interruptOpt)  
+        if (ok) Result(SolutionFound, 1, solutionInStore, interruptOpt)  
         else solutionNotFound
       def countResult(ok: Boolean, i: Int) = 
-        if (ok) Result[Any](SolutionFound, i, solutionInStore, interruptOpt) 
+        if (ok) Result(SolutionFound, i, solutionInStore, interruptOpt) 
         else solutionNotFound
       val conclusion = searchType match {
         case Satisfy => 
@@ -357,18 +354,18 @@ value selection methods not yet implemented
           setup(searchAll = true , recordSolutions = true )
           val found = label.labeling(store, selectChoicePoint)
           if (!found) solutionNotFound else {
-            val solutions: Solutions[Any] = new JacopSolutions(
+            val solutions: Solutions = new JacopSolutions(
                   listener.getSolutions(), 
                   listener.getVariables(), 
                   listener.solutionsNo(), 
                   solutionInStore)
-            Result[Any](SolutionFound, solutions.nSolutions, solutionInStore, interruptOpt, Some(solutions))
+            Result(SolutionFound, solutions.nSolutions, solutionInStore, interruptOpt, Some(solutions))
           }
-        case minimize: Minimize[Any] => 
+        case minimize: Minimize => 
           listener.searchAll(false)
           listener.recordSolutions(true)
           oneResult(label.labeling(store, selectChoicePoint, intVarMap(minimize.cost)))
-        case m: Maximize[Any] =>  
+        case m: Maximize =>  
           listener.searchAll(false)
           listener.recordSolutions(true)
           val intDom = new jcore.IntervalDomain()

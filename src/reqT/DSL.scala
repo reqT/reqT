@@ -277,11 +277,11 @@ trait VectorType[T] extends AttributeType[Vector[T]] {
   override def apply(cs: Vector[T]): VectorAttribute[T]
 }
 
-trait ConstrVectorAttribute extends VectorAttribute[Constr[Any]] 
+trait ConstrVectorAttribute extends VectorAttribute[Constr] 
 
-trait ConstrVectorType extends VectorType[Constr[Any]] {
-  //override def apply(cs: Vector[Constr[Any]]) = Constraints(cs)
-  def apply(cs: Constr[Any]*): Constraints = Constraints(cs.toVector)
+trait ConstrVectorType extends VectorType[Constr] {
+  //override def apply(cs: Vector[Constr]) = Constraints(cs)
+  def apply(cs: Constr*): Constraints = Constraints(cs.toVector)
 }
 
 trait Enum[T <: Ordered[T]] extends Ordered[T] {
@@ -313,7 +313,7 @@ case object Attr extends StringType
 case class Code(value: String) extends StringAttribute { override val myType = Code }
 case object Code extends StringType 
 
-case class Constraints(value: Vector[Constr[Any]]) extends ConstrVectorAttribute { override val myType = Constraints }
+case class Constraints(value: Vector[Constr]) extends ConstrVectorAttribute { override val myType = Constraints }
 case object Constraints extends ConstrVectorType {
   def apply(s: String): Constraints = reqT.repl.interpret(s). map ( _ match { 
     case c: Constraints => c 
