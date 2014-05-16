@@ -42,22 +42,27 @@ case class Search(
       variableSelection: jacop.VariableSelection = jacop.Settings.defaultVariableSelection,
       assignOption: Option[Seq[Var]] = None)
 
-case class CSP(m: Model, cs: Constraints) {
+case class CSP(m: Model, cs: Seq[Constr]) {
   //Any propagates because of Map invariance in first Type argument:
-  def updateModel(vmap: Map[Var, Int]): Model = { 
-    var newModel = m
-    val modelVariables = vmap collect { 
+  def mkModel(vmap: Map[Var, Int]): Model = { 
+    var newModel = Model()
+    val attrVals = vmap collect { 
       case (Var(ar @ AttrRef(_,t)), i) if t.isInt => ar(i)  
     }
+    val otherVariableValues = vmap.toVector flatMap { (vi: (Var,Int)) => vi match {
+      case (Var(x), _) if !x.isInstanceOf[AttrRef[_]] => Some(vi._1 := vi._2)
+      case  _ => None
+    } } 
     
-    modelVariables foreach { attrVal => newModel += attrVal  } 
-    newModel
+    attrVals foreach { av => newModel += av  }
+    if (otherVariableValues.isEmpty) newModel
+    else newModel + Constraints(otherVariableValues)
   }
 
   def solve(): (Model, Result) = solve(Search())
   def solve(search: Search): (Model, Result) =  {
     val r = jacop.Solver(cs, search).solve
-    if (r.conclusion == SolutionFound) (updateModel(r.lastSolution), r) 
+    if (r.conclusion == SolutionFound) (mkModel(r.lastSolution), r) 
     else { 
       jacop.Settings.warningPrinter(r.conclusion.toString)
       (Model(), r) 
@@ -65,10 +70,8 @@ case class CSP(m: Model, cs: Constraints) {
   }
   
   def satisfy: Model = solve(Search(Satisfy))._1
-  private def optimum(mr: (Model, Result), v: Var): (Model, Option[Int]) = 
-    (mr._1, mr._2.lastSolution.get(v))
-  def maximize(v: Var): (Model, Option[Int]) = optimum(solve(Search(Maximize(v))), v)
-  def minimize(v: Var): (Model, Option[Int]) = optimum(solve(Search(Minimize(v))), v) 
+  def maximize(v: Var): Model = solve(Search(Maximize(v)))._1
+  def minimize(v: Var): Model = solve(Search(Minimize(v)))._1 
 }
   
 class JacopSolutions( 
@@ -214,15 +217,14 @@ value selection methods not yet implemented
       def flatten(xs: Seq[Constr]): Seq[Constr] = 
         if (xs.isEmpty) xs 
         else (xs.head match {
-          case cs: Constraints => flatten(cs.value)
+          //case cs: Constraints => flatten(cs.value)  ???
           case c => Seq(c)
         } ) ++ flatten(xs.tail)
       flatten(cs)
     }
  }         
    
-  case class Solver(search: Search)
-    ) extends SolverUtils {
+  case class Solver(constraints: Seq[Constr], search: Search) extends SolverUtils {
     
     import search._
     
@@ -306,7 +308,7 @@ value selection methods not yet implemented
         return Result(SearchFailed("Duplicate toString values of variables:" + 
           duplicates.mkString(", "))        )
       if (checkIfNameExists(minimizeHelpVarName, vs)) 
-        return Result(SearchFailed("Reserved varable name not allowed:" + minimizeHelpVarName))
+        return Result(SearchFailed("Reserved variable name not allowed:" + minimizeHelpVarName))
       val intVarMap: Map[Var, JIntVar] = vs.map { v => (v, varToJIntVar(v, store)) } .toMap
       Some(searchType).collect { //abort if cost variable is not defined
         case opt: Optimize if (!intVarMap.isDefinedAt(opt.cost)) => 

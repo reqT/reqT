@@ -16,19 +16,17 @@ package reqT
 import scala.language.{postfixOps, implicitConversions}
 
 trait ImplicitContraints { // mixed into reqT package object
-  implicit def modelToCSP(m: Model): CSP = CSP(m, m.constraints)
+  implicit def modelToCSP(m: Model): CSP = CSP(m, m.constraints ++ m.intAttrToConstraints)
   
   implicit def constrVectorToConst(cs: Vector[Constr]): Constraints = Constraints(cs)
   implicit def constraintsToVector(cs: Constraints): Vector[Constr] = cs.value
   //implicit def seqConstrToConstraints[T](cs: Seq[Constr]): Constraints = Constraints(cs.toVector)  ???
+
+  implicit def constrToConstraints(c:Constr) = Constraints(c)
   
   implicit def constraintsToCSP(cs: Constraints): CSP = CSP(Model(), cs)
   implicit def constrVectorToCSP(cs: Vector[Constr]): CSP = CSP(Model(), Constraints(cs))
   
-  implicit class ModelConstraints(m: Model) {
-    lazy val constraints: Constraints = 
-      Constraints( m.collectDeep { case Constraints(cs) => cs }.flatten )
-  }
   implicit def attrRefToVar(ar: AttrRef[Int]): Var = Var(ar) 
   
   implicit def seqAttrRefToVar(rs: Seq[AttrRef[Int]]) = rs.map(Var(_))
@@ -96,9 +94,9 @@ case class Minimize(cost: Var) extends Optimize
 case class Maximize(cost: Var) extends Optimize
 
 case class Var(ref: AnyRef) extends DSL { 
-  def ===(that: Var) = XeqY(this, that)
-  def ===(const: Int) = XeqC(this, const)
-  def ===(const: Boolean) = XeqBool(this, const)
+  def :=(that: Var) = XeqY(this, that)
+  def :=(const: Int) = XeqC(this, const)
+  def :=(const: Boolean) = XeqBool(this, const)
   def >(that: Var) = XgtY(this, that)  
   def >(const: Int) = XgtC(this, const)
   def >=(that: Var) = XgteqY(this, that)  
@@ -126,15 +124,15 @@ case class Var(ref: AnyRef) extends DSL {
 }
 
 case class SumBuilder(vs: Vector[Var]) { 
-  def ===(that: Var) = SumEq(vs, that) 
+  def :=(that: Var) = SumEq(vs, that) 
 }
 
 case class MulBuilder(x: Var, y: Var) {
-  def ===(z: Var) = XmulYeqZ(x, y, z)
+  def :=(z: Var) = XmulYeqZ(x, y, z)
 }
 
 case class PlusBuilder(x: Var, y: Var) {
-  def ===(z: Var) = XplusYeqZ(x, y, z)
+  def :=(z: Var) = XplusYeqZ(x, y, z)
 }
 
 object Sum {
@@ -152,7 +150,7 @@ trait Variables extends DSL {
 
 trait Constr extends Variables { override def toString = toScala }
 
-trait PrimitiveConstr extends Constr{  //marker trait to prevent wrong usage of jacob primitive constr
+trait PrimitiveConstr extends Constr {  //marker trait to prevent wrong usage of jacob primitive constr
   def <=>(that: Var) = Reified(this, that)
 }
 trait Constr1IntConst extends Constr { 
@@ -264,18 +262,18 @@ case object And {
   def apply(c1: Constr, c2: Constr) = new And(Seq(c1, c2)) 
 }
 
-case class IndexValue(index: Var, varSeq: Seq[Var], value: Var) extends Constr2Seq1 {
+case class IndexValue(index: Var, varSeq: Seq[Var], valueAtIndex: Var) extends Constr2Seq1 {
   val x = index
-  val y = value
+  val y = valueAtIndex
   val seq1 = varSeq
 }
 case class SumEq(seq1: Seq[Var], x: Var) extends Constr1Seq1 
 case class Count(seq1: Seq[Var], x: Var, c: Int) extends Constr1Seq1IntConst
 case class XeqC(x: Var, c: Int) extends Constr1IntConst with PrimitiveConstr {
-  override def toScala = x.toScala + " === " + c
+  override def toScala = x.toScala + " := " + c
 }
 case class XeqY(x: Var, y: Var) extends Constr2 with PrimitiveConstr {
-  override def toScala = x.toScala + " === " + y.toScala
+  override def toScala = x.toScala + " := " + y.toScala
 }
 
 case class XdivYeqZ(x: Var, y: Var, z: Var) extends Constr3 with PrimitiveConstr

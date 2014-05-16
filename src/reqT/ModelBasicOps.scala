@@ -75,7 +75,6 @@ trait ModelBasicOps  {
     case any => any
   } }.toModel
   
-  
   //def diff(that: Model): Model = (elems diff that.elems).toModel //should not this be deep????
   def diff(that: Model): Model = { var r = this ; that.foreach { r -= _ } ; r }  //is this right?
   def --(that: Model): Model = diff(that)  //is diff == diffKeys ??? NO!?
@@ -227,6 +226,17 @@ trait ModelBasicOps  {
     case AttrVal(p,a) => (p.heads.lastOption.getOrElse(reqT./), a)
   } .collect { case (h: Head,a) => (h,a) }
   lazy val attrOf: Map[Head,Attribute[_]] = headAttributePairs.toMap
+  
+  def refTo[T](at: AttributeType[T]): Vector[AttrRef[T]] = leafPaths.collect {
+    case av: AttrVal[T] if av.attr.myType == at => AttrRef[T](av.init,av.attr.myType)
+  }
+  
+  lazy val constraints: Vector[Constr] = 
+    collectDeep { case Constraints(cs) => cs }.flatten.toVector 
+      
+  lazy val intAttrToConstraints: Vector[XeqC] = collectLeafPaths {
+    case AttrVal(p,a) if a.isInt => Var(AttrRef(p, a.myType)) := a.value.asInstanceOf[Int]
+  }
   
   lazy val atoms: Vector[Elem] = {
     def iter(m: Model, isTopLevel: Boolean): Vector[Elem] = m.elems.flatMap { 

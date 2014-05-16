@@ -42,7 +42,7 @@ sealed trait Selector {
     case NotSelector(ns)   => ! ( ns =*= that )
     case AndSelector(s1, s2) => ( s1 =*= that ) && ( s2 =*= that )  
     case OrSelector (s1, s2) => ( s1 =*= that ) || ( s2 =*= that )
-    case Select(ifMatches) => ifMatches(that) //är detta egentligen användbart??
+    case Select(ifMatches) => ifMatches(that) //is this really usefull???
     case _ if this == that || 
       ( this.isInstanceOf[TypeObject] && this == that.myType) => true
     case HeadType(thisEntType, thisLink) => that match {
@@ -103,8 +103,8 @@ trait CanBeMapped {
 }
 
 sealed trait Elem extends DSL with HasType with CanBeMapped with Selector { 
-  def isNode: Boolean
-  def isAttribute: Boolean
+  def isNode: Boolean 
+  def isAttribute: Boolean 
   def isEntity: Boolean = !isAttribute
   def isRelation: Boolean = !isNode
 }
@@ -270,7 +270,8 @@ trait IntType extends AttributeType[Int] {
 } 
 
 trait VectorAttribute[T] extends Attribute[Vector[T]] {
-  override def toScala: String = myType + "(" + value.map(_.toString).mkString(",") + ")"
+  override def toString: String = myType + "(" + value.map(_.toString).mkString(",") + ")"
+  override def toScala: String = toString
 }
 trait VectorType[T] extends AttributeType[Vector[T]] {
   val default: Vector[T] = Vector()
@@ -313,7 +314,9 @@ case object Attr extends StringType
 case class Code(value: String) extends StringAttribute { override val myType = Code }
 case object Code extends StringType 
 
-case class Constraints(value: Vector[Constr]) extends ConstrVectorAttribute { override val myType = Constraints }
+case class Constraints(value: Vector[Constr]) extends ConstrVectorAttribute { 
+  override val myType = Constraints 
+}
 case object Constraints extends ConstrVectorType {
   def apply(s: String): Constraints = reqT.repl.interpret(s). map ( _ match { 
     case c: Constraints => c 
