@@ -91,6 +91,7 @@ trait ModelBasicOps  {
   lazy val nodeSize: Int = { var n = 0 ; foreachNodeDeep { n += 1 } ; n }
   val isEmpty: Boolean = mapSize == 0
   lazy val isDeep: Boolean = tip != top  // better:  maxDepth > 2 ???
+  lazy val height = leafPaths.map(_.depth).max
 
 //collection of elements:  
   lazy val keys: Iterable[Key] = myMap.keys
@@ -249,5 +250,6 @@ trait ModelBasicOps  {
   }
   
   lazy val flat: Model = atoms.toModel
+  
   
 }

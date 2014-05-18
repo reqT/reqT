@@ -19,7 +19,7 @@ sealed trait Path extends DSL {
   def init: Path 
   val isSingle = heads.size == 1
   val isEmpty = heads.size == 0
-  def level: Int
+  def depth: Int
   def / = this
   def pathError(a: Any) = 
     throw new java.lang.UnsupportedOperationException(s"$this / $a") 
@@ -55,7 +55,7 @@ case class HeadPath(heads: Vector[Head]) extends NodePath {
   lazy val tail = HeadPath(heads.tail)
   lazy val init = HeadPath(heads.init)
   lazy val lastNode: Entity = heads.lastOption.map(_.entity).getOrElse(NoEntity)
-  override lazy val level = heads.size 
+  override lazy val depth = heads.size 
   override lazy val toString = heads.mkString("", "/","/")
 }
 object HeadPath {
@@ -74,7 +74,7 @@ case class AttrVal[T](init: HeadPath, attr: Attribute[T]) extends NodePath {
     case ar: AttrRef[T] => ar.init == init && ar.attrType == attr.myType
     case av: AttrVal[T] => av == this
   }
-  override lazy val level = heads.size + 1
+  override lazy val depth = heads.size + 1
   override lazy val toString = ( if (init.isEmpty) "" else init.toString )  + attr 
   override lazy val toScala = ( if (init.isEmpty) "" else init.toScala ) + attr.toScala 
 }
@@ -89,7 +89,7 @@ case class AttrRef[T](init: HeadPath, attrType: AttributeType[T]) extends Path {
     case ar: AttrRef[T] => ar == this
     case _ => false
   }
-  override lazy val level = heads.size + 1
+  override lazy val depth = heads.size + 1
   override lazy val toString = ( if (init.isEmpty) "" else init.toString )  + attrType 
   override lazy val toScala = ( if (init.isEmpty) "" else init.toScala ) + attrType 
 }
