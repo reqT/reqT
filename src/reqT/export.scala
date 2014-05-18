@@ -16,7 +16,7 @@ object toScalaCompactBody extends ModelToString with ScalaGenerators {
 }
 object toScalaPaired extends ModelToString with ScalaGenerators with NewLineEnding
 object toScalaExpanded extends ModelToString with ScalaGenerators  {
-  override def indentCheck(m: Model, path: NodePath) = "\n" + indent(path.level + 1)
+  override def indentCheck(m: Model, path: NodePath) = "\n" + indent(path.depth + 1)
 }
 object toGraphVizNested extends GraphVizNested  
 object toGraphVizFlat extends GraphVizFlat  
@@ -42,7 +42,7 @@ trait ModelToString extends StringExporter {
   def emptyModelString: String = "()"
 
   def indentCheck(m: Model, path: NodePath): String = {
-    val space = "\n" + indent(path.level + 1)
+    val space = "\n" + indent(path.depth + 1)
     if (m.toStringBody.length > (Settings.lineLength - space.length)) space else ""
   }
   
@@ -113,20 +113,20 @@ trait GraphVizNested extends GraphViz {
   def node(e: Elem, path: NodePath): String = s"  $q$path$e$q"
   
   def singleSubnodeLink(from: Entity, link: RelationType, to: Elem, path: NodePath): String = 
-    indent(path.level) + node(from, path) + style(from) + ";\n" +
-    indent(path.level) + node(to, path/from) + style(to) + ";\n" +
-    indent(path.level) + node(from, path) + " -> " + node(to, path/from) + s"[label=$link]" + ";\n"
+    indent(path.depth) + node(from, path) + style(from) + ";\n" +
+    indent(path.depth) + node(to, path/from) + style(to) + ";\n" +
+    indent(path.depth) + node(from, path) + " -> " + node(to, path/from) + s"[label=$link]" + ";\n"
       
   def subGraphPre(from: Entity, link: RelationType, to: Elem, path: NodePath): String =
-    indent(path.level) + node(from, path) + style(from) + ";\n" +
-    indent(path.level) + node(from, path) + " -> " + node(to, path/from) + 
+    indent(path.depth) + node(from, path) + style(from) + ";\n" +
+    indent(path.depth) + node(from, path) + " -> " + node(to, path/from) + 
     s" [label=$link, lhead=${q}cluster_$from$q]" + ";\n" +
-    indent(path.level) + s"  subgraph ${q}cluster_$from$q { \n"
+    indent(path.depth) + s"  subgraph ${q}cluster_$from$q { \n"
 
   def exportModel(m: Model, path: NodePath): String = m.collect {
-    case n: Node => indent(path.level) + node(n, path) + style(n) +";\n"
+    case n: Node => indent(path.depth) + node(n, path) + style(n) +";\n"
     case Relation(e1,l1,sub) => sub match {
-      case Model() => indent(path.level) + node(e1, path) + style(e1) +";\n" 
+      case Model() => indent(path.depth) + node(e1, path) + style(e1) +";\n" 
       case Model(e2) if e2.isNode => singleSubnodeLink(e1, l1, e2, path)
       case Model(Relation(e2, _ , Model())) => singleSubnodeLink(e1, l1, e2, path)
       case Model(Relation(e2, l2, sub2)) if sub2.tip.size == 1 => 
@@ -135,7 +135,7 @@ trait GraphVizNested extends GraphViz {
         exportModel(sub2, path/e1/e2)
       case _ => 
         subGraphPre(e1, l1, sub.tip.elems.head, path) +
-        exportModel(sub, path/e1)  + indent(path.level + 1) + "}\n"
+        exportModel(sub, path/e1)  + indent(path.depth + 1) + "}\n"
     }
   } .mkString
     
