@@ -386,11 +386,39 @@ object gui {
     tree.setSelectionPath(new TreePath(top))
     tree.addTreeSelectionListener(this);
     val treeView = new JScrollPane(tree);
-    val editor = new JEditorPane();
-    editor.setEditable(true);
-    editor.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
-    //editor.setContentType("text/html");
-    val editorView = new JScrollPane(editor);
+    
+    
+    //testing RText
+    import org.fife.ui.rtextarea._
+    import org.fife.ui.rsyntaxtextarea._
+    
+
+    //  val editor = new JEditorPane();
+    //  editor.setEditable(true);
+    //  editor.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
+    // //editor.setContentType("text/html");
+    //   val editorView = new JScrollPane(editor);
+    val editor = new RSyntaxTextArea(20, 80)
+    editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SCALA)  
+    //val atmf = TokenMakerFactory.getDefaultInstance().asInstanceOf[AbstractTokenMakerFactory];
+    //atmf.putMapping("text/reqT", "org.fife.ui.rsyntaxtextarea.ReqTTokenMaker");
+    //editor.setSyntaxEditingStyle("text/reqT");  //gives null pointer eventually...
+    
+    editor.setCodeFoldingEnabled(true)
+    editor.setAntiAliasingEnabled(true)
+    editor.setBracketMatchingEnabled(true)
+    editor.setMatchedBracketBGColor(new Color(247, 247, 247))
+    editor.setMatchedBracketBorderColor(new Color(192, 192, 192))
+    editor.setAnimateBracketMatching(true)
+    val currFont = editor.getFont()
+    editor.setFont( new Font(currFont.getName, currFont.getStyle, currFont.getSize+2))
+    editor.getSyntaxScheme.setStyle(TokenTypes.RESERVED_WORD, new Style(Color.black)) //this is a hack top avoid blue requires... should make my own language definition via jlex or something or check out this page http://fifesoft.com/rsyntaxtextarea/doc/  and https://code.google.com/p/kojolite/source/browse/src/main/scala/net/kogics/kojo/lite/ScriptEditor.scala
+    
+    editor.getSyntaxScheme.setStyle(TokenTypes.SEPARATOR, new Style(Color.black))
+
+    val editorView = new RTextScrollPane(editor)
+    //--- end test RTEXT
+    
     val splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
     splitPane.setTopComponent(treeView);
     splitPane.setBottomComponent(editorView);
