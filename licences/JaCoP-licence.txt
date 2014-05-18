@@ -1,0 +1,13 @@
+JaCoP License Guidelines 	
+Written by Radoslaw Szymanek   
+Wednesday, 20 August 2008 10:11
+
+We use a dual-licensing approach.
+
+First, JaCoP from version 2.3 is released under GNU Affero GPL.We have added additional terms as allowed by the license - "Notwithstanding any other provision of this License, the copyright owners of this work supplement the terms of this License with terms prohibiting misrepresentation of the origin of this work and requiring that modified versions of this work are marked in reasonable ways as different from the original version." This supplement of the license terms is in accordance with section 7 of GNU Affero General Public License version 3.
+
+Second, the core developers of JaCoP hold collectively complete copyright for JaCoP code therefore we can release JaCoP under different license scheme if required by commercial entities.
+Last Updated on Tuesday, 31 August 2010 13:40
+ 
+Copyright © 2014 JaCoP. All Rights Reserved.
+
