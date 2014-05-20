@@ -12,7 +12,7 @@ It seems to be this know scala compiler bug:  https://issues.scala-lang.org/brow
   //import org.fife.ui.rsyntaxtextarea.TokenTypes
   //import org.fife.ui.rsyntaxtextarea.Token
   
-class ReqTTokenMaker extends AbstractTokenMaker with TokenMaker {
+class ReqTTokenMakerTest extends AbstractTokenMaker with TokenMaker {
   override def  getWordsToHighlight(): TokenMap = {
     val tokenMap = new TokenMap()
     
