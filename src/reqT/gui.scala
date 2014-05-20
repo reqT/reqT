@@ -402,7 +402,7 @@ object gui {
     editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SCALA)  
     //val atmf = TokenMakerFactory.getDefaultInstance().asInstanceOf[AbstractTokenMakerFactory];
     //atmf.putMapping("text/reqT", "org.fife.ui.rsyntaxtextarea.ReqTTokenMaker");
-    //editor.setSyntaxEditingStyle("text/reqT");  //gives null pointer eventually...
+    //editor.setSyntaxEditingStyle("text/reqT");  //currently gives null pointer eventually...
     
     editor.setCodeFoldingEnabled(true)
     editor.setAntiAliasingEnabled(true)
