@@ -41,8 +41,8 @@ object gui {
   }
   def onAction(act: => Unit): ActionListener = onEvent( _ => act)
   
-  def saveToChosenFile(s: String, c: Component): Unit = {
-     val fileChooser = new JFileChooser();
+  def saveToChosenFile(s: String, c: Component, fname: String = ""): Unit = {
+     val fileChooser = new JFileChooser(fname);
       if (fileChooser.showSaveDialog(c) == JFileChooser.APPROVE_OPTION) {
         val file = fileChooser.getSelectedFile();
         s.save(file.getCanonicalPath)
@@ -300,15 +300,15 @@ object gui {
       "Parse error :-(\nCopy-Paste code into the reqT console to investigate error message.")
     
     def doNew()              = gui(currentModel)
-    def doSaveAs()           = saveToChosenFile(currentModel.toString, this)
+    def doSaveAs()           = saveToChosenFile(currentModel.toString, this, fileName+".scala")
     def doDelete()           = removeCurrentNode()
     def doUndoAll()          = revertToInitModel()
     def doEnter()            = setEditorToSelection()
     def doUpdate()           = setModelToSelected()
     def doExpandAll()        = setFoldingAll(rootPath, true)
     def doCollapseAll()      = setFoldingAll(rootPath, false)
-    def doToGraphVizNested() = saveToChosenFile(export.toGraphVizNested(currentModel), this)
-    def doToGraphVizFlat()   = saveToChosenFile(export.toGraphVizFlat(currentModel), this)
+    def doToGraphVizNested() = saveToChosenFile(export.toGraphVizNested(currentModel), this, fileName+".dot")
+    def doToGraphVizFlat()   = saveToChosenFile(export.toGraphVizFlat(currentModel), this, fileName+".dot")
     def doMetamodel()        = setEditorToModel(reqT.meta.model)
     def doInitEditorText()   = setEditorToModel(initEditorModel)
 
@@ -398,11 +398,11 @@ object gui {
     //  editor.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
     // //editor.setContentType("text/html");
     //   val editorView = new JScrollPane(editor);
-    val editor = new RSyntaxTextArea(20, 80)
-    editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SCALA)  
-    //val atmf = TokenMakerFactory.getDefaultInstance().asInstanceOf[AbstractTokenMakerFactory];
-    //atmf.putMapping("text/reqT", "org.fife.ui.rsyntaxtextarea.ReqTTokenMaker");
-    //editor.setSyntaxEditingStyle("text/reqT");  //currently gives null pointer eventually...
+    val editor = new RSyntaxTextArea(10, 80)
+    //editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SCALA)  
+    val atmf = TokenMakerFactory.getDefaultInstance().asInstanceOf[AbstractTokenMakerFactory];
+    atmf.putMapping("text/reqT", "org.fife.ui.rsyntaxtextarea.modes.ReqTTokenMaker");
+    editor.setSyntaxEditingStyle("text/reqT");  //currently gives null pointer eventually...
     
     editor.setCodeFoldingEnabled(true)
     editor.setAntiAliasingEnabled(true)
@@ -412,7 +412,7 @@ object gui {
     editor.setAnimateBracketMatching(true)
     val currFont = editor.getFont()
     editor.setFont( new Font(currFont.getName, currFont.getStyle, currFont.getSize+2))
-    editor.getSyntaxScheme.setStyle(TokenTypes.RESERVED_WORD, new Style(Color.black)) //this is a hack top avoid blue requires... should make my own language definition via jlex or something or check out this page http://fifesoft.com/rsyntaxtextarea/doc/  and https://code.google.com/p/kojolite/source/browse/src/main/scala/net/kogics/kojo/lite/ScriptEditor.scala
+    //editor.getSyntaxScheme.setStyle(TokenTypes.RESERVED_WORD, new Style(Color.black)) //this is a hack top avoid blue requires... should make my own language definition via jlex or something or check out this page http://fifesoft.com/rsyntaxtextarea/doc/  and https://code.google.com/p/kojolite/source/browse/src/main/scala/net/kogics/kojo/lite/ScriptEditor.scala
     
     editor.getSyntaxScheme.setStyle(TokenTypes.SEPARATOR, new Style(Color.black))
 
