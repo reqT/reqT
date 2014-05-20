@@ -59,14 +59,13 @@ class ReqTTokenMaker extends AbstractTokenMaker with TokenMaker {
     var currentTokenType  = startTokenType
     
     var i = offset
-    while (i < end) {
-      val c = array(i)
+//    while (i < end) {
+  //    val c = array(i)
       //STUBB
-      addToken(text, currentTokenStart,i-1, TokenTypes.IDENTIFIER, newStartOffset+currentTokenStart)
-      currentTokenStart = i
+      addToken(text, i, i, TokenTypes.IDENTIFIER, end)
       //END STUBB
-      i += 1
-    } // end while (i < end) 
+    //  i += 1
+    //} // end while (i < end) 
                             
     //return
     firstToken
