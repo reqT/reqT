@@ -18,5 +18,10 @@ object Settings {
   var columnSeparator = ";"
   var rowSeparator = "\n"
   var defaultModelToString: export.StringExporter = export.toScalaCompact
+  object gui {
+    var entityColor = new java.awt.Color(0,100,200) //blueish
+    var attributeColor = new java.awt.Color(0,100,50) //greenish
+    var relationColor = new java.awt.Color(150, 30, 0)  //reddish
+  }
 }
 
