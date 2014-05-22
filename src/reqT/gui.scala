@@ -66,15 +66,15 @@ object gui {
         Spec("Ctrl+U     = update selected node with Model in editor.")        
     )
 
-    def model: Model = currentModel
+    def model: Model = createModelFromTreeNode(top) //currentModel
     def selectedModel: Model = selectedOpt match {
       case Some(current) => createModelFromTreeNode(current)
       case None => Model()
     }
     
     def valueChanged(e: TreeSelectionEvent) {//Required by TreeSelectionListener
-      println("valueChanged e = " + e)  ///dbg
-      println("currentSelectionPath = " + currentSelectionPath)  ///dbg
+      //println("valueChanged e = " + e)  ///dbg
+      //println("currentSelectionPath = " + currentSelectionPath)  ///dbg
 /*       selectedOpt.foreach { node =>
         val data = node.getUserObject
         val m: Model = data match {
@@ -152,7 +152,7 @@ object gui {
           val headNode = mkNode(Head(e,l))
           addModelElemsToTreeNode(t, headNode)
           node.add(headNode)
-        case e => println("Unkown element: " + e)
+        case e => println("Unkown element: " + e); ???
       }
     
     def setTopTo(m: Model): Unit = {
@@ -179,12 +179,12 @@ object gui {
     
     def toTreePath(node: DefaultMutableTreeNode): TreePath = {
       val pathArray = treeModel.getPathToRoot(node)
-      println("toTreePath; pathArray = " + pathArray)
+      //println("toTreePath; pathArray = " + pathArray)
       var treePath = new TreePath(pathArray(0))
-      println("toTreePath; treePath initial = " + treePath)
+      //println("toTreePath; treePath initial = " + treePath)
       for (i <- 1 until pathArray.size) { 
         treePath = treePath.pathByAddingChild(pathArray(i)) 
-        println(s"toTreePath; treePath add $i = " + treePath)
+        //println(s"toTreePath; treePath add $i = " + treePath)
       }
       treePath
     }
@@ -285,11 +285,11 @@ object gui {
     
     def setEditorToSelection() {
       val currentSelection: TreePath = tree.getSelectionPath();
-      println("setEditorToSelection, currentSelection = " +  currentSelection)
+      //println("setEditorToSelection, currentSelection = " +  currentSelection)
       if (currentSelection != null) {
         val currentNode = 
           currentSelection.getLastPathComponent().asInstanceOf[DefaultMutableTreeNode]
-        println("currentNode = " + currentNode)
+        //println("currentNode = " + currentNode)
         setEditorToModel(createModelFromTreeNode(currentNode))
         editor.requestFocus
       } else msgNothingSelected
@@ -317,7 +317,7 @@ object gui {
     val delKey              = (KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)
     val enterKey            = (KeyEvent.VK_E, KeyEvent.VK_ENTER, ActionEvent.CTRL_MASK)
     val updateKey           = (KeyEvent.VK_U, KeyEvent.VK_U, ActionEvent.CTRL_MASK)
-    val undoAllKey          = (KeyEvent.VK_Z, KeyEvent.VK_Z, ActionEvent.CTRL_MASK)
+    val revertKey           = (KeyEvent.VK_R, 0, 0)
     val expandAllKey        = (KeyEvent.VK_E, KeyEvent.VK_RIGHT, ActionEvent.ALT_MASK)
     val collapseAllKey      = (KeyEvent.VK_C, KeyEvent.VK_LEFT, ActionEvent.ALT_MASK)
     val toGraphVizNestedKey = (KeyEvent.VK_N, 0, 0)
@@ -360,7 +360,7 @@ object gui {
         mkMenuItem("Enter selected node to Editor", editMenu, enterKey) { doEnter() }
         mkMenuItem("Update selected node from Editor", editMenu, updateKey) { doUpdate() }
         mkMenuItem("Delete selected node", editMenu, delKey) { doDelete() }
-        mkMenuItem("Undo all (revert to init)", editMenu, undoAllKey) { doUndoAll() }
+        mkMenuItem("Undo all (revert to init)", editMenu, revertKey) { doUndoAll() }
         //View menu
         mkMenuItem("Collapse all", viewMenu, collapseAllKey) { doCollapseAll() }
         mkMenuItem("Expand all", viewMenu, expandAllKey) { doExpandAll() }
@@ -392,6 +392,10 @@ object gui {
     import org.fife.ui.rtextarea._
     import org.fife.ui.rsyntaxtextarea._
     
+    val ENTITY_TOKEN = TokenTypes.DATA_TYPE
+    val ATTR_TOKEN = TokenTypes.RESERVED_WORD_2
+    val REL_TOKEN = TokenTypes.FUNCTION
+    
 
     //  val editor = new JEditorPane();
     //  editor.setEditable(true);
@@ -402,17 +406,28 @@ object gui {
     //editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SCALA)  
     val atmf = TokenMakerFactory.getDefaultInstance().asInstanceOf[AbstractTokenMakerFactory];
     atmf.putMapping("text/reqT", "org.fife.ui.rsyntaxtextarea.modes.ReqTTokenMaker");
-    editor.setSyntaxEditingStyle("text/reqT");  //currently gives null pointer eventually...
+    editor.setSyntaxEditingStyle("text/reqT"); 
     
     editor.setCodeFoldingEnabled(true)
     editor.setAntiAliasingEnabled(true)
     editor.setBracketMatchingEnabled(true)
-    editor.setMatchedBracketBGColor(new Color(247, 247, 247))
-    editor.setMatchedBracketBorderColor(new Color(192, 192, 192))
+    //editor.setMatchedBracketBGColor(new Color(247, 247, 247))
+    //editor.setMatchedBracketBorderColor(new Color(192, 192, 192))
     editor.setAnimateBracketMatching(true)
-    val currFont = editor.getFont()
+    def currFont = editor.getFont()
     editor.setFont( new Font(currFont.getName, currFont.getStyle, currFont.getSize+2))
-    //editor.getSyntaxScheme.setStyle(TokenTypes.RESERVED_WORD, new Style(Color.black)) //this is a hack top avoid blue requires... should make my own language definition via jlex or something or check out this page http://fifesoft.com/rsyntaxtextarea/doc/  and https://code.google.com/p/kojolite/source/browse/src/main/scala/net/kogics/kojo/lite/ScriptEditor.scala
+    val currFontBold = new Font(currFont.getName, Font.BOLD, currFont.getSize)
+    editor.getSyntaxScheme.setStyle(ENTITY_TOKEN, 
+      new Style(Settings.gui.entityColor, Style.DEFAULT_BACKGROUND, currFontBold))
+    editor.getSyntaxScheme.setStyle(ATTR_TOKEN, 
+      new Style(Settings.gui.attributeColor))
+    editor.getSyntaxScheme.setStyle(REL_TOKEN, 
+      new Style(Settings.gui.relationColor, Style.DEFAULT_BACKGROUND, currFontBold))
+
+    /*see further 
+      http://fifesoft.com/rsyntaxtextarea/doc/  
+      https://code.google.com/p/kojolite/source/browse/src/main/scala/net/kogics/kojo/lite/ScriptEditor.scala
+      */
     
     editor.getSyntaxScheme.setStyle(TokenTypes.SEPARATOR, new Style(Color.black))
 
