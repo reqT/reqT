@@ -22,6 +22,7 @@ object Main {
     println("--in    -i   <file> Interpret file")
     println("--test  -t   <file> Run test script with Model in file")
     println("--meta  -m   [<from>] Generate metamodel [<from>] to GENERATED-metamodel.scala")
+    println("--jflex -j   Print jflex clauses for ReqTTokenMaker.flex")
   }
   
   def genMeta(args : Array[String]) {
@@ -60,6 +61,20 @@ object Main {
     """) 
   }
   
+  def genJFlex(args : Array[String]) {
+  
+    val ent = reqT.metamodel.entityTypes.map(e => s""" "$e" """).
+      mkString(" /* Entity Types */ \n", "| \n", "{ addToken(Token.RESERVED_WORD); } \n")    
+    
+    val attr = reqT.metamodel.attributeTypes.map(e => s""" "$e" """).
+      mkString(" /* Attribute Types */ \n", "| \n", "{ addToken(Token.RESERVED_WORD_2); } \n")
+    
+    val rel = reqT.metamodel.relationTypes.map(e => s""" "$e" """).
+      mkString(" /* Relation Types */ \n", "| \n", "{ addToken(Token.FUNCTION); } \n")
+    
+    println(s"$ent\n$attr\n$rel")
+  }
+  
   def main(args : Array[String]) : Unit =  {
     if (args.size == 0) repl.startInterpreting
     else args(0) match {
@@ -67,6 +82,7 @@ object Main {
       case a if Set("--meta", "-m")(a) => genMeta(args.drop(1))
       case a if Set("--in",   "-i")(a)   => interpretFile(args.drop(1))
       case a if Set("--test", "-t")(a) => test(args.drop(1))
+      case a if Set("--jflex", "-j")(a) => genJFlex(args.drop(1))
       case _ => 
         println("ERROR Unknown arg: " + args.mkString(" ")); help()
     }
