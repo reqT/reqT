@@ -131,9 +131,14 @@ object repl {
   }
   
   
+  def quietRun(code: String) { 
+    checkIntp() 
+    interpreter .map { i => i.quietRun(code) }
+  }
+  
   def run(code: String) { 
     checkIntp() 
-    interpreter .map { i => i.quietRun(s"""$code""") }
+    interpreter .map { i => i.interpret(code) }
   }
   
   def interpret(code: String): Option[Any] = { 
@@ -158,11 +163,10 @@ object repl {
     interpret(s"""{$code}: Boolean""").map(_.asInstanceOf[Boolean])    
   
   def interpretModel(code: String): Option[Model] =  
-    interpret(
-s"""{
-$code
-}: reqT.Model""").map(_.asInstanceOf[Model])
+    interpret(s"""{$code}: reqT.Model""").map(_.asInstanceOf[Model])
 
+  def interpretTransformer(code: String): Option[Model => Model] =  
+    interpret(s"""{$code}: reqT.Model => reqT.Model""").map(_.asInstanceOf[Model => Model])
     
   // def interpretString(code: String): Option[String] = {
     // checkIntp() 
