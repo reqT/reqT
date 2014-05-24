@@ -13,7 +13,8 @@
 
 package object reqT 
 extends Init 
-   with GlobalConstants 
+   with GlobalConstants
+   with GuiLaunchers
    with ImplicitFactoryObjects 
    with ImplicitStringSelector
    with ImplicitAttributeEnrichments
