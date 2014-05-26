@@ -5,7 +5,7 @@
 
 * Relations are case objects with non-capitalized names.
   This causes problems in matches and requires backticks, 
-  but this chosen as it is more intuitive to write 
+  but was chosen as it is more intuitive to write 
     Req("x") has Spec("abc") 
   compared to 
     Req("x") Has Spec("abc")
