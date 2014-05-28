@@ -219,65 +219,69 @@ object gui { //GUI implementation
       currentModel = initModel
       setTopTo(currentModel)
     }
+    
+    def reconstructModel() { setTopTo(model)}
 
     def expandSelectFocus(path: TreePath) = {
       tree.expandPath(path)
       tree.setSelectionPath(path)
       tree.requestFocus
     }
+
+    def insertElems(elems: Seq[Elem], currentNode: DefaultMutableTreeNode) {
+      val parent = currentNode.getParent().asInstanceOf[DefaultMutableTreeNode]
+      val parentPath = toTreePath(parent)
+      var i = parent.getIndex(currentNode)
+      elems.foreach { e =>
+        val newChild:  DefaultMutableTreeNode  = 
+          if (e.isNode) new DefaultMutableTreeNode(e)
+          else new DefaultMutableTreeNode(e.key)
+        i += 1
+        parent.insert(newChild, i)
+        treeModel.nodeStructureChanged(parent)
+        if (!e.isNode) {
+          addModelElemsToTreeNode(e.mapTo.asInstanceOf[Model], newChild)
+          treeModel.nodeStructureChanged(newChild)
+        }
+      }
+      if (!elems.isEmpty) {
+        //rebuild submodel to remove duplicates
+        val newModelFromParent = createModelFromTreeNode(parent)
+        parent.removeAllChildren
+        treeModel.nodeStructureChanged(parent)
+        addModelElemsToTreeNode(newModelFromParent, parent)
+        treeModel.nodeStructureChanged(parent)
+        expandSelectFocus(parentPath)
+      }
+    }    
     
-    def setSelectionToModel(newModel: Model) = selectedOpt match { 
+    def updateSelectionWithModel(newModel: Model) = selectedOpt match { 
       case Some(currentNode) => 
         if (currentNode == top) setTopTo(newModel)
-        else {
-          //tricky business...
-          
-          val parent = currentNode.getParent().asInstanceOf[DefaultMutableTreeNode]
+        else {//this is a bit tricky...
           val currentPath = currentSelectionPath
-          val parentPath = toTreePath(parent)
-          
-          def insertTail(tail: Seq[Elem]) {
-            var i = parent.getIndex(currentNode)
-            tail.foreach { e =>
-              val newChild:  DefaultMutableTreeNode  = 
-                if (e.isNode) new DefaultMutableTreeNode(e)
-                else new DefaultMutableTreeNode(e.key)
-              i += 1
-              parent.insert(newChild, i)
-              treeModel.nodeStructureChanged(parent)
-              if (!e.isNode) {
-                addModelElemsToTreeNode(e.mapTo.asInstanceOf[Model], newChild)
-                treeModel.nodeStructureChanged(newChild)
-              }
-            }
-            if (!tail.isEmpty) {
-              //rebuild submodel to remove duplicates
-              val newModelFromParent = createModelFromTreeNode(parent)
-              parent.removeAllChildren
-              addModelElemsToTreeNode(newModelFromParent, parent)
-              treeModel.nodeStructureChanged(parent)
-              expandSelectFocus(parentPath)
-            }
+          def update() {
+            treeModel.nodeChanged(currentNode)
+            treeModel.nodeStructureChanged(currentNode)
           }
-          
+          def expand() { expandSelectFocus(currentPath) }
+              
           newModel match {
             case Model() => removeCurrentNode()
             case Model(e, tail@_*) if e.isNode => 
-              currentNode.setUserObject(e)
-              treeModel.nodeChanged(currentNode)
-              expandSelectFocus(currentPath)
-              if (!tail.isEmpty) insertTail(tail)
+              currentNode.setUserObject(e); update()
+              currentNode.removeAllChildren; update()
+              if (!tail.isEmpty) {
+                insertElems(tail, currentNode); update(); expand()
+              }
             case Model(Relation(e,l,t), tail@_*) => 
-              currentNode.setUserObject(Head(e,l))
-              treeModel.nodeChanged(currentNode)
-              currentNode.removeAllChildren
-              addModelElemsToTreeNode(t, currentNode)
-              treeModel.nodeStructureChanged(currentNode)
-              expandSelectFocus(currentPath)
-              if (!tail.isEmpty) insertTail(tail)
-            case _ => ???
+              currentNode.setUserObject(Head(e,l)); update(); expand
+              currentNode.removeAllChildren; update()
+              addModelElemsToTreeNode(t, currentNode); update() 
+              if (!tail.isEmpty) insertElems(tail, currentNode)
+              update(); expand;
+            case _ => ??? //will this ever happen???
           }
-          
         }
       case None => msgNothingSelected
     }
@@ -285,13 +289,13 @@ object gui { //GUI implementation
     def transformSelection(transform: Model => Model) = selectedOpt match {
       case Some(currentNode) => 
         val model = createModelFromTreeNode(currentNode)
-        setSelectionToModel(transform(model))
+        updateSelectionWithModel(transform(model))
       case None => msgNothingSelected
     }
     
     def interpretModelAndUpdate() {
       repl.interpretModel(editor.getText) match {
-        case Some(model) => setSelectionToModel(model)
+        case Some(model) => updateSelectionWithModel(model)
         case None => msgParseModelError
       }
     }
@@ -331,6 +335,7 @@ object gui { //GUI implementation
     def doUpdate()           = interpretModelAndUpdate()
     def doRun()              = repl.run(editor.getText)
     def doTransform()        = interpretTransformerAndUpdate()
+    def doRefresh()          = reconstructModel()
     def doExpandAll()        = setFoldingAll(rootPath, true)
     def doCollapseAll()      = setFoldingAll(rootPath, false)
     def doToGraphVizNested() = saveToChosenFile(export.toGraphVizNested(currentModel), this, fileName+".dot")
@@ -345,6 +350,7 @@ object gui { //GUI implementation
     val updateKey           = (KeyEvent.VK_U, KeyEvent.VK_U, ActionEvent.CTRL_MASK)
     val runKey              = (KeyEvent.VK_R, KeyEvent.VK_R, ActionEvent.CTRL_MASK)
     val transformKey        = (KeyEvent.VK_T, KeyEvent.VK_T, ActionEvent.CTRL_MASK)
+    val refreshKey          = (KeyEvent.VK_F, KeyEvent.VK_F5, 0)
     val revertKey           = (KeyEvent.VK_V, 0, 0)
     val expandAllKey        = (KeyEvent.VK_E, KeyEvent.VK_RIGHT, ActionEvent.ALT_MASK)
     val collapseAllKey      = (KeyEvent.VK_C, KeyEvent.VK_LEFT, ActionEvent.ALT_MASK)
@@ -401,6 +407,7 @@ object gui { //GUI implementation
         mkMenuItem("Run script in editor (console output)", editMenu, runKey) { doRun() }
         mkMenuItem("Transform tree by function in editor", editMenu, transformKey) { doTransform() }
         mkMenuItem("Delete tree", editMenu, delKey) { doDelete() }
+        mkMenuItem("Refresh tree", editMenu, refreshKey) { doRefresh() }
         mkMenuItem("Undo all (revert to init)", editMenu, revertKey) { doUndoAll() }
         //View menu
         mkMenuItem("Collapse all", viewMenu, collapseAllKey) { doCollapseAll() }
