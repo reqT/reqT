@@ -26,7 +26,7 @@ trait ModelImplementation extends ModelBase  //mixins for trait Model in DSL
     self: Model => 
 }
 
-trait ModelBase  {
+trait ModelBase extends Serializable {
   self: Model =>
  
   protected [ModelBase] def myMap: Map[Key, MapTo]      
