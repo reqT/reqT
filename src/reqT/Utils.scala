@@ -205,6 +205,8 @@ trait FileUtils {
 }
 
 trait RandomUtils {
+  def rndModel(n: Int = 7, div: Int = 2): Model = 
+    if (n > 0) List.fill(n)(rnd.rndElem(n, div max 2)).toHashModel else HashModel()
   object rnd {
     private val sing = Vector("do", "re", "mi", "fa", "so", "la", "ti")
     def rndUUID = java.util.UUID.randomUUID.toString
@@ -229,7 +231,6 @@ trait RandomUtils {
       case i if i < 60 => rndIntAttribute
       case _ => Relation(rndEntity, rndRelationType, rndModel(n/div, div)) 
     }
-    def rndModel(n: Int = 7, div: Int = 2): Model = if (n > 0) List.fill(n)(rndElem(n, div max 2)).toHashModel else HashModel()
   }
 }
 
