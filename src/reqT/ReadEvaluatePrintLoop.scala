@@ -38,7 +38,7 @@ object repl {
 
   def reset() { 
   /*
-    //the idea was that this should avoid memory leaks
+    //the idea was that this should avoid the memory leak bug:
     //https://issues.scala-lang.org/browse/SI-4331
     //but it does not seem to help...
     //test case:
@@ -53,11 +53,11 @@ object repl {
         j += 1
       }    
   */
-    reqT.initInterpreter()
-    // interpreter.map { i => 
-      // i.intp.reset
-      // i.initReqT
-    // }
+    interpreter.map { i => 
+     i.intp.reset
+     i.initReqT
+     reqT.initInterpreter()
+    }
   }
   
   class ReqTILoop(out : PrintWriter) extends ILoop(None, out) {
