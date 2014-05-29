@@ -1,1 +1,1 @@
-call scala -toolcp reqT.jar reqT.jar %*
+call java -jar reqT.jar %*

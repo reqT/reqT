@@ -2,8 +2,10 @@
 set _jarfilename=reqT.jar
 
 :clean
-echo Cleaning bin/reqT ...  %TIME%
-rd /S /Q bin\reqT
+if not exist bin call makebin
+if %ERRORLEVEL% NEQ 0 goto error
+
+if exist bin\reqT echo Cleaning bin/reqT & rd /S /Q bin\reqT
 if %ERRORLEVEL% NEQ 0 goto error
 
 :compile
