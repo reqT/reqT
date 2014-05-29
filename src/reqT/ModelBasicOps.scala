@@ -39,7 +39,7 @@ trait ModelBasicOps  {
   def +(p: HeadPath): Model = this ++ p.toModel
   def +[T](p: AttrVal[T]): Model = this ++ p.toModel  
   def aggregate(that: Model): Model = this ++ that 
-  def ++(that: Model): Model = { var r = this ; that.foreach { r += _ } ; r }  
+  def ++(that: Model): Model = { var r = this ; that.toVector.foreach { r += _ } ; r }  
   
 //remove stuff:  
   def -(e: Elem): Model = remove(e)
@@ -76,7 +76,7 @@ trait ModelBasicOps  {
   } }.toModel
   
   //def diff(that: Model): Model = (elems diff that.elems).toModel //should not this be deep????
-  def diff(that: Model): Model = { var r = this ; that.foreach { r -= _ } ; r }  //is this right?
+  def diff(that: Model): Model = { var r = this ; that.toVector.foreach { r -= _ } ; r }  //is this right?
   def --(that: Model): Model = diff(that)  //is diff == diffKeys ??? NO!?
   
   //def -(k: Key): Model = newModel(myMap - k)  //deep???
@@ -123,7 +123,7 @@ trait ModelBasicOps  {
   }  
   lazy val `^`: Vector[Selector] = tipAndHeads
 
-  lazy val flattenDeep: Model = mapDeep( m => m).toModel.top  //????
+  //lazy val flattenDeep: Model = mapDeep( m => m).toModel.top  //????
   lazy val elemsWithTip: Vector[Elem] = elems.flatMap { //was topElems was elemsExpanded was expandTip
     case r: Relation => Vector(r.entity, r) 
     case elem => Vector(elem)
@@ -135,10 +135,10 @@ trait ModelBasicOps  {
   } .distinct  
   
   lazy val expandTop: Model = elemsWithTop.toModel
-  lazy val pruneTop: Model = filterNot { 
+  lazy val pruneTop: Model = toVector.filterNot { 
     case e: Entity if topSourceSet(e) || topDestinationSet(e) => true
     case _ => false
-  } 
+  } .toModel
   
   def inverseTop(from: RelationType, to: RelationType): Model =  elems.collect { 
     case Relation(e1, r1, tail1) if from == r1 => tail1.elems.collect {
@@ -189,9 +189,10 @@ trait ModelBasicOps  {
     myMap.collect { case (h: Head, m: Model) if !m.isEmpty=> m.tipEntities } .toVector .flatten .distinct
   lazy val topDestinationSet: Set[Entity] = topDestinations.toSet
   lazy val topHeads: Vector[Head] = myMap.keys.collect { case h: Head => h } .toVector
-  lazy val tipLeafs: Model = collect { case n: Node => n } .toModel
+  lazy val tipLeafs: Model = toVector.collect { case n: Node => n } .toModel
   lazy val leafPaths: Vector[NodePath] = mapLeafPaths(p => p)
-  lazy val tipLeafsRemoved: Model = filterNot{ case n: Node => true; case _ => false}
+  lazy val tipLeafsRemoved: Model = 
+    toVector.filterNot{ case n: Node => true; case _ => false}.toModel
   lazy val topNodesAndHeads: Vector[Node] = elems.collect { 
     case n: Node => n 
     case r: Relation => r.entity      
@@ -210,9 +211,9 @@ trait ModelBasicOps  {
   lazy val tipEntityOfId: Map[String, Entity] = tipEntities.map(e => (e.id, e)).toMap.withDefaultValue(NoEntity)
   lazy val tipEntitiesOfId: Map[String, Set[Entity]] = SetBag(tipEntities.map(e => (e.id, e)):_*).withDefaultValue(Set())
   
-  lazy val ids: Vector[String] = collectDeep { case e: Entity => e.id } .distinct
+  lazy val ids: Vector[String] = collect { case e: Entity => e.id } .distinct
   lazy val entitiesOfId: Map[String, Set[Entity]] = 
-    SetBag(collectDeep { case e: Entity => (e.id, e) } :_*).withDefaultValue(Set())
+    SetBag(collect { case e: Entity => (e.id, e) } :_*).withDefaultValue(Set())
   lazy val entityOfId: Map[String, Entity] = 
     entitiesOfId.collect { case (id, es) if !es.isEmpty => (id, es.head) } .toMap.withDefaultValue(NoEntity)
   
@@ -232,8 +233,7 @@ trait ModelBasicOps  {
     case av: AttrVal[T] if av.attr.myType == at => AttrRef[T](av.init,av.attr.myType)
   }
   
-  lazy val constraints: Vector[Constr] = 
-    collectDeep { case Constraints(cs) => cs }.flatten.toVector 
+  lazy val constraints: Vector[Constr] = collect { case Constraints(cs) => cs }.flatten.toVector 
       
   lazy val intAttrToConstraints: Vector[XeqC] = collectLeafPaths {
     case AttrVal(p,a) if a.isInt => Var(AttrRef(p, a.myType)) := a.value.asInstanceOf[Int]

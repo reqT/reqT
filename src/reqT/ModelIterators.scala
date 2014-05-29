@@ -51,48 +51,46 @@ trait ModelIterators extends ModelBase {
     iter(this, HeadPath())
   }
   
-  def collect[T](f: PartialFunction[Elem,T]): Vector[T] = elems.collect(f) 
-  def collectDeep[T](f: PartialFunction[Elem,T]): Vector[T] = elems.flatMap ( e =>   //???
+  def collect[T](f: PartialFunction[Elem,T]): Vector[T] = elems.flatMap ( e =>   //???
     e match {
       case n: Node if f.isDefinedAt(e) => Vector(f(e))
       case rel: Relation => 
         ( if (f.isDefinedAt(rel.entity)) Vector(f(rel.entity)) else Vector[T]() ) ++
-          ( if (f.isDefinedAt(rel)) Vector(f(rel)) else Vector[T]() ) ++  
-            ( rel.tail.collectDeep(f) )
-      case _ => Vector()
-    }
-  )
+        ( if (f.isDefinedAt(rel)) Vector(f(rel)) else Vector[T]() ) ++  
+        ( rel.tail.collect(f) )
+      case _ => Vector()  }  )
   
-  // def collectElems[T](f: PartialFunction[Elem,T]): Vector[T] = elems.flatMap ( e =>   //???
-    // e match {
-      // case n: Node if f.isDefinedAt(e) => Vector(f(e))
-      // case rel: Relation if f.isDefinedAt(rel) => Vector(f(rel)) ++ rel.tail.collectElems(f) 
-      // case _ => Vector()
-    // }
-  // )
-  
-  def foreach[U](f: Elem => U): Unit = elems.foreach(f)
-  def filter(f: Elem => Boolean): Model = elems.filter(f).toModel
-  def filterNot(f: Elem => Boolean): Model = elems.filterNot(f).toModel
   def withFilter(f: Elem => Boolean): FilterMonadic[reqT.Elem,Iterable[reqT.Elem]] = 
     toIterable.withFilter(f) //needed to make for-comprehensions work over Model
-  def map[U](f: Elem => U): Vector[U] = elems.map(f)
+  //def map[U](f: Elem => U): Vector[U] = elems.map(f)
 
-  def filterDeep(p: Elem => Boolean): Model = newModel( myMap.flatMap {  //???
+  def filter(p: Elem => Boolean): Model = elems.flatMap ( e =>   //???
+    e match {
+      case n: Node if p(e) => Vector(e)
+      case rel: Relation => 
+        lazy val ftail = rel.tail.filter(p)
+        if (p(rel.entity)||p(rel)|| !ftail.isEmpty) Vector(Relation(rel.head, ftail)) 
+        else Vector()  
+      case _ => Vector()
+    } ).toModel
+    
+  def filterNot(p: Elem => Boolean): Model = filter(e => !p(e)) //???
+  
+  /* old filterDeep newModel( myMap.flatMap {  //???
     case km if p(km.toElem) => km match {
       case (h: Head,tail: Model) =>  Some((h, tail.filterDeep(p)))
       case _ => Some(km)
     }
     case _ => None
-  } )
+  } ) */
 
-  def filterDeepNot(p: Elem => Boolean): Model = newModel( myMap.flatMap { //???
+  /*def filterDeepNot(p: Elem => Boolean): Model = newModel( myMap.flatMap { //???
     case km if !p(km.toElem) => km match {
       case (h: Head,tail: Model) =>  Some((h, tail.filterDeepNot(p)))
       case _ => Some(km)
     }
     case _ => None
-  } )  
+  } )*/  
   
   def flatMapDeep[T](f: Elem => Option[Elem]): Model = newModel( //???
     myMap.flatMap { km =>
@@ -104,14 +102,22 @@ trait ModelIterators extends ModelBase {
     } 
   )
   
-  
-  def mapDeep[U](f: Elem => U): Vector[U] = elems.flatMap { e =>  //???
+/*  def mapDeep[U](f: Elem => U): Vector[U] = elems.flatMap { e =>  //???
     e match {
       case n: Node     => Vector(f(n))
       case r: Relation => Vector(f(r)) ++ r.tail.mapDeep(f)      
       case NoElem => Vector()       
     }
+  }*/
+
+  def map[U](f: Elem => U): Vector[U] = elems.flatMap { e =>  //???
+    e match {
+      case n: Node     => Vector(f(n))
+      case r@Relation(e,l,t) => Vector(f(e)) ++ Vector(f(r)) ++ t.map(f)      
+      case NoElem => Vector()       
+    }
   }
+
   
   def foreachDeep[U](f: Elem => U): Unit = elems.foreach { e => 
     e match {

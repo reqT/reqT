@@ -123,7 +123,7 @@ trait GraphVizNested extends GraphViz {
     s" [label=$link, lhead=${q}cluster_$from$q]" + ";\n" +
     indent(path.depth) + s"  subgraph ${q}cluster_$from$q { \n"
 
-  def exportModel(m: Model, path: NodePath): String = m.collect {
+  def exportModel(m: Model, path: NodePath): String = m.toVector.collect {
     case n: Node => indent(path.depth) + node(n, path) + style(n) +";\n"
     case Relation(e1,l1,sub) => sub match {
       case Model() => indent(path.depth) + node(e1, path) + style(e1) +";\n" 
