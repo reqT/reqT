@@ -96,7 +96,24 @@ object repl {
     }
     override def printWelcome(): Unit = { out.flush() }
   }
-
+  
+  class EditorLauncher(out : PrintWriter, args : Array[String]) 
+  extends ReqTILoop(out : PrintWriter) {
+    override def createInterpreter() {
+      super.createInterpreter()
+      println("Launching Editor with args: " + args.mkString(","))
+      if (args.isEmpty) run("val editor0 = edit()")
+      else for (i <- 0 until args.size) {
+        val f = args(i)
+        println("f = "+f)
+        intp.interpret(s"println($i)")
+        val code = s"""val editor$i = edit(repl.interpretModel(load("$f")).getOrElse(Model(Spec(s"ERROR loading Model from file $f")))""" 
+        println("code = " + code)
+        intp.interpret(code)
+      }
+    }
+  }
+  
   def startInterpreting() {
     val out = new PrintWriter( new BufferedWriter( new OutputStreamWriter(JSystem.out) ) )
     val settings = new GenericRunnerSettings(out.println)
@@ -119,6 +136,14 @@ object repl {
     settings.usejavacp.value = true
     interpreter = Some( new CodeRunner(out, code) )
     interpreter.map(_.process(settings))
+  }
+  
+  def initInterpreterAndEdit(args : Array[String]) {
+    val out = new PrintWriter( new BufferedWriter( new OutputStreamWriter(JSystem.out) ) )
+    val settings = new GenericRunnerSettings(out.println)
+    settings.usejavacp.value = true
+    interpreter = Some(new EditorLauncher(out, args) )
+    interpreter.map(_.process(settings))  
   }
   
   def quietRun(code: String) { 
