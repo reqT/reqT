@@ -62,6 +62,14 @@ trait ModelBase extends Serializable {
     else elems.mkString("(\n  ", ",\n  ", "\n)") ) 
   
   override def toString = Settings.defaultModelToString(this) 
+  
+  def save(fileName: String) {
+    val outFile = new java.io.FileOutputStream(fileName)
+    val out = new java.io.ObjectOutputStream(outFile)
+    out.writeObject(this)
+    out.close
+    outFile.close
+  }
 }
 
 object defaultEmptyModel { def apply(): ListModel = new ListModel(ListMap.empty) }
@@ -85,6 +93,15 @@ trait ModelCompanion {
       else Relation(head, tail)
     case _ => throw new IllegalArgumentException(s"$pair illegal combination of (Key, MapTo)")
   }   
+  
+  def load(fileName: String): Model = {
+    val inFile = new java.io.FileInputStream(fileName)
+    val in = new java.io.ObjectInputStream(inFile)
+    val m: Model = in.readObject.asInstanceOf[Model]
+    in.close
+    inFile.close
+    m
+  }
 }
 
 trait ModelFromMap {
