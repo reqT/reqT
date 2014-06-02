@@ -28,6 +28,11 @@ package reqT
 trait GuiLaunchers {  //mixed into package object
   def edit() = gui()
   def edit(m: Model) = gui(m, m.get(Title).getOrElse(""))
+  def edit(fileName: String) = {
+    val f = new java.io.File(fileName).getCanonicalPath
+    val m = Model.load(f)
+    gui(m, f)
+  }
 }
 
 object gui { //GUI implementation
@@ -36,6 +41,16 @@ object gui { //GUI implementation
   import javax.swing._
   import javax.swing.tree._
   import javax.swing.event._
+  
+  def apply(m: Model = Model(), fileName: String = "untitled"): ModelTreeEditor = {
+    val frame = new JFrame(s"reqT.gui($fileName)")
+    frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
+    val smv = new ModelTreeEditor(m, frame, fileName)
+    frame.add(smv)
+    frame.pack()
+    frame.setVisible(true)
+    smv
+  }  
  
   private var nextModelViewerNum = 1
  
@@ -54,10 +69,18 @@ object gui { //GUI implementation
       }    
   }
   
-  class SwingModelViewer( 
+  def chooseFile(c: Component): Option[String] = {
+    val fileChooser = new JFileChooser()
+    if (fileChooser.showSaveDialog(c) == JFileChooser.APPROVE_OPTION) 
+      Some(fileChooser.getSelectedFile().getCanonicalPath)
+    else None
+  }
+  
+  class ModelTreeEditor( 
     val initModel: Model, val frame: JFrame, val fileName: String) extends JPanel 
       with TreeSelectionListener  {
 
+    override def toString = s"ModelTreeEditor($fileName)"
     case object ModelRoot { override val toString = "Model" }  
     val top = new DefaultMutableTreeNode(ModelRoot)
     private var currentModel: Model = initModel
@@ -128,16 +151,17 @@ object gui { //GUI implementation
         for ( i <- 0 until n) {
           val child = treeModel.getChild(node, i).asInstanceOf[DefaultMutableTreeNode]
           child.getUserObject match {
-            case e: reqT.Node => elems = elems :+ e
+            case e if e.isInstanceOf[Node] => elems = elems :+ e.asInstanceOf[Node]
             case h: Head => elems = elems :+ Relation(h, iter(child))
-            case any => throw new Error("match failed in createModelFromTreeNode: " + any)
+            case any => throw new Error("match failed in iter in createModelFromTreeNode: " + any)
           }
         }
         elems.toModel
       }
       def submodel = if (!fromNode.isLeaf) iter(fromNode) else Model()
+      
       fromNode.getUserObject match {
-        case theLeaf: reqT.Node => Model(theLeaf)
+        case e: Node => Model(e)
         case h: Head => Model(Relation(h,submodel))
         case ModelRoot => iter(fromNode)
         case any => 
@@ -145,24 +169,24 @@ object gui { //GUI implementation
       }
     }
     
-    def treeModel: DefaultTreeModel =
-      tree.getModel.asInstanceOf[DefaultTreeModel] 
+    def treeModel: DefaultTreeModel = tree.getModel.asInstanceOf[DefaultTreeModel] 
     def rootPath: TreePath = new TreePath(top)
     def mkNode(n: Any) = new DefaultMutableTreeNode(n)
 
-    def addModelElemsToTreeNode(m: Model, node: DefaultMutableTreeNode): Unit = m.elems.foreach { 
+    def mkTreeFromModelAtNode(m: Model, node: DefaultMutableTreeNode): Unit = m.elems.foreach { 
         case a: Attribute[_] => node.add(mkNode(a))
         case e: Entity => node.add(mkNode(e))
         case Relation(e,l,t) => 
           val headNode = mkNode(Head(e,l))
-          addModelElemsToTreeNode(t, headNode)
+          mkTreeFromModelAtNode(t, headNode)
           node.add(headNode)
         case e => println("Unkown element: " + e); ???
       }
     
     def setTopTo(m: Model): Unit = {
       top.removeAllChildren
-      addModelElemsToTreeNode(m, top)
+      treeModel.nodeStructureChanged(top) 
+      mkTreeFromModelAtNode(m, top)
       treeModel.nodeStructureChanged(top)  
       tree.setSelectionPath(topPath)
       tree.requestFocus
@@ -240,7 +264,7 @@ object gui { //GUI implementation
         parent.insert(newChild, i)
         treeModel.nodeStructureChanged(parent)
         if (!e.isNode) {
-          addModelElemsToTreeNode(e.mapTo.asInstanceOf[Model], newChild)
+          mkTreeFromModelAtNode(e.mapTo.asInstanceOf[Model], newChild)
           treeModel.nodeStructureChanged(newChild)
         }
       }
@@ -249,7 +273,7 @@ object gui { //GUI implementation
         val newModelFromParent = createModelFromTreeNode(parent)
         parent.removeAllChildren
         treeModel.nodeStructureChanged(parent)
-        addModelElemsToTreeNode(newModelFromParent, parent)
+        mkTreeFromModelAtNode(newModelFromParent, parent)
         treeModel.nodeStructureChanged(parent)
         expandSelectFocus(parentPath)
       }
@@ -267,7 +291,8 @@ object gui { //GUI implementation
           def expand() { expandSelectFocus(currentPath) }
               
           newModel match {
-            case Model() => removeCurrentNode()
+            case Model() => 
+              removeCurrentNode()
             case Model(e, tail@_*) if e.isNode => 
               currentNode.setUserObject(e); update()
               currentNode.removeAllChildren; update()
@@ -277,7 +302,7 @@ object gui { //GUI implementation
             case Model(Relation(e,l,t), tail@_*) => 
               currentNode.setUserObject(Head(e,l)); update(); expand
               currentNode.removeAllChildren; update()
-              addModelElemsToTreeNode(t, currentNode); update() 
+              mkTreeFromModelAtNode(t, currentNode); update() 
               if (!tail.isEmpty) insertElems(tail, currentNode)
               update(); expand;
             case _ => ??? //will this ever happen???
@@ -286,16 +311,79 @@ object gui { //GUI implementation
       case None => msgNothingSelected
     }
     
+    def betterUpdateSelection(newModel: Model, isReplace: Boolean = true) {
+      def iter(elems: Vector[Elem], isReplace: Boolean, currentNode: DefaultMutableTreeNode) {
+        elems.headOption match {
+          case None => //empty elems
+            if (isReplace) removeCurrentNode()
+            else () //do nothing; inserting empty model yields no change
+          case Some(elem) => 
+          
+            def update(node: DefaultMutableTreeNode) { 
+              treeModel.nodeChanged(node)
+              treeModel.nodeStructureChanged(node)
+            }
+
+            val parent = currentNode.getParent().asInstanceOf[DefaultMutableTreeNode]
+            val parentPath = toTreePath(parent)
+            val currentPath = currentSelectionPath
+            if (isReplace) { //replace currentNode with elem
+              currentNode.removeAllChildren
+              update(currentNode)
+              elem match {
+                case Relation(_,_,submodel) =>
+                  currentNode.setUserObject(elem.key) 
+                  update(currentNode)
+                  mkTreeFromModelAtNode(submodel, currentNode)
+                  update(currentNode)
+                case _ =>
+                  currentNode.setUserObject(elem)
+                  update(currentNode)
+              }
+              expandSelectFocus(currentPath)
+              if (elems.size > 1) //recursive call: insert rest of model
+                iter(elems.tail, false, currentNode) 
+            } else { //insert elem after currentNode
+              var ix = parent.getIndex(currentNode)
+              val newNode = elem match {
+                case Relation(_,_,submodel) => 
+                  val n = new DefaultMutableTreeNode(elem.key)
+                  mkTreeFromModelAtNode(submodel, n)
+                  n
+                case _ => new DefaultMutableTreeNode(elem)
+              }
+              parent.insert(newNode, ix)
+              update(parent)
+              val newPath = toTreePath(newNode)
+              tree.setSelectionPath(newPath)
+              update(parent)
+              expandSelectFocus(newPath)
+              if (elems.size > 1) //recursive call: insert rest of model
+                iter(elems.tail, false, newNode) 
+            }
+        }
+      }
+      
+      selectedOpt match {
+        case None => msgNothingSelected
+        case Some(currentNode) if currentNode == top =>  //top selected
+          if (isReplace) setTopTo(newModel)
+          else if (!newModel.isEmpty) setTopTo(newModel ++ model)
+        case Some(currentNode) => //a node inside the tree was selected
+          iter(newModel.toVector.reverse, isReplace, currentNode)
+      }
+    }
+    
     def transformSelection(transform: Model => Model) = selectedOpt match {
       case Some(currentNode) => 
         val model = createModelFromTreeNode(currentNode)
-        updateSelectionWithModel(transform(model))
+        betterUpdateSelection(transform(model)) //updateSelectionWithModel(transform(model))
       case None => msgNothingSelected
     }
     
     def interpretModelAndUpdate() {
       repl.interpretModel(editor.getText) match {
-        case Some(model) => updateSelectionWithModel(model)
+        case Some(model) => betterUpdateSelection(model) //updateSelectionWithModel(model)
         case None => msgParseModelError
       }
     }
@@ -340,6 +428,7 @@ object gui { //GUI implementation
     def doCollapseAll()      = setFoldingAll(rootPath, false)
     def doToGraphVizNested() = saveToChosenFile(export.toGraphVizNested(currentModel), this, fileName+".dot")
     def doToGraphVizFlat()   = saveToChosenFile(export.toGraphVizFlat(currentModel), this, fileName+".dot")
+    def doImportFeaturePrio() = chooseFile(this).foreach(f => transformSelection(_ ++ parse.loadTab.prioVoting(f)))
     def doHelpMetamodel()    = setEditorToModel(reqT.meta.model)
     def doHelpEditor()       = setEditorToModel(editorHelpModel)
 
@@ -356,6 +445,7 @@ object gui { //GUI implementation
     val collapseAllKey      = (KeyEvent.VK_C, KeyEvent.VK_LEFT, ActionEvent.ALT_MASK)
     val toGraphVizNestedKey = (KeyEvent.VK_N, 0, 0)
     val toGraphVizFlatKey   = (KeyEvent.VK_F, 0, 0)
+    val importFeaturePrioKey = (KeyEvent.VK_F, 0, 0)
     val initEditorKey       = (KeyEvent.VK_E, 0, 0)
     val metamodelKey        = (KeyEvent.VK_M, 0, 0)
     
@@ -390,11 +480,12 @@ object gui { //GUI implementation
     
     def mkMenuBar(frame: JFrame): Unit = {
         val menuBar = new JMenuBar()
-        val menus@Seq(fileMenu, editMenu, viewMenu, exportMenu, metamodelMenu, helpMenu) = Seq(
+        val menus@Seq(fileMenu, editMenu, viewMenu, exportMenu, importMenu, metamodelMenu, helpMenu) = Seq(
            mkMenu("File", KeyEvent.VK_F),
            mkMenu("Edit", KeyEvent.VK_E),
            mkMenu("View", KeyEvent.VK_V),
            mkMenu("Export",KeyEvent.VK_X),
+           mkMenu("Import",KeyEvent.VK_I),
            mkMenu("Metamodel", KeyEvent.VK_M),
            mkMenu("Help",KeyEvent.VK_H)
         )
@@ -421,6 +512,8 @@ object gui { //GUI implementation
         //Export menu
         mkMenuItem("To GraphViz (Nested) ...", exportMenu, toGraphVizNestedKey) { doToGraphVizNested() }
         mkMenuItem("To GraphViz (Flat) ...", exportMenu, toGraphVizFlatKey) { doToGraphVizFlat() }
+        //Import menu
+        mkMenuItem("Feature priorities values", importMenu, importFeaturePrioKey) { doImportFeaturePrio() }
         //Help menu
         mkMenuItem("Editor", helpMenu, initEditorKey) { doHelpEditor() }
         mkMenuItem("Metamodel", helpMenu, metamodelKey) { doHelpMetamodel() }
@@ -502,15 +595,4 @@ object gui { //GUI implementation
     //treeModel.reload
   }
 
-  
-  def apply(m: Model = Model(), fileName: String = "untitled"): SwingModelViewer = {
-    val frame = new JFrame(s"reqT.gui($fileName$nextModelViewerNum)")
-    frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
-    val smv = new SwingModelViewer(m, frame, fileName+nextModelViewerNum)
-    frame.add(smv)
-    //smv.mkMenuBar(frame)
-    frame.pack()
-    frame.setVisible(true)
-    smv
-  }
 }
