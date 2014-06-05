@@ -51,13 +51,13 @@ trait ModelIterators extends ModelBase {
     iter(this, HeadPath())
   }
   
-  def collect[T](f: PartialFunction[Elem,T]): Vector[T] = elems.flatMap ( e =>   //???
+  def collect[T](f: PartialFunction[Elem,T]): Vector[T] = elems.flatMap ( e =>   // ???
     e match {
       case n: Node if f.isDefinedAt(e) => Vector(f(e))
       case rel: Relation => 
         ( if (f.isDefinedAt(rel.entity)) Vector(f(rel.entity)) else Vector[T]() ) ++
         ( if (f.isDefinedAt(rel)) Vector(f(rel)) else Vector[T]() ) ++  
-        ( rel.tail.collect(f) )
+        ( rel.tail.collect(f) )  // ???
       case _ => Vector()  }  )
   
   def withFilter(f: Elem => Boolean): FilterMonadic[reqT.Elem,Iterable[reqT.Elem]] = 
