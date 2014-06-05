@@ -70,7 +70,7 @@ trait StringUtils {
     def trimUnquote: String = strUtils.trimUnquote(s)
     def truncPad(n: Int) = strUtils.truncPad(s, n)
     def trunc(n: Int) = strUtils.trunc(s, n)
-    def stripAnySuffix = s.split('.').dropRight(1).mkString(".")
+    def stripAnySuffix = strUtils.stripAnySuffix(s)
     def indentNewline(n: Int = 2) = strUtils.indentNewline(s, n)
     def filterEscape: String = strUtils.filterEscapeChar(s)
     def convertEscape: String = strUtils.escape(s)
@@ -127,6 +127,8 @@ trait StringUtils {
       case _ => v.toString
     }
     def suffix(s:String, suf: String):String = if (!s.endsWith(suf)) s + suf else s
+    def stripAnySuffix(s: String): String = 
+      if (s.contains('.')) s.split('.').dropRight(1).mkString(".") else s
     //def varPrefix(s:String):String = if (s.contains(".")) "" else  "var " + s + " = "
     def truncPad(s: String, n: Int): String = trunc(s,n) + (" " * (n - s.size))
     def trunc(s: String, n: Int): String = { 
