@@ -10,7 +10,6 @@
 ** reqT is open source, licensed under the BSD 2-clause license: 
 ** http://opensource.org/licenses/bsd-license.php 
 **************************************************************************/
-package reqT
 
 /* TODO
   + grey menu items on null selection
@@ -25,25 +24,120 @@ package reqT
   + add import of tables for constraint solving
 */
 
+package reqT
+
+import java.awt._
+import java.awt.event._
+import javax.swing._
+import javax.swing.tree._
+import javax.swing.event._
+
+
 trait GuiLaunchers {  //mixed into package object
   def edit() = gui()
   def edit(m: Model) = gui(m, m.get(Title).getOrElse(""))
   def edit(fileName: String) = {
     val f = new java.io.File(fileName).getCanonicalPath
-    val m = Model.load(f)
+    val m = if (fileName.endsWith(".reqt") || fileName.endsWith(".ser")) Model.load(f) 
+            else /* assume text file */ load(f).toModel
     gui(m, f)
   }
+  def edit(m: Model, fileName: String) = gui(m, fileName)
 }
 
+object killSwingVerbosity {
+
+  lazy val fileChooser = new JFileChooser( new java.io.File(fileUtils.workDir))
+
+  def runnable(code: => Unit) = new Runnable { def run = code }
+  def runInSwingThread(code: => Unit) { SwingUtilities.invokeLater(runnable(code)) }
+  def onEvent(act: ActionEvent => Unit): ActionListener = new ActionListener { 
+    def actionPerformed(e: ActionEvent) = act(e)
+  }
+  def onAction(act: => Unit): ActionListener = onEvent( _ => act)
+  
+  // def chooseFileAndSaveString(data: String, c: Component, fname: String = "", text: String = "Save"): Unit = {
+    // fileChooser.setSelectedFile( new java.io.File(fname))
+    // if (fileChooser.showSaveDialog(c, text) == JFileChooser.APPROVE_OPTION) {
+      // val file = fileChooser.getSelectedFile();
+      // data.save(file.getCanonicalPath)
+    // }    
+  // }
+  
+  def chooseFile(c: Component, fname: String = "", text: String = "Select file"): Option[String] = {
+    fileChooser.setSelectedFile( new java.io.File(fname))
+    if (fileChooser.showDialog(c, text) == JFileChooser.APPROVE_OPTION) 
+      Some(fileChooser.getSelectedFile().getCanonicalPath)
+    else None
+  }
+  
+  trait MenuTree  
+  case class MenuBranch(name: String, mnemonic: Int, menus: MenuTree*) extends MenuTree {
+  
+    def addTo(parent: JComponent): Map[String, JComponent] = {
+      var menuMap: Map[String, JComponent] = Map()
+      def addToMenuMap(name: String, menu: JComponent) {
+        if (!menuMap.isDefinedAt(name)) menuMap += name -> menu
+        else throw new Error("Menu name not unique: " + name)
+      }
+      
+      def iter(parent: JComponent, menus: Seq[MenuTree]): Unit = menus.foreach( _ match {
+        case m: MenuLeaf => 
+          val jmi = new JMenuItem(m.name, m.shortcut)
+          jmi.addActionListener(m.action)
+          if (m.accelerator>0) jmi.setAccelerator(KeyStroke.getKeyStroke(m.accelerator, m.mask))
+          parent.add(jmi)
+          addToMenuMap(m.name, jmi)
+        case m: MenuBranch =>
+          val jm = new JMenu(m.name)
+          if (m.mnemonic>0) jm.setMnemonic(mnemonic)
+          parent.add(jm)
+          addToMenuMap(m.name, jm)
+          iter(jm, m.menus)
+      } )
+      
+      iter(parent, Seq(this))
+      menuMap
+    }
+  }
+  case class MenuLeaf(name: String, shortcut: Int, accelerator: Int, mask: Int)(block: => Unit) 
+  extends MenuTree {
+    def action = new ActionListener {
+      def actionPerformed(e: ActionEvent) = block
+    }
+  }
+  case class AppMenus(menus: MenuBranch*) {
+    def addTo(frame: JFrame): Map[String, JComponent]  = {
+      val menuBar = new JMenuBar()
+      frame.setJMenuBar(menuBar)
+      menus.map(_.addTo(menuBar)).reduceLeft(_ ++ _)
+    }
+  }
+
+  def mkMenuItem(name: String, menu: JMenuItem, shortcut: (Int, Int, Int)) 
+      (action: => Unit): Unit = {
+    val mi = new JMenuItem(name, shortcut._1)
+    mi.addActionListener( onAction { action } ) 
+    if (shortcut._2 != 0) 
+      mi.setAccelerator(KeyStroke.getKeyStroke(shortcut._2, shortcut._3))
+    menu.add(mi)
+  }
+
+  def mkMenu(name: String, mnemonic: Int): JMenu = {
+    val jm = new JMenu(name)
+    jm.setMnemonic(mnemonic)
+    jm
+  }
+  
+  def keyCode(c: Char) = java.awt.AWTKeyStroke.getAWTKeyStroke(c.toUpper.toString).getKeyCode()
+  
+} //END killSwingVerbosity
+
 object gui { //GUI implementation
-  import java.awt._
-  import java.awt.event._
-  import javax.swing._
-  import javax.swing.tree._
-  import javax.swing.event._
+  import killSwingVerbosity._
   
   def apply(m: Model = Model(), fileName: String = "untitled"): ModelTreeEditor = {
-    val frame = new JFrame(s"reqT.gui($fileName)")
+    val frame = new JFrame(fileName)
     frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
     val smv = new ModelTreeEditor(m, frame, fileName)
     frame.add(smv)
@@ -53,33 +147,12 @@ object gui { //GUI implementation
   }  
  
   private var nextModelViewerNum = 1
- 
-  def runnable(code: => Unit) = new Runnable { def run = code }
-  def runInSwingThread(code: => Unit) { SwingUtilities.invokeLater(runnable(code)) }
-  def onEvent(act: ActionEvent => Unit): ActionListener = new ActionListener { 
-    def actionPerformed(e: ActionEvent) = act(e)
-  }
-  def onAction(act: => Unit): ActionListener = onEvent( _ => act)
-  
-  def saveToChosenFile(s: String, c: Component, fname: String = ""): Unit = {
-     val fileChooser = new JFileChooser(fname);
-      if (fileChooser.showSaveDialog(c) == JFileChooser.APPROVE_OPTION) {
-        val file = fileChooser.getSelectedFile();
-        s.save(file.getCanonicalPath)
-      }    
-  }
-  
-  def chooseFile(c: Component): Option[String] = {
-    val fileChooser = new JFileChooser()
-    if (fileChooser.showSaveDialog(c) == JFileChooser.APPROVE_OPTION) 
-      Some(fileChooser.getSelectedFile().getCanonicalPath)
-    else None
-  }
-  
+
   class ModelTreeEditor( 
-    val initModel: Model, val frame: JFrame, val fileName: String) extends JPanel 
+    val initModel: Model, val frame: JFrame, var fileName: String) extends JPanel 
       with TreeSelectionListener  {
 
+    def setFileName(s: String) {fileName = s; frame.setTitle(s)}
     override def toString = s"ModelTreeEditor($fileName)"
     case object ModelRoot { override val toString = "Model" }  
     val top = new DefaultMutableTreeNode(ModelRoot)
@@ -94,25 +167,13 @@ object gui { //GUI implementation
         Spec("Ctrl+U = update selected tree with Model in editor.")        
     )
 
-    def model: Model = createModelFromTreeNode(top) //currentModel
+    def model: Model = createModelFromTreeNode(top) 
     def selectedModel: Model = selectedOpt match {
       case Some(current) => createModelFromTreeNode(current)
       case None => Model()
     }
     
-    def valueChanged(e: TreeSelectionEvent) {//Required by TreeSelectionListener
-      //println("valueChanged e = " + e)  ///dbg
-      //println("currentSelectionPath = " + currentSelectionPath)  ///dbg
-/*       selectedOpt.foreach { node =>
-        val data = node.getUserObject
-        val m: Model = data match {
-          case n: Node => Model(n)
-          case h: Head => Model(Relation(h, createModelFromTreeNode(node)))
-          case ModelRoot => currentModel 
-        }
-        updateHtmlPane(m)
-      } */
-    }  
+    def valueChanged(e: TreeSelectionEvent) { } //Required by TreeSelectionListener
     
     def printTree(t: TreeModel, obj: Any) {
       val n = t.getChildCount(obj)
@@ -205,15 +266,11 @@ object gui { //GUI implementation
       else None
     }
     
-    
     def toTreePath(node: DefaultMutableTreeNode): TreePath = {
       val pathArray = treeModel.getPathToRoot(node)
-      //println("toTreePath; pathArray = " + pathArray)
       var treePath = new TreePath(pathArray(0))
-      //println("toTreePath; treePath initial = " + treePath)
       for (i <- 1 until pathArray.size) { 
         treePath = treePath.pathByAddingChild(pathArray(i)) 
-        //println(s"toTreePath; treePath add $i = " + treePath)
       }
       treePath
     }
@@ -251,67 +308,17 @@ object gui { //GUI implementation
       tree.setSelectionPath(path)
       tree.requestFocus
     }
-
-    def insertElems(elems: Seq[Elem], currentNode: DefaultMutableTreeNode) {
-      val parent = currentNode.getParent().asInstanceOf[DefaultMutableTreeNode]
-      val parentPath = toTreePath(parent)
-      var i = parent.getIndex(currentNode)
-      elems.foreach { e =>
-        val newChild:  DefaultMutableTreeNode  = 
-          if (e.isNode) new DefaultMutableTreeNode(e)
-          else new DefaultMutableTreeNode(e.key)
-        i += 1
-        parent.insert(newChild, i)
-        treeModel.nodeStructureChanged(parent)
-        if (!e.isNode) {
-          mkTreeFromModelAtNode(e.mapTo.asInstanceOf[Model], newChild)
-          treeModel.nodeStructureChanged(newChild)
-        }
+  
+    def updateSelection(newModel: Model, isReplace: Boolean = true) {
+      selectedOpt match {
+        case None => msgNothingSelected
+        case Some(currentNode) if currentNode == top =>  //top selected
+          if (isReplace) setTopTo(newModel)
+          else if (!newModel.isEmpty) setTopTo(newModel ++ model)
+        case Some(currentNode) => //a node inside the tree was selected
+          iter(newModel.toVector.reverse, isReplace, currentNode)
       }
-      if (!elems.isEmpty) {
-        //rebuild submodel to remove duplicates
-        val newModelFromParent = createModelFromTreeNode(parent)
-        parent.removeAllChildren
-        treeModel.nodeStructureChanged(parent)
-        mkTreeFromModelAtNode(newModelFromParent, parent)
-        treeModel.nodeStructureChanged(parent)
-        expandSelectFocus(parentPath)
-      }
-    }    
-    
-    def updateSelectionWithModel(newModel: Model) = selectedOpt match { 
-      case Some(currentNode) => 
-        if (currentNode == top) setTopTo(newModel)
-        else {//this is a bit tricky...
-          val currentPath = currentSelectionPath
-          def update() {
-            treeModel.nodeChanged(currentNode)
-            treeModel.nodeStructureChanged(currentNode)
-          }
-          def expand() { expandSelectFocus(currentPath) }
-              
-          newModel match {
-            case Model() => 
-              removeCurrentNode()
-            case Model(e, tail@_*) if e.isNode => 
-              currentNode.setUserObject(e); update()
-              currentNode.removeAllChildren; update()
-              if (!tail.isEmpty) {
-                insertElems(tail, currentNode); update(); expand()
-              }
-            case Model(Relation(e,l,t), tail@_*) => 
-              currentNode.setUserObject(Head(e,l)); update(); expand
-              currentNode.removeAllChildren; update()
-              mkTreeFromModelAtNode(t, currentNode); update() 
-              if (!tail.isEmpty) insertElems(tail, currentNode)
-              update(); expand;
-            case _ => ??? //will this ever happen???
-          }
-        }
-      case None => msgNothingSelected
-    }
-    
-    def betterUpdateSelection(newModel: Model, isReplace: Boolean = true) {
+      //recursive replace/insert
       def iter(elems: Vector[Elem], isReplace: Boolean, currentNode: DefaultMutableTreeNode) {
         elems.headOption match {
           case None => //empty elems
@@ -363,27 +370,18 @@ object gui { //GUI implementation
             }
         }
       }
-      
-      selectedOpt match {
-        case None => msgNothingSelected
-        case Some(currentNode) if currentNode == top =>  //top selected
-          if (isReplace) setTopTo(newModel)
-          else if (!newModel.isEmpty) setTopTo(newModel ++ model)
-        case Some(currentNode) => //a node inside the tree was selected
-          iter(newModel.toVector.reverse, isReplace, currentNode)
-      }
     }
     
     def transformSelection(transform: Model => Model) = selectedOpt match {
       case Some(currentNode) => 
         val model = createModelFromTreeNode(currentNode)
-        betterUpdateSelection(transform(model)) //updateSelectionWithModel(transform(model))
+        updateSelection(transform(model)) 
       case None => msgNothingSelected
     }
     
-    def interpretModelAndUpdate() {
+    def interpretModelAndUpdate(isReplace: Boolean) {
       repl.interpretModel(editor.getText) match {
-        case Some(model) => betterUpdateSelection(model) //updateSelectionWithModel(model)
+        case Some(model) => updateSelection(model, isReplace)
         case None => msgParseModelError
       }
     }
@@ -414,126 +412,111 @@ object gui { //GUI implementation
       "ERROR: expected expression of type Model\nUse console to investigate error")
     def msgParseTransformerError      = JOptionPane.showMessageDialog(frame, 
       "ERROR: expected function of type Model => Model\nUse console to investigate error")  
-    
-    def doNew()              = gui(currentModel)
-    def doSaveAs()           = saveToChosenFile(currentModel.toString, this, fileName+".scala")
+
+    def saveModel(f: String) {
+      if (f.endsWith(".reqt")) model.save(f)
+      else if (f.endsWith(".scala")) model.toString.save(f)
+      else model.save(fileName+".reqt")
+      setFileName(f)
+    }
+      
+    def doNew()              = gui(Model())
+    def doOpen()             = chooseFile(this, "","Open Serialized Model").
+                                 foreach{ f => setTopTo(Model.load(f)); setFileName(f) }
+    def doOpenScala()        = chooseFile(this, "","Open Scala Model").
+                                 foreach{ f => setTopTo(load(f).toModel); setFileName(f) }
+    def doSave()             = if (fileName == "untitled" || fileName == "")
+                                  chooseFile(this,"untitled.reqt","Save").foreach{saveModel(_)}
+                               else saveModel(fileName)
+    def doSaveAs()           = chooseFile(this, strUtils.suffix(fileName.stripSuffix(".scala"),".reqt"),"Save As").
+                                 foreach{saveModel(_)}
+    def doSaveAsScala()      = chooseFile(this, strUtils.suffix(fileName.stripSuffix(".reqt"),".scala"),"Save As").
+                                 foreach{saveModel(_)}
     def doDelete()           = removeCurrentNode()
     def doUndoAll()          = revertToInitModel()
     def doEnter()            = setEditorToSelection()
-    def doUpdate()           = interpretModelAndUpdate()
+    def doUpdate()           = interpretModelAndUpdate(true)
+    def doInsert()           = interpretModelAndUpdate(false)
     def doRun()              = repl.run(editor.getText)
     def doTransform()        = interpretTransformerAndUpdate()
     def doRefresh()          = reconstructModel()
     def doExpandAll()        = setFoldingAll(rootPath, true)
     def doCollapseAll()      = setFoldingAll(rootPath, false)
-    def doToGraphVizNested() = saveToChosenFile(export.toGraphVizNested(currentModel), this, fileName+".dot")
-    def doToGraphVizFlat()   = saveToChosenFile(export.toGraphVizFlat(currentModel), this, fileName+".dot")
-    def doImportFeaturePrio() = chooseFile(this).foreach(f => transformSelection(_ ++ parse.loadTab.prioVoting(f)))
+    def doToGraphVizNested() = chooseFile(this, strUtils.suffix(fileName.stripAnySuffix,".dot"),"Export").
+                                 foreach(export.toGraphVizNested(model).save(_))
+    def doToGraphVizFlat()   = chooseFile(this, strUtils.suffix(fileName.stripAnySuffix,".dot"),"Export").
+                                 foreach(export.toGraphVizFlat(model).save(_))
+    def doImportFeaturePrio()= chooseFile(this).foreach(f => transformSelection(_ ++ parse.loadTab.prioVoting(f)))
     def doHelpMetamodel()    = setEditorToModel(reqT.meta.model)
     def doHelpEditor()       = setEditorToModel(editorHelpModel)
 
-    val newKey              = (KeyEvent.VK_N, KeyEvent.VK_N, ActionEvent.CTRL_MASK)
-    val saveKey             = (KeyEvent.VK_A, KeyEvent.VK_S, ActionEvent.CTRL_MASK)
-    val delKey              = (KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)
-    val enterKey            = (KeyEvent.VK_E, KeyEvent.VK_ENTER, ActionEvent.CTRL_MASK)
-    val updateKey           = (KeyEvent.VK_U, KeyEvent.VK_U, ActionEvent.CTRL_MASK)
-    val runKey              = (KeyEvent.VK_R, KeyEvent.VK_R, ActionEvent.CTRL_MASK)
-    val transformKey        = (KeyEvent.VK_T, KeyEvent.VK_T, ActionEvent.CTRL_MASK)
-    val refreshKey          = (KeyEvent.VK_F, KeyEvent.VK_F5, 0)
-    val revertKey           = (KeyEvent.VK_V, 0, 0)
-    val expandAllKey        = (KeyEvent.VK_E, KeyEvent.VK_RIGHT, ActionEvent.ALT_MASK)
-    val collapseAllKey      = (KeyEvent.VK_C, KeyEvent.VK_LEFT, ActionEvent.ALT_MASK)
-    val toGraphVizNestedKey = (KeyEvent.VK_N, 0, 0)
-    val toGraphVizFlatKey   = (KeyEvent.VK_F, 0, 0)
-    val importFeaturePrioKey = (KeyEvent.VK_F, 0, 0)
-    val initEditorKey       = (KeyEvent.VK_E, 0, 0)
-    val metamodelKey        = (KeyEvent.VK_M, 0, 0)
-    
-    def mkMenuItem(name: String, menu: JMenuItem, shortcut: (Int, Int, Int)) 
-        (action: => Unit): Unit = {
-      val mi = new JMenuItem(name, shortcut._1)
-      mi.addActionListener( onAction { action } ) 
-      if (shortcut._2 != 0) 
-        mi.setAccelerator(KeyStroke.getKeyStroke(shortcut._2, shortcut._3))
-      menu.add(mi)
-    }
-    
+  
     def mkInsertTextMenuItem(name: String, menu: JMenuItem, shortcut: (Int, Int, Int)) =
       mkMenuItem(name, menu, shortcut){ editor.replaceSelection(name)}
     
-    def mkMenu(name: String, mnemonic: Int): JMenu = {
-      val jm = new JMenu(name)
-      jm.setMnemonic(mnemonic)
-      jm
-    }
-    
-    def keyCode(c: Char) = java.awt.AWTKeyStroke.getAWTKeyStroke(c.toUpper.toString).getKeyCode()
-    
-    def mkMenuTree(m: Model, parentMenu: JMenuItem): Unit = m.elems.collect {
+    def mkMenuTreeFromModel(m: Model, parentMenu: JMenuItem): Unit = m.elems.collect {
       case Relation(ent,_,tail) => 
         val menu = mkMenu(ent.id, keyCode(ent.id.head))
         parentMenu.add(menu)
-        mkMenuTree(tail, menu) 
+        mkMenuTreeFromModel(tail, menu) 
       case ent: Entity => 
         mkInsertTextMenuItem(ent.id, parentMenu, (keyCode(ent.id.head),0,0)) 
-    }
-    
+    }    
+
     def mkMenuBar(frame: JFrame): Unit = {
-        val menuBar = new JMenuBar()
-        val menus@Seq(fileMenu, editMenu, viewMenu, exportMenu, importMenu, metamodelMenu, helpMenu) = Seq(
-           mkMenu("File", KeyEvent.VK_F),
-           mkMenu("Edit", KeyEvent.VK_E),
-           mkMenu("View", KeyEvent.VK_V),
-           mkMenu("Export",KeyEvent.VK_X),
-           mkMenu("Import",KeyEvent.VK_I),
-           mkMenu("Metamodel", KeyEvent.VK_M),
-           mkMenu("Help",KeyEvent.VK_H)
-        )
-        //File menu
-        mkMenuItem("New ...", fileMenu, newKey) { doNew() }
-        mkMenuItem("Save As ...", fileMenu, saveKey) { doSaveAs() }
-        //Edit menu
-        mkMenuItem("Enter tree in editor", editMenu, enterKey) { doEnter() }
-        mkMenuItem("Update tree from editor", editMenu, updateKey) { doUpdate() }
-        mkMenuItem("Run script in editor (console output)", editMenu, runKey) { doRun() }
-        mkMenuItem("Transform tree by function in editor", editMenu, transformKey) { doTransform() }
-        mkMenuItem("Delete tree", editMenu, delKey) { doDelete() }
-        mkMenuItem("Refresh tree", editMenu, refreshKey) { doRefresh() }
-        mkMenuItem("Undo all (revert to init)", editMenu, revertKey) { doUndoAll() }
-        //View menu
-        mkMenuItem("Collapse all", viewMenu, collapseAllKey) { doCollapseAll() }
-        mkMenuItem("Expand all", viewMenu, expandAllKey) { doExpandAll() }
-        //Metamodel menu
-          //reqT.metamodel.entityTypes.foreach(e => mkInsertTextMenuItem(e.toString, metamodelMenu, (0,0,0)))
-        mkMenuTree(
-          reqT.meta.model - Meta("enumDefaults"),
-          metamodelMenu
-        )
-        //Export menu
-        mkMenuItem("To GraphViz (Nested) ...", exportMenu, toGraphVizNestedKey) { doToGraphVizNested() }
-        mkMenuItem("To GraphViz (Flat) ...", exportMenu, toGraphVizFlatKey) { doToGraphVizFlat() }
-        //Import menu
-        mkMenuItem("Feature priorities values", importMenu, importFeaturePrioKey) { doImportFeaturePrio() }
-        //Help menu
-        mkMenuItem("Editor", helpMenu, initEditorKey) { doHelpEditor() }
-        mkMenuItem("Metamodel", helpMenu, metamodelKey) { doHelpMetamodel() }
-
-        menus.foreach(m => menuBar.add(m))
-        frame.setJMenuBar(menuBar)
+      import KeyEvent._
+      import ActionEvent.{CTRL_MASK => CTRL, ALT_MASK => ALT}
+      
+      val menuMap = AppMenus(
+        MenuBranch("File", VK_F,
+          MenuLeaf("New", VK_N, VK_N, CTRL){ doNew() },
+          MenuLeaf("Open Serialized Model ...", VK_O, VK_O, CTRL){ doOpen() },
+          MenuLeaf("Open Scala Model ...", VK_M, 0, 0){ doOpenScala() },
+          MenuLeaf("Save", VK_S, VK_S, CTRL){ doSave() },
+          MenuLeaf("Save As Serialized ...", VK_A, 0, 0){ doSaveAs() },
+          MenuLeaf("Save As Scala Model ...", VK_L, 0, 0){ doSaveAsScala() }),
+        MenuBranch("Edit", VK_E,
+          MenuLeaf("Enter selection in editor", VK_E, VK_ENTER, CTRL) { doEnter() },
+          MenuLeaf("Update selection from editor", VK_U, VK_U, CTRL) { doUpdate() },
+          MenuLeaf("Insert selection from editor", VK_I, VK_I, CTRL) { doInsert() },
+          MenuLeaf("Run script in editor (console output)", VK_R, VK_R, CTRL) { doRun() },
+          MenuLeaf("Transform selection by function in editor", VK_T, VK_T, CTRL) { doTransform() },
+          MenuLeaf("Delete selection", VK_D, VK_DELETE, 0) { doDelete() },
+          MenuLeaf("Refresh entire tree", VK_F, VK_F5, 0) { doRefresh() },
+          MenuLeaf("Undo all (revert to init)", VK_V, 0, 0) { doUndoAll() }),
+        MenuBranch("View", VK_V,
+          MenuLeaf("Collapse all", VK_C, VK_LEFT, ALT) { doCollapseAll() },
+          MenuLeaf("Expand all", VK_E, VK_RIGHT, ALT) { doExpandAll() }),
+        MenuBranch("Metamodel", VK_M),
+        MenuBranch("Export", VK_X,
+          MenuBranch("GraphViz", VK_G,
+            MenuLeaf("Nested ...", VK_N, 0, 0) { doToGraphVizNested() },
+            MenuLeaf("Flat ...", VK_F, 0, 0) { doToGraphVizFlat() })),
+        MenuBranch("Import", VK_I,
+          MenuLeaf("Feature priorities values", VK_F, 0, 0) { doImportFeaturePrio() }),
+        MenuBranch("Help", VK_H,
+          MenuLeaf("Shortcuts to editor", VK_E, 0, 0) { doHelpEditor() },
+          MenuLeaf("Metamodel to editor", VK_M, 0, 0) { doHelpMetamodel() })
+      ).addTo(frame)
+      
+      val metamodelMenu = menuMap("Metamodel").asInstanceOf[JMenuItem]
+      mkMenuTreeFromModel(
+        reqT.meta.model - Meta("enumDefaults"),
+        metamodelMenu
+      )      
     }
     
-    //init:
-
+    //************* main setup and show gui
     setLayout( new GridLayout(1,0))
     val tree = new JTree(top);
-    //tree.setEditable(true) ???
+    //tree.setEditable(true) ??? how much work is it to enable editing directly in the tree???
     tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
     tree.setSelectionPath(new TreePath(top))
     tree.addTreeSelectionListener(this);
     val treeView = new JScrollPane(tree);
     
     
-    //testing RText
+    //BEGIN rsyntaxtextarea stuff
     import org.fife.ui.rtextarea._
     import org.fife.ui.rsyntaxtextarea._
     
@@ -575,7 +558,7 @@ object gui { //GUI implementation
     editor.getSyntaxScheme.setStyle(TokenTypes.SEPARATOR, new Style(Color.black))
 
     val editorView = new RTextScrollPane(editor)
-    //--- end test RTEXT
+    //END rsyntaxtextarea stuff
     
     val splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
     splitPane.setTopComponent(treeView);
@@ -592,7 +575,6 @@ object gui { //GUI implementation
     setTopTo(currentModel)
     mkMenuBar(frame)
     setEditorToModel(currentModel)
-    //treeModel.reload
   }
 
 }
