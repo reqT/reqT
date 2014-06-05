@@ -32,7 +32,7 @@ trait ModelBasicOps  {
       val existingVector = apply(va.key)
       newModel(myMap + (va.key -> va.key.apply(existingVector ++ va.value)))
     case ent: Entity if isDefinedAt(ent.has) => this
-    case  NoElem => this
+    case NoElem => this
     case _ => newModel(myMap + e.toMapping)
   }
   
