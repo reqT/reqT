@@ -70,6 +70,7 @@ trait StringUtils {
     def trimUnquote: String = strUtils.trimUnquote(s)
     def truncPad(n: Int) = strUtils.truncPad(s, n)
     def trunc(n: Int) = strUtils.trunc(s, n)
+    def stripAnySuffix = s.split('.').dropRight(1).mkString(".")
     def indentNewline(n: Int = 2) = strUtils.indentNewline(s, n)
     def filterEscape: String = strUtils.filterEscapeChar(s)
     def convertEscape: String = strUtils.escape(s)
@@ -125,10 +126,8 @@ trait StringUtils {
       case s:String =>  "\"\"\"" + s + "\"\"\""
       case _ => v.toString
     }
-    def scalaSuffix(s:String):String = if (!s.contains(".")) s + ".scala" else s
-    def latexSuffix(s:String):String = if (!s.contains(".")) s + ".tex" else s
-    def txtSuffix(s:String):String = if (!s.contains(".")) s + ".txt" else s
-    def varPrefix(s:String):String = if (s.contains(".")) "" else  "var " + s + " = "
+    def suffix(s:String, suf: String):String = if (!s.endsWith(suf)) s + suf else s
+    //def varPrefix(s:String):String = if (s.contains(".")) "" else  "var " + s + " = "
     def truncPad(s: String, n: Int): String = trunc(s,n) + (" " * (n - s.size))
     def trunc(s: String, n: Int): String = { 
       val s2 = s.take(n)
@@ -188,7 +187,7 @@ trait FileUtils {
       // val outStream = new java.io.PrintWriter(outFile,"UTF-8")
       // try { outStream.println(s.toString) } finally { outStream.close }
       scala.tools.nsc.io.File(fn).writeAll(s)
-      println("Saved to file: "+fn) 
+      println("Saved string to file: "+fn) 
     }
     def loadLines(fileName:String): List[String] = {
       val fn = resolveFileName(fileName)
