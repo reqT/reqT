@@ -69,6 +69,7 @@ trait ModelBase extends Serializable {
     out.writeObject(this)
     out.close
     outFile.close
+    println("Model serialized to file: "+fileName) 
   }
 }
 
