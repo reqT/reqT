@@ -1,6 +1,7 @@
-//examples based on Lauesen, S. "Software Requirements - styles and techniques" (2002) 
-val contextDiagramExample = Model( 
-  Product("Hotel system") owns (
+//Context diagram: Hotel
+Model( 
+  Title("reqT model of Lauesen fig ??"),
+  Product("Hotel system") implements (
     Interface("ReceptionUI"), 
     Interface("GuestUI"), 
     Interface("TelephonyAPI"), 
@@ -22,15 +23,14 @@ val contextDiagramExample = Model(
   Actor("Telephony System") requires Interface("TelephonyAPI"),
   Actor("Accounting System") requires Interface("AccountingAPI") 
 )
-
+//Tasks: Hotel reception work
 Model( 
+  Title("reqT model of Lauesen fig ??"),
   Task("reception work") owns (Task("check in"), Task("booking")),
   Task("check in") has ( 
     Why("Guest wants room."),
-    Trigger("A guest arrives"), 
     Frequency(3), 
-    Spec("Give guest a room. Mark it as occupied. Start account. 	Frequency scale: median #check-ins/room/week"),
-    Critical("Group tour with 50 guests.") 
+    Spec("Give guest a room. Mark it as occupied. Start account. Frequency scale: median #check-ins/room/week. Trigger: A guest arrives. Critical: Group tour with 50 guests.")
   ), 
   Task("check in") owns (
     Task("find room"), Task("record guest"), Task("deliver key")
@@ -39,9 +39,9 @@ Model(
     "variants: a) Guest has booked in advance, b) No suitable room"
   ) 
 )
-
-
-val qualityReqtExample = Model( 
+//Quality: accuracy, performance, usability
+Model( 
+  Title("reqT model of Lauesen fig ??"),
   Quality("capacity.database") has 
     Spec("#guests < 10,000 growing 20% per year, #rooms < 1,000"), 
   Quality("accuracy.calendar") has 
@@ -53,4 +53,4 @@ val qualityReqtExample = Model(
   Quality("usability.taskTime") requires (Task("Q"), Task("R"), Task("S")),
   Quality("performance.peakLoad") has 
     Spec("Product shall be able to process 100 payment transactions per second in peak load.") 
-)
+) 

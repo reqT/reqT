@@ -16,17 +16,17 @@ package reqT
 trait ModelTesting {
   self: Model =>
   def testOutputAdded(): Model = flatMapDeep {
-    case Relation(TestCase(id),l,t) if l == has =>
+    case Relation(Test(id),l,t) if l == has =>
         val result: Option[String] = t.get(Code).map(Code(_).run)
-        Some(Relation(TestCase(id),l,result.map(t + Output(_)).getOrElse(t)))
+        Some(Relation(Test(id),l,result.map(t + Output(_)).getOrElse(t)))
     case e => Some(e)
   }  
-  lazy val testCode: Map[TestCase, Code] = 
-    entityAttributePairs.collect { case (e: TestCase, a: Code) => (e,a) } .toMap
-  def testOutputMap(): Map[TestCase, Output] = testCode.map { 
+  lazy val testCode: Map[Test, Code] = 
+    entityAttributePairs.collect { case (e: Test, a: Code) => (e,a) } .toMap
+  def testOutputMap(): Map[Test, Output] = testCode.map { 
     case (e,c) => (e, Output(c.interpretString.getOrElse("INTERPRETATION ERROR! Fix test bug."))) 
   }
-  def test(): Map[TestCase, Output] = testOutputMap.flatMap { 
+  def test(): Map[Test, Output] = testOutputMap.flatMap { 
     case (e, o) if o.value != "" => println(s"$e: ${o.value}"); Some((e,o)) 
     case (e, o) => println(s"$e OK!"); None
   } .withDefaultValue(Output(""))

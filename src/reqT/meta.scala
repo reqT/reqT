@@ -17,31 +17,47 @@ package object meta {
   def gen(m: Model = model): String = new MetaReqT(m).toScala
   lazy val model = Model(
     Meta("Entity") superOf (
-      Meta("General") superOf (
-        Meta("Item"), Meta("Label"), Meta("Section")),
+      Meta("General") superOf ( 
+        Meta("Ent"), Meta("Item"), Meta("Meta"), 
+        Meta("Label"), Meta("Section"), Meta("Term")),
       Meta("Context") superOf (
-        Meta("Contributor") superOf (
-          Meta("Actor"), Meta("Stakeholder"), Meta("Resource"), Meta("User")),
-        Meta("Container") superOf (
-          Meta("Domain"), Meta("Product"), Meta("Release"), Meta("System"))),
+          Meta("Actor"), Meta("Application"), Meta("Domain"), Meta("Module"),
+          Meta("Product"), Meta("Release"), Meta("Resource"), Meta("Risk"), Meta("Service"), 
+          Meta("Stakeholder"), Meta("System"), Meta("User")),
       Meta("Requirement") superOf (
-        Meta("GeneralReq") superOf (
-          Meta("Req"), Meta("Idea"), Meta("Feature"), Meta("Goal")), 
+        Meta("DataReq") superOf (
+          Meta("Class"), Meta("Data"), Meta("Member"), Meta("Relationship")),
+        Meta("DesignReq") superOf (Meta("Design"), Meta("Screen"), Meta("Mockup")),
         Meta("FunctionalReq") superOf (
-          Meta("Function"), Meta("Interface"), Meta("Design")), 
+          Meta("Function"), Meta("Interface")), 
+        Meta("GeneralReq") superOf (
+          Meta("Epic"), Meta("Feature"), Meta("Goal"), Meta("Idea"), Meta("Issue"), 
+          Meta("Req"), Meta("Ticket"), Meta("WorkPackage")), 
         Meta("QualityReq") superOf (
           Meta("Quality"), Meta("Target"), Meta("Barrier")), 
         Meta("ScenarioReq") superOf (
-          Meta("Scenario"), Meta("Task"), Meta("TestCase"), 
-          Meta("UserStory"), Meta("UseCase")))),
+          Meta("Scenario"), Meta("Task"), Meta("Test"), 
+          Meta("Story"), Meta("UseCase")),
+        Meta("VariabilityReq") superOf (
+          Meta("Configuration"), Meta("VariationPoint"), Meta("Variant")))),
     Meta("RelationType") superOf (
-      Meta("requires"),Meta("relatesTo")),
+      Meta("binds"), Meta("deprecates"), Meta("excludes"), 
+      Meta("has"), Meta("helps"), Meta("hurts"),
+      Meta("implements"), Meta("is"), Meta("preceedes"), 
+      Meta("requires"), Meta("relatesTo"), Meta("superOf"), Meta("verifies")),
     Meta("Attribute") superOf (
       Meta("StringAttribute") superOf (
-        Meta("Text"), Meta("Title"),Meta("Spec"), Meta("Gist"), Meta("Why"), 
-        Meta("Example"), Meta("Input"), Meta("Output"), Meta("Expectation")),
-      Meta("IntAttribute") superOf (Meta("Prio"), Meta("Cost")),
-      Meta("CardinalityAttribute") superOf (Meta("Opt"))), 
+        Meta("Attr"), Meta("Code"), Meta("Comment"), Meta("Deprecated"),  
+        Meta("Example"), Meta("Expectation"), Meta("File"), Meta("Gist"), 
+        Meta("Image"), Meta("Input"), Meta("Output"), Meta("Spec"), 
+        Meta("Text"), Meta("Title"), Meta("Why")),
+      Meta("IntAttribute") superOf (
+        Meta("Benefit"), Meta("Capacity"), Meta("Cost"), Meta("Damage"), Meta("Differentiation"),
+        Meta("Frequency"), Meta("MinValue"), Meta("MaxValue"),        
+        Meta("Order"), Meta("Prio"), Meta("Profit"), Meta("Saturation"), 
+        Meta("Urgency"), Meta("Utility"), Meta("Value")),
+      Meta("CardinalityAttribute") superOf (Meta("Opt")),   
+      Meta("VectorAttribute") superOf (Meta("Constraints"))),      
     Meta("enums") has (
       Meta("Cardinality") has (
         Meta("NoOption"), Meta("Zero"), Meta("One"), 
@@ -55,7 +71,7 @@ package object meta {
       collect { case Relation(Meta(id1), is, Model(Meta(id2))) => s"$id1 -> $id2" } .
       mkString(";\n")
     val preamble = """
-      // reqT metamodel ind dot language for input to GraphViz 
+      // reqT metamodel in dot language for input to GraphViz 
       // compile with dot -T pdf -o filename.pdf filename.dot 
       compound=true;overlap=false;rankdir=BT;clusterrank=local;
       ordering=out;nojustify=true;
@@ -83,11 +99,19 @@ package object meta {
 package meta {
   class MetaReqT(val model: Model) extends MetaGen {
     import scala.collection.immutable.ListMap
+
+    override val defaultEntities = Vector(Ent, Meta)
+    override val defaultAttributes = Vector(Attr, Code)
+    override val defaultInterpretedAttributes = Vector(Constraints)
+    override val defaultRelations = Vector(has, is, superOf)
+    val defRels  = defaultRelations.map(r => Meta(r.toString)).toModel
+    val defEnts  = defaultEntities.map(r => Meta(r.toString)).toModel
     
     override val enums = 
       ListMap((model / "enums").tipIds.map(id=> (id, (model / "enums" / id).tipIds)) :_*)
 
-    val attr = model/Meta("Attribute").superOf 
+    val attr = ((model/Meta("Attribute").superOf - Meta("StringAttribute").superOf/Meta("Attr")) - Meta("StringAttribute").superOf/Meta("Code")) - Meta("VectorAttribute").superOf/Meta("Constraints")
+      
     override val attributes = 
       ListMap(attr.tipIds.map(id => 
         (id.replace("Attribute",""), attr / Meta(id).superOf tipIds)):_*) 
@@ -97,7 +121,7 @@ package meta {
       ListMap(defaults.tipIds.map(id => (id, (defaults / id).tipIds.head)):_*)
     
     val ents = model/Meta("Entity").superOf
-    override val generalEntities = ents/Meta("General").superOf tipIds
+    override val generalEntities = (ents/Meta("General").superOf -- defEnts) tipIds
 
     override val contextEntities = ents/Meta("Context").superOf tipIds
     
@@ -106,12 +130,7 @@ package meta {
     override val requriementEntities = 
       ListMap(reqs.tipIds.map(r => (r,(reqs/Meta(r).superOf).tipIds)):_*)
       
-    override val defaultEntities = Vector(Ent, Meta)
-    override val defaultAttributes = Vector(Attr, Code)
-    override val defaultInterpretedAttributes = Vector(Constraints)
-    override val defaultRelations = Vector(has, is, superOf)
-    
-    override val relations = model / Meta("RelationType").superOf tipIds
+    override val relations = (model / Meta("RelationType").superOf -- defRels)  tipIds
   }
 }
 

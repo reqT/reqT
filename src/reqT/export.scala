@@ -20,7 +20,7 @@ object toScalaExpanded extends ModelToString with ScalaGenerators  {
 }
 object toGraphVizNested extends GraphVizNested  
 object toGraphVizFlat extends GraphVizFlat  
-object toTable extends Table
+object toTable extends TableExporter
 
 trait Exporter[T] { def apply(m: Model): T }
 
@@ -169,7 +169,7 @@ trait GraphVizFlat extends GraphViz {
 
 }
 
-trait Table extends StringExporter {
+trait TableExporter extends StringExporter {
   def body(m: Model): String = {
     val row =  m.mapLeafPaths { n => 
       Seq(n.init.toScala, n.lastNode.myType, n.lastNode.toScalaBody) .

@@ -70,7 +70,10 @@ trait StringUtils {
     def trimUnquote: String = strUtils.trimUnquote(s)
     def truncPad(n: Int) = strUtils.truncPad(s, n)
     def trunc(n: Int) = strUtils.trunc(s, n)
+    def suffix(suf: String) = strUtils.suffix(s, suf)
     def stripAnySuffix = strUtils.stripAnySuffix(s)
+    def stripFileType = fileUtils.stripFileType(s)
+    def newFileType(suf: String) = fileUtils.newFileType(s, suf)
     def indentNewline(n: Int = 2) = strUtils.indentNewline(s, n)
     def filterEscape: String = strUtils.filterEscapeChar(s)
     def convertEscape: String = strUtils.escape(s)
@@ -172,6 +175,13 @@ trait FileUtils {
     //implicit val codec: scala.io.Codec = scala.io.Codec.UTF8
     def fileSep = java.lang.System.getProperty("file.separator")
     def slashify(s:String) = s.replaceAllLiterally(fileSep, "/")
+    def stripFileType(s: String) = {
+      val ss = slashify(s).split('/')
+      val head = ss.dropRight(1)
+      val tail = ss.lastOption.map(_.stripAnySuffix).getOrElse("")
+      (head ++ Seq(tail)).mkString("/") 
+    }
+    def newFileType(s: String, suf: String) = stripFileType(s).suffix(suf)
     val startDir = slashify(java.lang.System.getProperty("user.dir"))
     val homeDir = slashify(java.lang.System.getProperty("user.home"))
     protected [FileUtils] var workingDirectory = startDir
@@ -194,6 +204,14 @@ trait FileUtils {
     def loadLines(fileName:String): List[String] = {
       val fn = resolveFileName(fileName)
       val source = scala.io.Source.fromFile(fn)
+      val lines = source.getLines.toList
+      source.close
+      lines
+    }
+    
+    def loadResource(fileName:String): List[String] = {
+      val r = getClass().getResource(fileName)
+      val source = scala.io.Source.fromURL(r)
       val lines = source.getLines.toList
       source.close
       lines
@@ -233,6 +251,15 @@ trait RandomUtils {
       case _ => Relation(rndEntity, rndRelationType, rndModel(n/div, div)) 
     }
   }
+}
+
+trait SysUtils {
+  import scala.sys.process._
+  import scala.util.Try
+  def isWindows = sys.props("os.name").startsWith("Windows")
+  def fixCmd(cmd: String): String = if (isWindows) s"""cmd /C "$cmd" """ else cmd
+  def runCmd(cmd: String) = Try(cmd.!) 
+  def desktopOpen(f: String) = Try(java.awt.Desktop.getDesktop().open( new java.io.File(f)))
 }
 
 trait DebugUtils {  

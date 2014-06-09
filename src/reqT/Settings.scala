@@ -18,6 +18,9 @@ object Settings {
   var columnSeparator = ";"
   var rowSeparator = "\n"
   var defaultModelToString: export.StringExporter = export.toScalaCompact
+  var dotType = "pdf"
+  var dotCmd: String => String = f => 
+    s"""dot -T$dotType -o "${f.newFileType("."+dotType)}" "${f.newFileType(".dot")}" """
   object gui {
     var entityColor = new java.awt.Color(0,100,200) //blueish
     var attributeColor = new java.awt.Color(0,100,50) //greenish

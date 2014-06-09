@@ -25,5 +25,6 @@ extends Init
    with StringUtils 
    with FileUtils 
    with RandomUtils 
+   with SysUtils
    with DebugUtils 
    with NanoZap

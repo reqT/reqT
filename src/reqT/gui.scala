@@ -31,6 +31,7 @@ import java.awt.event._
 import javax.swing._
 import javax.swing.tree._
 import javax.swing.event._
+import scala.util.{Try, Success, Failure}
 
 
 trait GuiLaunchers {  //mixed into package object
@@ -408,30 +409,30 @@ object gui { //GUI implementation
     }
     
     def msgNothingSelected = JOptionPane.showMessageDialog(frame, "No tree node selected.")
-    def msgParseModelError      = JOptionPane.showMessageDialog(frame, 
+    def msgParseModelError = JOptionPane.showMessageDialog(frame, 
       "ERROR: expected expression of type Model\nUse console to investigate error")
-    def msgParseTransformerError      = JOptionPane.showMessageDialog(frame, 
+    def msgParseTransformerError = JOptionPane.showMessageDialog(frame, 
       "ERROR: expected function of type Model => Model\nUse console to investigate error")  
+    def msgCmdError(cmd: String) = JOptionPane.showMessageDialog(frame, 
+      s"ERROR: See console message. Do you have the $cmd command installed in your path?") 
+    def msgError(msg: String) = JOptionPane.showMessageDialog(frame, msg)
 
     def saveModel(f: String) {
       if (f.endsWith(".reqt")) model.save(f)
       else if (f.endsWith(".scala")) model.toString.save(f)
-      else model.save(fileName+".reqt")
-      setFileName(f)
+      else model.save(f.newFileType(".reqt"))
+      setFileName(f.newFileType(".reqt"))
     }
       
     def doNew()              = gui(Model())
-    def doOpen()             = chooseFile(this, "","Open Serialized Model").
-                                 foreach{ f => setTopTo(Model.load(f)); setFileName(f) }
-    def doOpenScala()        = chooseFile(this, "","Open Scala Model").
+    def doOpen()             = chooseFile(this, "","Open Model").foreach{ f => setTopTo(Model.load(f)); setFileName(f) }
+    def doOpenScala()        = chooseFile(this, "","Open Textual Model").
                                  foreach{ f => setTopTo(load(f).toModel); setFileName(f) }
     def doSave()             = if (fileName == "untitled" || fileName == "")
-                                  chooseFile(this,"untitled.reqt","Save").foreach{saveModel(_)}
+                                  chooseFile(this,"untitled.reqt","Save Model").foreach{saveModel(_)}
                                else saveModel(fileName)
-    def doSaveAs()           = chooseFile(this, strUtils.suffix(fileName.stripSuffix(".scala"),".reqt"),"Save As").
-                                 foreach{saveModel(_)}
-    def doSaveAsScala()      = chooseFile(this, strUtils.suffix(fileName.stripSuffix(".reqt"),".scala"),"Save As").
-                                 foreach{saveModel(_)}
+    def doSaveAs()           = chooseFile(this, fileName.newFileType(".reqt"),"Save As").foreach{saveModel(_)}
+    def doSaveAsScala()      = chooseFile(this, fileName.newFileType(".scala"), "Export Textual").foreach{saveModel(_)}
     def doDelete()           = removeCurrentNode()
     def doUndoAll()          = revertToInitModel()
     def doEnter()            = setEditorToSelection()
@@ -439,17 +440,42 @@ object gui { //GUI implementation
     def doInsert()           = interpretModelAndUpdate(false)
     def doRun()              = repl.run(editor.getText)
     def doTransform()        = interpretTransformerAndUpdate()
+    def doLoadTextToEditor() = 
+      Try (chooseFile(this).foreach(f => editor.setText(load(f)))).
+        recover { case e => println(e); msgError("Failed to load file, see console message.") }
+    def doSaveEditorTextToFile() =
+      Try (chooseFile(this).foreach(f => editor.getText.save(f))).
+        recover { case e => println(e); msgError("Failed to save file, see console message.") }
     def doRefresh()          = reconstructModel()
     def doExpandAll()        = setFoldingAll(rootPath, true)
     def doCollapseAll()      = setFoldingAll(rootPath, false)
-    def doToGraphVizNested() = chooseFile(this, strUtils.suffix(fileName.stripAnySuffix,".dot"),"Export").
-                                 foreach(export.toGraphVizNested(model).save(_))
-    def doToGraphVizFlat()   = chooseFile(this, strUtils.suffix(fileName.stripAnySuffix,".dot"),"Export").
-                                 foreach(export.toGraphVizFlat(model).save(_))
+    def doToGraphViz(tpe: String, exp: => String) =  Try {
+      chooseFile(this, fileName.newFileType(tpe+".dot"),"Export").foreach { choice => 
+        exp.save(choice)  
+        val dot = Settings.dotCmd(choice) 
+        println(s"> $dot")
+        runCmd(dot)    
+        val pdf = choice.newFileType(".pdf") 
+        println(s"Desktop open: $pdf")
+        desktopOpen(choice.newFileType(".pdf"))       
+      }
+    }  recover { case e => println(e); msgError("Export failed, see console message.")  }
+
+    /*
+      Try (chooseFile(this, fileName.newFileType(tpe+".dot"),"Export").map{f => exp.save(f);f}) match {
+          case Success(v) => v.foreach { chosenFile =>
+            val (dot, pdf) = (Settings.dotCmd(chosenFile), chosenFile.newFileType(".pdf"))
+            Try { runCmd(dot) } match { 
+              case Success(_) => desktopOpen(pdf) {
+                println(s"Opening $pdf in desktop pdf viewer...}") } {
+                  msgError(s"Failed to open $pdf, see console message.") } } { 
+                    msgError("Failed to run command: $dot")} }
+          case Failure(e) => msgError("Export to GraphViz failed, see console message.") } */
+    
     def doImportFeaturePrio()= chooseFile(this).foreach(f => transformSelection(_ ++ parse.loadTab.prioVoting(f)))
     def doHelpMetamodel()    = setEditorToModel(reqT.meta.model)
     def doHelpEditor()       = setEditorToModel(editorHelpModel)
-
+    def doClose()            = frame.dispatchEvent( new WindowEvent(frame, WindowEvent.WINDOW_CLOSING))
   
     def mkInsertTextMenuItem(name: String, menu: JMenuItem, shortcut: (Int, Int, Int)) =
       mkMenuItem(name, menu, shortcut){ editor.replaceSelection(name)}
@@ -470,30 +496,36 @@ object gui { //GUI implementation
       val menuMap = AppMenus(
         MenuBranch("File", VK_F,
           MenuLeaf("New", VK_N, VK_N, CTRL){ doNew() },
-          MenuLeaf("Open Serialized Model ...", VK_O, VK_O, CTRL){ doOpen() },
-          MenuLeaf("Open Scala Model ...", VK_M, 0, 0){ doOpenScala() },
+          MenuLeaf("Open ...", VK_O, VK_O, CTRL){ doOpen() },
           MenuLeaf("Save", VK_S, VK_S, CTRL){ doSave() },
-          MenuLeaf("Save As Serialized ...", VK_A, 0, 0){ doSaveAs() },
-          MenuLeaf("Save As Scala Model ...", VK_L, 0, 0){ doSaveAsScala() }),
+          MenuLeaf("Save As ...", VK_A, 0, 0){ doSaveAs() },
+          MenuLeaf("Load text file to editor ...", VK_L, VK_L, CTRL) { doLoadTextToEditor() },
+          MenuLeaf("Save text in editor to file...", VK_S, VK_S, ALT) { doSaveEditorTextToFile() },
+          MenuLeaf("Close", VK_A, 0, 0){ doClose() },
+          MenuLeaf("Exit reqT", VK_A, 0, 0){ java.lang.System.exit(0) }),
         MenuBranch("Edit", VK_E,
-          MenuLeaf("Enter selection in editor", VK_E, VK_ENTER, CTRL) { doEnter() },
-          MenuLeaf("Update selection from editor", VK_U, VK_U, CTRL) { doUpdate() },
-          MenuLeaf("Insert selection from editor", VK_I, VK_I, CTRL) { doInsert() },
+          MenuLeaf("Enter node in editor", VK_E, VK_ENTER, CTRL) { doEnter() },
+          MenuLeaf("Update node from editor", VK_U, VK_U, CTRL) { doUpdate() },
+          MenuLeaf("Insert node from editor", VK_I, VK_I, CTRL) { doInsert() },
           MenuLeaf("Run script in editor (console output)", VK_R, VK_R, CTRL) { doRun() },
-          MenuLeaf("Transform selection by function in editor", VK_T, VK_T, CTRL) { doTransform() },
-          MenuLeaf("Delete selection", VK_D, VK_DELETE, 0) { doDelete() },
-          MenuLeaf("Refresh entire tree", VK_F, VK_F5, 0) { doRefresh() },
-          MenuLeaf("Undo all (revert to init)", VK_V, 0, 0) { doUndoAll() }),
+          MenuLeaf("Transform node by function in editor", VK_T, VK_T, CTRL) { doTransform() },
+          MenuLeaf("Delete node", VK_D, VK_DELETE, 0) { doDelete() },
+          MenuLeaf("Refresh all nodes", VK_F, VK_F5, 0) { doRefresh() },
+          MenuLeaf("Revert to initial tree", VK_V, 0, 0) { doUndoAll() }),
         MenuBranch("View", VK_V,
           MenuLeaf("Collapse all", VK_C, VK_LEFT, ALT) { doCollapseAll() },
           MenuLeaf("Expand all", VK_E, VK_RIGHT, ALT) { doExpandAll() }),
-        MenuBranch("Metamodel", VK_M),
-        MenuBranch("Export", VK_X,
-          MenuBranch("GraphViz", VK_G,
-            MenuLeaf("Nested ...", VK_N, 0, 0) { doToGraphVizNested() },
-            MenuLeaf("Flat ...", VK_F, 0, 0) { doToGraphVizFlat() })),
         MenuBranch("Import", VK_I,
-          MenuLeaf("Feature priorities values", VK_F, 0, 0) { doImportFeaturePrio() }),
+          MenuLeaf("Text Model ...", VK_M, 0, 0) { doOpenScala() },
+          MenuBranch("Text table", VK_T,
+            MenuLeaf("Priorities (Stakeholder; Feature; Prio) ...", VK_P, 0, 0) { doImportFeaturePrio() })),
+        MenuBranch("Export", VK_X,
+          MenuLeaf("To Text Model ...", VK_T, 0, 0) { doSaveAsScala() },
+          MenuBranch("To GraphViz", VK_G,
+            MenuLeaf("Nested ...", VK_N, 0, 0) { doToGraphViz("-nested",export.toGraphVizNested(model)) },
+            MenuLeaf("Flat ...", VK_F, 0, 0) { doToGraphViz("-flat", export.toGraphVizFlat(model)) })),
+        MenuBranch("Metamodel", VK_M),
+        MenuBranch("Templates", VK_T),
         MenuBranch("Help", VK_H,
           MenuLeaf("Shortcuts to editor", VK_E, 0, 0) { doHelpEditor() },
           MenuLeaf("Metamodel to editor", VK_M, 0, 0) { doHelpMetamodel() })
@@ -504,7 +536,17 @@ object gui { //GUI implementation
         reqT.meta.model - Meta("enumDefaults"),
         metamodelMenu
       )      
-    }
+      
+      Try {
+        val templates = fileUtils.loadResource("/templates.scala").mkString("\n").split("//").toList.filterNot(_.isEmpty)
+        val headedTemplates = templates.map(s => s.split('\n').toList).map(ss => (ss.head, ss.tail.mkString("\n")))
+        headedTemplates.foreach { case (name, text) =>
+          val templatesMenu = menuMap("Templates").asInstanceOf[JMenuItem]
+          mkMenuItem(name, templatesMenu, (keyCode(name.head),0,0)){ editor.replaceSelection(text)}
+        }
+      } recover { case e => println(e); msgError(s"Error loading templates.txt from jar.\n$e") }
+      
+    } 
     
     //************* main setup and show gui
     setLayout( new GridLayout(1,0))

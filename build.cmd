@@ -15,6 +15,11 @@ call scalac -feature -deprecation -cp "lib\*" -d bin src/reqT/*
 if %ERRORLEVEL% NEQ 0 goto error
 echo Compilation ready!  %TIME%
 
+:copy_resources
+echo Copying resources  ...  %TIME%
+copy /Y "resources\*" "bin\." 
+if %ERRORLEVEL% NEQ 0 goto error
+
 :package
 echo Packaging reqT into jar file: %_jarfilename% 
 echo Start packaging ... %TIME%
