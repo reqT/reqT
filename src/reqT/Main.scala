@@ -17,13 +17,27 @@ object Main {
 
   def help() {
     println("reqT is a requriements engineering tool, visit http://reqT.org")
-    println("<no arg>     Start the reqT shell inside the Scala Read-Evaluate-Print-Loop")
-    println("--edit      -e   <file> Launch the reqT shell editor with <file> if any")
-    println("--help      -h   Print this message")
-    println("--interpret -i   <file> Interpret <file> before starting the reqT shell")
-    println("--jflex     -j   Print jflex clauses for ReqTTokenMaker.flex")
-    println("--meta      -m   [<from>] Generate metamodel [<from>] to GENERATED-metamodel.scala")
-    println("--test      -t   <file> Run test script with Model in file")
+    println("<no arg> Start the reqT shell inside the Scala Read-Evaluate-Print-Loop")
+    println("help     -h  Print this message")
+    println("edit     -e  <file> Launch the reqT shell editor with <file> if any")
+    println("init     -r  <file> Interpret <file> before starting the reqT shell")
+    println("test     -t  <file> Run test script with Model in file")
+    println("meta     -m  [<from>] Generate metamodel [<from>] to file: GENERATED-metamodel.scala")
+    println("flex     -f  Print jflex clauses to file: reqT-flex-clauses.txt")
+  }
+
+  def main(args : Array[String]) : Unit =  {
+    if (args.size == 0) repl.startInterpreting
+    else args(0) match {
+      case a if Set("help", "--help", "-h", "-help", "help", "?")(a) => help()
+      case a if Set("edit", "-e")(a) => repl.initInterpreterAndEdit(args.drop(1))
+      case a if Set("init", "-i")(a)   => interpretFile(args.drop(1))
+      case a if Set("flex", "-f")(a) => genJFlex(args.drop(1))
+      case a if Set("meta", "-m")(a) => genMeta(args.drop(1))
+      case a if Set("test", "-t")(a) => test(args.drop(1))
+      case _ => 
+        println("ERROR Unknown arg: " + args.mkString(" ")); help()
+    }
   }
   
   def genMeta(args : Array[String]) {
@@ -65,7 +79,7 @@ object Main {
   def genJFlex(args : Array[String]) {
   
     val ent = reqT.metamodel.entityTypes.map(e => s""" "$e" """).
-      mkString(" /* Entity Types */ \n", "| \n", "{ addToken(Token.RESERVED_WORD); } \n")    
+      mkString(" /* Entity Types */ \n", "| \n", "{ addToken(Token.DATA_TYPE); } \n")    
     
     val attr = reqT.metamodel.attributeTypes.map(e => s""" "$e" """).
       mkString(" /* Attribute Types */ \n", "| \n", "{ addToken(Token.RESERVED_WORD_2); } \n")
@@ -73,21 +87,9 @@ object Main {
     val rel = reqT.metamodel.relationTypes.map(e => s""" "$e" """).
       mkString(" /* Relation Types */ \n", "| \n", "{ addToken(Token.FUNCTION); } \n")
     
-    println(s"$ent\n$attr\n$rel")
+    (s"$ent\n$attr\n$rel").save("reqT-flex-clauses.txt")
   }
   
-  def main(args : Array[String]) : Unit =  {
-    if (args.size == 0) repl.startInterpreting
-    else args(0) match {
-      case a if Set("--hello", "--help", "-h", "-help", "help", "?")(a) => help()
-      case a if Set("--edit", "-e")(a) => repl.initInterpreterAndEdit(args.drop(1))
-      case a if Set("--meta", "-m")(a) => genMeta(args.drop(1))
-      case a if Set("--interpret",   "-i")(a)   => interpretFile(args.drop(1))
-      case a if Set("--test", "-t")(a) => test(args.drop(1))
-      case a if Set("--jflex", "-j")(a) => genJFlex(args.drop(1))
-      case _ => 
-        println("ERROR Unknown arg: " + args.mkString(" ")); help()
-    }
-  }
+
   
 }

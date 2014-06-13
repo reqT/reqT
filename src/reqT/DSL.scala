@@ -319,8 +319,9 @@ case class Constraints(value: Vector[Constr]) extends ConstrVectorAttribute {
 }
 case object Constraints extends ConstrVectorType {
   def apply(s: String): Constraints = reqT.repl.interpret(s). map ( _ match { 
-    case c: Constraints => c 
-    case _ => Constraints(Vector()) 
+    case cs: Constraints => cs
+    case c: Constr => Constraints(c)    
+    //case _ => Constraints(Vector()) //propagate failure??
   } ).get 
 }
 

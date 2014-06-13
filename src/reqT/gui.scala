@@ -147,18 +147,19 @@ object gui { //GUI implementation
     smv
   }  
  
-  private var nextModelViewerNum = 1
-
   class ModelTreeEditor( 
     val initModel: Model, val frame: JFrame, var fileName: String) extends JPanel 
       with TreeSelectionListener  {
 
     def setFileName(s: String) {fileName = s; frame.setTitle(s)}
+    
     override def toString = s"ModelTreeEditor($fileName)"
+    
     case object ModelRoot { override val toString = "Model" }  
+    
     val top = new DefaultMutableTreeNode(ModelRoot)
+    
     private var currentModel: Model = initModel
-    nextModelViewerNum += 1
     
     val editorHelpModel = Model(
       Title("reqT.gui shortcuts"),
@@ -316,6 +317,7 @@ object gui { //GUI implementation
         case Some(currentNode) if currentNode == top =>  //top selected
           if (isReplace) setTopTo(newModel)
           else if (!newModel.isEmpty) setTopTo(newModel ++ model)
+          setFoldingAll(rootPath, true)
         case Some(currentNode) => //a node inside the tree was selected
           iter(newModel.toVector.reverse, isReplace, currentNode)
       }
@@ -423,16 +425,26 @@ object gui { //GUI implementation
       else model.save(f.newFileType(".reqt"))
       setFileName(f.newFileType(".reqt"))
     }
+    
+    def recover(block: => Unit) = Try(block).recover{ case e => println(e); msgError("ERROR:" + e) }
       
-    def doNew()              = gui(Model())
-    def doOpen()             = chooseFile(this, "","Open Model").foreach{ f => setTopTo(Model.load(f)); setFileName(f) }
-    def doOpenScala()        = chooseFile(this, "","Open Textual Model").
-                                 foreach{ f => setTopTo(load(f).toModel); setFileName(f) }
-    def doSave()             = if (fileName == "untitled" || fileName == "")
-                                  chooseFile(this,"untitled.reqt","Save Model").foreach{saveModel(_)}
-                               else saveModel(fileName)
-    def doSaveAs()           = chooseFile(this, fileName.newFileType(".reqt"),"Save As").foreach{saveModel(_)}
-    def doSaveAsScala()      = chooseFile(this, fileName.newFileType(".scala"), "Export Textual").foreach{saveModel(_)}
+    def doNew() = gui(Model())
+    
+    def doOpen() = recover { 
+      chooseFile(this, "","Open Serialized Model").
+        foreach { f => setTopTo(Model.load(f)); setFileName(f) } }
+    
+    def doOpenScala() = recover {
+      chooseFile(this, "","Open Textual Model").
+        foreach{ f => setTopTo(load(f).toModel); setFileName(f) } }
+    
+    def doSave() = recover {
+      if (fileName == "untitled" || fileName == "")
+        chooseFile(this,"untitled.reqt","Serialize Model").foreach{saveModel(_)}
+      else saveModel(fileName) }
+
+    def doSaveAs() = chooseFile(this, fileName.newFileType(".reqt"),"Save As").foreach{saveModel(_)}
+    def doSaveAsScala() = chooseFile(this, fileName.newFileType(".scala"), "Export Textual").foreach{saveModel(_)}
     def doDelete()           = removeCurrentNode()
     def doUndoAll()          = revertToInitModel()
     def doEnter()            = setEditorToSelection()
@@ -575,10 +587,13 @@ object gui { //GUI implementation
     val atmf = TokenMakerFactory.getDefaultInstance().asInstanceOf[AbstractTokenMakerFactory];
     atmf.putMapping("text/reqT", "org.fife.ui.rsyntaxtextarea.modes.ReqTTokenMaker");
     editor.setSyntaxEditingStyle("text/reqT"); 
-    
-    editor.setCodeFoldingEnabled(true)
+    editor.setCodeFoldingEnabled(false)
     editor.setAntiAliasingEnabled(true)
     editor.setBracketMatchingEnabled(true)
+    editor.setLineWrap(true)
+    editor.setWrapStyleWord(true)
+    editor.setTabSize(2)
+    editor.setTabsEmulated(true)
     //editor.setMatchedBracketBGColor(new Color(247, 247, 247))
     //editor.setMatchedBracketBorderColor(new Color(192, 192, 192))
     editor.setAnimateBracketMatching(true)
@@ -592,6 +607,9 @@ object gui { //GUI implementation
     editor.getSyntaxScheme.setStyle(REL_TOKEN, 
       new Style(Settings.gui.relationColor, Style.DEFAULT_BACKGROUND, currFontBold))
 
+    editor.getSyntaxScheme.setStyle(TokenTypes.LITERAL_STRING_DOUBLE_QUOTE, 
+      new Style(Settings.gui.stringColor))      
+      
     /*see further 
       http://fifesoft.com/rsyntaxtextarea/doc/  
       https://code.google.com/p/kojolite/source/browse/src/main/scala/net/kogics/kojo/lite/ScriptEditor.scala
@@ -616,7 +634,7 @@ object gui { //GUI implementation
     add(splitPane);
     setTopTo(currentModel)
     mkMenuBar(frame)
-    setEditorToModel(currentModel)
+    if (currentModel != Model()) setEditorToModel(currentModel)
   }
 
 }

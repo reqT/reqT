@@ -13,6 +13,7 @@
 
 package reqT 
 
+//???? this needs to be ckecked after Output and Input was changed to from attr to entities
 trait ModelTesting {
   self: Model =>
   def testOutputAdded(): Model = flatMapDeep {
@@ -27,7 +28,7 @@ trait ModelTesting {
     case (e,c) => (e, Output(c.interpretString.getOrElse("INTERPRETATION ERROR! Fix test bug."))) 
   }
   def test(): Map[Test, Output] = testOutputMap.flatMap { 
-    case (e, o) if o.value != "" => println(s"$e: ${o.value}"); Some((e,o)) 
+    case (e, o) if o.id != "" => println(s"$e: ${o.id}"); Some((e,o)) 
     case (e, o) => println(s"$e OK!"); None
   } .withDefaultValue(Output(""))
 }

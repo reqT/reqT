@@ -22,9 +22,10 @@ object Settings {
   var dotCmd: String => String = f => 
     s"""dot -T$dotType -o "${f.newFileType("."+dotType)}" "${f.newFileType(".dot")}" """
   object gui {
-    var entityColor = new java.awt.Color(0,100,200) //blueish
+    var entityColor    = new java.awt.Color(0,100,200) //blueish
     var attributeColor = new java.awt.Color(0,100,50) //greenish
-    var relationColor = new java.awt.Color(150, 30, 0)  //reddish
+    var relationColor  = new java.awt.Color(160, 0, 30)  //reddish
+    var stringColor    = new java.awt.Color(200, 90, 40) //orange-like
   }
 }
 

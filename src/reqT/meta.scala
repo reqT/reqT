@@ -18,15 +18,14 @@ package object meta {
   lazy val model = Model(
     Meta("Entity") superOf (
       Meta("General") superOf ( 
-        Meta("Ent"), Meta("Item"), Meta("Meta"), 
-        Meta("Label"), Meta("Section"), Meta("Term")),
+        Meta("Ent"), Meta("Item"), Meta("Label"), Meta("Meta"), Meta("Section"), Meta("Term")),
       Meta("Context") superOf (
           Meta("Actor"), Meta("Application"), Meta("Domain"), Meta("Module"),
           Meta("Product"), Meta("Release"), Meta("Resource"), Meta("Risk"), Meta("Service"), 
           Meta("Stakeholder"), Meta("System"), Meta("User")),
       Meta("Requirement") superOf (
         Meta("DataReq") superOf (
-          Meta("Class"), Meta("Data"), Meta("Member"), Meta("Relationship")),
+          Meta("Class"), Meta("Data"), Meta("Input"), Meta("Member"), Meta("Output"), Meta("Relationship")),
         Meta("DesignReq") superOf (Meta("Design"), Meta("Screen"), Meta("Mockup")),
         Meta("FunctionalReq") superOf (
           Meta("Function"), Meta("Interface")), 
@@ -42,19 +41,19 @@ package object meta {
           Meta("Configuration"), Meta("VariationPoint"), Meta("Variant")))),
     Meta("RelationType") superOf (
       Meta("binds"), Meta("deprecates"), Meta("excludes"), 
-      Meta("has"), Meta("helps"), Meta("hurts"),
-      Meta("implements"), Meta("is"), Meta("preceedes"), 
+      Meta("has"), Meta("helps"), Meta("hurts"), Meta("impacts"),
+      Meta("implements"), Meta("interactsWith"), Meta("is"), Meta("precedes"), 
       Meta("requires"), Meta("relatesTo"), Meta("superOf"), Meta("verifies")),
     Meta("Attribute") superOf (
       Meta("StringAttribute") superOf (
         Meta("Attr"), Meta("Code"), Meta("Comment"), Meta("Deprecated"),  
         Meta("Example"), Meta("Expectation"), Meta("File"), Meta("Gist"), 
-        Meta("Image"), Meta("Input"), Meta("Output"), Meta("Spec"), 
-        Meta("Text"), Meta("Title"), Meta("Why")),
+        Meta("Image"), Meta("Spec"), Meta("Text"), Meta("Title"), Meta("Why")),
       Meta("IntAttribute") superOf (
-        Meta("Benefit"), Meta("Capacity"), Meta("Cost"), Meta("Damage"), Meta("Differentiation"),
+        Meta("Benefit"), Meta("Capacity"), Meta("Cost"), Meta("Damage"), 
+        Meta("Differentiation"),
         Meta("Frequency"), Meta("MinValue"), Meta("MaxValue"),        
-        Meta("Order"), Meta("Prio"), Meta("Profit"), Meta("Saturation"), 
+        Meta("Order"), Meta("Prio"), Meta("Probability"), Meta("Profit"), Meta("Saturation"), 
         Meta("Urgency"), Meta("Utility"), Meta("Value")),
       Meta("CardinalityAttribute") superOf (Meta("Opt")),   
       Meta("VectorAttribute") superOf (Meta("Constraints"))),      
