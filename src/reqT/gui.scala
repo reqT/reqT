@@ -571,6 +571,7 @@ object gui { //GUI implementation
     
     
     //BEGIN rsyntaxtextarea stuff
+    import org.fife.ui.autocomplete._
     import org.fife.ui.rtextarea._
     import org.fife.ui.rsyntaxtextarea._
     
@@ -618,7 +619,15 @@ object gui { //GUI implementation
     editor.getSyntaxScheme.setStyle(TokenTypes.SEPARATOR, new Style(Color.black))
 
     val editorView = new RTextScrollPane(editor)
+    
+    //install auto-completions
+    val provider = new DefaultCompletionProvider()
+    metamodel.types.foreach { t =>
+      provider.addCompletion( new BasicCompletion(provider, t.toString)) }
+    val ac = new AutoCompletion(provider)
+    ac.install(editor)
     //END rsyntaxtextarea stuff
+    
     
     val splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
     splitPane.setTopComponent(treeView);
