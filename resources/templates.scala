@@ -44,3 +44,18 @@ Model(
   Quality("performance at peak load") has 
     Spec("Product shall be able to process 100 payment transactions per second in peak load.") 
 )  
+//Variability modelling
+Model(
+  VariationPoint("color") has (
+    Variant("blue"), Variant("red"), Variant("green"), Min(0), Max(3)),
+  VariationPoint("shape") has (
+    Variant("round"), Variant("square"), Min(1), Max(1)),
+  Variant("round") excludes Variant("red"),
+  Variant("green") requires Variant("square"),
+  Product("freemium") has (
+    Configuration("free") binds (
+      VariationPoint("color") binds Variant("red"),
+      VariationPoint("shape") binds Variant("round")),
+    Configuration("premium") binds ( /* violating variability constraints */
+      VariationPoint("color") binds (Variant("red"), Variant("green")),
+      VariationPoint("shape") binds (Variant("round"), Variant("square")))))
