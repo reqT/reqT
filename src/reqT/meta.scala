@@ -20,13 +20,13 @@ package object meta {
       Meta("General") superOf ( 
         Meta("Ent"), Meta("Item"), Meta("Label"), Meta("Meta"), Meta("Section"), Meta("Term")),
       Meta("Context") superOf (
-          Meta("Actor"), Meta("Application"), Meta("Domain"), Meta("Module"),
+          Meta("Actor"), Meta("Application"), Meta("Component"), Meta("Domain"), Meta("Module"),
           Meta("Product"), Meta("Release"), Meta("Resource"), Meta("Risk"), Meta("Service"), 
           Meta("Stakeholder"), Meta("System"), Meta("User")),
       Meta("Requirement") superOf (
         Meta("DataReq") superOf (
           Meta("Class"), Meta("Data"), Meta("Input"), Meta("Member"), Meta("Output"), Meta("Relationship")),
-        Meta("DesignReq") superOf (Meta("Design"), Meta("Screen"), Meta("Mockup")),
+        Meta("DesignReq") superOf (Meta("Design"), Meta("Screen"), Meta("MockUp")),
         Meta("FunctionalReq") superOf (
           Meta("Function"), Meta("Interface")), 
         Meta("GeneralReq") superOf (
@@ -52,9 +52,9 @@ package object meta {
       Meta("IntAttribute") superOf (
         Meta("Benefit"), Meta("Capacity"), Meta("Cost"), Meta("Damage"), 
         Meta("Differentiation"),
-        Meta("Frequency"), Meta("MinValue"), Meta("MaxValue"),        
+        Meta("Frequency"), Meta("Min"), Meta("Max"),        
         Meta("Order"), Meta("Prio"), Meta("Probability"), Meta("Profit"), Meta("Saturation"), 
-        Meta("Urgency"), Meta("Utility"), Meta("Value")),
+        Meta("Utility"), Meta("Value")),
       Meta("CardinalityAttribute") superOf (Meta("Opt")),   
       Meta("VectorAttribute") superOf (Meta("Constraints"))),      
     Meta("enums") has (
