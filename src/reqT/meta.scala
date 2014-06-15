@@ -18,7 +18,7 @@ package object meta {
   lazy val model = Model(
     Meta("Entity") superOf (
       Meta("General") superOf ( 
-        Meta("Ent"), Meta("Item"), Meta("Label"), Meta("Meta"), Meta("Section"), Meta("Term")),
+        Meta("Item"), Meta("Label"), Meta("Meta"), Meta("Section"), Meta("Term")),
       Meta("Context") superOf (
           Meta("Actor"), Meta("Application"), Meta("Component"), Meta("Domain"), Meta("Module"),
           Meta("Product"), Meta("Release"), Meta("Resource"), Meta("Risk"), Meta("Service"), 
@@ -46,8 +46,8 @@ package object meta {
       Meta("requires"), Meta("relatesTo"), Meta("superOf"), Meta("verifies")),
     Meta("Attribute") superOf (
       Meta("StringAttribute") superOf (
-        Meta("Attr"), Meta("Code"), Meta("Comment"), Meta("Deprecated"),  
-        Meta("Example"), Meta("Expectation"), Meta("File"), Meta("Gist"), 
+        Meta("Code"), Meta("Comment"), Meta("Deprecated"),  
+        Meta("Example"), Meta("Expectation"), Meta("FileName"), Meta("Gist"), 
         Meta("Image"), Meta("Spec"), Meta("Text"), Meta("Title"), Meta("Why")),
       Meta("IntAttribute") superOf (
         Meta("Benefit"), Meta("Capacity"), Meta("Cost"), Meta("Damage"), 
@@ -55,14 +55,14 @@ package object meta {
         Meta("Frequency"), Meta("Min"), Meta("Max"),        
         Meta("Order"), Meta("Prio"), Meta("Probability"), Meta("Profit"), Meta("Saturation"), 
         Meta("Utility"), Meta("Value")),
-      Meta("CardinalityAttribute") superOf (Meta("Opt")),   
+      Meta("StatusValueAttribute") superOf (Meta("Status")),   
       Meta("VectorAttribute") superOf (Meta("Constraints"))),      
     Meta("enums") has (
-      Meta("Cardinality") has (
-        Meta("NoOption"), Meta("Zero"), Meta("One"), 
-        Meta("ZeroOrOne"), Meta("OneOrMany"), Meta("ZeroOrMany"))),
+      Meta("StatusValue") has (
+        Meta("ELICITED"), Meta("SPECIFIED"), Meta("VALIDATED"), 
+        Meta("PLANNED"), Meta("IMPLEMENTED"), Meta("TESTED"), Meta("RELEASED"), Meta("FAILED"), Meta("POSTPONED"), Meta("DROPPED"))),
     Meta("enumDefaults") has (
-      Meta("Cardinality") has Meta("NoOption")))  
+      Meta("StatusValue") has Meta("ELICITED")))  
   
   def toGraphViz: String = {
     val m = model * superOf inverse(superOf, is)
@@ -115,9 +115,9 @@ package meta {
       ListMap(attr.tipIds.map(id => 
         (id.replace("Attribute",""), attr / Meta(id).superOf tipIds)):_*) 
         
-    val defaults = model / "enumDefaults"
+    val enumDefaults = model / "enumDefaults"
     override val attributeDefaultValues = 
-      ListMap(defaults.tipIds.map(id => (id, (defaults / id).tipIds.head)):_*)
+      ListMap(enumDefaults.tipIds.map(id => (id, (enumDefaults / id).tipIds.head)):_*)
     
     val ents = model/Meta("Entity").superOf
     override val generalEntities = (ents/Meta("General").superOf -- defEnts) tipIds

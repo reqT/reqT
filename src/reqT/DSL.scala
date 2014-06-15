@@ -133,6 +133,7 @@ trait Attribute[T] extends Node with MapTo with HasValue[T] with CanBeMapped {
   override def mapTo: Attribute[T] = this
   override def isAttribute: Boolean = true
   def isInt: Boolean = false
+  def isString: Boolean = false
   override def toScalaBody: String = value.toString
   override def toScala: String =  myType + "(" + toScalaBody + ")"
   def / = AttrVal(HeadPath(), this)
@@ -151,6 +152,7 @@ trait AttributeType[T] extends Key with TypeObject with HasDefault[T] {
   def apply(value: T): Attribute[T] 
   val default: T 
   def isInt: Boolean = false
+  def isString: Boolean = false
   def / = AttrRef(HeadPath(), this)
 }
 sealed trait Entity extends Node with HeadFactory with RelationFactory  {
@@ -254,17 +256,19 @@ trait MetamodelTypes {
 //Primitive Attributes traits
 trait StringAttribute extends Attribute[String] {
   override def toScalaBody = value.toScala
+  override def isString: Boolean = true  //used by auto-complete in gui
 }
 trait StringType extends AttributeType[String] { 
-  val default = "???"
+  val default = "?"
   override  def apply(value: String): StringAttribute
+  override def isString: Boolean = true  //used by auto-complete in gui
 }
 
 trait IntAttribute extends Attribute[Int] {
   override def isInt: Boolean = true  //used by constraint solving
 }
 trait IntType extends AttributeType[Int] { 
-  val default = -999999999
+  val default = 0
   override def isInt: Boolean = true  //used by constraint solving
   override  def apply(value: Int): IntAttribute
 } 

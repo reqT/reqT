@@ -26,7 +26,7 @@
 
 package reqT
 
-import java.awt._
+import java.awt.{Component => AWTComponent, _}
 import java.awt.event._
 import javax.swing._
 import javax.swing.tree._
@@ -57,7 +57,7 @@ object killSwingVerbosity {
   }
   def onAction(act: => Unit): ActionListener = onEvent( _ => act)
   
-  // def chooseFileAndSaveString(data: String, c: Component, fname: String = "", text: String = "Save"): Unit = {
+  // def chooseFileAndSaveString(data: String, c: AWTComponent, fname: String = "", text: String = "Save"): Unit = {
     // fileChooser.setSelectedFile( new java.io.File(fname))
     // if (fileChooser.showSaveDialog(c, text) == JFileChooser.APPROVE_OPTION) {
       // val file = fileChooser.getSelectedFile();
@@ -65,7 +65,7 @@ object killSwingVerbosity {
     // }    
   // }
   
-  def chooseFile(c: Component, fname: String = "", text: String = "Select file"): Option[String] = {
+  def chooseFile(c: AWTComponent, fname: String = "", text: String = "Select file"): Option[String] = {
     fileChooser.setSelectedFile( new java.io.File(fname))
     if (fileChooser.showDialog(c, text) == JFileChooser.APPROVE_OPTION) 
       Some(fileChooser.getSelectedFile().getCanonicalPath)
@@ -396,7 +396,7 @@ object gui { //GUI implementation
       }      
     }
     
-    def setEditorToModel(m: Model) { editor.setText(export.toScalaExpanded(m)) }
+    def setEditorToModel(m: Model) { editor.setText(export.toScalaCompact(m)) }
     
     def setEditorToSelection() {
       val currentSelection: TreePath = tree.getSelectionPath();
@@ -622,8 +622,22 @@ object gui { //GUI implementation
     
     //install auto-completions
     val provider = new DefaultCompletionProvider()
-    metamodel.types.foreach { t =>
-      provider.addCompletion( new BasicCompletion(provider, t.toString)) }
+    val q = '\"'.toString
+    metamodel.relationTypes.foreach { t =>
+      provider.addCompletion( new BasicCompletion(provider, t.toString, "RelationType")) }
+    metamodel.entityTypes.foreach { t =>
+      provider.addCompletion( new ShorthandCompletion(provider, t.toString,
+            t.toString+"("+q, "Entity")) }    
+    metamodel.attributeTypes.foreach { t =>
+      val (hint, tpe) = t match {
+        case _ if t.isInt => ("0", "Int")
+        case _ if t.isString => (q, "String")
+        case Status => (t.default.toString, "StatusValue")
+        case _: VectorType[_] => ("", "Vector")
+        case _ => (t.default.toString, "")
+      }
+      provider.addCompletion( new ShorthandCompletion(provider, t.toString,
+            t.toString+"("+hint, s"Attribute[$tpe]")) }             
     val ac = new AutoCompletion(provider)
     ac.install(editor)
     //END rsyntaxtextarea stuff
@@ -632,7 +646,7 @@ object gui { //GUI implementation
     val splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
     splitPane.setTopComponent(treeView);
     splitPane.setBottomComponent(editorView);
-    val (startHeight, startWidth) = (640, 640)
+    val (startHeight, startWidth) = (768, 1024)
     val smallestDim = new Dimension(100, 100);
     val prefferedDim = new Dimension(startWidth, startHeight)
     val dividerAt = startHeight / 2

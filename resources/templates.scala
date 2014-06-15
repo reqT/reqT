@@ -47,15 +47,68 @@ Model(
 //Variability modelling
 Model(
   VariationPoint("color") has (
-    Variant("blue"), Variant("red"), Variant("green"), Min(0), Max(3)),
+    Variant("blue"), Variant("red"), Variant("green"), Min(0), Max(2)),
   VariationPoint("shape") has (
     Variant("round"), Variant("square"), Min(1), Max(1)),
   Variant("round") excludes Variant("red"),
   Variant("green") requires Variant("square"),
-  Product("freemium") has (
-    Configuration("free") binds (
-      VariationPoint("color") binds Variant("red"),
-      VariationPoint("shape") binds Variant("round")),
-    Configuration("premium") binds ( /* violating variability constraints */
-      VariationPoint("color") binds (Variant("red"), Variant("green")),
-      VariationPoint("shape") binds (Variant("round"), Variant("square")))))
+  Configuration("cheap") binds (
+    VariationPoint("color") binds Variant("red"),
+    VariationPoint("shape") binds Variant("round")),
+  Configuration("expensive") binds ( /* violating variability constraints */
+    VariationPoint("color") binds (Variant("red"), Variant("green")),
+    VariationPoint("shape") binds (Variant("round"), Variant("square"))),
+  Product("free") has Configuration("cheap"),
+  Product("premium") has Configuration("expensive"))
+//Release planning
+Model(
+  Feature("autoSave") has Gist("Save changes automatically at regular intervals."),
+  Feature("createPrio") has Gist("Easy entering of feature priorities by stakeholders."),
+  Feature("editAttribute") has Gist("Attributes such as Gist or Description can be edited in the view."),
+  Feature("editImportance") has Gist("The importance of a stakeholder's opinions should be editable."),
+  Feature("editPrio") has Gist("A stakeholder's prioritisation of a requirement should be editable."),
+  Feature("editRelations") has Gist("Relations of entities can be edited."),
+  Feature("listView") has Gist("Requirements can be viewed as a list."),
+  Feature("showUnsaved") has Gist("Show marker to indicate unsaved model."),
+  Feature("viewPrio") has Gist("A stakeholder's prioritisation of requirement can be viewed."),
+  Resource("Team A") has (
+    Feature("autoSave") has Cost(4),
+    Feature("createPrio") has Cost(9),
+    Feature("editAttribute") has Cost(6),
+    Feature("editImportance") has Cost(7),
+    Feature("editPrio") has Cost(3),
+    Feature("editRelations") has Cost(6),
+    Feature("listView") has Cost(3),
+    Feature("showUnsaved") has Cost(3),
+    Feature("viewPrio") has Cost(6),
+    Release("March") has Capacity(20),
+    Release("July") has Capacity(15)
+  ),
+  Resource("Team B") has (
+    Feature("autoSave") has Cost(5),
+    Feature("createPrio") has Cost(2),
+    Feature("editAttribute") has Cost(7),
+    Feature("editImportance") has Cost(8),
+    Feature("editPrio") has Cost(9),
+    Feature("editRelations") has Cost(2),
+    Feature("listView") has Cost(4),
+    Feature("showUnsaved") has Cost(3),
+    Feature("viewPrio") has Cost(4),
+    Release("March") has Capacity(15),
+    Release("July") has Capacity(15)
+  ),
+  Release("March") has (Prio(1), Order(0)),
+  Release("July") has (Prio(1), Order(1)),
+  Stakeholder("Supervisor") has (
+    Prio(1), 
+    Feature("autoSave") has Prio(7),
+    Feature("createPrio") has Prio(10),
+    Feature("editAttribute") has Prio(9),
+    Feature("editImportance") has Prio(10),
+    Feature("editPrio") has Prio(10),
+    Feature("editRelations") has Prio(3),
+    Feature("listView") has Prio(6),
+    Feature("showUnsaved") has Prio(4),
+    Feature("viewPrio") has Prio(7)
+  )
+)
