@@ -206,6 +206,17 @@ trait ModelBasicOps  {
   lazy val topHeadsOfType: Map[HeadType, Vector[Head]] =
     Bag(topHeads.map( h => (HeadType(h.entity.myType, h.link), h)):_*).withDefaultValue(Vector())
 
+  lazy val entities: Vector[Entity] = collect { case e: Entity => e } .distinct
+  lazy val attributes: Vector[Attribute[_]] = collect { case a: Attribute[_] => a } 
+    
+  def entitiesOfType(et: EntityType):Vector[Entity] = entities.filter { _.myType == et }
+    
+  def attributesOfType[T](at: AttributeType[T]):Vector[Attribute[T]] = collect { 
+    case a: Attribute[T] if a.myType == at => a } 
+    
+  def valuesOfType[T](at: AttributeType[T]):Vector[T] = collect { 
+    case a: Attribute[T] if a.myType == at => a.value }     
+
   lazy val topIds: Vector[String] = top.ids
   lazy val tipIds: Vector[String] = tip.ids
   lazy val tipEntityOfId: Map[String, Entity] = tipEntities.map(e => (e.id, e)).toMap.withDefaultValue(NoEntity)
@@ -236,7 +247,7 @@ trait ModelBasicOps  {
   lazy val constraints: Vector[Constr] = collect { case Constraints(cs) => cs }.flatten.toVector 
       
   lazy val intAttrToConstraints: Vector[XeqC] = collectLeafPaths {
-    case AttrVal(p,a) if a.isInt => Var(AttrRef(p, a.myType)) := a.value.asInstanceOf[Int]
+    case AttrVal(p,a) if a.isInt => Var(AttrRef(p, a.myType)) === a.value.asInstanceOf[Int]
   }
   
   lazy val atoms: Vector[Elem] = {

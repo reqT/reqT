@@ -50,7 +50,7 @@ case class CSP(m: Model, cs: Seq[Constr]) {
       case (Var(ar @ AttrRef(_,t)), i) if t.isInt => ar(i)  
     }
     val otherVariableValues = vmap.toVector flatMap { (vi: (Var,Int)) => vi match {
-      case (Var(x), _) if !x.isInstanceOf[AttrRef[_]] => Some(vi._1 := vi._2)
+      case (Var(x), _) if !x.isInstanceOf[AttrRef[_]] => Some(vi._1 === vi._2)
       case  _ => None
     } } 
     

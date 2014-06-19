@@ -94,9 +94,11 @@ case class Minimize(cost: Var) extends Optimize
 case class Maximize(cost: Var) extends Optimize
 
 case class Var(ref: AnyRef) extends DSL { 
-  def :=(that: Var) = XeqY(this, that)
-  def :=(const: Int) = XeqC(this, const)
-  def :=(const: Boolean) = XeqBool(this, const)
+  def ===(that: Var) = XeqY(this, that)
+  def ===(const: Int) = XeqC(this, const)
+  def ===(const: Boolean) = XeqBool(this, const)
+  def ===(sumThat: SumBuilder) = SumEq(sumThat.vs, this) 
+  def ===(mulThat: MulBuilder) = XmulYeqZ(mulThat.x, mulThat.y, this)
   def >(that: Var) = XgtY(this, that)  
   def >(const: Int) = XgtC(this, const)
   def >=(that: Var) = XgteqY(this, that)  
@@ -124,15 +126,15 @@ case class Var(ref: AnyRef) extends DSL {
 }
 
 case class SumBuilder(vs: Vector[Var]) { 
-  def :=(that: Var) = SumEq(vs, that) 
+  def ===(that: Var) = SumEq(vs, that) 
 }
 
 case class MulBuilder(x: Var, y: Var) {
-  def :=(z: Var) = XmulYeqZ(x, y, z)
+  def ===(z: Var) = XmulYeqZ(x, y, z)
 }
 
 case class PlusBuilder(x: Var, y: Var) {
-  def :=(z: Var) = XplusYeqZ(x, y, z)
+  def ===(z: Var) = XplusYeqZ(x, y, z)
 }
 
 object Sum {
@@ -270,10 +272,10 @@ case class IndexValue(index: Var, varSeq: Seq[Var], valueAtIndex: Var) extends C
 case class SumEq(seq1: Seq[Var], x: Var) extends Constr1Seq1 
 case class Count(seq1: Seq[Var], x: Var, c: Int) extends Constr1Seq1IntConst
 case class XeqC(x: Var, c: Int) extends Constr1IntConst with PrimitiveConstr {
-  override def toScala = x.toScala + " := " + c
+  override def toScala = x.toScala + " === " + c
 }
 case class XeqY(x: Var, y: Var) extends Constr2 with PrimitiveConstr {
-  override def toScala = x.toScala + " := " + y.toScala
+  override def toScala = x.toScala + " === " + y.toScala
 }
 
 case class XdivYeqZ(x: Var, y: Var, z: Var) extends Constr3 with PrimitiveConstr
