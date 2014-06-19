@@ -124,4 +124,5 @@ trait ModelElemAccess { //isDefinedAt, apply, get, enter
   def /[T](at: AttributeType[T]): T = enter(at)  
   def /(p: HeadPath): Model = enter(p) 
   def /[T](p: AttrRef[T]): T = enter(p)
+  
 }
