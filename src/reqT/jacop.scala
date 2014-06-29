@@ -42,7 +42,7 @@ case class Search(
       variableSelection: jacop.VariableSelection = jacop.Settings.defaultVariableSelection,
       assignOption: Option[Seq[Var]] = None)
 
-case class CSP(m: Model, cs: Seq[Constr]) {
+case class ConstraintProblem(m: Model, cs: Seq[Constr]) {
   //Any propagates because of Map invariance in first Type argument:
   def mkModel(vmap: Map[Var, Int]): Model = { 
     var newModel = Model()

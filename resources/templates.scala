@@ -61,7 +61,7 @@ Model(
   Product("free") has Configuration("cheap"),
   Product("premium") has Configuration("expensive"))
 //Release planning simple
-val m = Model(
+val simple = Model(
   Stakeholder("X") has (
     Prio(1),
     Feature("1") has Benefit(4),
@@ -72,8 +72,7 @@ val m = Model(
     Feature("1") has Benefit(2),
     Feature("2") has Benefit(1),
     Feature("3") has Benefit(1)),
-  Release("A") has Order(1),
-  Release("B") has Order(2),  
+  Release("A") precedes Release("B"),  
   Resource("dev") has (
     Feature("1") has Cost(10),
     Feature("2") has Cost(70),
@@ -85,8 +84,15 @@ val m = Model(
     Feature("2") has Cost(10),
     Feature("3") has Cost(70),
     Release("A") has Capacity(100),
-    Release("B") has Capacity(100)))
-(m ++ solving.releasePlanningConstraints(m)).maximize(Release("A")/Benefit)    
+    Release("B") has Capacity(100)),
+  Feature("3") precedes Feature("1"))
+val solution = csp.releasePlan(simple).
+    maximize(Release("A")/Benefit).
+    sortByTypes(Release, Feature, Stakeholder, Resource)
+val allocation = (solution *^ Release).
+  leafPaths.collect { 
+    case a: AttrVal[_] if a.attr.value != 0 => a }.toModel  
+allocation 
 //Release planning elaborated
 Model(
   Feature("autoSave") has Gist("Save a model automatically after each update."),

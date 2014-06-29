@@ -36,6 +36,7 @@ trait StringExporter extends Exporter[String] {
   val nl = "\n"
   def nlLitteral = """\n"""
   def indent(n: Int): String = " " * (n * Settings.intentSpacing)
+  def makeString(a: Any): String = a.toString //ready to override
 }
 
 trait ModelToString extends StringExporter {
@@ -69,8 +70,13 @@ trait ModelToString extends StringExporter {
     
   def exportHead(h: Head, path: NodePath): String = 
     exportEntity(h.entity, path) + " " + h.link + " "
-  def exportEntity(e: Entity, path: NodePath): String = e.toString
-  def exportAttribute[T](a: Attribute[T], path: NodePath): String =  a.toString
+  def exportEntity(e: Entity, path: NodePath): String = makeString(e)
+  def exportAttribute[T](a: Attribute[T], path: NodePath): String =  a match {
+    case xs: VectorAttribute[_] => 
+      val space = "\n"+indent(path.depth + 1) 
+      xs.value.map(makeString).mkString(xs.prefix+"("+space,","+space,")")
+    case _ => makeString(a)
+  }
   
   override def preamble(m: Model): String = "Model("
   override def ending(m: Model): String = ")"
@@ -84,10 +90,12 @@ trait NewLineEnding { self: ModelToString =>
 }  
 
 trait ScalaGenerators { self: ModelToString =>
-  override def exportEntity(e: Entity, path: NodePath): String = e.toScala
-  override def exportAttribute[T](a: Attribute[T], path: NodePath): String =  a.toScala
+  override def makeString(a: Any) = a match {
+    case d : DSL => d.toScala
+    case _ => a.toString 
+  }
 }
-
+  
 trait GraphViz extends StringExporter {
   def formats = """
   compound=true;overlap=false;rankdir=LR;clusterrank=local;
@@ -139,7 +147,7 @@ trait GraphVizNested extends GraphViz {
     }
   } .mkString
     
-  override def body(m: Model): String = exportModel(m.reverse,/)
+  override def body(m: Model): String = exportModel(m.reverseElems,/)
 }
 
 trait GraphVizFlat extends GraphViz {
