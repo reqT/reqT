@@ -80,10 +80,10 @@ package csp {
         case Relation(e1,`excludes`,Model(e2:Entity)) => Var(e1/Order) =/= Var(e2/Order) } )
         
       val couplings = Constraints( m.atoms.collect {
-        case Relation(e1,`requires`,Model(e2:Entity)) => Var(e1/Order) =/= Var(e2/Order) } )
+        case Relation(e1,`requires`,Model(e2:Entity)) => Var(e1/Order) === Var(e2/Order) } )
         
       Model(
-        featureOrder, releaseOrder, weightedBenefit, featureBenefitSum, featureBenefitPerRelease, benefitPerRelease, featureCostPerReleasePerResource, resourceCostPerRelease, featureCostPerRelease, costPerRelease, costLimitPerResource, totalCostPerRelease, precedences, exclusions)
+        featureOrder, releaseOrder, weightedBenefit, featureBenefitSum, featureBenefitPerRelease, benefitPerRelease, featureCostPerReleasePerResource, resourceCostPerRelease, featureCostPerRelease, costPerRelease, costLimitPerResource, totalCostPerRelease, precedences, exclusions, couplings)
       
     } else {
       Settings.warningPrinter(s"Missing entity types: ${missingEntityTypes(m)}")
