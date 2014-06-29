@@ -274,7 +274,7 @@ trait IntType extends AttributeType[Int] {
 } 
 
 trait VectorAttribute[T] extends Attribute[Vector[T]] {
-  override def toString: String = myType + "(" + value.map(_.toString).mkString(",") + ")"
+  override def toString: String = myType + value.map(_.toString).mkString("(\n    ",",\n    ",")") 
   override def toScala: String = toString
 }
 trait VectorType[T] extends AttributeType[Vector[T]] {
