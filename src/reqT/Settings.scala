@@ -21,6 +21,7 @@ object Settings {
   var dotType = "pdf"
   var dotCmd: String => String = f => 
     s"""dot -T$dotType -o "${f.newFileType("."+dotType)}" "${f.newFileType(".dot")}" """
+  var warningPrinter: String => Unit = (msg) => println(s"WARNING: $msg")
   object gui {
     var entityColor    = new java.awt.Color(0,100,200) //blueish
     var attributeColor = new java.awt.Color(0,100,50) //greenish
