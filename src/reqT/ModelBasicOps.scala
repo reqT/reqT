@@ -31,7 +31,7 @@ trait ModelBasicOps  {
     case va: VectorAttribute[_] if isDefinedAt(va.key) =>
       val existingVector = apply(va.key)
       newModel(myMap + (va.key -> va.key.apply(existingVector ++ va.value)))
-    case ent: Entity if isDefinedAt(ent.has) => this
+    case ent: Entity if isDefinedAt(ent.has) => this  //to keep order - is it good ???
     case NoElem => this
     case _ => newModel(myMap + e.toMapping)
   }
@@ -171,10 +171,16 @@ trait ModelBasicOps  {
     case anyElem => Vector(anyElem)
   } .flatten.toModel
   
-  def reverse = elems.reverse.toModel  //order dependent - not meaningful for HashModel!?
-
+  lazy val reverseElems: Model = elems.reverse.toModel  
   
-//------------------ check below
+  lazy val reversed: Model = {
+    def iter(m: Model): Model = m.elems.map { _ match {
+      case Relation(e,l,t) => Relation(e,l, iter(t.reverseElems))
+      case e => e
+    } } .toModel
+    iter(this.reverseElems)
+  }
+  
   lazy val submodels: Vector[Model] = ??? //all models dfs in a flat vector 
   lazy val tails: Vector[Model] = myMap.collect { case (h: Head, tail: Model) if !tail.isEmpty => tail } .toVector
   lazy val tailsMerged: Model = tails.foldLeft(Model())(_ ++ _)
@@ -261,6 +267,25 @@ trait ModelBasicOps  {
   }
   
   lazy val flat: Model = atoms.toModel
+  
+  def sortByTypes(types: TypeObject*): Model = {
+    val indexOf: Map[TypeObject, Int] = types.zipWithIndex.toMap.withDefaultValue(Int.MaxValue)
+    def orderOf(e: Elem): Int = e match {
+      case Relation(ent,link,_) => Math.min(indexOf(ent.myType),indexOf(link))
+      case _ => indexOf(e.myType)
+    }
+    def lessThan(e1: Elem, e2: Elem): Boolean = {
+      val (o1,o2) = (orderOf(e1), orderOf(e2))
+      if (o1 == o2) e1.key.toString < e2.key.toString 
+      else o1 < o2
+    }  
+    def sortTopLevel(m: Model): Model = m.elems.sortWith(lessThan).toModel
+    def iter(m: Model): Model = m.elems.map { _ match {
+      case Relation(e,l,t) => Relation(e,l, iter(sortTopLevel(t)))
+      case e => e 
+    } } .toModel
+    iter(sortTopLevel(this))
+  }
   
   
 }
