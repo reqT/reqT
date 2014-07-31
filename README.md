@@ -11,34 +11,31 @@ This is the 3.0.x branch. The old 2.3.x branch is [here](https://github.com/reqT
 How to run reqT
 ---------------
 
-1. Check if you have Java 1.7.x installed by opening a terminal window (bash, cmd, or powershell etc.) and type this command and check if it prints something similar to `java version "1.7.0_65"`
+1. Check if you have Java 1.7.x installed by opening a terminal window (bash, cmd, or powershell etc.) and type this command:
 
-    java -version 
-
-2. *If* the above step failed *then* install Java 1.7 from here: 
+        java -version 
+    
+     and check if it prints something similar to `java version "1.7.0_65"`
+     
+2. **If** the above step failed **then** install Java 1.7 from here: 
     * [Windows/Mac: scroll down to Java SE7](http://www.oracle.com/technetwork/java/javase/downloads) 
     * [linux install openjdk-7] (http://openjdk.java.net/install/index.html) 
 
-3. Download the [reqT.jar](http://reqT.org/reqT.jar) and put it in some directory. 
+3. Download the most recently released [reqT.jar from reqT.org](http://reqT.org/reqT.jar) and put the reqT.jar file in some directory. 
  
-4. Open a terminal window (bash, cmd, or powershell etc.) and change directory to where you put the above jar file and type this command: 
+4. Open a terminal window (bash, cmd, or powershell etc.) and change directory to where you put the above reqT.jar file and type this command: 
     
-    java -jar reqT.jar
+        java -jar reqT.jar
 
  
 How to build reqT from code
 ---------------------------
 
 1. Install Scala version 2.11.2 from the [Scala homepage](http://scala-lang.org/download/2.11.2.html)
-
 2. Download the [reqT.zip](https://github.com/reqT/reqT/archive/3.0.x.zip) and unpack it.
-
 3. Run the build command:
-
     * On Windows: start powershell and type `./build`
-
     * On Linux/Mac: start terminal and type  `./build.sh`     
-    
 4. Run the generated jar with `java -jar reqT.jar`
 
 Editors with Scala support
