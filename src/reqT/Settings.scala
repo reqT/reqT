@@ -13,7 +13,7 @@
 package reqT
 
 object Settings {
-  var intentSpacing = 2
+  var indentSpacing = 2
   var lineLength = 72
   var columnSeparator = ";"
   var rowSeparator = "\n"

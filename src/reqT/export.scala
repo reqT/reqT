@@ -11,7 +11,7 @@ object toStringCompact extends ModelToString
 object toStringPaired extends ModelToString with NewLineEnding
 object toScalaCompact extends ModelToString with ScalaGenerators 
 object toScalaCompactBody extends ModelToString with ScalaGenerators {
-  override def indent(n: Int): String = " " * ((n-1) * Settings.intentSpacing)
+  override def indent(n: Int): String = " " * ((n-1) * Settings.indentSpacing)
   override def apply(m: Model): String = body(m).trim
 }
 object toScalaPaired extends ModelToString with ScalaGenerators with NewLineEnding
@@ -35,7 +35,7 @@ trait StringExporter extends Exporter[String] {
   val q3: String = q*3
   val nl = "\n"
   def nlLitteral = """\n"""
-  def indent(n: Int): String = " " * (n * Settings.intentSpacing)
+  def indent(n: Int): String = " " * (n * Settings.indentSpacing)
   def makeString(a: Any): String = a.toString //ready to override
 }
 
