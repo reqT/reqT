@@ -60,7 +60,7 @@ Model(
     VariationPoint("shape") binds (Variant("round"), Variant("square"))),
   Product("free") has Configuration("cheap"),
   Product("premium") has Configuration("expensive"))
-//Release planning simple
+//Release planning example 1
 val simple = Model(
   Stakeholder("X") has (
     Prio(1),
@@ -93,8 +93,8 @@ val allocation = (solution *^ Release).
   leafPaths.collect { 
     case a: AttrVal[_] if a.attr.value != 0 => a }.toModel  
 allocation 
-//Release planning elaborated
-Model(
+//Release planning example 2
+val m = Model(
   Feature("autoSave") has Gist("Save a model automatically after each update."),
   Feature("exportGraph") has Gist("Export model to graph for visualization in e.g. GraphViz."),
   Feature("exportTable") has Gist("Export model to table format for edit in e.g. Excel."),
@@ -102,6 +102,7 @@ Model(
   Feature("releasePlanning") has Gist("Solve release planning problems."),
   Feature("syntaxColoring") has Gist("Syntax colored editing of models."),
   Feature("autoCompletion") has Gist("Auto-completion of entity, attribute and relation types."),  
+  Feature("exportTable") precedes Feature("exportGraph"),   
   Resource("Dev") has (
     Feature("autoSave") has Cost(4),
     Feature("exportGraph") has Cost(5),
@@ -109,7 +110,9 @@ Model(
     Feature("modelTemplates") has Cost(7),
     Feature("releasePlanning") has Cost(20),    
     Feature("syntaxColoring") has Cost(20),
-    Feature("autoCompletion") has Cost(20)),
+    Feature("autoCompletion") has Cost(20),    
+    Release("A") has Capacity(30),
+    Release("B") has Capacity(50)),
   Resource("Test") has (
     Feature("autoSave") has Cost(1),
     Feature("exportGraph") has Cost(2),
@@ -117,9 +120,11 @@ Model(
     Feature("modelTemplates") has Cost(3),
     Feature("releasePlanning") has Cost(8),
     Feature("syntaxColoring") has Cost(6),    
-    Feature("autoCompletion") has Cost(6)),
-  Release("Alfa") has Order(0),
-  Release("Beta") has Order(1),
+    Feature("autoCompletion") has Cost(6),    
+    Release("A") has Capacity(20),
+    Release("B") has Capacity(20)),
+  Release("A") has Order(1),
+  Release("B") has Order(2),
   Stakeholder("Ada") has (Prio(1), 
       Feature("autoSave") has Benefit(10),
       Feature("exportGraph") has Benefit(9),
@@ -136,3 +141,10 @@ Model(
       Feature("releasePlanning") has Benefit(4),
       Feature("syntaxColoring") has Benefit(7),    
       Feature("autoCompletion") has Benefit(8)))
+val solution = csp.releasePlan(m).
+    maximize(Release("A")/Benefit).
+    sortByTypes(Release, Feature, Stakeholder, Resource)
+val allocation = (solution *^ Release).
+  leafPaths.collect { 
+    case a: AttrVal[_] if a.attr.value != 0 => a }.toModel  
+allocation       
