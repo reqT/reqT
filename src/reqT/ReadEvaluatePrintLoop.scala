@@ -19,8 +19,9 @@ import java.io._
 import java.lang.{System => JSystem}
 
 object repl { 
-  //val helpOnReqT: String = "** Type ?? for help on reqT, type :h for help on Scala REPL"
-  val helpOnReqT = "** Type :help for help on the Scala interpreter"
+  val helpOnReqT = 
+    "** Type  edit   to start model editor gui\n" +
+    "** Type  :help  for help on the Scala interpreter"
   val versionMsg = s"\n** Welcome to reqT version $reqT_VERSION" +
     s"\n** Snapshot build: $BUILD_DATE" + 
     s"\n** Compiled with Scala $SCALA_VERSION" +  
