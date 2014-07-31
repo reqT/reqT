@@ -32,11 +32,19 @@ How to build reqT from code
 ---------------------------
 
 1. Install Scala version 2.11.2 from the [Scala homepage](http://scala-lang.org/download/2.11.2.html)
-2. Download the [reqT.zip](https://github.com/reqT/reqT/archive/3.0.x.zip) and unpack it.
-3. Run the build command:
-    * On Windows: start powershell and type `./build`
-    * On Linux/Mac: start terminal and type  `./build.sh`     
+2. Download this [zip](https://github.com/reqT/reqT/archive/3.0.x.zip) and extract all files in some directory.
+3. Run the appropriate custom build command among the extracted files:
+    * On Windows, run in cmd: `build.cmd`
+    * On Linux/Mac, run in terminal:  `./build.sh` *TODO: translate build.cmd to bash*   
 4. Run the generated jar with `java -jar reqT.jar`
+
+How to change the reqT metamodel
+--------------------------------
+
+The metamodel of reqT is written in reqT [here](https://github.com/reqT/reqT/blob/3.0.x/src/reqT/meta.scala) and is used to generate the concrete case classes in the reqT Scala DSL as shown [here](https://github.com/reqT/reqT/blob/3.0.x/src/reqT/GENERATED-metamodel.scala). If you change the metamodel you need to first recompile reqT with the changed metamodel and then generate a new `GENERATED-metamodel.scala` and then recompile again. All this is done by the provided `meta-build` script. 
+
+If you want the syntax coloring in the reqT gui editor to be updated in line with your new metamodel you also need to update [reqT-syntax](https://github.com/reqT/reqT-syntax) based on [RSyntaxTextArea](https://github.com/bobbylight/RSyntaxTextArea) as described [here](https://github.com/reqT/reqT-syntax/blob/master/README.md).   
+
 
 Editors with Scala support
 --------------------------
