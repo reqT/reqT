@@ -48,10 +48,12 @@ If you want the syntax coloring in the reqT gui editor to be updated in line wit
 Dependencies 
 -------------
 
-The creators and users of reqT thank the contributors to the following **open source libraries** with [these licences](https://github.com/reqT/reqT/tree/3.0.x/licences):
-* [Scala](http://www.scala-lang.org/) for embedded DSL construction
-* [JaCoP](http://sourceforge.net/projects/jacop-solver/) for constraint solving
-* [RSyntaxTextArea](http://fifesoft.com/rsyntaxtextarea/) for syntax coloring
+The creators and users of reqT sincerely thank all the contributors of the following **open source libraries** [(licences)](https://github.com/reqT/reqT/tree/3.0.x/licences):
+* [Scala](http://www.scala-lang.org/) used for embedded DSL construction and more
+* [JaCoP](http://sourceforge.net/projects/jacop-solver/) used for constraint solving
+* [RSyntaxTextArea](http://fifesoft.com/rsyntaxtextarea/) used for syntax coloring
+* [Autocomplete](http://fifesoft.com/autocomplete/) used for autocompletion
+* [jLine](https://github.com/jline/jline2) used for the reqT command line interface
 
 Editors with Scala support
 --------------------------
