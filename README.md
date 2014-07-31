@@ -2,7 +2,7 @@
 
 reqT: Requirements => Code
 ==========================
-reqT is a free tool for software requirements modelling. For more information see http://reqt.org 
+reqT is a free tool for software requirements modelling. For more information see http://reqT.org 
 
 With reqT you can model, analyse, visualize and plan your software requirements using a powerful DSL embedded in Scala.
 
@@ -21,9 +21,9 @@ How to run reqT
     * [Windows/Mac: scroll down to Java SE7](http://www.oracle.com/technetwork/java/javase/downloads) 
     * [linux install openjdk-7] (http://openjdk.java.net/install/index.html) 
 
-3. Download the most recently released [reqT.jar from reqT.org](http://reqT.org/reqT.jar) and put the reqT.jar file in some directory. 
+3. Download [reqT.jar](http://reqT.org/reqT.jar) and save the file in some directory. 
  
-4. Open a terminal window (bash, cmd, or powershell etc.) and change directory to where you put the above reqT.jar file and type this command: 
+4. Open a terminal/cmd/powershell window and launch reqT with this command: 
     
         java -jar reqT.jar
 
