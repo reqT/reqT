@@ -1,4 +1,4 @@
-<img src="http://reqt.org/reqT.jpg" width="80"> 
+<img src="http://reqt.org/reqT.jpg" width="100"> 
 
 reqT: Requirements => Code
 ==========================
@@ -33,7 +33,7 @@ How to build reqT from code
 
 1. Install Scala version 2.11.2 from the [Scala homepage](http://scala-lang.org/download/2.11.2.html)
 2. Download this [zip](https://github.com/reqT/reqT/archive/3.0.x.zip) and extract all files in some directory.
-3. Run the appropriate custom build command among the extracted files:
+3. Run the appropriate custom build script among the extracted files:
     * On Windows, run in cmd: `build.cmd`
     * On Linux/Mac, run in terminal:  `./build.sh` *TODO: translate build.cmd to bash*   
 4. Run the generated jar with `java -jar reqT.jar`
@@ -41,10 +41,17 @@ How to build reqT from code
 How to change the reqT metamodel
 --------------------------------
 
-The metamodel of reqT is written in reqT [here](https://github.com/reqT/reqT/blob/3.0.x/src/reqT/meta.scala) and is used to generate the concrete case classes in the reqT Scala DSL as shown [here](https://github.com/reqT/reqT/blob/3.0.x/src/reqT/GENERATED-metamodel.scala). If you change the metamodel you need to first recompile reqT with the changed metamodel and then generate a new `GENERATED-metamodel.scala` and then recompile again. All this is done by the provided `meta-build` script. 
+The metamodel of reqT is written in reqT [here](https://github.com/reqT/reqT/blob/3.0.x/src/reqT/meta.scala) and is used to generate the concrete case classes in the reqT Scala DSL as shown [here](https://github.com/reqT/reqT/blob/3.0.x/src/reqT/GENERATED-metamodel.scala). If you change the metamodel you need to first recompile reqT and then generate a new `GENERATED-metamodel.scala` and then recompile again. All this is done by the provided `meta-build` script. 
 
-If you want the syntax coloring in the reqT gui editor to be updated in line with your new metamodel you also need to update [reqT-syntax](https://github.com/reqT/reqT-syntax) based on [RSyntaxTextArea](https://github.com/bobbylight/RSyntaxTextArea) as described [here](https://github.com/reqT/reqT-syntax/blob/master/README.md).   
+If you want the syntax coloring in the reqT gui editor to be updated in line with your new metamodel you also need to update [reqT-syntax](https://github.com/reqT/reqT-syntax) as described [here](https://github.com/reqT/reqT-syntax/blob/master/README.md).   
 
+Dependencies 
+-------------
+
+The creators and users of reqT thank the contributors to the following **open source libraries** with [these licences](https://github.com/reqT/reqT/tree/3.0.x/licences):
+* [Scala](http://www.scala-lang.org/) for embedded DSL construction
+* [JaCoP](http://sourceforge.net/projects/jacop-solver/) for constraint solving
+* [RSyntaxTextArea](http://fifesoft.com/rsyntaxtextarea/) for syntax coloring
 
 Editors with Scala support
 --------------------------
