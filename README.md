@@ -2,7 +2,7 @@
 
 reqT: Requirements => Code
 ==========================
-reqT is a free requirements modelling tool for software developers. With reqT you can model, analyse and visualize your system requirements using a powerful DSL embedded in Scala.
+reqT is a free requirements modelling tool for software developers. With reqT you can model, analyse and visualize your system requirements and test specifications using a powerful DSL embedded in Scala.
 
 For more information see http://reqT.org 
 
