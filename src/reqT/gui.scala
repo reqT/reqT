@@ -39,8 +39,8 @@ trait GuiLaunchers {  //mixed into package object
   def edit(m: Model) = gui(m, m.get(Title).getOrElse(""))
   def edit(fileName: String) = {
     val f = new java.io.File(fileName).getCanonicalPath
-    val m = if (fileName.endsWith(".reqt") || fileName.endsWith(".ser")) Model.load(f) 
-            else /* assume text file */ load(f).toModel
+    val m = if (fileName.endsWith(".reqt")) Model.load(f) 
+            else /* assume text with scala code => Model*/ load(f).toModel
     gui(m, f)
   }
   def edit(m: Model, fileName: String) = gui(m, fileName)
@@ -49,13 +49,24 @@ trait GuiLaunchers {  //mixed into package object
 object killSwingVerbosity {
 
   lazy val fileChooser = new JFileChooser( new java.io.File(fileUtils.workDir))
-
+     
   def runnable(code: => Unit) = new Runnable { def run = code }
   def runInSwingThread(code: => Unit) { SwingUtilities.invokeLater(runnable(code)) }
   def onEvent(act: ActionEvent => Unit): ActionListener = new ActionListener { 
     def actionPerformed(e: ActionEvent) = act(e)
   }
   def onAction(act: => Unit): ActionListener = onEvent( _ => act)
+  def onKeyPressed(act: KeyEvent => Unit) = new KeyListener {
+    def keyTyped(e: KeyEvent) { }
+    def keyPressed(e: KeyEvent) { act(e) }
+    def keyReleased(e: KeyEvent) { }    
+  }
+  def onCtrlEnter(act: => Unit): KeyListener = onKeyPressed { e =>
+    if (e.getKeyCode == KeyEvent.VK_ENTER && e.getModifiers == ActionEvent.CTRL_MASK) act
+  }
+  def onAltEnter(act: => Unit): KeyListener = onKeyPressed { e =>
+    if (e.getKeyCode == KeyEvent.VK_ENTER && e.getModifiers == ActionEvent.ALT_MASK) act
+  }
   
   // def chooseFileAndSaveString(data: String, c: AWTComponent, fname: String = "", text: String = "Save"): Unit = {
     // fileChooser.setSelectedFile( new java.io.File(fname))
@@ -101,6 +112,7 @@ object killSwingVerbosity {
       menuMap
     }
   }
+  
   case class MenuLeaf(name: String, shortcut: Int, accelerator: Int, mask: Int)(block: => Unit) 
   extends MenuTree {
     def action = new ActionListener {
@@ -136,22 +148,22 @@ object killSwingVerbosity {
 
 object gui { //GUI implementation
   import killSwingVerbosity._
-  
-  def apply(m: Model = Model(), fileName: String = "untitled"): ModelTreeEditor = {
-    val frame = new JFrame(fileName)
-    frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
-    val smv = new ModelTreeEditor(m, frame, fileName)
-    frame.add(smv)
-    frame.pack()
-    frame.setVisible(true)
-    smv
-  }  
+ 
+  def apply(m: Model = Model(), fileName: String = Settings.defaultModelFileName) = 
+    new ModelTreeEditor(m, fileName)
  
   class ModelTreeEditor( 
-    val initModel: Model, val frame: JFrame, var fileName: String) extends JPanel 
+    val initModel: Model, private var fileName: String) extends JPanel 
       with TreeSelectionListener  {
-
-    def setFileName(s: String) {fileName = s; frame.setTitle(s)}
+    
+    val windowType = "ModelTreeEditor"
+    
+    val frame = new JFrame(windowTitle)
+    
+    def windowTitle = fileName + "  -  " + windowType
+    def updateTitle() { frame.setTitle(windowTitle) }
+    
+    def updateFileName(s: String) {fileName = s.newFileType(".reqt"); updateTitle()}
     
     override def toString = s"ModelTreeEditor($fileName)"
     
@@ -319,7 +331,7 @@ object gui { //GUI implementation
           else if (!newModel.isEmpty) setTopTo(newModel ++ model)
           setFoldingAll(rootPath, true)
         case Some(currentNode) => //a node inside the tree was selected
-          iter(newModel.toVector.reverse, isReplace, currentNode)
+          iter(newModel.toVector, isReplace, currentNode)  //new try; was: iter(newModel.toVector.reverse, isReplace, currentNode)
       }
       //recursive replace/insert
       def iter(elems: Vector[Elem], isReplace: Boolean, currentNode: DefaultMutableTreeNode) {
@@ -362,7 +374,7 @@ object gui { //GUI implementation
                   n
                 case _ => new DefaultMutableTreeNode(elem)
               }
-              parent.insert(newNode, ix)
+              parent.insert(newNode, ix+1)   ///new try; was: parent.insert(newNode, ix)
               update(parent)
               val newPath = toTreePath(newNode)
               tree.setSelectionPath(newPath)
@@ -396,6 +408,10 @@ object gui { //GUI implementation
       }      
     }
     
+    def interpretScript() {
+      
+    }
+    
     def setEditorToModel(m: Model) { editor.setText(export.toScalaCompact(m)) }
     
     def setEditorToSelection() {
@@ -410,37 +426,41 @@ object gui { //GUI implementation
       } else msgNothingSelected
     }
     
-    def msgNothingSelected = JOptionPane.showMessageDialog(frame, "No tree node selected.")
-    def msgParseModelError = JOptionPane.showMessageDialog(frame, 
-      "ERROR: expected expression of type Model\nUse console to investigate error")
-    def msgParseTransformerError = JOptionPane.showMessageDialog(frame, 
-      "ERROR: expected function of type Model => Model\nUse console to investigate error")  
-    def msgCmdError(cmd: String) = JOptionPane.showMessageDialog(frame, 
-      s"ERROR: See console message. Do you have the $cmd command installed in your path?") 
-    def msgError(msg: String) = JOptionPane.showMessageDialog(frame, msg)
+    def msgError(msg: String) =  JOptionPane.showMessageDialog(frame, msg, "ERROR", JOptionPane.ERROR_MESSAGE)  
+
+    val msgConsoleOutput = "See console output to investigate error."
+    def msgParseModelError() = msgError(s"Expected expression of type Model\n$msgConsoleOutput")
+    def msgParseTransformerError() = msgError(s"Expected function of type Model => Model\n$msgConsoleOutput")  
+    def msgScriptError() = msgError(s"Script failed.\n$msgConsoleOutput")  
+    def msgCmdError(cmd: String) = msgError(s"$msgConsoleOutput\nDo you have the $cmd command installed in your path?") 
+    def msgNothingSelected() = msgError("No tree node selected.")
+    def msgTODO() = msgError("Not yet implemented...")
 
     def saveModel(f: String) {
-      if (f.endsWith(".reqt")) model.save(f)
-      else if (f.endsWith(".scala")) model.toString.save(f)
-      else model.save(f.newFileType(".reqt"))
-      setFileName(f.newFileType(".reqt"))
+      f match {
+        case _ if f.endsWith(".reqt")  => model.save(f)
+        case _ if f.endsWith(".scala") => model.toString.save(f)
+        case _ => model.save(f.newFileType(".reqt"))
+      }
+      updateFileName(f.newFileType(".reqt"))
     }
     
-    def recover(block: => Unit) = Try(block).recover{ case e => println(e); msgError("ERROR:" + e) }
+    def tryOrErrMsg(block: => Unit) =
+      Try(block).recover{ case e => println(e); msgError(e.toString) }
       
     def doNew() = gui(Model())
     
-    def doOpen() = recover { 
+    def doOpen() = tryOrErrMsg { 
       chooseFile(this, "","Open Serialized Model").
-        foreach { f => setTopTo(Model.load(f)); setFileName(f) } }
+        foreach { f => setTopTo(Model.load(f)); updateFileName(f) } }
     
-    def doOpenScala() = recover {
+    def doOpenScala() = tryOrErrMsg {
       chooseFile(this, "","Open Textual Model").
-        foreach{ f => setTopTo(load(f).toModel); setFileName(f) } }
+        foreach{ f => setTopTo(load(f).toModel); updateFileName(f) } }
     
-    def doSave() = recover {
-      if (fileName == "untitled" || fileName == "")
-        chooseFile(this,"untitled.reqt","Serialize Model").foreach{saveModel(_)}
+    def doSave() = tryOrErrMsg {
+      if (fileName.startsWith(Settings.defaultTitle) || fileName == "")
+        chooseFile(this,Settings.defaultModelFileName,"Serialize Model").foreach{saveModel(_)}
       else saveModel(fileName) }
 
     def doSaveAs() = chooseFile(this, fileName.newFileType(".reqt"),"Save As").foreach{saveModel(_)}
@@ -450,7 +470,14 @@ object gui { //GUI implementation
     def doEnter()            = setEditorToSelection()
     def doUpdate()           = interpretModelAndUpdate(true)
     def doInsert()           = interpretModelAndUpdate(false)
-    def doRun()              = repl.run(editor.getText)
+    def doRunToConsole()     = repl.run(editor.getText) match {
+        case Some(scala.tools.nsc.interpreter.Results.Success) => ()
+        case _ => msgScriptError
+      }       
+    def doRunToEditor()       = repl.interpret("{"+editor.getText.trim+"}") match {
+        case Some(whatEver) => editor.setText(whatEver.toString)
+        case None => msgScriptError
+      }   
     def doTransform()        = interpretTransformerAndUpdate()
     def doLoadTextToEditor() = 
       Try (chooseFile(this).foreach(f => editor.setText(load(f)))).
@@ -461,6 +488,15 @@ object gui { //GUI implementation
     def doRefresh()          = reconstructModel()
     def doExpandAll()        = setFoldingAll(rootPath, true)
     def doCollapseAll()      = setFoldingAll(rootPath, false)
+    
+    def doExportTo(fileType: String, exp: => String) = Try {
+      chooseFile(this, fileName.newFileType(fileType),"Export").foreach { choice => 
+        exp.save(choice)  
+        println(s"Desktop open: $choice")
+        desktopOpen(choice)       
+      }      
+    } recover { case e => println(e); msgError("Export failed, see console message.")  }
+    
     def doToGraphViz(tpe: String, exp: => String) =  Try {
       chooseFile(this, fileName.newFileType(tpe+".dot"),"Export").foreach { choice => 
         exp.save(choice)  
@@ -484,7 +520,10 @@ object gui { //GUI implementation
                     msgError("Failed to run command: $dot")} }
           case Failure(e) => msgError("Export to GraphViz failed, see console message.") } */
     
-    def doImportFeaturePrio()= chooseFile(this).foreach(f => transformSelection(_ ++ parse.loadTab.prioVoting(f)))
+    def doImportStakeholderFeaturePrioTable() = 
+      chooseFile(this).foreach(f => transformSelection(_ ++ parse.loadTab.prioVoting(f)))
+    def doImportPathTable() = { msgTODO; ??? }      
+      
     def doHelpMetamodel()    = setEditorToModel(reqT.meta.model)
     def doHelpEditor()       = setEditorToModel(editorHelpModel)
     def doClose()            = frame.dispatchEvent( new WindowEvent(frame, WindowEvent.WINDOW_CLOSING))
@@ -507,7 +546,7 @@ object gui { //GUI implementation
       
       val menuMap = AppMenus(
         MenuBranch("File", VK_F,
-          MenuLeaf("New", VK_N, VK_N, CTRL){ doNew() },
+          MenuLeaf("New TreeEditor", VK_N, VK_N, CTRL){ doNew() },
           MenuLeaf("Open ...", VK_O, VK_O, CTRL){ doOpen() },
           MenuLeaf("Save", VK_S, VK_S, CTRL){ doSave() },
           MenuLeaf("Save As ...", VK_A, 0, 0){ doSaveAs() },
@@ -515,29 +554,32 @@ object gui { //GUI implementation
           MenuLeaf("Save text in editor to file...", VK_S, VK_S, ALT) { doSaveEditorTextToFile() },
           MenuLeaf("Close", VK_A, 0, 0){ doClose() },
           MenuLeaf("Exit reqT", VK_A, 0, 0){ java.lang.System.exit(0) }),
-        MenuBranch("Edit", VK_E,
-          MenuLeaf("Enter node in editor", VK_E, VK_ENTER, CTRL) { doEnter() },
-          MenuLeaf("Update node from editor", VK_U, VK_U, CTRL) { doUpdate() },
-          MenuLeaf("Insert node from editor", VK_I, VK_I, CTRL) { doInsert() },
-          MenuLeaf("Run script in editor (console output)", VK_R, VK_R, CTRL) { doRun() },
+        MenuBranch("Tree", VK_T,
+          MenuLeaf("Collapse all", VK_C, VK_LEFT, ALT) { doCollapseAll() },
+          MenuLeaf("Expand all", VK_E, VK_RIGHT, ALT) { doExpandAll() },
+          MenuLeaf("Replace selected node from editor", VK_R, VK_R, CTRL) { doUpdate() },
+          MenuLeaf("Insert after selected node from editor", VK_I, VK_I, CTRL) { doInsert() },
           MenuLeaf("Transform node by function in editor", VK_T, VK_T, CTRL) { doTransform() },
           MenuLeaf("Delete node", VK_D, VK_DELETE, 0) { doDelete() },
           MenuLeaf("Refresh all nodes", VK_F, VK_F5, 0) { doRefresh() },
           MenuLeaf("Revert to initial tree", VK_V, 0, 0) { doUndoAll() }),
-        MenuBranch("View", VK_V,
-          MenuLeaf("Collapse all", VK_C, VK_LEFT, ALT) { doCollapseAll() },
-          MenuLeaf("Expand all", VK_E, VK_RIGHT, ALT) { doExpandAll() }),
+        MenuBranch("Editor", VK_E,
+          MenuLeaf("Edit selected tree node in editor", VK_E, VK_E, CTRL) { doEnter() },
+          MenuLeaf("Run Script => Console", VK_R, VK_ENTER, CTRL) { doRunToConsole() },
+          MenuLeaf("{Evaluate} => Editor", VK_E, VK_ENTER, ALT) { doRunToEditor() }),
         MenuBranch("Import", VK_I,
-          MenuLeaf("Text Model ...", VK_M, 0, 0) { doOpenScala() },
-          MenuBranch("Text table", VK_T,
-            MenuLeaf("Priorities (Stakeholder; Feature; Prio) ...", VK_P, 0, 0) { doImportFeaturePrio() })),
+          MenuLeaf("Scala Model .scala...", VK_S, 0, 0) { doOpenScala() },
+          MenuBranch("Tabular", VK_T,
+            MenuLeaf("Prio Table .csv (Stakeholder; Feature; Prio) ...", VK_P, 0, 0) { doImportStakeholderFeaturePrioTable() },
+            MenuLeaf("Path Table .csv (Path; Elem) ...", VK_A, 0, 0) { doImportPathTable() })),
         MenuBranch("Export", VK_X,
-          MenuLeaf("To Text Model ...", VK_T, 0, 0) { doSaveAsScala() },
-          MenuBranch("To GraphViz", VK_G,
+          MenuLeaf("Tree To Scala Model .scala ...", VK_T, 0, 0) { doSaveAsScala()},
+          MenuLeaf("Tree To Path Table .csv ...", VK_T, 0, 0) { doExportTo(".csv", export.toPathTable(model)) },
+          MenuBranch("Tree To GraphViz .dot", VK_G,
             MenuLeaf("Nested ...", VK_N, 0, 0) { doToGraphViz("-nested",export.toGraphVizNested(model)) },
             MenuLeaf("Flat ...", VK_F, 0, 0) { doToGraphViz("-flat", export.toGraphVizFlat(model)) })),
         MenuBranch("Metamodel", VK_M),
-        MenuBranch("Templates", VK_T),
+        MenuBranch("Templates", VK_P),
         MenuBranch("Help", VK_H,
           MenuLeaf("Shortcuts to editor", VK_E, 0, 0) { doHelpEditor() },
           MenuLeaf("Metamodel to editor", VK_M, 0, 0) { doHelpMetamodel() })
@@ -617,6 +659,9 @@ object gui { //GUI implementation
       */
     
     editor.getSyntaxScheme.setStyle(TokenTypes.SEPARATOR, new Style(Color.black))
+    
+    editor.addKeyListener(onCtrlEnter { doRunToConsole()} )
+    editor.addKeyListener(onAltEnter { doRunToEditor()} )
 
     val editorView = new RTextScrollPane(editor)
     
@@ -658,6 +703,12 @@ object gui { //GUI implementation
     setTopTo(currentModel)
     mkMenuBar(frame)
     if (currentModel != Model()) setEditorToModel(currentModel)
+    
+    frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
+    frame.add(this)
+    frame.pack()
+    frame.setVisible(true)
+
   }
 
 }

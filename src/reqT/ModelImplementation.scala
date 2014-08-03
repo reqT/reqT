@@ -62,6 +62,11 @@ trait ModelBase extends Serializable {
     else elems.mkString("(\n  ", ",\n  ", "\n)") ) 
   
   override def toString = Settings.defaultModelToString(this) 
+  def toTable = Settings.defaultModelToTable(this) 
+  def toGraph = Settings.defaultModelToGraph(this) 
+  
+  def prettyPrint(): Unit = println(toString)
+  def pp(): Unit = prettyPrint()
   
   def save(fileName: String) {
     val outFile = new java.io.FileOutputStream(fileName)

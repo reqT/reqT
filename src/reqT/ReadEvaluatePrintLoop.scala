@@ -152,7 +152,7 @@ object repl {
     interpreter .map { i => i.quietRun(code) }
   }
   
-  def run(code: String) { 
+  def run(code: String): Option[IR.Result] = { 
     checkIntp() 
     interpreter .map { i => i.interpret(code) }
   }

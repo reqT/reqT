@@ -13,7 +13,6 @@
 
 package reqT
 
-
 object BagUtils {
   type Bag[K, V] = Map[K, Vector[V]]
   type SetBag[K, V] = Map[K, Set[V]]

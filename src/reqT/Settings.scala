@@ -12,12 +12,17 @@
 **************************************************************************/
 package reqT
 
+@volatile
 object Settings {
   var indentSpacing = 2
   var lineLength = 72
   var columnSeparator = ";"
   var rowSeparator = "\n"
   var defaultModelToString: export.StringExporter = export.toScalaCompact
+  var defaultModelToTable: export.StringExporter = export.toPathTable
+  var defaultModelToGraph: export.StringExporter = export.toGraphVizNested
+  var defaultTitle: String = "untitled"
+  var defaultModelFileName: String = defaultTitle+".reqt"
   var dotType = "pdf"
   var dotCmd: String => String = f => 
     s"""dot -T$dotType -o "${f.newFileType("."+dotType)}" "${f.newFileType(".dot")}" """
