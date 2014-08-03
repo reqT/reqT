@@ -20,7 +20,7 @@ object toScalaExpanded extends ModelToString with ScalaGenerators  {
 }
 object toGraphVizNested extends GraphVizNested  
 object toGraphVizFlat extends GraphVizFlat  
-object toTable extends TableExporter
+object toPathTable extends TableExporter
 
 trait Exporter[T] { def apply(m: Model): T }
 
