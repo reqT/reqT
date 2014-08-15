@@ -32,6 +32,8 @@ object Settings {
     var attributeColor = new java.awt.Color(0,100,50) //greenish
     var relationColor  = new java.awt.Color(160, 0, 30)  //reddish
     var stringColor    = new java.awt.Color(200, 90, 40) //orange-like
+    var editorFonts    = List("Consolas", "Liberation Mono", "DejaVu Sans Mono", "Monospace")
+    var fontSize       = 14
   }
 }
 

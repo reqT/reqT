@@ -83,7 +83,7 @@ object killSwingVerbosity {
     else None
   }
   
-  trait MenuTree  
+  sealed trait MenuTree  
   case class MenuBranch(name: String, mnemonic: Int, menus: MenuTree*) extends MenuTree {
   
     def addTo(parent: JComponent): Map[String, JComponent] = {
@@ -102,16 +102,20 @@ object killSwingVerbosity {
           addToMenuMap(m.name, jmi)
         case m: MenuBranch =>
           val jm = new JMenu(m.name)
-          if (m.mnemonic>0) jm.setMnemonic(mnemonic)
+          if (m.mnemonic>0) jm.setMnemonic(m.mnemonic)
           parent.add(jm)
           addToMenuMap(m.name, jm)
           iter(jm, m.menus)
+        case MenuSeparator =>
+          val js = new JSeparator()
+          parent.add(js)
       } )
       
       iter(parent, Seq(this))
       menuMap
     }
   }
+  def ===> = MenuBranch
   
   case class MenuLeaf(name: String, shortcut: Int, accelerator: Int, mask: Int)(block: => Unit) 
   extends MenuTree {
@@ -119,8 +123,13 @@ object killSwingVerbosity {
       def actionPerformed(e: ActionEvent) = block
     }
   }
+  def ---> = MenuLeaf
+  
+  case object MenuSeparator extends MenuTree 
+  def --- = MenuSeparator
+  
   case class AppMenus(menus: MenuBranch*) {
-    def addTo(frame: JFrame): Map[String, JComponent]  = {
+    def installTo(frame: JFrame): Map[String, JComponent]  = {
       val menuBar = new JMenuBar()
       frame.setJMenuBar(menuBar)
       menus.map(_.addTo(menuBar)).reduceLeft(_ ++ _)
@@ -489,6 +498,25 @@ object gui { //GUI implementation
     def doExpandAll()        = setFoldingAll(rootPath, true)
     def doCollapseAll()      = setFoldingAll(rootPath, false)
     
+    def doIncrEditorFontSize() = {
+      def incr(i: Int) = i match {
+        case _ if i >= 60 => 60
+        case _ if i >= 20 => (i * 1.2).toInt
+        case _ if i >= 6 => i + 1
+        case _  => 6
+      }
+      setEditorFont(incr(editor.getFont.getSize)) 
+    }
+
+    def doDecrEditorFontSize() = {
+      def decr(i: Int) = i match {
+        case _ if i > 20 => (i * 0.8).toInt
+        case _ if i > 6 => i - 1
+        case _  => i
+      }
+      setEditorFont(decr(editor.getFont.getSize)) 
+    }
+    
     def doExportTo(fileType: String, exp: => String) = Try {
       chooseFile(this, fileName.newFileType(fileType),"Export").foreach { choice => 
         exp.save(choice)  
@@ -545,45 +573,52 @@ object gui { //GUI implementation
       import ActionEvent.{CTRL_MASK => CTRL, ALT_MASK => ALT}
       
       val menuMap = AppMenus(
-        MenuBranch("File", VK_F,
-          MenuLeaf("New TreeEditor", VK_N, VK_N, CTRL){ doNew() },
-          MenuLeaf("Open ...", VK_O, VK_O, CTRL){ doOpen() },
-          MenuLeaf("Save", VK_S, VK_S, CTRL){ doSave() },
-          MenuLeaf("Save As ...", VK_A, 0, 0){ doSaveAs() },
-          MenuLeaf("Load text file to editor ...", VK_L, VK_L, CTRL) { doLoadTextToEditor() },
-          MenuLeaf("Save text in editor to file...", VK_S, VK_S, ALT) { doSaveEditorTextToFile() },
-          MenuLeaf("Close", VK_A, 0, 0){ doClose() },
-          MenuLeaf("Exit reqT", VK_A, 0, 0){ java.lang.System.exit(0) }),
-        MenuBranch("Tree", VK_T,
-          MenuLeaf("Collapse all", VK_C, VK_LEFT, ALT) { doCollapseAll() },
-          MenuLeaf("Expand all", VK_E, VK_RIGHT, ALT) { doExpandAll() },
-          MenuLeaf("Replace selected node from editor", VK_R, VK_R, CTRL) { doUpdate() },
-          MenuLeaf("Insert after selected node from editor", VK_I, VK_I, CTRL) { doInsert() },
-          MenuLeaf("Transform node by function in editor", VK_T, VK_T, CTRL) { doTransform() },
-          MenuLeaf("Delete node", VK_D, VK_DELETE, 0) { doDelete() },
-          MenuLeaf("Refresh all nodes", VK_F, VK_F5, 0) { doRefresh() },
-          MenuLeaf("Revert to initial tree", VK_V, 0, 0) { doUndoAll() }),
-        MenuBranch("Editor", VK_E,
-          MenuLeaf("Edit selected tree node in editor", VK_E, VK_E, CTRL) { doEnter() },
-          MenuLeaf("Run Script => Console", VK_R, VK_ENTER, CTRL) { doRunToConsole() },
-          MenuLeaf("{Evaluate} => Editor", VK_E, VK_ENTER, ALT) { doRunToEditor() }),
-        MenuBranch("Import", VK_I,
-          MenuLeaf("Scala Model .scala...", VK_S, 0, 0) { doOpenScala() },
-          MenuBranch("Tabular", VK_T,
-            MenuLeaf("Prio Table .csv (Stakeholder; Feature; Prio) ...", VK_P, 0, 0) { doImportStakeholderFeaturePrioTable() },
-            MenuLeaf("Path Table .csv (Path; Elem) ...", VK_A, 0, 0) { doImportPathTable() })),
-        MenuBranch("Export", VK_X,
-          MenuLeaf("Tree To Scala Model .scala ...", VK_T, 0, 0) { doSaveAsScala()},
-          MenuLeaf("Tree To Path Table .csv ...", VK_T, 0, 0) { doExportTo(".csv", export.toPathTable(model)) },
-          MenuBranch("Tree To GraphViz .dot", VK_G,
-            MenuLeaf("Nested ...", VK_N, 0, 0) { doToGraphViz("-nested",export.toGraphVizNested(model)) },
-            MenuLeaf("Flat ...", VK_F, 0, 0) { doToGraphViz("-flat", export.toGraphVizFlat(model)) })),
-        MenuBranch("Metamodel", VK_M),
-        MenuBranch("Templates", VK_P),
-        MenuBranch("Help", VK_H,
-          MenuLeaf("Shortcuts to editor", VK_E, 0, 0) { doHelpEditor() },
-          MenuLeaf("Metamodel to editor", VK_M, 0, 0) { doHelpMetamodel() })
-      ).addTo(frame)
+        ===>("File", VK_F,
+          --->("New", VK_N, VK_N, CTRL){ doNew() },
+          --->("Open ...", VK_O, VK_O, CTRL){ doOpen() },
+          --->("Save", VK_S, VK_S, CTRL){ doSave() },
+          --->("Save As ...", VK_A, 0, 0){ doSaveAs() },
+          ---,
+          --->("Close this", VK_A, 0, 0){ doClose() },
+          --->("Exit reqT", VK_A, 0, 0){ java.lang.System.exit(0) }),
+        ===>("Tree", VK_T,
+          ===>("Import", VK_I,
+            --->("Scala Model .scala...", VK_S, 0, 0) { doOpenScala() },
+            ===>("Tabular", VK_T,
+              --->("Prio Table .csv (Stakeholder; Feature; Prio) ...", VK_P, 0, 0) { doImportStakeholderFeaturePrioTable() },
+              --->("Path Table .csv (Path; Elem) ...", VK_A, 0, 0) { doImportPathTable() })),
+          ===>("Export", VK_X,
+            --->("Tree To Scala Model .scala ...", VK_T, 0, 0) { doSaveAsScala()},
+            --->("Tree To Path Table .csv ...", VK_T, 0, 0) { doExportTo(".csv", export.toPathTable(model)) },
+            ===>("Tree To GraphViz .dot", VK_G,
+              --->("Nested ...", VK_N, 0, 0) { doToGraphViz("-nested",export.toGraphVizNested(model)) },
+              --->("Flat ...", VK_F, 0, 0) { doToGraphViz("-flat", export.toGraphVizFlat(model)) })),
+          --->("Replace selected node from editor", VK_R, VK_R, CTRL) { doUpdate() },
+          --->("Insert after selected node from editor", VK_I, VK_I, CTRL) { doInsert() },
+          --->("Transform node by function in editor", VK_T, VK_T, CTRL) { doTransform() },
+          --->("Delete selected node", VK_D, VK_DELETE, 0) { doDelete() },
+          ---,
+          --->("Collapse all", VK_C, VK_LEFT, ALT) { doCollapseAll() },
+          --->("Expand all", VK_E, VK_RIGHT, ALT) { doExpandAll() },
+          --->("Refresh all nodes", VK_F, VK_F5, 0) { doRefresh() },
+          --->("Revert to initial tree", VK_V, 0, 0) { doUndoAll() }),
+        ===>("Editor", VK_E,
+          --->("Edit selected tree node in editor", VK_E, VK_E, CTRL) { doEnter() },
+          --->("Run Script => Console", VK_R, VK_ENTER, CTRL) { doRunToConsole() },
+          --->("{Evaluate} => Editor", VK_E, VK_ENTER, ALT) { doRunToEditor() },
+          ---,
+          --->("Load text file to editor ...", VK_L, VK_L, CTRL) { doLoadTextToEditor() },
+          --->("Save text in editor to file...", VK_S, VK_S, ALT) { doSaveEditorTextToFile() },
+          ---,
+          ===>("Font Size", VK_F,
+            --->("Increase font size", VK_I, VK_PLUS, CTRL)  { doIncrEditorFontSize() },
+            --->("Decrease font size", VK_D, VK_MINUS, CTRL) { doDecrEditorFontSize() })),
+        ===>("Metamodel", VK_M),
+        ===>("Templates", VK_P),
+        ===>("Help", VK_H,
+          --->("Shortcuts to editor", VK_E, 0, 0) { doHelpEditor() },
+          --->("Metamodel to editor", VK_M, 0, 0) { doHelpMetamodel() })
+      ).installTo(frame)
       
       val metamodelMenu = menuMap("Metamodel").asInstanceOf[JMenuItem]
       mkMenuTreeFromModel(
@@ -602,6 +637,7 @@ object gui { //GUI implementation
       
     } 
     
+   
     //************* main setup and show gui
     setLayout( new GridLayout(1,0))
     val tree = new JTree(top);
@@ -616,6 +652,24 @@ object gui { //GUI implementation
     import org.fife.ui.autocomplete._
     import org.fife.ui.rtextarea._
     import org.fife.ui.rsyntaxtextarea._
+    
+    def setEditorFont(fontSize: Int, fontFamily: String = "") = runInSwingThread {
+      val fn = if (fontFamily == "") editor.getFont.getFamily else { 
+        val available = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment.getAvailableFontFamilyNames
+        val possible = (fontFamily :: Settings.gui.editorFonts).filter(available.contains(_))
+        possible.headOption.getOrElse(Font.MONOSPACED)
+      }
+      val fPlain = new Font(fn, Font.PLAIN, fontSize)
+      editor.setFont(fPlain)
+      val fBold = new Font(fn, Font.BOLD, fontSize)
+      editor.getSyntaxScheme.setStyle(ENTITY_TOKEN, new Style(Settings.gui.entityColor, Style.DEFAULT_BACKGROUND, fBold))
+      editor.getSyntaxScheme.setStyle(ATTR_TOKEN,   new Style(Settings.gui.attributeColor))
+      editor.getSyntaxScheme.setStyle(REL_TOKEN,    new Style(Settings.gui.relationColor, Style.DEFAULT_BACKGROUND, fBold))
+      editor.getSyntaxScheme.setStyle(TokenTypes.LITERAL_STRING_DOUBLE_QUOTE, new Style(Settings.gui.stringColor))
+      val lnf = editorView.getGutter.getLineNumberFont
+      val lnfNew = new Font(lnf.getFamily, lnf.getStyle, fontSize - 2) 
+      editorView.getGutter.setLineNumberFont(lnfNew)
+    } 
     
     val ENTITY_TOKEN = TokenTypes.DATA_TYPE
     val ATTR_TOKEN = TokenTypes.RESERVED_WORD_2
@@ -640,8 +694,10 @@ object gui { //GUI implementation
     //editor.setMatchedBracketBGColor(new Color(247, 247, 247))
     //editor.setMatchedBracketBorderColor(new Color(192, 192, 192))
     editor.setAnimateBracketMatching(true)
-    def currFont = editor.getFont()
-    editor.setFont( new Font(currFont.getName, currFont.getStyle, currFont.getSize+2))
+    
+    /* 
+    val currFont = editor.getFont()
+    editor.setFont( new Font(currFont.getName, currFont.getStyle, currFont.getSize))
     val currFontBold = new Font(currFont.getName, Font.BOLD, currFont.getSize)
     editor.getSyntaxScheme.setStyle(ENTITY_TOKEN, 
       new Style(Settings.gui.entityColor, Style.DEFAULT_BACKGROUND, currFontBold))
@@ -651,7 +707,7 @@ object gui { //GUI implementation
       new Style(Settings.gui.relationColor, Style.DEFAULT_BACKGROUND, currFontBold))
 
     editor.getSyntaxScheme.setStyle(TokenTypes.LITERAL_STRING_DOUBLE_QUOTE, 
-      new Style(Settings.gui.stringColor))      
+      new Style(Settings.gui.stringColor))  */    
       
     /*see further 
       http://fifesoft.com/rsyntaxtextarea/doc/  
@@ -664,7 +720,9 @@ object gui { //GUI implementation
     editor.addKeyListener(onAltEnter { doRunToEditor()} )
 
     val editorView = new RTextScrollPane(editor)
-    
+
+    setEditorFont(Settings.gui.fontSize, Settings.gui.editorFonts.headOption.getOrElse(Font.MONOSPACED))
+   
     //install auto-completions
     val provider = new DefaultCompletionProvider()
     val q = '\"'.toString
@@ -685,6 +743,7 @@ object gui { //GUI implementation
             t.toString+"("+hint, s"Attribute[$tpe]")) }             
     val ac = new AutoCompletion(provider)
     ac.install(editor)
+    
     //END rsyntaxtextarea stuff
     
     
