@@ -21,15 +21,11 @@ object toScalaExpanded extends ModelToString with ScalaGenerators  {
 object toGraphVizNested extends GraphVizNested  
 object toGraphVizFlat extends GraphVizFlat  
 object toPathTable extends TableExporter
+object toHtml extends HtmlExporter
 
 trait Exporter[T] { def apply(m: Model): T }
 
-trait StringExporter extends Exporter[String] {
-  override def apply(m: Model): String = preamble(m) + body(m) + ending(m)
-  def body(m: Model): String 
-  def preamble(m: Model): String = ""
-  def ending(m: Model): String = ""
-
+trait ExporterUtils {
   //string utilities:  (move to Utils ??)
   val q: String = '\"'.toString
   val q3: String = q*3
@@ -37,6 +33,13 @@ trait StringExporter extends Exporter[String] {
   def nlLitteral = """\n"""
   def indent(n: Int): String = " " * (n * Settings.indentSpacing)
   def makeString(a: Any): String = a.toString //ready to override
+}
+
+trait StringExporter extends Exporter[String] with ExporterUtils {
+  override def apply(m: Model): String = preamble(m) + body(m) + ending(m)
+  def body(m: Model): String 
+  def preamble(m: Model): String = ""
+  def ending(m: Model): String = ""
 }
 
 trait ModelToString extends StringExporter {
@@ -185,6 +188,106 @@ trait TableExporter extends StringExporter {
     }
     row.mkString(Settings.rowSeparator)
   }
+}
+
+trait FileExporter extends Exporter[Unit] with ExporterUtils {
+  def defaultOutputDir: String = "output"
+  def defaultOutputFile: String = "index"
+  def defaultTitle: String = "Untitled Model"
+  def titleOrDefault(m: Model) =  m.get(Title).getOrElse(defaultTitle) 
+  def apply(m: Model, outDir: String, fileName: String): Unit = 
+    exportModelToFile(m, outDir, fileName)
+  def exportModelToFile(m: Model, outDir: String, fileName: String): Unit
+  override def apply(m: Model): Unit = apply(m, defaultOutputDir, defaultOutputFile)
+}
+
+
+trait HtmlExporter extends FileExporter {
+  def preamble(m: Model): String = s"""
+     |<!DOCTYPE html>
+     |<html>
+     |  <head>
+     |    <title>${titleOrDefault(m)}</title>
+     |  </head>
+  """.stripMargin
+  def ending(m: Model): String = "</html>\n"
+  def body(m: Model): String = 
+    "  <body>\n" + exportTopModel(m) + "\n  </body>\n"
+
+  def topLevelSections(m: Model): Seq[String] = m.tip.collect { case s: Section => s.id } 
+
+  def topLevelSectionsContents(m: Model): String = topLevelSections(m).
+    map(section => s"""<li><a href="#$section">$section</a></li>""").
+    mkString("\n      ")
+  
+  def sections(m: Model): Map[String, Model] = 
+    topLevelSections(m).map(section => (section, m / section)).toMap 
+  
+  def topExceptSections(m: Model): Model = m * !Section
+
+  def cut(n: Int): Int = Math.min(n,6)
+
+  def renderModelHead(m: Model, level: Int): String = {
+    val lvl = cut(level)
+    m.get(Title).map(title => s"<h$lvl>$title</h$lvl>").getOrElse("") +
+    m.get(Text).map(text => s"<p>$text</p>").getOrElse("")    
+  }
+  
+  def renderModelBody(m: Model, level: Int): String = {
+      val lvl = cut(level)
+      val elemHead = if ((m.tip - Title - Text).isEmpty || level > 1) "" else s"""
+        <h$lvl> <a id="Elements">Elements</a></h$lvl>
+      """
+      def elemBody(m: Model, indent: String): String = m.toVector.map {
+        case Title(t) if level <= 2 => "" //rendered in renderModelHead
+        case Text(t) if level <= 2 => "" //rendered in renderModelHead
+        case a: Attribute[_]  => indent + s"<li>${a.myType}: ${a.value}</li>"
+        case sect: Section => indent + s"TODO: Subsection $sect"
+        case e: Entity     => indent + s"<li>${e.myType} ${e.id}</li>"
+        case Relation(e, link, submodel) => indent +
+          s"<li>${e.myType} ${e.id} $link</li>\n" + elemBody(submodel, indent+(" " * 2))    
+      }.mkString("\n" + indent + "<ul>\n", "\n"+indent,"</ul>\n")  
+      elemHead + elemBody(m, " " * 8)
+  }
+  
+  def renderSections(m: Model): String = sections(m).map {
+    case (section, submodel) => s"""
+       <h1>$section</h1>
+       ${renderModelHead(submodel, 2)}
+       ${renderModelBody(submodel, 2)}
+    """     
+  }.mkString("\n        ")
+  
+  def contents(m: Model) = {
+    val elementsItem = if ((m.tip - Title - Text).isEmpty) "" else s"""
+      <a href="#Elements">Elements</a>
+    """
+    s"""
+      <h1>Contents</h1>
+      <ul>
+        <li>${elementsItem}</li>
+        ${topLevelSectionsContents(m)}
+        <li><a href="#model-code">Model Code</a></li>
+      </ul>
+    """
+  }
+  def exportTopModel(m: Model) = s"""
+    |${renderModelHead(topExceptSections(m), 1)}
+    |${contents(m)}
+    |${renderModelBody(topExceptSections(m), 1)}
+    |${renderSections(m)}
+    |<h1><a id="model-code">Model Code</a></h1>
+    |<pre>
+    |${m.toString} 
+    |</pre>
+  """.stripMargin
+
+  override def exportModelToFile(m: Model, outDir: String, fileName: String) {
+    ( new java.io.File(outDir) ).mkdirs
+    val modelString = preamble(m) + body(m) + ending(m)
+    modelString.save(outDir+fileUtils.fileSep+fileName)
+  }
+
 }
 
 

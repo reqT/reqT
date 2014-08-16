@@ -26,7 +26,7 @@
 
 package reqT
 
-import java.awt.{Component => AWTComponent, _}
+import java.awt.{Component => AWTComponent, List => AWTList, _}
 import java.awt.event._
 import javax.swing._
 import javax.swing.tree._
@@ -106,6 +106,16 @@ object killSwingVerbosity {
           parent.add(jm)
           addToMenuMap(m.name, jm)
           iter(jm, m.menus)
+        case m: MenuRadioGroup =>
+          val group = new ButtonGroup()
+          m.actionMap.foreach { case (buttonText, _ )  => 
+            val radioButton = new JRadioButtonMenuItem(buttonText)
+            if (buttonText == m.default) radioButton.setSelected(true)
+            radioButton.addActionListener(m.action)
+            group.add(radioButton) 
+            parent.add(radioButton)
+            addToMenuMap(m.groupName+buttonText, radioButton)
+          }
         case MenuSeparator =>
           val js = new JSeparator()
           parent.add(js)
@@ -124,6 +134,16 @@ object killSwingVerbosity {
     }
   }
   def ---> = MenuLeaf
+  
+  case class MenuRadioGroup(groupName: String, actionMap: Map[String,() => Unit], default: String) 
+  extends MenuTree {
+    def action = new ActionListener {
+      def actionPerformed(e: ActionEvent) = {
+        val buttonText = e.getActionCommand
+        if (actionMap.isDefinedAt(buttonText)) actionMap(buttonText)()
+      }
+    }
+  }   
   
   case object MenuSeparator extends MenuTree 
   def --- = MenuSeparator
@@ -168,6 +188,8 @@ object gui { //GUI implementation
     val windowType = "ModelTreeEditor"
     
     val frame = new JFrame(windowTitle)
+
+    private var templateProcessor: String => Unit = editor.setText _
     
     def windowTitle = fileName + "  -  " + windowType
     def updateTitle() { frame.setTitle(windowTitle) }
@@ -525,6 +547,16 @@ object gui { //GUI implementation
       }      
     } recover { case e => println(e); msgError("Export failed, see console message.")  }
     
+    def doExportToHtml() = Try {
+      chooseFile(this, "index.html","Generate site").foreach { choice =>
+        val ioFile = new java.io.File(choice)
+        val (dir, file) = (ioFile.getParent, ioFile.getName)        
+        export.toHtml(model, dir, file)  
+        println(s"Desktop open: $choice")
+        desktopOpen(choice)       
+      }      
+    } recover { case e => println(e); msgError("Export failed, see console message.")  }
+    
     def doToGraphViz(tpe: String, exp: => String) =  Try {
       chooseFile(this, fileName.newFileType(tpe+".dot"),"Export").foreach { choice => 
         exp.save(choice)  
@@ -588,8 +620,9 @@ object gui { //GUI implementation
               --->("Prio Table .csv (Stakeholder; Feature; Prio) ...", VK_P, 0, 0) { doImportStakeholderFeaturePrioTable() },
               --->("Path Table .csv (Path; Elem) ...", VK_A, 0, 0) { doImportPathTable() })),
           ===>("Export", VK_X,
-            --->("Tree To Scala Model .scala ...", VK_T, 0, 0) { doSaveAsScala()},
-            --->("Tree To Path Table .csv ...", VK_T, 0, 0) { doExportTo(".csv", export.toPathTable(model)) },
+            --->("Tree To Scala Model .scala ...", VK_S, 0, 0) { doSaveAsScala()},
+            --->("Tree To Path Table .csv ...", VK_P, 0, 0) { doExportTo(".csv", export.toPathTable(model)) },
+            --->("Tree To HTML ...", VK_H, 0, 0) { doExportToHtml() },
             ===>("Tree To GraphViz .dot", VK_G,
               --->("Nested ...", VK_N, 0, 0) { doToGraphViz("-nested",export.toGraphVizNested(model)) },
               --->("Flat ...", VK_F, 0, 0) { doToGraphViz("-flat", export.toGraphVizFlat(model)) })),
@@ -614,7 +647,11 @@ object gui { //GUI implementation
             --->("Increase font size", VK_I, VK_PLUS, CTRL)  { doIncrEditorFontSize() },
             --->("Decrease font size", VK_D, VK_MINUS, CTRL) { doDecrEditorFontSize() })),
         ===>("Metamodel", VK_M),
-        ===>("Templates", VK_P),
+        ===>("Templates", VK_P,
+          MenuRadioGroup("templateToggle", Map[String, () => Unit](
+            "Editor Replace" -> ( () => { templateProcessor = editor.setText _ } ), 
+            "Editor Insert"  -> ( () => { templateProcessor = editor.replaceSelection _ } )   
+          ), default = "Editor Replace"), --- ),
         ===>("Help", VK_H,
           --->("Shortcuts to editor", VK_E, 0, 0) { doHelpEditor() },
           --->("Metamodel to editor", VK_M, 0, 0) { doHelpMetamodel() })
@@ -631,7 +668,7 @@ object gui { //GUI implementation
         val headedTemplates = templates.map(s => s.split('\n').toList).map(ss => (ss.head, ss.tail.mkString("\n")))
         headedTemplates.foreach { case (name, text) =>
           val templatesMenu = menuMap("Templates").asInstanceOf[JMenuItem]
-          mkMenuItem(name, templatesMenu, (keyCode(name.head),0,0)){ editor.replaceSelection(text)}
+          mkMenuItem(name, templatesMenu, (keyCode(name.head),0,0)){ templateProcessor(text) }   
         }
       } recover { case e => println(e); msgError(s"Error loading templates.txt from jar.\n$e") }
       

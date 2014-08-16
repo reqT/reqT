@@ -183,8 +183,9 @@ trait FileUtils {
     def newFileType(s: String, suf: String) = stripFileType(s).suffix(suf)
     val startDir = slashify(java.lang.System.getProperty("user.dir"))
     val homeDir = slashify(java.lang.System.getProperty("user.home"))
-    protected [FileUtils] var workingDirectory = startDir
+    @volatile protected [FileUtils] var workingDirectory = startDir
     def workDir = workingDirectory
+    def mkdir(d: String) = new java.io.File(d).mkdirs
     def resolveFileName(fileName: String): String = {
       val f = new java.io.File(fileName)
       val fn = slashify(f.toString)
