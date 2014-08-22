@@ -73,8 +73,9 @@ object loadTab {
     }.toModel
 }
 
-object reqTMarkDown {
+object Textified {
   //TODO: finish integration with gui
+  //TODO: make this work for Contstraints and other Vector attributes
   val test1 = """
   Section sect1 has
     Text hej hej hej
@@ -122,7 +123,7 @@ object reqTMarkDown {
     case (indent, first, mid, last) =>
       val elem = first match {
         case _ if isEntity(first) => Relation(Head(reqT.entityFromString(first)(mid), relationTypeFromString(last)), Model()) 
-        case _ if isAttribute(first) => reqT.attributeFromString(first)(mergeSentences(mid, last))
+        case _ if isAttribute(first) => reqT.attributeFromString(first)(mergeSentences(mid, last).trim)
         case _ => reqT.makeAttribute[Text](mergeSentences(mid, last))        
       }
       (indent, elem)      
@@ -155,7 +156,7 @@ object reqTMarkDown {
       case le1::rest => le1::recursiveMerge(rest)     
     }
   }
-  def parse(markdown: String): Model = 
-    recursiveMerge(indentElemSeq(markdown)).map{ case (_, elem) => elem } .toModel
+  def apply(text: String): Model = 
+    recursiveMerge(indentElemSeq(text)).map{ case (_, elem) => elem } .toModel
 }
 

@@ -22,6 +22,7 @@ object toGraphVizNested extends GraphVizNested
 object toGraphVizFlat extends GraphVizFlat  
 object toPathTable extends TableExporter
 object toHtml extends HtmlExporter
+object toText extends ModelToTextExporter
 
 trait Exporter[T] { def apply(m: Model): T }
 
@@ -290,7 +291,39 @@ trait HtmlExporter extends FileExporter {
 
 }
 
+trait ModelToTextExporter extends StringExporter {
+  def emptyModelString: String = "()"
 
+  def indentBy(path: NodePath): String = " " * (Settings.indentSpacing * (path.depth - 1))
+  
+  override def makeString(a: Any): String = a match {
+    case e: Entity => e.prefix + " " + e.id
+    case a: Attribute[_] => a.prefix + " " + a.value
+    case _ => a.toString
+  }
+  
+  def exportModel(m: Model, path: NodePath): String = m.toVector.map(exportElem(_, path)).mkString 
+  
+  def exportElem(elem: Elem, path: NodePath): String = elem match {
+    case NoElem => ""
+    case e: Entity => exportEntity(e, path / e) 
+    case a: Attribute[_] => exportAttribute(a, path / a)
+    case r: Relation => exportHead(r.head, path / r.head) + exportModel(r.tail, path / r.head) 
+  }
+    
+  def exportHead(h: Head, path: NodePath): String = 
+    indentBy(path) + makeString(h.entity) + " " + h.link + "\n"
+  def exportEntity(e: Entity, path: NodePath): String = indentBy(path) + makeString(e) + "\n"
+  def exportAttribute[T](a: Attribute[T], path: NodePath): String =  a match {
+    case xs: VectorAttribute[_] => 
+      xs.value.map(makeString).mkString("\n" + indentBy(path)) + "\n"
+    case _ => indentBy(path) + makeString(a) + "\n"
+  }
+  
+  override def preamble(m: Model): String = ""
+  override def ending(m: Model): String = ""
+  override def body(m: Model): String = exportModel(m, /)
+}
 
 
 

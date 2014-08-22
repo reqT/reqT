@@ -574,6 +574,14 @@ object gui { //GUI implementation
         desktopOpen(choice.newFileType(".pdf"))       
       }
     }  recover { case e => println(e); msgError("Export failed, see console message.")  }
+    
+    def doTextify() = Try {
+      editor.setText(export.toText(editor.getText.toModel))
+    } recover { case e => println(e); msgError("Textify failed: " + e)  }
+    
+    def doUntextify() = Try {
+      editor.setText(parse.Textified(editor.getText).toString)
+    }  recover { case e => println(e); msgError("Untextify failed: " + e)  }
 
     /*
       Try (chooseFile(this, fileName.newFileType(tpe+".dot"),"Export").map{f => exp.save(f);f}) match {
@@ -634,7 +642,7 @@ object gui { //GUI implementation
               --->("Flat ...", VK_F, 0, 0) { doToGraphViz("-flat", export.toGraphVizFlat(model)) })),
           --->("Replace selected node from editor", VK_R, VK_R, CTRL) { doUpdate() },
           --->("Insert after selected node from editor", VK_I, VK_I, CTRL) { doInsert() },
-          --->("Transform node by function in editor", VK_T, VK_T, CTRL) { doTransform() },
+          --->("Apply function in editor to selected node", VK_A, VK_A, ALT) { doTransform() },
           --->("Delete selected node", VK_D, VK_DELETE, 0) { doDelete() },
           ---,
           --->("Collapse all", VK_C, VK_LEFT, ALT) { doCollapseAll() },
@@ -645,6 +653,9 @@ object gui { //GUI implementation
           --->("Edit selected tree node in editor", VK_E, VK_E, CTRL) { doEnter() },
           --->("Run Script => Console", VK_R, VK_ENTER, CTRL) { doRunToConsole() },
           --->("{Evaluate} => Editor", VK_E, VK_ENTER, ALT) { doRunToEditor() },
+          ---,
+          --->("Textify scala model", VK_T, VK_T, CTRL) { doTextify() },
+          --->("Untextify model to scala", VK_U, VK_U, CTRL) { doUntextify() },
           ---,
           --->("Load text file to editor ...", VK_L, VK_L, CTRL) { doLoadTextToEditor() },
           --->("Save text in editor to file...", VK_S, VK_S, ALT) { doSaveEditorTextToFile() },
