@@ -575,9 +575,15 @@ object gui { //GUI implementation
       }
     }  recover { case e => println(e); msgError("Export failed, see console message.")  }
     
-    def doTextify() = Try {
-      editor.setText(export.toText(editor.getText.toModel))
-    } recover { case e => println(e); msgError("Textify failed: " + e)  }
+    def doTextify() {
+      if (parse.Textified.isEntityOrAttributeStart(editor.getText)) doUntextify()
+      else if (editor.getText.trim.startsWith("Model")) 
+        repl.interpretModel(editor.getText) match {
+          case Some(model) => editor.setText(export.toText(model))
+          case None => msgError("Parsing model failed, see console message.")
+        } 
+      else doUntextify() 
+    }
     
     def doUntextify() = Try {
       editor.setText(parse.Textified(editor.getText).toString)
@@ -654,8 +660,7 @@ object gui { //GUI implementation
           --->("Run Script => Console", VK_R, VK_ENTER, CTRL) { doRunToConsole() },
           --->("{Evaluate} => Editor", VK_E, VK_ENTER, ALT) { doRunToEditor() },
           ---,
-          --->("Textify scala model", VK_T, VK_T, CTRL) { doTextify() },
-          --->("Untextify model to scala", VK_U, VK_U, CTRL) { doUntextify() },
+          --->("Toggle between textified and scala model", VK_T, VK_T, CTRL) { doTextify() },
           ---,
           --->("Load text file to editor ...", VK_L, VK_L, CTRL) { doLoadTextToEditor() },
           --->("Save text in editor to file...", VK_S, VK_S, ALT) { doSaveEditorTextToFile() },

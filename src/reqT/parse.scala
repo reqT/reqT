@@ -93,16 +93,18 @@ object Textified {
     * päron
     * äpple
   """
+
   val isRelation = metamodel.relationTypes.map(_.toString).toSet
   val isEntity = metamodel.entityTypes.map(_.toString).toSet
   val isAttribute = metamodel.attributeTypes.map(_.toString).toSet
   val relationTypeFromString: Map[String, RelationType] = metamodel.relationTypes.map(rt => (rt.toString, rt)).toMap
   def split(s: String): Seq[String] = s.split("\n").filterNot(_ == "").filterNot(_.trim.startsWith("//"))  
   def indentSize(s: String): Int = s.takeWhile(c => c == ' ' ).size
-  def firstWord(s: String): String = s.trim.split(" ").take(1).headOption.getOrElse("")
+  def firstWord(s: String): String = s.trim.takeWhile( _ != ' ')
   def middle(s: String): String = s.trim.split(" ").drop(1).dropRight(1).mkString(" ")
   def lastWord(s: String): String = s.trim.split(" ").takeRight(1).headOption.getOrElse("")
   def parts(s: String):(Int,String,String,String) = (indentSize(s), firstWord(s), middle(s), lastWord(s))
+  def isEntityOrAttributeStart(s: String) = { val fw = firstWord(s); isEntity(fw) || isAttribute(fw) }
   def placeRelation(tuple : (Int,String,String,String)) = tuple match {
     case (indent, first, mid, last) =>
       val (mid2, last2) = if (isRelation(last) || !isEntity(first)) (mid, last) else (mid+last,"")
@@ -118,13 +120,13 @@ object Textified {
       }
       (indent, first2, mid2, last)
   }
-  def mergeSentences(s1: String, s2: String): String = List(s1,s2).mkString(" ")
+  def mergeSentences(xs: String *): String = xs.mkString(" ")
   def parseElem(tuple: (Int,String,String,String)): (Int, Elem) = tuple match {
     case (indent, first, mid, last) =>
       val elem = first match {
         case _ if isEntity(first) => Relation(Head(reqT.entityFromString(first)(mid), relationTypeFromString(last)), Model()) 
         case _ if isAttribute(first) => reqT.attributeFromString(first)(mergeSentences(mid, last).trim)
-        case _ => reqT.makeAttribute[Text](mergeSentences(mid, last))        
+        case _ => reqT.makeAttribute[Text](mergeSentences(first, mid, last))        
       }
       (indent, elem)      
   }
