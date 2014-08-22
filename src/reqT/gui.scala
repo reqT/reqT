@@ -505,10 +505,16 @@ object gui { //GUI implementation
         case Some(scala.tools.nsc.interpreter.Results.Success) => ()
         case _ => msgScriptError
       }       
-    def doRunToEditor()       = repl.interpret("{"+editor.getText.trim+"}") match {
-        case Some(whatEver) => editor.setText(whatEver.toString)
+    def doRunToEditor()       = {
+      val script = "{\n"+editor.getText.trim+"\n}"
+      //println("Interpreting block:\n" + script)
+      repl.interpret(script) match {
+        case Some(whatEver) => 
+          editor.setText(whatEver.toString) 
+          //println("Result to editor: " + whatEver)
         case None => msgScriptError
-      }   
+      }
+    }      
     def doTransform()        = interpretTransformerAndUpdate()
     def doLoadTextToEditor() = 
       Try (chooseFile(this).foreach(f => editor.setText(load(f)))).
@@ -753,8 +759,8 @@ object gui { //GUI implementation
     
     editor.getSyntaxScheme.setStyle(TokenTypes.SEPARATOR, new Style(Color.black))
     
-    editor.addKeyListener(onCtrlEnter { doRunToConsole()} )
-    editor.addKeyListener(onAltEnter { doRunToEditor()} )
+    editor.addKeyListener(onCtrlEnter { doRunToConsole()} )  //needed as accelerator CTRL+ENTER never fires WHY????
+    //editor.addKeyListener(onAltEnter { doRunToEditor()} )//not needed as accelerator already fires as expected
 
     val editorView = new RTextScrollPane(editor)
 
