@@ -322,11 +322,13 @@ case class Constraints(value: Vector[Constr]) extends ConstrVectorAttribute {
   override val myType = Constraints 
 }
 case object Constraints extends ConstrVectorType {
-  def apply(s: String): Constraints = reqT.repl.interpret(s). map ( _ match { 
-    case cs: Constraints => cs
-    case c: Constr => Constraints(c)    
-    //case _ => Constraints(Vector()) //propagate failure??
-  } ).get 
+  def apply(s: String): Constraints = 
+    reqT.repl.interpret(s"Constraints($s)").get.asInstanceOf[Constraints] 
+  //changed from  reqT.repl.interpret(s).map ( _ match { 
+    //case cs: Constraints => cs
+    //case c: Constr => Constraints(c) //will not happen   
+    //case _ => Constraints(Vector()) //will not happen
+  //} ).get 
 }
 
 case object has extends RelationType  

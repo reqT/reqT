@@ -316,7 +316,7 @@ trait ModelToTextExporter extends StringExporter {
   def exportEntity(e: Entity, path: NodePath): String = indentBy(path) + makeString(e) + "\n"
   def exportAttribute[T](a: Attribute[T], path: NodePath): String =  a match {
     case xs: VectorAttribute[_] => 
-      xs.value.map(makeString).mkString("\n" + indentBy(path)) + "\n"
+      xs.value.map(x => indentBy(path) + xs.prefix + " "+ x).mkString("\n")
     case _ => indentBy(path) + makeString(a) + "\n"
   }
   
