@@ -31,6 +31,7 @@ trait Solutions {
   def coreDomains: Array[Array[JaCoP.core.Domain]] 
   def coreVariables: Array[_ <: JaCoP.core.Var]
   def domain(solutionIndex: Int, variableIndex: Int): JaCoP.core.Domain
+  def solutionMatrix: Array[Array[Int]]
   def printSolutions: Unit
 }
 
@@ -92,6 +93,7 @@ class JacopSolutions(
   def valueVector(v: Var): Vector[Int] = 
     ( for (s <- 0 until nSolutions) yield value(s, indexOf(v)) ) .toVector   
   def printSolutions: Unit = for (i <- 0 until nSolutions) println(s"*** Solution $i:\n" + solutionMap(i))
+  lazy val solutionMatrix: Array[Array[Int]] = coreDomains.slice(0,nSolutions-1).map(_.map(toInt))
   override def toString = s"Solutions([nSolutions=$nSolutions][nVariables=$nVariables])" 
 }
 
