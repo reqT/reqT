@@ -789,17 +789,17 @@ object gui { //GUI implementation
       provider.addCompletion( new BasicCompletion(provider, t.toString, "RelationType")) }
     metamodel.entityTypes.foreach { t =>
       provider.addCompletion( new ShorthandCompletion(provider, t.toString,
-            t.toString+"("+q, "Entity")) }    
+            t.toString /* +"("+q */, "Entity")) }    
     metamodel.attributeTypes.foreach { t =>
       val (hint, tpe) = t match {
         case _ if t.isInt => ("0", "Int")
         case _ if t.isString => (q, "String")
         case Status => (t.default.toString, "StatusValue")
-        case _: VectorType[_] => ("", "Vector")
+        case _: VectorType[_] => ("", "VectorType[_]")
         case _ => (t.default.toString, "")
       }
       provider.addCompletion( new ShorthandCompletion(provider, t.toString,
-            t.toString+"("+hint, s"Attribute[$tpe]")) }             
+            t.toString /* +"("+hint */, s"Attribute[$tpe]")) }             
     val ac = new AutoCompletion(provider)
     ac.install(editor)
     
