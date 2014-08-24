@@ -100,9 +100,9 @@ object Textified {
   val relationTypeFromString: Map[String, RelationType] = metamodel.relationTypes.map(rt => (rt.toString, rt)).toMap
   def split(s: String): Seq[String] = s.split("\n").filterNot(_ == "").filterNot(_.trim.startsWith("//"))  
   def indentSize(s: String): Int = s.takeWhile(c => c == ' ' ).size
-  def firstWord(s: String): String = s.trim.takeWhile( _ != ' ')
-  def middle(s: String): String = s.trim.split(" ").drop(1).dropRight(1).mkString(" ")
-  def lastWord(s: String): String = s.trim.split(" ").takeRight(1).headOption.getOrElse("")
+  def firstWord(s: String): String = s.trim.takeWhile(_.isLetter)
+  def lastWord(s: String): String = s.trim.reverse.takeWhile(_.isLetter).reverse
+  def middle(s: String): String = s.trim.stripPrefix(firstWord(s)).stripSuffix(lastWord(s))
   def parts(s: String):(Int,String,String,String) = (indentSize(s), firstWord(s), middle(s), lastWord(s))
   def isEntityOrAttributeStart(s: String) = { val fw = firstWord(s); isEntity(fw) || isAttribute(fw) }
   def placeRelation(tuple : (Int,String,String,String)) = tuple match {
