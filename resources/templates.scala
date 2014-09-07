@@ -93,19 +93,24 @@ Model(
 Model(
   Component("apperance") has (
     VariationPoint("color") has (
-      Variant("blue"), Variant("red"), Variant("green"), Min(0), Max(2)),
+      Min(0), Max(2),
+      Variant("blue"), Variant("red"), Variant("green")),
     VariationPoint("shape") has (
-      Variant("round"), Variant("square"), Min(1), Max(1)),
+      Min(1), Max(1), Variant("round"), Variant("square")),
+    VariationPoint("payment") has (
+      Min(1), Max(2), Variant("cash"), Variant("credit")),
+    VariationPoint("payment") requires Variant("cash"), /* mandatory */
     Variant("round") excludes Variant("red"),
     Variant("green") requires Variant("square")),
-  Component("apperance") requires VariationPoint("shape"), /* mandatory binding */
+  Component("apperance") requires VariationPoint("shape"), /* mandatory */
   App("free") requires Component("apperance"),  
   App("free") binds (
     VariationPoint("shape") binds Variant("round")),
   App("premium") requires Component("apperance"),  
   App("premium") binds ( /* violating variability constraints */
     VariationPoint("color") binds (Variant("red"), Variant("green")),
-    VariationPoint("shape") binds (Variant("round"), Variant("square"))))
+    VariationPoint("shape") binds (Variant("round"), Variant("square")),
+    VariationPoint("payment") binds Variant("cash")))
 //Release planning example 1
 val simple = Model(
   Stakeholder("X") has (
