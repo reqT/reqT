@@ -20,7 +20,7 @@ package object meta {
       Meta("General") superOf ( 
         Meta("Item"), Meta("Label"), Meta("Meta"), Meta("Section"), Meta("Term")),
       Meta("Context") superOf (
-          Meta("Actor"), Meta("Application"), Meta("Component"), Meta("Domain"), Meta("Module"),
+          Meta("Actor"), Meta("App"), Meta("Component"), Meta("Domain"), Meta("Module"),
           Meta("Product"), Meta("Release"), Meta("Resource"), Meta("Risk"), Meta("Service"), 
           Meta("Stakeholder"), Meta("System"), Meta("User")),
       Meta("Requirement") superOf (
@@ -33,12 +33,10 @@ package object meta {
           Meta("Epic"), Meta("Feature"), Meta("Goal"), Meta("Idea"), Meta("Issue"), 
           Meta("Req"), Meta("Ticket"), Meta("WorkPackage")), 
         Meta("QualityReq") superOf (
-          Meta("Quality"), Meta("Target"), Meta("Barrier")), 
+          Meta("Breakpoint"), Meta("Barrier"), Meta("Quality"), Meta("Target")), 
         Meta("ScenarioReq") superOf (
-          Meta("Scenario"), Meta("Task"), Meta("Test"), 
-          Meta("Story"), Meta("UseCase")),
-        Meta("VariabilityReq") superOf (
-          Meta("Configuration"), Meta("VariationPoint"), Meta("Variant")))),
+          Meta("Scenario"), Meta("Task"), Meta("Test"), Meta("Story"), Meta("UseCase")),
+        Meta("VariabilityReq") superOf (Meta("VariationPoint"), Meta("Variant")))),
     Meta("RelationType") superOf (
       Meta("binds"), Meta("deprecates"), Meta("excludes"), 
       Meta("has"), Meta("helps"), Meta("hurts"), Meta("impacts"),
@@ -51,10 +49,8 @@ package object meta {
         Meta("Image"), Meta("Spec"), Meta("Text"), Meta("Title"), Meta("Why")),
       Meta("IntAttribute") superOf (
         Meta("Benefit"), Meta("Capacity"), Meta("Cost"), Meta("Damage"), 
-        Meta("Differentiation"),
         Meta("Frequency"), Meta("Min"), Meta("Max"),        
-        Meta("Order"), Meta("Prio"), Meta("Probability"), Meta("Profit"), Meta("Saturation"), 
-        Meta("Utility"), Meta("Value")),
+        Meta("Order"), Meta("Prio"), Meta("Probability"), Meta("Profit"), Meta("Value")),
       Meta("StatusValueAttribute") superOf (Meta("Status")),   
       Meta("VectorAttribute") superOf (Meta("Constraints"))),      
     Meta("enums") has (

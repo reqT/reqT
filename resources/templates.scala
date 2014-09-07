@@ -63,22 +63,49 @@ Model(
       Task("recordGuest") has 
         Spec("variants: a) Guest has booked in advance, b) No suitable room"), 
       Task("deliverKey"))))
+//Quper
+Model(
+  Quality("mtts") has (
+    Gist("Mean time to startup"),
+    Spec("Measured in milliseconds using Test startup"),
+    Breakpoint("utility") has Value(4000), 
+    Breakpoint("differentiation") has Value(1500), 
+    Breakpoint("saturation") has Value(200),
+    Target("basic") has (
+        Value(2000), 
+        Comment("Probably possible with existing architecture.")),
+    Target("strech") has (
+        Value(1100),
+        Comment("Probably needs new architecture.")),
+    Barrier("first") has (Min(1900), Max(2100)),
+    Barrier("second") has Value(1000),
+    Product("competitorX") has Value(2000),
+    Product("competitorY") has Value(3000)
+  ),
+  Test("startup") verifies Quality("mtts"),
+  Test("startup") has (  
+    Spec("Calculate average time in milliseconds of the startup time over 10  executions from start button is pressed to logon screen is shown."),
+    Target("stretch")
+  )    
+)
+
 //Variability modelling
 Model(
-  VariationPoint("color") has (
-    Variant("blue"), Variant("red"), Variant("green"), Min(0), Max(2)),
-  VariationPoint("shape") has (
-    Variant("round"), Variant("square"), Min(1), Max(1)),
-  Variant("round") excludes Variant("red"),
-  Variant("green") requires Variant("square"),
-  Configuration("cheap") binds (
-    VariationPoint("color") binds Variant("red"),
+  Component("apperance") has (
+    VariationPoint("color") has (
+      Variant("blue"), Variant("red"), Variant("green"), Min(0), Max(2)),
+    VariationPoint("shape") has (
+      Variant("round"), Variant("square"), Min(1), Max(1)),
+    Variant("round") excludes Variant("red"),
+    Variant("green") requires Variant("square")),
+  Component("apperance") requires VariationPoint("shape"), /* mandatory binding */
+  App("free") requires Component("apperance"),  
+  App("free") binds (
     VariationPoint("shape") binds Variant("round")),
-  Configuration("expensive") binds ( /* violating variability constraints */
+  App("premium") requires Component("apperance"),  
+  App("premium") binds ( /* violating variability constraints */
     VariationPoint("color") binds (Variant("red"), Variant("green")),
-    VariationPoint("shape") binds (Variant("round"), Variant("square"))),
-  Product("free") has Configuration("cheap"),
-  Product("premium") has Configuration("expensive"))
+    VariationPoint("shape") binds (Variant("round"), Variant("square"))))
 //Release planning example 1
 val simple = Model(
   Stakeholder("X") has (

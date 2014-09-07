@@ -1,0 +1,96 @@
+ /* Entity Types */ 
+ "Ent" | 
+ "Meta" | 
+ "Item" | 
+ "Label" | 
+ "Section" | 
+ "Term" | 
+ "Actor" | 
+ "App" | 
+ "Component" | 
+ "Domain" | 
+ "Module" | 
+ "Product" | 
+ "Release" | 
+ "Resource" | 
+ "Risk" | 
+ "Service" | 
+ "Stakeholder" | 
+ "System" | 
+ "User" | 
+ "Class" | 
+ "Data" | 
+ "Input" | 
+ "Member" | 
+ "Output" | 
+ "Relationship" | 
+ "Design" | 
+ "Screen" | 
+ "MockUp" | 
+ "Function" | 
+ "Interface" | 
+ "Epic" | 
+ "Feature" | 
+ "Goal" | 
+ "Idea" | 
+ "Issue" | 
+ "Req" | 
+ "Ticket" | 
+ "WorkPackage" | 
+ "Breakpoint" | 
+ "Barrier" | 
+ "Quality" | 
+ "Target" | 
+ "Scenario" | 
+ "Task" | 
+ "Test" | 
+ "Story" | 
+ "UseCase" | 
+ "VariationPoint" | 
+ "Variant" { addToken(Token.DATA_TYPE); } 
+
+ /* Attribute Types */ 
+ "Attr" | 
+ "Code" | 
+ "Constraints" | 
+ "Comment" | 
+ "Deprecated" | 
+ "Example" | 
+ "Expectation" | 
+ "FileName" | 
+ "Gist" | 
+ "Image" | 
+ "Spec" | 
+ "Text" | 
+ "Title" | 
+ "Why" | 
+ "Benefit" | 
+ "Capacity" | 
+ "Cost" | 
+ "Damage" | 
+ "Frequency" | 
+ "Min" | 
+ "Max" | 
+ "Order" | 
+ "Prio" | 
+ "Probability" | 
+ "Profit" | 
+ "Value" | 
+ "Status" { addToken(Token.RESERVED_WORD_2); } 
+
+ /* Relation Types */ 
+ "has" | 
+ "is" | 
+ "superOf" | 
+ "binds" | 
+ "deprecates" | 
+ "excludes" | 
+ "helps" | 
+ "hurts" | 
+ "impacts" | 
+ "implements" | 
+ "interactsWith" | 
+ "precedes" | 
+ "requires" | 
+ "relatesTo" | 
+ "verifies" { addToken(Token.FUNCTION); } 
