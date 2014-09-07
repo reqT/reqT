@@ -24,7 +24,7 @@ How to build reqT from code
 2. Download this [zip](https://github.com/reqT/reqT/archive/3.0.x.zip) and extract all files in some directory.
 3. Run the appropriate custom build script among the extracted files:
     * On Windows, run in cmd: `build.cmd`
-    * On Linux/Mac, run in terminal:  `./build.sh` *TODO: translate build.cmd to bash*   
+    * On Linux/Mac, run in terminal:  `./build.sh`
 4. Run the generated jar with `java -jar reqT.jar`
 
 How to change the reqT metamodel
