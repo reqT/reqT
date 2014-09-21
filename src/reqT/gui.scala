@@ -567,11 +567,14 @@ object gui { //GUI implementation
       chooseFile(this, fileName.newFileType(tpe+".dot"),"Export").foreach { choice => 
         exp.save(choice)  
         val dot = Settings.dotCmd(choice) 
-        println(s"> $dot")
-        runCmd(dot)    
-        val pdf = choice.newFileType(".pdf") 
-        println(s"Desktop open: $pdf")
-        desktopOpen(choice.newFileType(".pdf"))       
+        println(s"Running command with arguments:\n  $dot")
+        val res = runCmd(dot)
+        println(s"Result code: $res")   
+        if (res == 0) {        
+           val pdf = choice.newFileType(".pdf") 
+           println(s"Desktop open: $pdf")
+           desktopOpen(choice.newFileType(".pdf")) 
+        } else throw new Error("Command failed.")           
       }
     }  recover { case e => println(e); msgError("Export failed, see console message.")  }
     
