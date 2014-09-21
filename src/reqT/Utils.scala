@@ -256,8 +256,9 @@ trait RandomUtils {
 trait SysUtils {
   import scala.sys.process._
   def isWindows = sys.props("os.name").startsWith("Windows")
-  def fixCmd(cmd: String): String = if (isWindows) s"""cmd /C "$cmd" """ else cmd
-  def runCmd(cmd: String) = cmd.! 
+  def fixCmd(cmd: Seq[String]): Seq[String] = 
+    if (isWindows) Seq("cmd","/C",s"""${cmd.mkString(" ")}""") else cmd
+  def runCmd(cmd: Seq[String]): Int = cmd.! 
   def desktopOpen(f: String) = java.awt.Desktop.getDesktop().open( new java.io.File(f))
 }
 
