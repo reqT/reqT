@@ -64,9 +64,12 @@ trait ModelBase extends Serializable {
   override def toString = Settings.defaultModelToString(this) 
   def toTable = Settings.defaultModelToTable(this) 
   def toGraph = Settings.defaultModelToGraph(this) 
+  def toHtml = export.toHtml(this)
+  def toText = export.toText(this)
   
   def prettyPrint(): Unit = println(toString)
   def pp(): Unit = prettyPrint()
+  def p(): Unit = println(toText)
   
   def save(fileName: String) {
     val outFile = new java.io.FileOutputStream(fileName)
