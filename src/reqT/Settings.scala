@@ -33,10 +33,14 @@ object Settings {
   }
   var warningPrinter: String => Unit = (msg) => println(s"WARNING: $msg")
   object gui {
-    var entityColor    = new java.awt.Color(0,100,200) //blueish
-    var attributeColor = new java.awt.Color(0,100,50) //greenish
-    var relationColor  = new java.awt.Color(160, 0, 30)  //reddish
-    var stringColor    = new java.awt.Color(200, 90, 40) //orange-like
+    val entRGB  = (0,100,200) //blueish
+    val attrRGB = (0,100,50) //greenish
+    val relRGB = (160,0,30) //reddish
+    val strRGB = (200,90,40) //orange-like
+    val entityColor    = new java.awt.Color(entRGB._1,entRGB._2,entRGB._3) 
+    val attributeColor = new java.awt.Color(attrRGB._1,attrRGB._2,attrRGB._3) 
+    val relationColor  = new java.awt.Color(relRGB._1, relRGB._2, relRGB._3)  
+    val stringColor    = new java.awt.Color(strRGB._1, strRGB._2, strRGB._3) 
     var editorFonts    = List("Consolas", "Liberation Mono", "DejaVu Sans Mono", "Monospace")
     var fontSize       = 14
   }

@@ -562,6 +562,14 @@ object gui { //GUI implementation
         desktopOpen(choice)       
       }      
     } recover { case e => println(e); msgError("Export failed, see console message.")  }
+
+    def doExportToLatex() = Try {
+      chooseFile(this, "model.tex","Generate latex files").foreach { choice =>
+        val ioFile = new java.io.File(choice)
+        val (dir, file) = (ioFile.getParent, ioFile.getName)        
+        export.toLatex(model, dir, file)  
+      }      
+    } recover { case e => println(e); msgError("Export failed, see console message.")  }
     
     def doToGraphViz(tpe: String, exp: => String) =  Try {
       chooseFile(this, fileName.newFileType(tpe+".dot"),"Export").foreach { choice => 
@@ -646,6 +654,7 @@ object gui { //GUI implementation
             --->("Tree To Scala Model .scala ...", VK_S, 0, 0) { doSaveAsScala()},
             --->("Tree To Path Table .csv ...", VK_P, 0, 0) { doExportTo(".csv", export.toPathTable(model)) },
             --->("Tree To HTML ...", VK_H, 0, 0) { doExportToHtml() },
+            --->("Tree To Latex ...", VK_H, 0, 0) { doExportToLatex() },
             ===>("Tree To GraphViz .dot", VK_G,
               --->("Nested ...", VK_N, 0, 0) { doToGraphViz("-nested",export.toGraphVizNested(model)) },
               --->("Flat ...", VK_F, 0, 0) { doToGraphViz("-flat", export.toGraphVizFlat(model)) })),

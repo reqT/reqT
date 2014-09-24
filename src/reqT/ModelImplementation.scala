@@ -65,6 +65,9 @@ trait ModelBase extends Serializable {
   def toTable = Settings.defaultModelToTable(this) 
   def toGraph = Settings.defaultModelToGraph(this) 
   def toHtml = export.toHtml(this)
+  def toHtmlBody = export.toHtml.body(this)
+  def toLatex = export.toLatex(this)
+  def toLatexBody = export.toLatex.body(this)
   def toText = export.toText(this)
   
   def prettyPrint(): Unit = println(toString)
