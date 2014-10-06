@@ -140,10 +140,7 @@ val simple = Model(
 val solution = csp.releasePlan(simple).
     maximize(Release("A")/Benefit).
     sortByTypes(Release, Feature, Stakeholder, Resource)
-val allocation = (solution *^ Release).
-  leafPaths.collect { 
-    case a: AttrVal[_] if a.attr.value != 0 => a }.toModel  
-allocation 
+solution 
 //Release planning example 2
 val m = Model(
   Feature("autoSave") has Gist("Save a model automatically after each update."),
@@ -195,7 +192,4 @@ val m = Model(
 val solution = csp.releasePlan(m).
     maximize(Release("A")/Benefit).
     sortByTypes(Release, Feature, Stakeholder, Resource)
-val allocation = (solution *^ Release).
-  leafPaths.collect { 
-    case a: AttrVal[_] if a.attr.value != 0 => a }.toModel  
-allocation       
+solution
