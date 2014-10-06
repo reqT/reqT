@@ -20,7 +20,8 @@ object toScalaExpanded extends ModelToString with ScalaGenerators  {
 }
 object toGraphVizNested extends GraphVizNested  
 object toGraphVizFlat extends GraphVizFlat  
-object toPathTable extends TableExporter
+object toPathTable extends PathTableExporter
+object toReleaseAllocationTable extends ReleaseAllocationTableExporter
 object toHtml extends HtmlExporter
 object toText extends ModelToTextExporter
 object toLatex extends LatexExporter
@@ -191,13 +192,33 @@ trait GraphVizFlat extends GraphViz {
 
 }
 
-trait TableExporter extends StringExporter {
+trait PathTableExporter extends StringExporter {
   def body(m: Model): String = {
     val row =  m.mapLeafPaths { n => 
       Seq(n.init.toScala, n.lastNode.myType, n.lastNode.toScalaBody) .
         mkString(Settings.columnSeparator) 
     }
     row.mkString(Settings.rowSeparator)
+  }
+}
+
+trait ReleaseAllocationTableExporter extends StringExporter {
+  def body(m: Model): String = {
+    def ids(et: EntityType) = m.entities.collect{case e if e.myType == et => e.id}.sorted
+    val (feats, rels, ress, shs) = (ids(Feature), ids(Release), ids(Resource), ids(Stakeholder))
+    def whichRel(f: String): Option[String] = rels.find(r => (m/Release(r)/Feature(f)/Cost) > 0 )
+    def whichCost(f: String, res: String, rel: String) =
+       (m / Release(rel) / Resource(res) / Feature(f)).get(Cost)
+    val headRow = Vector(Vector("Feature id"),Vector("Release id"), 
+      ress.map(_ + " Cost"), shs.map(s => s + " Benefit Prio " + (m/Stakeholder(s)/Prio))).flatten
+    val rows = feats.map { f => 
+      val rel = whichRel(f).getOrElse("?")
+      val costs = ress.map(res => whichCost(f, res, rel).getOrElse(-1111)).toVector
+      val benefits = shs.map(s => m/Stakeholder(s)/Feature(f)/Benefit).toVector
+      (Vector(f,rel) ++ costs ++ benefits).mkString(Settings.columnSeparator)
+    }
+    headRow.mkString(Settings.columnSeparator) + Settings.rowSeparator + 
+      rows.mkString(Settings.rowSeparator)    
   }
 }
 
