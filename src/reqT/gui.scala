@@ -206,10 +206,50 @@ object gui { //GUI implementation
     
     val editorHelpModel = Model(
       Title("reqT.gui shortcuts"),
-      Feature("enterShortcut") has 
-        Spec("Ctrl+ENTER = enter selected tree into editor as a Model."),
-      Feature("updateShortcut") has 
-        Spec("Ctrl+U = update selected tree with Model in editor.")        
+      Section("File") has (
+        Spec("File menu with new, open, save etc."),
+        Feature("new") has Spec("Ctrl+N = new window with empty tree."),
+        Feature("open") has Spec("Ctrl+O = open model file and load to tree."),
+        Feature("save") has Spec("Ctrl+S = save current tree model to file.")),
+      Section("Tree") has (
+        Spec("The Tree is used for navigating and manipulating a model tree."),
+        Feature("replace") has Spec("Ctrl+R = replace selected tree node by scala model in editor"),
+        Feature("insert") has 
+          Spec("Ctrl+I = insert scala model in editor after selected tree node "),
+        Feature("apply") has 
+          Spec("Ctrl+T = apply function in editor to selected tree node"),
+        Feature("collapse") has 
+          Spec("Ctrl+Left = collapse selected tree node"),
+        Feature("expand") has 
+          Spec("Ctrl+Right = expand selected tree node")),        
+      Section("Editor") has (        
+        Spec("The Editor is used to edit text and evaluate scala models."),
+        Feature("edit") has 
+          Spec("Ctrl+E = edit selected tree node; unparse to editor as a scala model."),
+        Feature("run") has 
+          Spec("Ctrl+Enter = run code in editor; output to console"),
+        Feature("evaluate") has 
+          Spec("Alt+Enter = evaluate code in editor; result to editor"),        
+        Feature("loadToEditor") has 
+          Spec("Ctrl+L = load text file to editor"),
+        Feature("saveFromEditor") has 
+          Spec("Alt+S = save editor text to file")
+        )
+      )
+    
+    val editorAboutModel = Model(
+      Title("http://reqT.org"),
+      Comment(s"version: $reqT_VERSION build: $BUILD_DATE scala version: $SCALA_VERSION"),
+      Gist("reqT is a free, flexible and scalable requirements engineering tool for system analysts, developers and software engineering students."),
+      Section("License") has Spec("http://opensource.org/licenses/bsd-license.php"),
+      Section("Features") has (
+        Feature("model") has Gist("model, analyse, visualize and prioritize requirements"),
+        Feature("combine") has Gist("combine natural language with formal structure"),
+        Feature("abstract") has Gist("flexibly mix abstraction levels and modelling approaches"),
+        Feature("integrate") has Gist("integrate requirements and test specification"),
+        Feature("interoperate") has Gist("export and import models via open formats"),
+        Feature("script") has Gist("manipulate models with powerful Scala scripts"),
+        Feature("plan") has Gist("allocate requirements to releases with constraint solving"))
     )
 
     def model: Model = createModelFromTreeNode(top) 
@@ -615,6 +655,7 @@ object gui { //GUI implementation
       chooseFile(this).foreach(f => transformSelection(_ ++ parse.loadTab.prioVoting(f)))
     def doImportPathTable() = { msgTODO; ??? }      
       
+    def doHelpAbout()        = setEditorToModel(editorAboutModel)
     def doHelpMetamodel()    = setEditorToModel(reqT.meta.model)
     def doHelpEditor()       = setEditorToModel(editorHelpModel)
     def doClose()            = frame.dispatchEvent( new WindowEvent(frame, WindowEvent.WINDOW_CLOSING))
@@ -689,7 +730,8 @@ object gui { //GUI implementation
           ), default = "Editor Replace"), --- ),
         ===>("Help", VK_H,
           --->("Shortcuts to editor", VK_E, 0, 0) { doHelpEditor() },
-          --->("Metamodel to editor", VK_M, 0, 0) { doHelpMetamodel() })
+          --->("Metamodel to editor", VK_M, 0, 0) { doHelpMetamodel() },
+          --->("About reqT to editor", VK_A, 0, 0) { doHelpAbout() })
       ).installTo(frame)
       
       val metamodelMenu = menuMap("Metamodel").asInstanceOf[JMenuItem]
