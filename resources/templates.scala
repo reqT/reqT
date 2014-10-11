@@ -41,16 +41,21 @@ Model(
     System("accounting")))  
 //Context diagram elaborated
 Model( 
-  Product("hotel application") implements (
-    Interface("receptionUI") has Actor("receptionist"),
-    Interface("guestUI") has Actor("guest"), 
-    Interface("phoneAPI") requires System("telephony"), 
-    Interface("accountAPI") requires System("accounting")), 
-  Interface("receptionUI") has (
-    Input("booking"), Input("checkOut"), 
-    Output("serviceNote")),
-  Interface("guestUI") has (
-    Output("confirmation"), Output("invoice")))
+  Product("hotel application") has (
+    Interface("receptionUI"),
+    Interface("guestUI"), 
+    Interface("phoneAPI"), 
+    Interface("accountAPI")), 
+  Interface("receptionUI") has Actor("receptionist"),
+  Interface("guestUI") has Actor("guest"), 
+  Interface("phoneAPI") has System("telephony"), 
+  Interface("accountAPI") has System("accounting"),
+  Data("InterfaceIO") has (
+    Interface("receptionUI") has (
+      Input("booking"), Input("checkOut"), 
+      Output("serviceNote")),
+    Interface("guestUI") has (
+      Output("confirmation"), Output("invoice"))))
 //Task: Hotel reception work
 Model(
   Task("receptionWork") has (
