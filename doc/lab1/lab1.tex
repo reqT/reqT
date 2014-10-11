@@ -112,7 +112,7 @@ reqT> m4 = m4.transform{case Req(id) => Feature(id) has Status(ELICITED)}
 \end{verbatim}}
 
 \begin{framed}\noindent
-Q2: What is the size of the m4 model after the above invocation of the transform method? 
+Q2: What is the size of the m4 model after the above transform? 
 \newline
 \verb+m4.size+
 \newline
@@ -121,7 +121,16 @@ Q2: What is the size of the m4 model after the above invocation of the transform
 
 \subsection{Investigate the reqT metamodel}
 
-Investigate what different entity types, attribute types and relation types that the reqT metamodel contains, using the evaluations in the reqT console below.
+A reqT model can be viewed as a vector of elements. Elements can be entities, attributes and relations. An entity has an id of type String. An attribute holds a value that can be of different types. A relation connects and entity via a link of a certain RelationType to a submodel that, in turn, can contain elements. A part of the reqT metamodel is shown in Figure~\ref{fig:metamodel}. 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{metamodel-simple.pdf}
+    \caption{Some classes in the reqT metamodel.}
+    \label{fig:metamodel}
+\end{figure}
+
+Investigate what different entity types, attribute types and relation types that the reqT metamodel contains, using the evaluations in the reqT console below. The collect method collects selected parts of a model into a vector. In the last evaluation below we collect the integer 1 for each occurrence of a Meta entity and sum all ones.
 
 {\footnotesize\begin{verbatim}
 reqT> reqT.metamodel.  // Press <TAB> after the dot
@@ -134,7 +143,7 @@ reqT> reqT.metamodel.entityTypes.size
 
 reqT> reqT.meta.model.pp
 
-reqT> reqT.meta.model.collect{case Meta(id) => 1}.sum
+reqT> reqT.meta.model.collect{case Meta(_) => 1}.sum
 \end{verbatim}}
 
 \begin{framed}\noindent
@@ -146,6 +155,28 @@ Q: How many \verb+Meta+ entity concepts are there in the reqT metamodel?
 \newline
 \newline \underline{\hspace{11.9cm}}
 \end{framed}
+
+The meta model elements can be used in many different ways and there are no special restrictions on how to combine the elements, except for these basic rules:
+\begin{itemize}
+\item A (sub)model can only contain one attribute of a specific type at the top level. However, the same type of attribute can exist on different levels or in different submodels of different relations. Try this in the reqT console:
+{\footnotesize\begin{verbatim}
+reqT> val m5 = Model(Spec("a"), Spec("b"))
+m5: reqT.Model = Model(Spec("b"))
+
+reqT> Model(Req("x") has (Spec("a"), Spec("b"))).pp
+Model(Req("x") has Spec("b"))
+
+reqT> Model(Req("x") has Spec("a"), Req("y") has Spec("b")).pp
+Model(Req("x") has Spec("a"), Req("y") has Spec("b"))
+\end{verbatim}}
+\item A (sub)model can only contain one entity with a certain id and a certain relation. If you add an attribute at the same level in the same relation's submodel, it will overwrite any existing attribute of the same type. Try this in the reqT console:
+{\footnotesize\begin{verbatim}
+reqT> Model(Req("x") has Spec("a"), Req("x") has Spec("b")).pp
+Model(Req("x") has Spec("b"))
+\end{verbatim}}
+
+\item The has-relation is special, as an entity with no relation is equivalent to an entity with a has-relation to an empty submodel.
+\end{itemize}
 
 \section{Additional quests if more time is available}
 
