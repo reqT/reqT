@@ -59,10 +59,96 @@ trait ModelIterators extends ModelBase {
         ( if (f.isDefinedAt(rel)) Vector(f(rel)) else Vector[T]() ) ++  
         ( rel.tail.collect(f) )  // ???
       case _ => Vector()  }  )
+      
+  def map[T](f: Elem => T): Vector[T] = collect { case e => f(e) } 
+  def foreach(f: Elem => Unit): Unit = map(f)
+
+ /* def map[U](f: Elem => U): Vector[U] = elems.flatMap { e =>  //???
+    e match {
+      case n: Node     => Vector(f(n))
+      case r@Relation(e,l,t) => Vector(f(e)) ++ Vector(f(r)) ++ t.map(f)      
+      case _ => Vector()       
+    }
+  } 
+  
+  def map(f: Elem => Elem): Model = elems.map { e =>  //???
+    e match {
+      case n: Node     => Model(f(n))
+      case Relation(e,l,t) => f(e) match {
+         case ent: Entity => Model(ent) ++ Model(f(Relation(ent,l,t.map(f))))
+         case _ => Model(f(e)) ++ Model(f(Relation(e,l,t.map(f))))        
+      }      
+      case _ => Model()       
+    }
+  } .foldLeft(Model())(_ ++ _)
+  
+  def foreach[T](f: Elem => Unit): Unit =  elems.foreach { e =>  //???
+    e match {
+      case n: Node     => f(n)
+      case Relation(e,l,t) => 
+        f(e)
+        t.foreach(f)
+        f(Relation(e,l,t))
+      case _ =>        
+    }
+  } */
+
+  def transform(f: PartialFunction[Elem,Elem]): Model = elems.map { e =>  //???
+    e match {
+      case n: Node if f.isDefinedAt(n) => Model(f(n))
+      case r@Relation(e,l,t) if f.isDefinedAt(e) && f.isDefinedAt(r) => f(e) match {
+         case ent: Entity if ent != e => Model(f(Relation(ent,l,t.transform(f)))) ++ Model(ent) //is this the order what we want???
+         case ent: Entity if ent == e => Model(f(Relation(ent,l,t.transform(f)))) //to make transform{case e=>e} not inflate the model
+         case _ => Model(f(Relation(e,l,t.transform(f)))) ++ Model(f(e)) //is this the order what we want???       
+      }      
+      case r@Relation(e,l,t) if f.isDefinedAt(e) => f(e) match {
+         case ent: Entity if ent != e => Model(Relation(ent,l,t.transform(f))) ++ Model(ent) //is this the order what we want???     
+         case ent: Entity if ent == e => Model(Relation(ent,l,t.transform(f))) //to make transform{case e=>e}  transform not inflate the model     
+         case _ =>  Model(Relation(e,l,t.transform(f))) ++ Model(f(e)) //is this the order what we want???     
+      } 
+      case r@Relation(e,l,t) if f.isDefinedAt(r) => Model(f(Relation(e,l,t.transform(f))))         
+      case Relation(e,l,t) => Model(Relation(e,l,t.transform(f)))         
+      case _ => Model(e)       
+    }
+  } .foldLeft(Model())(_ ++ _)  
+  
+  def transformEntity(f: PartialFunction[Entity, Entity]): Model = elems.map { elem => 
+    elem match {
+      case e : Entity if f.isDefinedAt(e) => f(e)
+      case Relation(e,l,t) if f.isDefinedAt(e) => Relation(f(e),l,t.transformEntity(f))
+      case Relation(e,l,t) => Relation(e,l,t.transformEntity(f))
+      case _ => elem      
+    }
+  } .toModel
+
+  def transformLeafEntity(f: PartialFunction[Entity, Elem]): Model = elems.map { elem => 
+    elem match {
+      case e : Entity if f.isDefinedAt(e) => f(e)
+      case Relation(e,l,t) => Relation(e,l,t.transformLeafEntity(f))
+      case _ => elem      
+    }
+  } .toModel
+  
+  def transformAttribute(f: PartialFunction[Attribute[_],Elem]): Model = elems.map { elem => 
+    elem match {
+      case a : Attribute[_] if f.isDefinedAt(a) => f(a)
+      case Relation(e,l,t) => Relation(e,l,t.transformAttribute(f))
+      case _ => elem      
+    }
+  } .toModel  
+
+  def transformRelation(f: PartialFunction[Relation,Elem]): Model = elems.map { elem => 
+    elem match {
+      case r@Relation(e,l,t) if f.isDefinedAt(r) => f(Relation(e,l,t.transformRelation(f)))
+      case Relation(e,l,t) => Relation(e,l,t.transformRelation(f))
+      case _ => elem      
+    }
+  } .toModel  
   
   def withFilter(f: Elem => Boolean): FilterMonadic[reqT.Elem,Iterable[reqT.Elem]] = 
-    toIterable.withFilter(f) //needed to make for-comprehensions work over Model
-  //def map[U](f: Elem => U): Vector[U] = elems.map(f)
+    toIterable.withFilter(f) //needed to make for-comprehensions work over Model //too shallow??
+
+  //def map[U](f: Elem => U): Vector[U] = elems.map(f)  //better clients use: m.toVector.map(...)
 
   def filter(p: Elem => Boolean): Model = elems.flatMap ( e =>   //???
     e match {
@@ -110,13 +196,7 @@ trait ModelIterators extends ModelBase {
     }
   }*/
 
-  def map[U](f: Elem => U): Vector[U] = elems.flatMap { e =>  //???
-    e match {
-      case n: Node     => Vector(f(n))
-      case r@Relation(e,l,t) => Vector(f(e)) ++ Vector(f(r)) ++ t.map(f)      
-      case NoElem => Vector()       
-    }
-  }
+
 
   
   def foreachDeep[U](f: Elem => U): Unit = elems.foreach { e => 
