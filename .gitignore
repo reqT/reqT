@@ -5,9 +5,9 @@ old/
 reqT.jar
 .cache
 .git
-.aux
-.log
-.out
-.synctex.gz
+*.aux
+*.log
+*.out
+*.synctex.gz
 
 

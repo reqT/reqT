@@ -156,27 +156,37 @@ Q: How many \verb+Meta+ entity concepts are there in the reqT metamodel?
 \newline \underline{\hspace{11.9cm}}
 \end{framed}
 
-The meta model elements can be used in many different ways and there are no special restrictions on how to combine the elements, except for these basic rules:
-\begin{itemize}
-\item A (sub)model can only contain one attribute of a specific type at the top level. However, the same type of attribute can exist on different levels or in different submodels of different relations. Try this in the reqT console:
+The meta model elements can be used in many different ways and there are no special restrictions on how to combine the elements, except for these three basic rules:
+\begin{enumerate}
+\item A model or submodel can only contain one attribute of a specific type at its top level. However, the same type of attribute can in different submodels. Try this in the reqT console:
 {\footnotesize\begin{verbatim}
-reqT> val m5 = Model(Spec("a"), Spec("b"))
-m5: reqT.Model = Model(Spec("b"))
+reqT> Model(Spec("a"), Spec("b"))
+res1: reqT.Model = Model(Spec("b"))
 
-reqT> Model(Req("x") has (Spec("a"), Spec("b"))).pp
-Model(Req("x") has Spec("b"))
+reqT> Model(Req("x") has (Spec("a"), Spec("b")))
+res2: Model(Req("x") has Spec("b"))
 
-reqT> Model(Req("x") has Spec("a"), Req("y") has Spec("b")).pp
-Model(Req("x") has Spec("a"), Req("y") has Spec("b"))
+reqT> Model(Req("x") has Spec("a"), Req("y") has Spec("b"))
+res3: Model(Req("x") has Spec("a"), Req("y") has Spec("b"))
 \end{verbatim}}
-\item A (sub)model can only contain one entity with a certain id and a certain relation. If you add an attribute at the same level in the same relation's submodel, it will overwrite any existing attribute of the same type. Try this in the reqT console:
+\item A model or a submodel can only contain one entity with a certain id and a certain relation at its top level. If you add an entity with the same id and the same relation on the top level of a model or submodel, it will merge the elements of each submodel, and if the above rule applies attributes will be overwritten if of the same type. Try this in the reqT console:
 {\footnotesize\begin{verbatim}
-reqT> Model(Req("x") has Spec("a"), Req("x") has Spec("b")).pp
-Model(Req("x") has Spec("b"))
+reqT> val m6 = Model(Req("x") has (Req("s1"), Spec("a"))) 
+
+reqT> m6 + (Req("x") has (Req("s2"),Spec("b")))
+res4: Model(Req("x") has (Req("s1"), Req("s2"), Spec("b")))
 \end{verbatim}}
 
-\item The has-relation is special, as an entity with no relation is equivalent to an entity with a has-relation to an empty submodel.
-\end{itemize}
+\item The has-relation is special, as an entity with no relation is equivalent to an entity with a has-relation to an empty submodel. Try this in the reqT console:
+{\footnotesize\begin{verbatim}
+reqT> Model(Req("x") has ())
+res5: reqT.Model = Model(Req("x"))
+
+reqT> Model(Req("x") has Spec("x")) - Spec("x")
+res6: reqT.Model = Model(Req("x"))
+\end{verbatim}}
+
+\end{enumerate}
 
 \section{Additional quests if more time is available}
 
