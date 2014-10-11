@@ -286,6 +286,5 @@ trait ModelBasicOps  {
     } } .toModel
     iter(sortTopLevel(this))
   }
-  
-  
+
 }

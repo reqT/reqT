@@ -60,6 +60,14 @@ package object meta {
     Meta("enumDefaults") has (
       Meta("StatusValue") has Meta("ELICITED")))  
   
+  val statusUp = Map[StatusValue, StatusValue](
+    ELICITED -> SPECIFIED, SPECIFIED -> VALIDATED, VALIDATED -> PLANNED, PLANNED -> IMPLEMENTED, IMPLEMENTED -> TESTED, FAILED -> IMPLEMENTED, POSTPONED -> PLANNED, DROPPED -> ELICITED). withDefaultValue(RELEASED)
+  
+  val statusDown = Map[StatusValue, StatusValue](
+    VALIDATED -> SPECIFIED, PLANNED -> POSTPONED, IMPLEMENTED -> FAILED, TESTED -> FAILED, RELEASED -> FAILED). withDefaultValue(DROPPED)
+  
+  val (statusStart, statusEnd, statusDead) = (ELICITED, RELEASED, DROPPED)
+  
   def toGraphViz: String = {
     val m = model * superOf inverse(superOf, is)
     val body = m.elems .
