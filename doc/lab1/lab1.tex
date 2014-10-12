@@ -20,11 +20,11 @@
 
 \subsection{Purpose} This document provides instructions on how to prepare for and run a computer lab session on requirements modeling. The lab session illustrates how computer-supported requirements modeling can help in requirements engineering, including elicitation, specification and validation. {\it The preparations in this document should be completed before the actual lab is run.}
 
-\subsection{Background} Requirements engineering is a dynamic process where knowledge and perception of an imagined future system (of systems) is evolving over time. During this evolution we can capture the knowledge and creative ideas we elicit in various ways, depending on how we imagine the (later) usage of this information: we could create and use, for example, spread sheets, post-it notes, emails, wikis, video clips, mockups, sketches, diagrams, mathematical specifications, etc. 
+\subsection{Background} Requirements engineering is a dynamic process where the understanding of an imagined future system (of systems) is evolving over time. During this evolution we can capture the knowledge and creative ideas we elicit in various ways, depending on how we foresee the (later) usage of that knowledge. We could create and use, for example, spread sheets, post-it notes, emails, wikis, video clips, mockups, sketches, diagrams, mathematical specifications, etc. 
 
-If we want to keep track many different types of inter-related requirements and if we see a future benefit of more structure beyond just a flat list, we can use {\it requirements models} where requirements are expressed using relevant (meta-) {\bf entities}, {\bf attributes} and {\bf relations} that can capture what we want to model.   
+If we want to keep track of many different types of inter-related requirements and if we see a future benefit of more structure beyond just a flat list, we can use {\it requirements models} where requirements are expressed using relevant (meta-) {\bf entities}, {\bf attributes} and {\bf relations} that can capture what we want to model.   
 
-The open source tool {\bf reqT} enables scalable requirements modeling, ranging from small models of a couple of features to large models containing elaborate structures of thousands of requirements. In this lab you will learn how to get started with requirements modeling through the use of reqT and reflect on how you could model the requirements of your own project with reqT.
+The free, open source tool reqT enables scalable requirements modeling, ranging from small models of a couple of features to large models containing elaborate structures of thousands of requirements. In this lab you will learn how to get started with requirements modeling through the use of reqT and reflect on how you could model the requirements of your own project with reqT.
 
 \clearpage\newpage
 \section{Preparations}
@@ -92,6 +92,8 @@ Try out the commands above in the reqT console. Use the \verb+:help+ command to 
 \end{framed}}
 
 \subsection{Create and update models using the reqT console}
+
+\begin{framed}\noindent
 Type in the following lines in the reqT console after the \verb+reqT>+ prompt. Press enter after each line. The \verb?+? operator is used to add elements to a model, and the  \verb?++? operator is used to append one model to another.
 
 {\small\begin{verbatim}
@@ -104,18 +106,18 @@ reqT> val m3 = Model(Stakeholder("x") requires Req("a"))
 reqT> ((m3 + Stakeholder("y")) ++ m2).size
 \end{verbatim}}
 
-\begin{framed}\noindent
-What is the integer value result of the last evaluation? 
+
+\noindent What is the integer value result of the last evaluation? 
 \newline 
 \verb?((m3 + Stakeholder("y")) ++ m2).size?
 \newline
 \newline \underline{\hspace{10cm}}
-\end{framed}
 
-Continue to type in the following lines in the reqT console after the \verb+reqT>+ prompt. Press enter after each line. The \verb+for+ keyword is used to make a for-loop. The \verb+yield+ keyword is used in a for-comprehension to construct a sequence of values.  The \verb+val+ keyword is used to declare a name that refers to an immutable value (a constant) and the \verb+var+ keyword is used to declare a name that refers to a mutable value (a variable). The \verb?-? operator is used to remove elements from a model. With the \verb+transform+ method you can make transformations of specific elements in a model. 
+\vspace{7mm}
+\noindent Continue to type in the following lines in the reqT console after the \verb+reqT>+ prompt. Press enter after each line. The \verb+for+ keyword is used to make a for-loop. The \verb+yield+ keyword is used in a for-comprehension to construct a sequence of values.  The \verb+val+ keyword is used to declare a name that refers to an immutable value (a constant) and the \verb+var+ keyword is used to declare a name that refers to a mutable value (a variable). The \verb?-? operator is used to remove elements from a model. With the \verb+transform+ method you can make transformations of specific elements in a model. 
 
 
-{\footnotesize\begin{verbatim}
+{\scriptsize\begin{verbatim}
 reqT> var m4 = (for (i <- 1 to 10) yield Req("r"+i)).toModel
 
 reqT> (1 to 10).map(i => Req("r"+i)).toModel //alternative to above
@@ -129,9 +131,8 @@ reqT> m4 -=  Req("r3")
 reqT> m4.pp   //pretty-print m4
 
 reqT> m4 = m4.transform{case Req(id) => Feature(id) has Status(ELICITED)}
-
 \end{verbatim}}
-
+\end{framed}
 \begin{framed}\noindent
 What is the size of the m4 model after the above transform? 
 \newline
@@ -151,8 +152,9 @@ A reqT model can be viewed as a vector of elements. Elements can be entities, at
     \label{fig:metamodel}
 \end{figure}
 
-Investigate what different entity types, attribute types and relation types that the reqT metamodel contains, using the evaluations in the reqT console below. The collect method collects selected parts of a model into a vector. In the last evaluation below we collect the integer 1 for each occurrence of a Meta entity and sum all ones.
+Investigate what different entity types, attribute types and relation types that the reqT metamodel contains, using the evaluations in the reqT console below. 
 
+\begin{framed}
 {\footnotesize\begin{verbatim}
 reqT> reqT.metamodel.  // Press <TAB> after the dot
 
@@ -166,8 +168,9 @@ reqT> reqT.meta.model.pp
 
 reqT> reqT.meta.model.collect{case Meta(_) => 1}.sum
 \end{verbatim}}
-
-\begin{framed}\noindent
+\noindent The collect method gathers selected parts of a model into a vector. In the last evaluation above we collected the integer 1 for each occurrence of a Meta entity and sum all ones.
+\newline\newline 
+\noindent
 How many different entity types, attribute types and relation types are there respectively in the reqT metamodel? 
 \newline
 \newline \underline{\hspace{10cm}}
@@ -205,7 +208,7 @@ reqT> Model(Req("x") has Prio(1), Req("y") requires Prio(1)) - Prio(1)
 \end{framed}
 
 \begin{framed}\noindent
-Create a model with two stakeholders \verb+a+ and \verb+b+, both requiring the same two features \verb+x+ and \verb+y+. The stakeholders' features shall have different priorities: a thinks x is of higher priority than y, while b thinks the opposite. Declare a constant called \verb+prio+ that refers to the model. Write the reqT code that describe your model below and then test it in the reqT console.
+Create a model with two stakeholders \verb+a+ and \verb+b+, both requiring the same two features \verb+x+ and \verb+y+. The stakeholders' features shall have different priorities: a thinks x is of higher priority than y, while b thinks the opposite. Declare a constant called \verb+prio+ that refers to the model. Write the reqT code that describes your model below and then test it in the reqT console.
 \newline
 \newline 
 \vspace{3cm}
@@ -213,7 +216,11 @@ Create a model with two stakeholders \verb+a+ and \verb+b+, both requiring the s
 \end{framed}
 
 When you create a reqT model, you actually create an immutable, tree-like data structure that consists of computational objects in the Java Virtual Machine (JVM) runtime environment. When you encode reqT models you are actually coding in the \href{http://en.wikipedia.org/wiki/Scala_\%28programming_language\%29} {Scala programming language} that compiles to JVM byte code. The reqT metamodel classes are actually Scala classes and the reqT language is embedded in Scala. The \verb+reqT.jar+ file includes the Scala compiler and the reqT console wraps the so called Scala Read-Evaluate-Print-Loop (REPL), which enables any Scala code snippet to be interactively compiled and run on a line-by-line basis at the reqT prompt. 
-
+\begin{framed}\noindent All the avaliable JDK classes can be accessed from the \verb+reqT>+ prompt. Try:
+{\footnotesize\begin{verbatim}
+javax.swing.JOptionPane.showMessageDialog(null,"Hello Swing!")
+\end{verbatim}}
+\end{framed}
 \subsection{Access elements in models using paths}
 
 A model is represented using a recursive data structure where relation elements can include submodels, which in turn can include relation elements that include submodels. The recursive nature of the model data structure thus enables hierarchical, tree-like requirements models of arbitrary depths. The submodels and elements of submodels at different levels can be accesses using paths that are constructed using the \verb+/+ operator called {\it enter}. 
@@ -253,9 +260,8 @@ reqT> pm.leafPaths
 reqT> pm.leafPaths.map(_.depth).max   //write down the max depth: ______
 \end{verbatim}}
 \end{framed}
-
 \begin{framed}\noindent
-Create a random model using these commands, and note its max depth: \underline{\hspace{1cm}}
+Create a random model using the commands below, and write down its max depth: \underline{\hspace{1cm}}
 {\scriptsize \begin{verbatim}
 reqT> val rm = rndModel(10)
  
@@ -343,25 +349,84 @@ You can also preload a ModelTreeEditor instance with a model, e.g. called \verb+
 
 The reqT ModelTreeEditor gui has two parts:
 \begin{itemize}
-\item {\bf Tree}. The Tree displays a tree view of a model, where each head node can be collapsed or expanded using the right and left arrows or by clicking on the handle by the left of the folder symbol.
-\item {\bf Editor}. The Editor 
+\item {\bf The Tree}. The Tree displays a tree view of a model, where each head node can be collapsed or expanded using the right and left arrows or by clicking on the handle by the left of the folder symbol. Model elements can be deleted using the forward DELETE key.
+\item {\bf The Editor}. The Editor is aware of the reqT metamodel and Scala syntax and provides syntax coloring and code completion on model elements. Entities are of light blue color, relations are of red color and attributes are shown in green color. Reserved words of Scala are given a dark blue color.
 \end{itemize}
 
-<Explain the GUI parts>
+The Tree and the Editor are two separate buffers, each having its own data. The Tree has its own reqT model converted to a javax.swing.JTree, while the content in the Editor can be any text (typically users have a textual representation of a reqT (sub)model undergoing  some update). 
 
-<Explain the shortcuts>
+By using the menu items in the Tree menu and the Editor menu you can transfer data from the Tree to the Editor and vice versa. You can also execute Scala code in the Editor by entering code in the Editor to the console for evaluation. The ModelTreeEditor has a number of convenient shortcuts to enable power users to quickly operate the Tree and Editor in concert.
 
-<Load your context.scala model>
+\begin{framed}
+Carry out these steps using the ModelTree Editor:
+\begin{enumerate}
+\item Investigate the {\bf Template} menu and enter a template model to the Editor and then transfer the model from the Editor to the Tree using <Ctrl+R>.
+\item Select the {\bf Help} menu item {\it Shortcuts to Editor} and investigate the different shortcuts and locate where in the menus they are. 
+\item Use the {\bf File} menu item {\it Load text file to Editor} to load your prepared model \verb+context.scala+ into the Editor.
+\item Select the root tree node and replace the tree with the model in the Editor using the Ctrl+R shortcut.
+\item Use the {\bf File} menu to serialize your context model into a new file \verb+context.reqt+
+\item Make sure you have your context model in the editor. Double click on \verb+Product+ to select it. Then select the {\bf Metamodel} {\it -> Entity -> Context -> System} menu item to replace \verb+Product+ with \verb+System+
+\item Use code completion with <Ctrl+SPACE> to change \verb+System+ to \verb+Component+ 
+\end{enumerate}
+\end{framed}
+
+The Editor can toggle between two different textual representations of a model: (1) the normal scala code that we have been using so far, and (2) a simplified model language called {\it ''reqT textified''} that represents models without any parenthesis and quotes, while using indentation to represent levels of submodels. \footnote{A textified reqT model is analogous to the \href{http://en.wikipedia.org/wiki/Markdown}{markdown} representation of a html document.} The toggling is made using the <Ctrl+T> shortcut.
+
+\begin{framed}
+Carry out these steps using the ModelTree Editor:
+\begin{enumerate}
+\item Load your \verb+feat.txt+ file into the using the <Ctrl+L> shortcut.
+\item Toggle between {\it textified} and scala representations by pressing <Ctrl+T> several times.
+\item When you have toggled to a scala model representation of your features in the Editor, select the root tree node and press <Ctrl+R> to replace the tree with your feature model.
+\item Click in the Editor pane to make sure that the Editor is in focus and press <Ctrl+A> to select all.
+\item Replace the text in the editor by entering this code: {\scriptsize\begin{verbatim}
+m =>
+  m.transform{
+    case Item(i) => Feature(i)
+    case Text(i) => Gist(i)
+  }
+\end{verbatim}}
+\item Select the {\it Apply function in editor to selected node} menu item in the {\bf Tree} menu, or use the <Alt+A> shortcut to apply the above function to the Tree model.
+\item Enter this code in the Editor and then press <Alt+A>: {\scriptsize\begin{verbatim}
+m =>
+  println("Size: " + m.size)
+  println("Depth:" + m.leafPaths.map(_.depth).max)
+  println("Number of fetaures: " + 
+    m.collect{case f: Feature => 1}.sum)
+  m
+\end{verbatim}}
+\item Explain what the above function does. Check what is printed in the console and write down the numbers: 
+\newline Size: \underline{\hspace{2cm}}
+\newline Depth: \underline{\hspace{2cm}}
+\newline Number of features: \underline{\hspace{2cm}}
+
+\item Select the root node of your tree and press <Ctrl+E> and then <Ctrl+T> and then <Alt+S> to save a textified model of your transformed feature model in the file \verb+feat-v2.txt+
+\end{enumerate}
+\end{framed}
+
+\subsection{Export/Import of models to inter-operate with other apps}
 
 \section{Additional quests if more time is available}
 
 {\footnotesize\begin{verbatim}
-m => m.transform{case Item(i) => Feature(i); case Text(i) => Gist(i)}
 _.transform{case a: Attribute[_] => NoElem}
-javax.swing.JOptionPane.showMessageDialog(null,"Hello Swing!")
 \end{verbatim}}
 
 < Look at the reqT source code at GitHub >
-\section{Conclusion}
+\section{Conclusion and reflection}
 
+There are many different ways that development projets may want to work with requirements. If there are several project members, it may be useful to distribute the evolving work results into different files to make version management easier as things evolve and grow. Some projects may want to use html or wikis, while others may want to use a word processor or a spreadsheet. Some may want to use latex while others may want to collaborate using docs in a cloud app. Some may want to manage their evolving requirements models in a version control cloud service such at \url{http://GitHub.org} or \url{http://Bitbucket.org}. 
+
+The basic idea behind reqT is to offer a flexible tool that can enable users to work in different ways. The flexibility of reqT is also shown in that the concept in its metamodel can be used in whatever way the users want as long as the hierarchical entity-attribute-relationship semantics are followed. You get a bag of concepts to use in your model, but you have to come up with your own modeling policy on how to use the bag of concepts available.
+
+\begin{framed}
+Reflect upon these discussion questions and write down some reflections:
+\begin{enumerate}
+\item How would you like to keep track of the evolving requirements of your development project?
+\item How could you benefit from using reqT in your project?
+\item What are the pros and cons of using a desktop word processor versus reqT models? 
+\item What type of entities, attributes and relations in the reqT metamodel are relevant to your project?
+\item Investigate the templates in the Templates menu of the ModelTreeEditor. Are any of these types of models relevant to your project? What other types of models will you need?
+\end{enumerate}
+\end{framed}
 \end{document}
