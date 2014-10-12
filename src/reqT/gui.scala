@@ -711,9 +711,9 @@ object gui { //GUI implementation
           --->("Collapse all", VK_C, VK_LEFT, ALT) { doCollapseAll() },
           --->("Expand all", VK_E, VK_RIGHT, ALT) { doExpandAll() },
           --->("Refresh all nodes", VK_F, VK_F5, 0) { doRefresh() },
-          --->("Revert to initial tree", VK_V, 0, 0) { doUndoAll() }),
+          --->("Revert Tree to initial model", VK_V, 0, 0) { doUndoAll() }),
         ===>("Editor", VK_E,
-          --->("Edit selected tree node in editor", VK_E, VK_E, CTRL) { doEnter() },
+          --->("Edit selected tree node in Editor", VK_E, VK_E, CTRL) { doEnter() },
           --->("Run Script => Console", VK_R, VK_ENTER, CTRL) { doRunToConsole() },
           --->("{Evaluate} => Editor", VK_E, VK_ENTER, ALT) { doRunToEditor() },
           ---,
@@ -729,9 +729,9 @@ object gui { //GUI implementation
             "Editor Insert"  -> ( () => { templateProcessor = editor.replaceSelection _ } )   
           ), default = "Editor Replace"), --- ),
         ===>("Help", VK_H,
-          --->("Shortcuts to editor", VK_E, 0, 0) { doHelpEditor() },
-          --->("Metamodel to editor", VK_M, 0, 0) { doHelpMetamodel() },
-          --->("About reqT to editor", VK_A, 0, 0) { doHelpAbout() })
+          --->("Shortcuts to Editor", VK_E, 0, 0) { doHelpEditor() },
+          --->("Metamodel to Editor", VK_M, 0, 0) { doHelpMetamodel() },
+          --->("About reqT to Editor", VK_A, 0, 0) { doHelpAbout() })
       ).installTo(frame)
       
       val metamodelMenu = menuMap("Metamodel").asInstanceOf[JMenuItem]
