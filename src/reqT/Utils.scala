@@ -149,6 +149,7 @@ trait FileUtils {
   }
   
   def pwd { println(workDir)}
+  def mkdir(d: String) = new java.io.File(d).mkdirs
 
   def load(fileName:String): String = {
     val fn = resolveFileName(fileName)
@@ -185,7 +186,6 @@ trait FileUtils {
     val homeDir = slashify(java.lang.System.getProperty("user.home"))
     @volatile protected [FileUtils] var workingDirectory = startDir
     def workDir = workingDirectory
-    def mkdir(d: String) = new java.io.File(d).mkdirs
     def resolveFileName(fileName: String): String = {
       val f = new java.io.File(fileName)
       val fn = slashify(f.toString)

@@ -8,6 +8,8 @@
 \usepackage{hyperref}
 \usepackage{fancyvrb}
 \usepackage[english]{babel}
+\usepackage{enumitem} 
+\setlist[itemize]{noitemsep}
 \title{{\bf LAB 1:\\Requirements Modeling}\\ Preparations and instructions}
 \author{Björn Regnell}
 \date{\today}
@@ -22,7 +24,7 @@
 
 If we want to keep track many different types of inter-related requirements and if we see a future benefit of more structure beyond just a flat list, we can use {\it requirements models} where requirements are expressed using relevant (meta-) {\bf entities}, {\bf attributes} and {\bf relations} that can capture what we want to model.   
 
-The open source tool {\bf reqT} enables scalable requirements modeling, ranging from small models of a couple of features to large models containing elaborate structures of thousands of requirements. In this lab you will learn how to get started with reqT and reflect on how you could use reqT in your own project.
+The open source tool {\bf reqT} enables scalable requirements modeling, ranging from small models of a couple of features to large models containing elaborate structures of thousands of requirements. In this lab you will learn how to get started with requirements modeling through the use of reqT and reflect on how you could model the requirements of your own project with reqT.
 
 \clearpage\newpage
 \section{Preparations}
@@ -61,14 +63,33 @@ Saved the list of features in a text file called \verb+feat.txt+
 \section{Lab instructions}
 
 \subsection{Start reqT}
-Download the reqT.jar file from \url{http://reqT.org} and start reqT in a terminal window using this command: \verb+java -jar reqT.jar+ as shown in Figure~\ref{fig:console}.
+Download the reqT.jar file from \url{http://reqT.org} and start reqT in a terminal window using this command: \verb+java -jar reqT.jar+ as shown in Figure~\ref{fig:console}. Make sure you have the text files from your preparations available in the same directory as you start reqT.
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{console.png}
+    \includegraphics[width=0.7\textwidth]{console.png}
     \caption{The reqT console output after starting reqT in a terminal window.}
     \label{fig:console}
 \end{figure}
+
+In the reqT console these keystrokes and commands work as follows:
+{\footnotesize 
+\begin{itemize}[label={}]
+\item <Ctrl+A> to move the cursor to the beginning of a line.
+\item <Ctrl+E> to move the cursor to the end of a line.
+\item <Ctrl+K> to ''kill'' the characters from the cursor to the line end.
+\item <Arrow Left/Right> to move the cursor backward/forward within a line. 
+\item <Arrow Up/Down> to move backward/forward in the command history. 
+\item <TAB> to invoke code completion.
+\item \verb+:q+ to quit reqT when all threads and windows have been exited.
+\item \verb+:help+ to get help on console commands.
+\item \verb+sys.exit+ to exit reqT and kill all threads and any windows without saving.
+\end{itemize}
+}
+
+{\begin{framed}\noindent
+Try out the commands above in the reqT console. Use the \verb+:help+ command to figure out how to enter paste mode. Paste some text when in paste mode using mouse right-click. End paste mode with <Ctrl+D>. What is the shortest, unambiguous abbreviation of the enter-paste-mode-command?  \underline{\hspace{2cm}}
+\end{framed}}
 
 \subsection{Create and update models using the reqT console}
 Type in the following lines in the reqT console after the \verb+reqT>+ prompt. Press enter after each line. The \verb?+? operator is used to add elements to a model, and the  \verb?++? operator is used to append one model to another.
@@ -84,11 +105,11 @@ reqT> ((m3 + Stakeholder("y")) ++ m2).size
 \end{verbatim}}
 
 \begin{framed}\noindent
-Q1: What is the integer value result of the last evaluation? 
+What is the integer value result of the last evaluation? 
 \newline 
 \verb?((m3 + Stakeholder("y")) ++ m2).size?
 \newline
-\newline \underline{\hspace{11.9cm}}
+\newline \underline{\hspace{10cm}}
 \end{framed}
 
 Continue to type in the following lines in the reqT console after the \verb+reqT>+ prompt. Press enter after each line. The \verb+for+ keyword is used to make a for-loop. The \verb+yield+ keyword is used in a for-comprehension to construct a sequence of values.  The \verb+val+ keyword is used to declare a name that refers to an immutable value (a constant) and the \verb+var+ keyword is used to declare a name that refers to a mutable value (a variable). The \verb?-? operator is used to remove elements from a model. With the \verb+transform+ method you can make transformations of specific elements in a model. 
@@ -112,11 +133,11 @@ reqT> m4 = m4.transform{case Req(id) => Feature(id) has Status(ELICITED)}
 \end{verbatim}}
 
 \begin{framed}\noindent
-Q2: What is the size of the m4 model after the above transform? 
+What is the size of the m4 model after the above transform? 
 \newline
 \verb+m4.size+
 \newline
-\newline \underline{\hspace{11.9cm}}
+\newline \underline{\hspace{10cm}}
 \end{framed}
 
 \subsection{Investigate the reqT metamodel}
@@ -147,46 +168,190 @@ reqT> reqT.meta.model.collect{case Meta(_) => 1}.sum
 \end{verbatim}}
 
 \begin{framed}\noindent
-Q: How many different entity types, attribute types and relation types are there respectively in the reqT metamodel? 
+How many different entity types, attribute types and relation types are there respectively in the reqT metamodel? 
 \newline
-\newline \underline{\hspace{11.9cm}}
+\newline \underline{\hspace{10cm}}
 \newline\newline
-Q: How many \verb+Meta+ entity concepts are there in the reqT metamodel? 
+How many \verb+Meta+ entity concepts are there in the reqT metamodel? 
 \newline
-\newline \underline{\hspace{11.9cm}}
+\newline \underline{\hspace{10cm}}
 \end{framed}
 
-The meta model elements can be used in many different ways and there are no special restrictions on how to combine the elements, except for these three basic rules:
+The meta model elements can be used in many different ways. There are no restrictions on how to combine the elements, except for these three basic rules:
 \begin{enumerate}
-\item A model or submodel can only contain one attribute of a specific type at its top level. However, the same type of attribute can in different submodels. Try this in the reqT console:
-{\footnotesize\begin{verbatim}
-reqT> Model(Spec("a"), Spec("b"))
-res1: reqT.Model = Model(Spec("b"))
-
-reqT> Model(Req("x") has (Spec("a"), Spec("b")))
-res2: Model(Req("x") has Spec("b"))
-
-reqT> Model(Req("x") has Spec("a"), Req("y") has Spec("b"))
-res3: Model(Req("x") has Spec("a"), Req("y") has Spec("b"))
-\end{verbatim}}
-\item A model or a submodel can only contain one entity with a certain id and a certain relation at its top level. If you add an entity with the same id and the same relation on the top level of a model or submodel, it will merge the elements of each submodel, and if the above rule applies attributes will be overwritten if of the same type. Try this in the reqT console:
-{\footnotesize\begin{verbatim}
-reqT> val m6 = Model(Req("x") has (Req("s1"), Spec("a"))) 
-
-reqT> m6 + (Req("x") has (Req("s2"),Spec("b")))
-res4: Model(Req("x") has (Req("s1"), Req("s2"), Spec("b")))
-\end{verbatim}}
-
-\item The has-relation is special, as an entity with no relation is equivalent to an entity with a has-relation to an empty submodel. Try this in the reqT console:
-{\footnotesize\begin{verbatim}
-reqT> Model(Req("x") has ())
-res5: reqT.Model = Model(Req("x"))
-
-reqT> Model(Req("x") has Spec("x")) - Spec("x")
-res6: reqT.Model = Model(Req("x"))
-\end{verbatim}}
-
+\item {\bf Attribute identity}. A model or submodel can only contain at most {\it one} attribute of a specific type at its top level. However, the same type of attribute can co-exist if they reside in different submodels of the same model. 
+\item {\bf Entity identity}. A model or a submodel can only contain at most {\it one} entity with a certain id and a certain relation at its top level. If you add an entity with the same id and the same relation at the top level of a model or submodel, it will merge the elements of each submodel, and if the above rule applies then the last same-typed attribute will be overwrite the former. 
+\item {\bf Leaf entity has empty submodel}. The \verb+has+-relation is special, as a leaf entity that has no relations to any subelements is equivalent to an entity with a has-relation to an empty submodel. 
 \end{enumerate}
+
+\begin{framed}\noindent
+Try the subsequent statements in the reqT console, where \verb+Prio+ is an attribute type and \verb+Req+ is an entity type and \verb+has+ and \verb+requires+ are relation types. Make sure you can explain the evaluation results in relation to the rules above. Write the number of the rule(s) (1 -- 3) that is/are in effect besides each evaluation. 
+
+{\scriptsize \begin{verbatim}
+reqT> Model(Prio(1), Prio(2))
+
+reqT> Model(Req("x") has (Prio(1), Prio(2)))
+
+reqT> Model(Req("x") has Prio(1), Req("y") has Prio(1))
+
+reqT> val m6 = Model(Req("x") has (Req("sub1"), Prio(1), Prio(2))) 
+
+reqT> m6 + (Req("x") has (Req("sub2"),Prio(3)))
+
+reqT> Model(Req("x") has ())
+
+reqT> Model(Req("x") has Prio(1), Req("y") requires Prio(1)) - Prio(1)
+\end{verbatim}}
+\end{framed}
+
+\begin{framed}\noindent
+Create a model with two stakeholders \verb+a+ and \verb+b+, both requiring the same two features \verb+x+ and \verb+y+. The stakeholders' features shall have different priorities: a thinks x is of higher priority than y, while b thinks the opposite. Declare a constant called \verb+prio+ that refers to the model. Write the reqT code that describe your model below and then test it in the reqT console.
+\newline
+\newline 
+\vspace{3cm}
+
+\end{framed}
+
+When you create a reqT model, you actually create an immutable, tree-like data structure that consists of computational objects in the Java Virtual Machine (JVM) runtime environment. When you encode reqT models you are actually coding in the \href{http://en.wikipedia.org/wiki/Scala_\%28programming_language\%29} {Scala programming language} that compiles to JVM byte code. The reqT metamodel classes are actually Scala classes and the reqT language is embedded in Scala. The \verb+reqT.jar+ file includes the Scala compiler and the reqT console wraps the so called Scala Read-Evaluate-Print-Loop (REPL), which enables any Scala code snippet to be interactively compiled and run on a line-by-line basis at the reqT prompt. 
+
+\subsection{Access elements in models using paths}
+
+A model is represented using a recursive data structure where relation elements can include submodels, which in turn can include relation elements that include submodels. The recursive nature of the model data structure thus enables hierarchical, tree-like requirements models of arbitrary depths. The submodels and elements of submodels at different levels can be accesses using paths that are constructed using the \verb+/+ operator called {\it enter}. 
+
+A {\it head} is a start of a relation that combines an entity with a relation type using dot notation, such as  
+\verb+Feature("x").has+ and \verb+Stakeholder("b").requires+  
+
+Paths begin with a sequence of {\it heads} separated by \verb+/+ and may end with either (1) a head, (2) an entity, (3) an attribute type or (4) an attribute. The has relation is special: in paths an entity without any relation type is interpreted as an entity with a \verb+.has+ relation. 
+
+\begin{framed}\noindent
+Try these path examples in the reqT console: 
+{\scriptsize \begin{verbatim}
+reqT> val p1 = Stakeholder("a").requires/Feature("x").has/Prio(42)
+
+reqT> p1.depth    //write down the depth: _______
+
+reqT> val p2 = Stakeholder("b")/Feature("x")/Prio(21)
+
+reqT> p2.init
+
+reqT> val p3 = p2.init/Feature("sub")/Prio(9)
+
+reqT> p3.toModel
+
+reqT> var pm = Vector(p1,p2,p3).toModel
+
+reqT> pm/Stakeholder("b").has
+
+reqT> pm/Stakeholder("b")
+
+reqT> pm/Stakeholder("a").requires/Feature("x")/Prio
+
+reqT> pm = pm + Stakeholder("a").requires/Feature("x")/Prio(1)
+
+reqT> pm.leafPaths
+
+reqT> pm.leafPaths.map(_.depth).max   //write down the max depth: ______
+\end{verbatim}}
+\end{framed}
+
+\begin{framed}\noindent
+Create a random model using these commands, and note its max depth: \underline{\hspace{1cm}}
+{\scriptsize \begin{verbatim}
+reqT> val rm = rndModel(10)
+ 
+reqT> rm.pp
+
+reqT> rm.leafPaths.map(_.depth).max 
+\end{verbatim}}
+\noindent Write down the path needed to access the value of one of the deepest attributes:\newline\newline
+\verb+reqt> rm/+\underline{\hspace{9cm}}
+\end{framed}
+ 
+If a path ends with an attribute type, then it refers to the corresponding value that is boxed by that attribute in a model. If the attribute is not available when the path is applied to a model with the enter operator \verb+/+ then a default value is produced. 
+
+If you want to check the absence or presence of a value you can use the \verb+get+ method on a model. The \verb+get+ method takes a path as parameter and returns a value boxed in an instance of the \verb+Option+ class; if there was, e.g.,  an integer value of 42 then the option class evaluates to \verb+Some(42)+ or if there is no value then it evaluates to \verb+None+. You can get the actual value of an \verb+Option+ instance by calling the get method.    
+
+\begin{framed}\noindent
+Try these attribute type path examples in the reqT console: 
+{\scriptsize \begin{verbatim}
+reqT> val m = Model(Req("x") has Prio(1), Req("y"))
+
+reqT> m / Req("x") / Prio
+
+reqT> m / Req("y") / Prio    //write the default Prio value here _____
+
+reqT> m.get(Req("x")/Prio)
+
+reqT> (m/Req("x")).get(Prio).get    //same effect as previous    
+
+reqT> m / Req("x") get Prio    //equivalent to previous
+
+reqT> m / Req("x") get Prio get    
+
+reqT> m / Req("y") get Prio get    
+\end{verbatim}}
+\noindent What happens if you try to call the \verb+get+ method on a non-existing value, as in the previous evaluation?
+\newline\newline\underline{\hspace{10cm}}
+\end{framed}
+
+\subsection{Load and save files from the reqT console}
+
+You can load text files into strings and save strings into text files using commands similar to: 
+\begin{verbatim}
+val s = load("myFile.txt")
+"my String".save("myStringFile.txt")
+\end{verbatim}
+The \verb+ls+ command prints a list of files in the working directory. The \verb+pwd+ command prints the path of the working directory. The \verb+mkdir("tmp")+ command creates a new directory called \verb+tmp+ and \verb+cd("tmp")+ changes working directory to the directory \verb+tmp+ if it exists.
+
+You can also serialize a model to a binary file, which for large files may take less space compared to a text file and it may also be quicker to save and load a large binary model to and from disk compared to a text model. To serialize a binary model to disk, just call the save method on a model. To load a binary model from disk use the \verb+Model.load("filename.reqt")+ command. It is recommend to use the file suffix \verb+.reqt+ to show that it is a serialized binary file.
+
+\begin{framed}\noindent
+Check that you have the files from the lab preparations in your working directory and load your context model and convert it to a reqT model from a string using the following evaluations: 
+{\scriptsize \begin{verbatim}
+reqT> ls
+context.scala
+prio.txt
+
+reqT> var m = load("context.scala").toModel
+
+reqT> m = Model(Title("My Cool Product"), Section("Context") has m)
+
+reqT> m.toString.save("context-v2.scala")
+Saved string to file: C:/Users/bjornr/tmp/context-v2.scala
+
+reqT> m.save("context.reqt")
+Model serialized to file: context.reqt
+\end{verbatim}}
+\noindent Create a large random model using the command: \newline{\scriptsize\verb+val r = rndModel(52,2)  //max 52 at top level and then max 26 etc.+} \newline and compare the binary model size on disk with the string model text file size, by checking the file sizes in your OS. If the files get too big or it takes too much time, reduce the number of max elements at top level.\newline
+\newline Number of elements in the model: {\footnotesize\verb+r.size+} \underline{\hspace{2cm}} 
+\newline Size of binary file: {\footnotesize\verb+r.save("big.reqt")+}  \underline{\hspace{2cm}} 
+\newline Size of text file: {\footnotesize\verb+r.toString.save("big.scala")+} \underline{\hspace{2cm}}
+\end{framed}
+
+\subsection{Edit requirements with the reqT ModelTreeEditor GUI}
+
+The reqT ModelTreeEditor is a graphical user interface for navigating and updating reqT model. You start the editor with the \verb+edit+ command. You can start many ModelTreeEditor windows. 
+
+You can also preload a ModelTreeEditor instance with a model, e.g. called \verb+m+, by simply passing it as a paramter to the edit command, e.g. \verb+edit(m)+. The ModelTreeEditor is shown in Figure~\ref{fig:gui}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{gui.png}
+    \caption{The reqT ModelTreeEditor graphical user interface.}
+    \label{fig:gui}
+\end{figure}
+
+The reqT ModelTreeEditor gui has two parts:
+\begin{itemize}
+\item {\bf Tree}. The Tree displays a tree view of a model, where each head node can be collapsed or expanded using the right and left arrows or by clicking on the handle by the left of the folder symbol.
+\item {\bf Editor}. The Editor 
+\end{itemize}
+
+<Explain the GUI parts>
+
+<Explain the shortcuts>
+
+<Load your context.scala model>
 
 \section{Additional quests if more time is available}
 
@@ -196,6 +361,7 @@ _.transform{case a: Attribute[_] => NoElem}
 javax.swing.JOptionPane.showMessageDialog(null,"Hello Swing!")
 \end{verbatim}}
 
+< Look at the reqT source code at GitHub >
 \section{Conclusion}
 
 \end{document}
