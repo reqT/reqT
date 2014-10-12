@@ -107,7 +107,7 @@ object Textified {
   def parts(s: String):(Int,String,String,String) = (indentSize(s), firstWord(s), middle(s), lastWord(s))
   def placeRelation(tuple : (Int,String,String,String)) = tuple match {
     case (indent, first, mid, last) =>
-      val (mid2, last2) = if (isRelation(last) || !isEntity(first)) (mid, last) else (mid+last,"")
+      val (mid2, last2) = if (isRelation(last) || !isEntity(first)) (mid, last) else (merge(mid,last),"")
       val last3 = if (last2 == "" && isEntity(first)) "has" else last2
       (indent, first, mid2, last3)
   }
@@ -120,13 +120,13 @@ object Textified {
       }
       (indent, first2, mid2, last)
   }
-  def mergeSentences(xs: String *): String = xs.mkString(" ")
+  def merge(xs: String *): String = xs.filterNot(_ == "").mkString(" ")
   def parseElem(tuple: (Int,String,String,String)): (Int, Elem) = tuple match {
     case (indent, first, mid, last) =>
       val elem = first match {
         case _ if isEntity(first) => Relation(Head(reqT.entityFromString(first)(mid), relationTypeFromString(last)), Model()) 
-        case _ if isAttribute(first) => reqT.attributeFromString(first)(mergeSentences(mid, last).trim)
-        case _ => reqT.makeAttribute[Text](mergeSentences(first, mid, last))        
+        case _ if isAttribute(first) => reqT.attributeFromString(first)(merge(mid, last).trim)
+        case _ => reqT.makeAttribute[Text](merge(first, mid, last))        
       }
       (indent, elem)      
   }
