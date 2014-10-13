@@ -183,7 +183,7 @@ How many \verb+Meta+ entity concepts are there in the reqT metamodel?
 The meta model elements can be used in many different ways. There are no restrictions on how to combine the elements, except for these three basic rules:
 \begin{enumerate}
 \item {\bf Attribute identity}. A model or submodel can only contain at most {\it one} attribute of a specific type at its top level. However, the same type of attribute can co-exist if they reside in different submodels of the same model. 
-\item {\bf Entity identity}. A model or a submodel can only contain at most {\it one} entity with a certain id and a certain relation at its top level. If you add an entity with the same id and the same relation at the top level of a model or submodel, it will merge the elements of each submodel, and if the above rule applies then the last same-typed attribute will be overwrite the former. 
+\item {\bf Entity-Link identity}. A model or a submodel can only contain at most {\it one} entity with a certain id and a certain relation link at its top level. If you add an entity with the same id and the same relation link at the top level of a model or submodel, it will merge the elements of each submodel, and if the above rule applies then the last same-typed attribute will be overwrite the former. 
 \item {\bf Leaf entity has empty submodel}. The \verb+has+-relation is special, as a leaf entity that has no relations to any subelements is equivalent to an entity with a has-relation to an empty submodel. 
 \end{enumerate}
 
@@ -406,13 +406,43 @@ m =>
 
 \subsection{Export/Import of models to inter-operate with other apps}
 
-\section{Additional quests if more time is available}
+In order to inter-operate with other apps and services, reqT can export and import data in various formats. A basic format of inter-operation is the textual scala representation of models, which can be opened in any code editor, pasted into emails, uploaded to GitHub etc.   
 
-{\footnotesize\begin{verbatim}
-_.transform{case a: Attribute[_] => NoElem}
+
+
+\subsection{Investigate the Status attribute for tracking requirements evolution}
+
+As requirements evolve, it is often interesting to keep track of how far we have come in the evolution from elicitation to release. To enable this, reqT has a \verb+Status+ attribute which boxes a status value that  represents states of a requirements state machine similar to a ''salmon ladder'' where requirements can travel up and down an analogous ''release ladder''. In the subsequent tasks you will use the Editor to investigate the transitions between status values as requirements go up and down the ''ladder''.  
+
+\begin{framed}
+\noindent You can use the Editor to evaluate expressions and let the evaluation results be pasted into the Editor after the evaluation using the <Alt+Enter> shortcut. Enter the following code snippets and press <Alt+Enter> after each code snippet. When the Editor is in scope you can press <Ctrl+Z> to undo in several steps.
+\begin{enumerate}[noitemsep,nolistsep]
+\item Enter in editor: \verb+StatusValue.values+ and then press <Alt+Enter>.
+\item Enter in editor: \verb+ELICITED.up+ and then press <Alt+Enter>. (You can use code completion to enter ELICITED without typing so much by entering E and the press <Ctrl+Space>.)
+\item Enter in editor: \verb+ELICITED.down+ and then press <Alt+Enter>.
+\end{enumerate}
+\end{framed}
+
+\newpage %%%%%
+\begin{framed}
+\noindent Draw the state machine representing all reqT's built-in requirements status transitions by carrying out the steps below:
+\begin{enumerate}
+\item Use repeated evaluations with <Alt+Enter> in the Editor to check what happens if you call \verb+up+ or  \verb+down+ on all values in \verb+StatusValue.values+ respectively. Use <Ctrl+Space> to type faster. 
+\item Draw below a state-transition diagram with all nodes \verb+ELICITED+, \verb+SPECIFIED+, etc., with two directed edghes from each state labeled \verb+up+ and \verb+down+ respectively, showing all the transitions. \newline
+\vspace{7cm}
+\item Reflect upon what in a hypothetical project may be different paths of different features through the above diagram. Are there any transitions missing that you think might be needed? If so, why are they needed?
+\item Type this code into the Editor and select the root node in the Tree and press <Ctrl+R>:{\scriptsize\begin{verbatim}
+val up = StatusValue.values.map(v => 
+  Label(v.toString) precedes Label(v.up.toString)).toModel
+val down = StatusValue.values.map(v => 
+  Label(v.down.toString) precedes Label(v.toString)).toModel
+up ++ down
 \end{verbatim}}
+\item If you have \url{graphvis.org} installed on your machine you can now export the Tree to a flat GraphViz graph to see the state diagram.
+\end{enumerate}
+\end{framed}
 
-< Look at the reqT source code at GitHub >
+
 \section{Conclusion and reflection}
 
 There are many different ways that development projets may want to work with requirements. If there are several project members, it may be useful to distribute the evolving work results into different files to make version management easier as things evolve and grow. Some projects may want to use html or wikis, while others may want to use a word processor or a spreadsheet. Some may want to use latex while others may want to collaborate using docs in a cloud app. Some may want to manage their evolving requirements models in a version control cloud service such at \url{http://GitHub.org} or \url{http://Bitbucket.org}. 
@@ -429,4 +459,11 @@ Reflect upon these discussion questions and write down some reflections:
 \item Investigate the templates in the Templates menu of the ModelTreeEditor. Are any of these types of models relevant to your project? What other types of models will you need?
 \end{enumerate}
 \end{framed}
+{\footnotesize
+\noindent If time permits and you are curious, take a look at the reqT source code at \newline\url{https://github.com/reqT/reqT/tree/3.0.x/src/reqT}
+\newline\noindent You may want to start browsing the files \verb+ModelBasicOps.scala+ and  \verb+ModelIterators.scala+ 
+\begin{framed}
+\noindent What is the result of the operation \verb+strip+ implemented in  \verb+ModelBasicOps.scala+?
+\end{framed}
+}
 \end{document}
