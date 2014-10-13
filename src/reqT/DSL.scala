@@ -331,6 +331,20 @@ case object Constraints extends ConstrVectorType {
   //} ).get 
 }
 
+//*** TODO : integrate the below stuff with reqT.meta.model and the DSL above
+case class Timestamp(date: java.util.Date)
+case object Timestamp {
+  def apply(dateString: String) = {
+    val sdf = new java.text.SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy", new java.util.Locale("us"))
+    val date = sdf.parse(dateString)
+    new Timestamp(date)
+  }
+  def apply() = new Timestamp(new java.util.Date)
+}
+case class StatusHistory(hist: Vector[(Status, Timestamp)])
+case class ModelHistory(hist: Vector[(Model, Timestamp)])
+//*** END TODO
+
 case object has extends RelationType  
 case object is extends RelationType  
 case object superOf extends RelationType  

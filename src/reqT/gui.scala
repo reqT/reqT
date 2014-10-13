@@ -855,6 +855,8 @@ object gui { //GUI implementation
       }
       provider.addCompletion( new ShorthandCompletion(provider, t.toString,
             t.toString /* +"("+hint */, s"Attribute[$tpe]")) }             
+    StatusValue.values.foreach { t =>
+      provider.addCompletion( new BasicCompletion(provider, t.toString, "StatusValue")) }
     val ac = new AutoCompletion(provider)
     ac.install(editor)
     
