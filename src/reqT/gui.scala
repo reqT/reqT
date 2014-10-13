@@ -172,6 +172,30 @@ object killSwingVerbosity {
   }
   
   def keyCode(c: Char) = java.awt.AWTKeyStroke.getAWTKeyStroke(c.toUpper.toString).getKeyCode()
+
+  object fullScreen {
+    val device = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment.getDefaultScreenDevice
+    def isSupported = device.isFullScreenSupported
+    def isFullScreen = device.getFullScreenWindow != null 
+    private def exitFS = device.setFullScreenWindow(null)
+    def exitFullScreen(w: java.awt.Window): Unit = { exitFS; setUndecorated(w, false) }
+    def toggleFullScreen(w: java.awt.Window): Unit = {
+      if (isFullScreen) { exitFullScreen(w) }
+      else Try { setUndecorated(w, true); device.setFullScreenWindow(w) }.
+             recover{ case e => println(s"Full screen failed: $e") } 
+    }
+    private def setUndecorated(w: java.awt.Window, state: Boolean): Unit =  w match { 
+      case f: JFrame => 
+        f.dispose(); f.setUndecorated(state);  f.pack(); f.setVisible(true) 
+      case _ => 
+    }
+    def toggleDecorations(w: java.awt.Window): Unit = w match {
+      case f: JFrame => {
+        if (f.isUndecorated) setUndecorated(f, false) else setUndecorated(f, true)
+      }
+      case _ => 
+    }
+  }  
   
 } //END killSwingVerbosity
 
@@ -180,18 +204,6 @@ object gui { //GUI implementation
  
   def apply(m: Model = Model(), fileName: String = Settings.defaultModelFileName) = 
     new ModelTreeEditor(m, fileName)
-  
-  object fullScreen {
-    val d = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment.getDefaultScreenDevice
-    def isSupported = d.isFullScreenSupported
-    def isFullScreen = d.getFullScreenWindow != null 
-    def exit = { d.setFullScreenWindow(null); isFullScreen }
-    def toggle(w: java.awt.Window) = {
-      if (isFullScreen) exit
-      else Try { d.setFullScreenWindow(w) }.recover{ case e => println(s"Full screen failed: $e") } 
-      isFullScreen
-    }
-  }
   
   class ModelTreeEditor( 
     val initModel: Model, private var fileName: String) extends JPanel 
@@ -737,8 +749,9 @@ object gui { //GUI implementation
             "Editor Insert"  -> ( () => { templateProcessor = editor.replaceSelection _ } )   
           ), default = "Editor Replace"), --- ),
         ===>("View", VK_V,
-          --->("Toggle Fullscreen", VK_T, VK_F11, 0) { fullScreen.toggle(frame) },
-          --->("Exit Fullscreen", VK_T, VK_ESCAPE, 0) { fullScreen.exit },
+          --->("Toggle Fullscreen", VK_T, VK_F11, 0) { fullScreen.toggleFullScreen(frame) },
+          --->("Exit Fullscreen", VK_T, VK_ESCAPE, 0) { fullScreen.exitFullScreen(frame) },
+          --->("Toggle Post-It", VK_T, VK_F12, 0) { fullScreen.toggleDecorations(frame) },
           ---,
           ===>("Editor Font Size", VK_F,
             --->("Increase editor font size", VK_I, VK_PLUS, CTRL)  { doIncrEditorFontSize() },
