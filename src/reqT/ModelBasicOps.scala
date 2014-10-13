@@ -221,7 +221,10 @@ trait ModelBasicOps  {
     case a: Attribute[T] if a.myType == at => a } 
     
   def valuesOfType[T](at: AttributeType[T]):Vector[T] = collect { 
-    case a: Attribute[T] if a.myType == at => a.value }     
+    case a: Attribute[T] if a.myType == at => a.value }   
+
+  lazy val inflate: Model = map(e => e).toModel
+  lazy val strip: Model = transform { case a: Attribute[_] => NoElem }  
 
   lazy val topIds: Vector[String] = top.ids
   lazy val tipIds: Vector[String] = tip.ids
