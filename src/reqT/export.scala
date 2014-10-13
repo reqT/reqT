@@ -329,8 +329,14 @@ trait ModelToTextExporter extends StringExporter {
   def indentBy(path: NodePath): String = " " * (Settings.indentSpacing * (path.depth - 1))
   
   override def makeString(a: Any): String = a match {
-    case e: Entity => e.prefix + " " + e.id
-    case a: Attribute[_] => a.prefix + " " + a.value
+    case e: Entity => 
+      val s = e.prefix match {
+        case "Section" => "#"
+        case "Item" => "*"
+        case p => p
+      }      
+      s + " " +e.id
+    case a: Attribute[_] => (a.prefix match { case "Text" => ""; case p => p +" "} )+ a.value
     case _ => a.toString
   }
   
@@ -342,9 +348,10 @@ trait ModelToTextExporter extends StringExporter {
     case a: Attribute[_] => exportAttribute(a, path / a)
     case r: Relation => exportHead(r.head, path / r.head) + exportModel(r.tail, path / r.head) 
   }
-    
+  
+  def exportLink(l: RelationType): String = if (l == has) "" else " " + l.toString   
   def exportHead(h: Head, path: NodePath): String = 
-    indentBy(path) + makeString(h.entity) + " " + h.link + "\n"
+    indentBy(path) + makeString(h.entity) + exportLink(h.link) + "\n"
   def exportEntity(e: Entity, path: NodePath): String = indentBy(path) + makeString(e) + "\n"
   def exportAttribute[T](a: Attribute[T], path: NodePath): String =  a match {
     case xs: VectorAttribute[_] => 
