@@ -51,7 +51,7 @@ trait ModelIterators extends ModelBase {
     iter(this, HeadPath())
   }
   
-  def collect[T](f: PartialFunction[Elem,T]): Vector[T] = elems.flatMap ( e =>   // ???
+  def collect[T](f: PartialFunction[Elem,T]): Vector[T] = elems.flatMap ( e =>   // is this what we want???
     e match {
       case n: Node if f.isDefinedAt(e) => Vector(f(e))
       case rel: Relation => 
@@ -63,37 +63,7 @@ trait ModelIterators extends ModelBase {
   def map[T](f: Elem => T): Vector[T] = collect { case e => f(e) } 
   def foreach(f: Elem => Unit): Unit = map(f)
 
- /* def map[U](f: Elem => U): Vector[U] = elems.flatMap { e =>  //???
-    e match {
-      case n: Node     => Vector(f(n))
-      case r@Relation(e,l,t) => Vector(f(e)) ++ Vector(f(r)) ++ t.map(f)      
-      case _ => Vector()       
-    }
-  } 
-  
-  def map(f: Elem => Elem): Model = elems.map { e =>  //???
-    e match {
-      case n: Node     => Model(f(n))
-      case Relation(e,l,t) => f(e) match {
-         case ent: Entity => Model(ent) ++ Model(f(Relation(ent,l,t.map(f))))
-         case _ => Model(f(e)) ++ Model(f(Relation(e,l,t.map(f))))        
-      }      
-      case _ => Model()       
-    }
-  } .foldLeft(Model())(_ ++ _)
-  
-  def foreach[T](f: Elem => Unit): Unit =  elems.foreach { e =>  //???
-    e match {
-      case n: Node     => f(n)
-      case Relation(e,l,t) => 
-        f(e)
-        t.foreach(f)
-        f(Relation(e,l,t))
-      case _ =>        
-    }
-  } */
-
-  def transform(f: PartialFunction[Elem,Elem]): Model = elems.map { e =>  //???
+  def transform(f: PartialFunction[Elem,Elem]): Model = elems.map { e =>  // is this what we want???
     e match {
       case n: Node if f.isDefinedAt(n) => Model(f(n))
       case r@Relation(e,l,t) if f.isDefinedAt(e) && f.isDefinedAt(r) => f(e) match {
@@ -146,9 +116,10 @@ trait ModelIterators extends ModelBase {
   } .toModel  
   
   def withFilter(f: Elem => Boolean): FilterMonadic[reqT.Elem,Iterable[reqT.Elem]] = 
-    toIterable.withFilter(f) //needed to make for-comprehensions work over Model //too shallow??
+    toIterable.withFilter(f) //needed to make for-comprehensions work (do theyalso with guards???)over Model 
+    //is the withFilter iteration too shallow??
 
-  //def map[U](f: Elem => U): Vector[U] = elems.map(f)  //better clients use: m.toVector.map(...)
+  //def map[U](f: Elem => U): Vector[U] = elems.map(f)  //it is better clients use: m.toVector.map(...)
 
   def filter(p: Elem => Boolean): Model = elems.flatMap ( e =>   //???
     e match {
@@ -162,21 +133,7 @@ trait ModelIterators extends ModelBase {
     
   def filterNot(p: Elem => Boolean): Model = filter(e => !p(e)) //???
   
-  /* old filterDeep newModel( myMap.flatMap {  //???
-    case km if p(km.toElem) => km match {
-      case (h: Head,tail: Model) =>  Some((h, tail.filterDeep(p)))
-      case _ => Some(km)
-    }
-    case _ => None
-  } ) */
-
-  /*def filterDeepNot(p: Elem => Boolean): Model = newModel( myMap.flatMap { //???
-    case km if !p(km.toElem) => km match {
-      case (h: Head,tail: Model) =>  Some((h, tail.filterDeepNot(p)))
-      case _ => Some(km)
-    }
-    case _ => None
-  } )*/  
+ 
   
   def flatMapDeep[T](f: Elem => Option[Elem]): Model = newModel( //???
     myMap.flatMap { km =>
@@ -187,17 +144,6 @@ trait ModelIterators extends ModelBase {
       }
     } 
   )
-  
-/*  def mapDeep[U](f: Elem => U): Vector[U] = elems.flatMap { e =>  //???
-    e match {
-      case n: Node     => Vector(f(n))
-      case r: Relation => Vector(f(r)) ++ r.tail.mapDeep(f)      
-      case NoElem => Vector()       
-    }
-  }*/
-
-
-
   
   def foreachDeep[U](f: Elem => U): Unit = elems.foreach { e => 
     e match {
@@ -217,10 +163,10 @@ trait ModelIterators extends ModelBase {
   }
   def foreachNodeDeep(block: => Unit): Unit = foreachNodeDeep { _ => block }  
   
-  def bfs[T](f: PartialFunction[Elem,T]): Vector[T] =  //funkar ??? , eller missar sources ???
+  def bfs[T](f: PartialFunction[Elem,T]): Vector[T] =  //is this really correct as perhaps sources are missing???
     elemsWithTip.collect(f) ++ topRelations.map(r => r.tail.bfs(f)).flatten
 
-  def dfs[T](f: PartialFunction[Elem,T]): Vector[T] = //funkar ??? , eller missar sources ???
+  def dfs[T](f: PartialFunction[Elem,T]): Vector[T] = //is this really correct as perhaps sources are missing???
     topRelations.map(r => r.tail.dfs(f)).flatten ++ elemsWithTip.collect(f)
 
   def mapModelDeep(f: Model => Model): Model = { //????
@@ -243,3 +189,60 @@ trait ModelIterators extends ModelBase {
     
  
 }
+
+// *** old discarded or buggy code, TODO: investigate iterators more and make up our minds on what to do :)
+/*
+  def filterDeep(p: Elem => Boolean): Model =  newModel( myMap.flatMap {  //???
+    case km if p(km.toElem) => km match {
+      case (h: Head,tail: Model) =>  Some((h, tail.filterDeep(p)))
+      case _ => Some(km)
+    }
+    case _ => None
+  } ) 
+
+  def filterDeepNot(p: Elem => Boolean): Model = newModel( myMap.flatMap { //???
+    case km if !p(km.toElem) => km match {
+      case (h: Head,tail: Model) =>  Some((h, tail.filterDeepNot(p)))
+      case _ => Some(km)
+    }
+    case _ => None
+  } )
+  
+  def mapDeep[U](f: Elem => U): Vector[U] = elems.flatMap { e =>  //???
+    e match {
+      case n: Node     => Vector(f(n))
+      case r: Relation => Vector(f(r)) ++ r.tail.mapDeep(f)      
+      case NoElem => Vector()       
+    }
+  }
+  
+  def map[U](f: Elem => U): Vector[U] = elems.flatMap { e =>  //???
+    e match {
+      case n: Node     => Vector(f(n))
+      case r@Relation(e,l,t) => Vector(f(e)) ++ Vector(f(r)) ++ t.map(f)      
+      case _ => Vector()       
+    }
+  } 
+  
+  def map(f: Elem => Elem): Model = elems.map { e =>  //???
+    e match {
+      case n: Node     => Model(f(n))
+      case Relation(e,l,t) => f(e) match {
+         case ent: Entity => Model(ent) ++ Model(f(Relation(ent,l,t.map(f))))
+         case _ => Model(f(e)) ++ Model(f(Relation(e,l,t.map(f))))        
+      }      
+      case _ => Model()       
+    }
+  } .foldLeft(Model())(_ ++ _)
+  
+  def foreach[T](f: Elem => Unit): Unit =  elems.foreach { e =>  //???
+    e match {
+      case n: Node     => f(n)
+      case Relation(e,l,t) => 
+        f(e)
+        t.foreach(f)
+        f(Relation(e,l,t))
+      case _ =>        
+    }
+  }
+*/
