@@ -180,7 +180,19 @@ object gui { //GUI implementation
  
   def apply(m: Model = Model(), fileName: String = Settings.defaultModelFileName) = 
     new ModelTreeEditor(m, fileName)
- 
+  
+  object fullScreen {
+    val d = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment.getDefaultScreenDevice
+    def isSupported = d.isFullScreenSupported
+    def isFullScreen = d.getFullScreenWindow != null 
+    def exit = { d.setFullScreenWindow(null); isFullScreen }
+    def toggle(w: java.awt.Window) = {
+      if (isFullScreen) exit
+      else Try { d.setFullScreenWindow(w) }.recover{ case e => println(s"Full screen failed: $e") } 
+      isFullScreen
+    }
+  }
+  
   class ModelTreeEditor( 
     val initModel: Model, private var fileName: String) extends JPanel 
       with TreeSelectionListener  {
@@ -717,17 +729,20 @@ object gui { //GUI implementation
           --->("Run Script => Console", VK_R, VK_ENTER, CTRL) { doRunToConsole() },
           --->("{Evaluate} => Editor", VK_E, VK_ENTER, ALT) { doRunToEditor() },
           ---,
-          --->("Toggle between textified and scala model", VK_T, VK_T, CTRL) { doTextify() },
-          ---,
-          ===>("Font Size", VK_F,
-            --->("Increase font size", VK_I, VK_PLUS, CTRL)  { doIncrEditorFontSize() },
-            --->("Decrease font size", VK_D, VK_MINUS, CTRL) { doDecrEditorFontSize() })),
+          --->("Toggle between textified and scala model", VK_T, VK_T, CTRL) { doTextify() }),
         ===>("Metamodel", VK_M),
         ===>("Templates", VK_P,
           MenuRadioGroup("templateToggle", Map[String, () => Unit](
             "Editor Replace" -> ( () => { templateProcessor = editor.setText _ } ), 
             "Editor Insert"  -> ( () => { templateProcessor = editor.replaceSelection _ } )   
           ), default = "Editor Replace"), --- ),
+        ===>("View", VK_V,
+          --->("Toggle Fullscreen", VK_T, VK_F11, 0) { fullScreen.toggle(frame) },
+          --->("Exit Fullscreen", VK_T, VK_ESCAPE, 0) { fullScreen.exit },
+          ---,
+          ===>("Editor Font Size", VK_F,
+            --->("Increase editor font size", VK_I, VK_PLUS, CTRL)  { doIncrEditorFontSize() },
+            --->("Decrease editor font size", VK_D, VK_MINUS, CTRL) { doDecrEditorFontSize() })),
         ===>("Help", VK_H,
           --->("Shortcuts to Editor", VK_E, 0, 0) { doHelpEditor() },
           --->("Metamodel to Editor", VK_M, 0, 0) { doHelpMetamodel() },
