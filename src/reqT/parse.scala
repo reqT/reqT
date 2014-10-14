@@ -97,11 +97,12 @@ object Textified {
   val isRelation = metamodel.relationTypes.map(_.toString).toSet
   val isEntity = metamodel.entityTypes.map(_.toString).toSet
   val isAttribute = metamodel.attributeTypes.map(_.toString).toSet
+  def isSpecial(s: String) = s.startsWith("#") || s.startsWith("*")
   val relationTypeFromString: Map[String, RelationType] = metamodel.relationTypes.map(rt => (rt.toString, rt)).toMap
   def split(s: String): Seq[String] = s.split("\n").filterNot(_ == "").filterNot(_.trim.startsWith("//"))  
   def indentSize(s: String): Int = s.takeWhile(c => c == ' ' ).size
   def firstWord(s: String): String = s.trim.takeWhile( _ != ' ')
-  def isEntityOrAttributeStart(s: String) = { val fw = firstWord(s); isEntity(fw) || isAttribute(fw) }
+  def isEntityOrAttributeStart(s: String) = { val fw = firstWord(s); isEntity(fw) || isAttribute(fw) || isSpecial(fw) }
   def middle(s: String): String = s.trim.split(" ").drop(1).dropRight(1).mkString(" ")
   def lastWord(s: String): String = s.trim.split(" ").takeRight(1).headOption.getOrElse("")
   def parts(s: String):(Int,String,String,String) = (indentSize(s), firstWord(s), middle(s), lastWord(s))

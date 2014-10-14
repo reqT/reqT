@@ -201,6 +201,8 @@ object killSwingVerbosity {
 
 object gui { //GUI implementation
   import killSwingVerbosity._
+  import KeyEvent._
+  import ActionEvent.{CTRL_MASK => CTRL, ALT_MASK => ALT, SHIFT_MASK => SHIFT}
  
   def apply(m: Model = Model(), fileName: String = Settings.defaultModelFileName) = 
     new ModelTreeEditor(m, fileName)
@@ -208,10 +210,86 @@ object gui { //GUI implementation
   class ModelTreeEditor( 
     val initModel: Model, private var fileName: String) extends JPanel 
       with TreeSelectionListener  {
+
+    val initAppMenus =  AppMenus(
+      ===>("File", VK_F,
+        --->("New Model Tree Editor window", VK_N, VK_N, CTRL){ doNew() },
+        --->("Open serialized model in tree ...", VK_O, VK_O, CTRL){ doOpen() },
+        --->("Load text file to editor ...", VK_L, VK_L, CTRL) { doLoadTextToEditor() },
+        ---,
+        --->("Save tree", VK_S, VK_S, CTRL){ doSave() },
+        --->("Save tree as ...", VK_A, 0, 0){ doSaveAs() },
+        --->("Save text in editor to file...", VK_S, VK_S, ALT) { doSaveEditorTextToFile() },
+        ---,
+        --->("Close window without saving", VK_C, 0, 0){ doClose() },
+        --->("Exit reqT without saving", VK_E, 0, 0){ java.lang.System.exit(0) }),
+      ===>("Tree", VK_T,
+        --->("Replace selected node with scala model from editor", VK_R, VK_R, CTRL) { doUpdate(isScala=true) },
+        --->("Replace selected node with textified model from editor", VK_E, VK_R, CTRL+SHIFT) { doUpdate(isScala=false) },
+        --->("Replace selected node by applying function [Model => Model] in editor", VK_A, VK_R, CTRL+SHIFT+ALT) { doTransform() },
+        ---,
+        --->("Insert scala model from editor after selected node", VK_I, VK_I, CTRL) { doInsert(isScala=true) },
+        --->("Insert textified model from editor after selected node", VK_N, VK_I, CTRL+SHIFT) { doInsert(isScala=false) },
+        ---,
+        --->("Collapse all", VK_C, VK_LEFT, ALT) { doCollapseAll() },
+        --->("Expand all", VK_X, VK_RIGHT, ALT) { doExpandAll() },
+        ---,
+        --->("Delete selected node", VK_D, VK_DELETE, 0) { doDelete() },
+        --->("Refresh and delete duplicate elements", VK_F, VK_DELETE, CTRL) { doRefresh() },
+        --->("Revert Tree to initial model", VK_V, 0, 0) { doUndoAll() }),
+      ===>("Editor", VK_E,
+        --->("Edit selected tree node in Editor as scala model", VK_E, VK_E, CTRL) { doEnterScala() },
+        --->("Edit selected tree node in Editor as textified model", VK_T, VK_E, CTRL+SHIFT) { doEnterTextified() },
+        --->("Toggle between textified and scala model", VK_O, VK_T, CTRL) { doTextify() },
+        ---,
+        --->("Run Script => Console", VK_R, VK_ENTER, CTRL) { doRunToConsole() },
+        --->("{Evaluate} => Editor", VK_E, VK_ENTER, ALT) { doRunToEditor() }),
+      ===>("Import", VK_I,
+        --->("Scala Model .scala to Tree...", VK_S, 0, 0) { doOpenScala() },
+        --->("Prio Table .csv (Stakeholder; Feature; Prio) to Tree...", VK_P, 0, 0) { doImportStakeholderFeaturePrioTable() },
+        --->("Path Table .csv (Path; Elem) to Tree...", VK_A, 0, 0) { doImportPathTable() }),
+      ===>("Export", VK_X,
+        --->("Scala Model .scala from Tree...", VK_S, 0, 0) { doSaveAsScala()},
+        --->("HTML from Tree...", VK_H, 0, 0) { doExportToHtml() },
+        --->("Latex from Tree...", VK_H, 0, 0) { doExportToLatex() },
+        ---,
+        --->("GraphViz .dot Nested from Tree...", VK_N, 0, 0) { doToGraphViz("-nested",export.toGraphVizNested(model)) },
+        --->("GraphViz .dot Flat from Tree...", VK_F, 0, 0) { doToGraphViz("-flat", export.toGraphVizFlat(model)) },
+        ---,
+        --->("Path Table .csv from Tree...", VK_P, 0, 0) { doExportTo(".csv", export.toPathTable(model)) },
+        --->("Release Allocation Table .csv from Tree...", VK_R, 0, 0) { doExportTo(".csv", export.toReleaseAllocationTable(model)) }),
+      ===>("Metamodel", VK_M),
+      ===>("Templates", VK_P,
+        MenuRadioGroup("templateToggle", Map[String, () => Unit](
+          "Editor Replace" -> ( () => { templateProcessor = editor.setText _ } ), 
+          "Editor Insert"  -> ( () => { templateProcessor = editor.replaceSelection _ } )   
+        ), default = "Editor Replace"), --- ),
+      ===>("View", VK_V,
+        --->("Toggle Fullscreen", VK_T, VK_F11, 0) { fullScreen.toggleFullScreen(frame) },
+        --->("Toggle Post-It", VK_T, VK_F12, 0) { fullScreen.toggleDecorations(frame) },
+        --->("Exit Fullscreen & Post-It", VK_T, VK_ESCAPE, 0) { fullScreen.exitFullScreen(frame) },
+        ---,
+        ===>("Editor Font Size", VK_F,
+          --->("Increase editor font size", VK_I, VK_PLUS, CTRL)  { doIncrEditorFontSize(); updateEditor() },
+          --->("Decrease editor font size", VK_D, VK_MINUS, CTRL) { doDecrEditorFontSize(); updateEditor() },
+          --->("Set big editor font size", VK_D, VK_PLUS, ALT) { setEditorFont(bigFontSize); updateEditor() },
+          --->("Set minimal font size", VK_D, VK_MINUS, ALT) { setEditorFont(minFontSize); updateEditor() }),
+        ===>("Editor syntax coloring", VK_F,
+          --->("reqT and Scala coloring", VK_R, VK_1, ALT)  { setReqTScalaSyntaxColoring() },
+          --->("Scala coloring", VK_S, VK_2, ALT) { setScalaSyntaxColoring() },
+          --->("No coloring", VK_S, VK_0, ALT) { setNoSyntaxColoring() })),
+      ===>("Help", VK_H,
+        --->("Shortcuts to Editor", VK_E, 0, 0) { doHelpShortcuts() },
+        --->("Metamodel to Editor", VK_M, 0, 0) { doHelpMetamodel() },
+        --->("About reqT to Editor", VK_A, 0, 0) { doHelpAbout() })
+    )
+    
     
     val windowType = "ModelTreeEditor"
     
     val frame = new JFrame(windowTitle)
+    
+    lazy val menuMap: Map[String, JComponent] = initAppMenus.installTo(frame)
 
     private var templateProcessor: String => Unit = editor.setText _
     
@@ -228,40 +306,16 @@ object gui { //GUI implementation
     
     private var currentModel: Model = initModel
     
-    val editorHelpModel = Model(
-      Title("reqT.gui shortcuts"),
-      Section("File") has (
-        Spec("File menu with new, open, save etc."),
-        Feature("new") has Spec("Ctrl+N = new window with empty tree."),
-        Feature("open") has Spec("Ctrl+O = open model file and load to tree."),
-        Feature("save") has Spec("Ctrl+S = save current tree model to file.")),
-      Section("Tree") has (
-        Spec("The Tree is used for navigating and manipulating a model tree."),
-        Feature("replace") has Spec("Ctrl+R = replace selected tree node by scala model in editor"),
-        Feature("insert") has 
-          Spec("Ctrl+I = insert scala model in editor after selected tree node "),
-        Feature("apply") has 
-          Spec("Ctrl+T = apply function in editor to selected tree node"),
-        Feature("collapse") has 
-          Spec("Ctrl+Left = collapse selected tree node"),
-        Feature("expand") has 
-          Spec("Ctrl+Right = expand selected tree node")),        
-      Section("Editor") has (        
-        Spec("The Editor is used to edit text and evaluate scala models."),
-        Feature("edit") has 
-          Spec("Ctrl+E = edit selected tree node; unparse to editor as a scala model."),
-        Feature("run") has 
-          Spec("Ctrl+Enter = run code in editor; output to console"),
-        Feature("evaluate") has 
-          Spec("Alt+Enter = evaluate code in editor; result to editor"),        
-        Feature("loadToEditor") has 
-          Spec("Ctrl+L = load text file to editor"),
-        Feature("saveFromEditor") has 
-          Spec("Alt+S = save editor text to file")
-        )
-      )
+    lazy  val editorShortcutsModel = menuMap
+      .map{ case (t, jmi) => (jmi.asInstanceOf[javax.swing.JMenuItem].getAccelerator, t)}
+      .filterNot(_._1 == null)
+      .map{ case (a,t) => (a.toString.replace(" pressed ","+").replace("pressed ","").replace(" ","+"),t) }
+      .map{ case (a,t) => (a.replace("alt","Alt").replace("ctrl","Ctrl").replace("shift","Shift"),t) }
+      .toVector.sorted
+      .map{ case (a,t) => Feature(a) has Spec(t)}
+      .toModel
     
-    val editorAboutModel = Model(
+    lazy val editorAboutModel = Model(
       Title("http://reqT.org"),
       Comment(s"version: $reqT_VERSION build: $BUILD_DATE scala version: $SCALA_VERSION"),
       Gist("reqT is a free, flexible and scalable requirements engineering tool for system analysts, developers and software engineering students."),
@@ -489,11 +543,20 @@ object gui { //GUI implementation
       case None => msgNothingSelected
     }
     
-    def interpretModelAndUpdate(isReplace: Boolean) {
-      repl.interpretModel(editor.getText) match {
+    def isEditorStartsWithModel: Boolean = editor.getText.trim.startsWith("Model")
+    
+    def interpretModelAndUpdate(isReplace: Boolean, isScala: Boolean) {
+      val mopt: Option[Model] = 
+        if (isScala) 
+          repl.interpretModel(editor.getText) 
+        else Try{ Some(parse.Textified(editor.getText)) } 
+               .recover { case e => println(s"Error when parsing textified model: $e"); None} .get
+      mopt match {
         case Some(model) => updateSelection(model, isReplace)
-        case None => msgParseModelError
-      }
+        case None => 
+          println("Error parsing editor. " + editor.getText.take(10) + "...") 
+          msgParseModelError 
+      } 
     }
     
     def interpretTransformerAndUpdate() {
@@ -509,7 +572,7 @@ object gui { //GUI implementation
     
     def setEditorToModel(m: Model) { editor.setText(export.toScalaCompact(m)) }
     
-    def setEditorToSelection() {
+    def setEditorToSelection(isToScala: Boolean = true) {
       val currentSelection: TreePath = tree.getSelectionPath();
       //println("setEditorToSelection, currentSelection = " +  currentSelection)
       if (currentSelection != null) {
@@ -517,6 +580,7 @@ object gui { //GUI implementation
           currentSelection.getLastPathComponent().asInstanceOf[DefaultMutableTreeNode]
         //println("currentNode = " + currentNode)
         setEditorToModel(createModelFromTreeNode(currentNode))
+        if (!isToScala) doTextify()
         editor.requestFocus
       } else msgNothingSelected
     }
@@ -524,7 +588,7 @@ object gui { //GUI implementation
     def msgError(msg: String) =  JOptionPane.showMessageDialog(frame, msg, "ERROR", JOptionPane.ERROR_MESSAGE)  
 
     val msgConsoleOutput = "See console output to investigate error."
-    def msgParseModelError() = msgError(s"Expected expression of type Model\n$msgConsoleOutput")
+    def msgParseModelError() = msgError(s"Error when parsing model\n$msgConsoleOutput")
     def msgParseTransformerError() = msgError(s"Expected function of type Model => Model\n$msgConsoleOutput")  
     def msgScriptError() = msgError(s"Script failed.\n$msgConsoleOutput")  
     def msgCmdError(cmd: String) = msgError(s"$msgConsoleOutput\nDo you have the $cmd command installed in your path?") 
@@ -562,9 +626,10 @@ object gui { //GUI implementation
     def doSaveAsScala() = chooseFile(this, fileName.newFileType(".scala"), "Export Textual").foreach{saveModel(_)}
     def doDelete()           = removeCurrentNode()
     def doUndoAll()          = revertToInitModel()
-    def doEnter()            = setEditorToSelection()
-    def doUpdate()           = interpretModelAndUpdate(true)
-    def doInsert()           = interpretModelAndUpdate(false)
+    def doEnterScala()       = setEditorToSelection()
+    def doEnterTextified()   = setEditorToSelection(false)
+    def doUpdate(isScala: Boolean) = interpretModelAndUpdate(isReplace=true,isScala)
+    def doInsert(isScala: Boolean) = interpretModelAndUpdate(isReplace=false,isScala)
     def doRunToConsole()     = repl.run(editor.getText) match {
         case Some(scala.tools.nsc.interpreter.Results.Success) => ()
         case _ => msgScriptError
@@ -590,20 +655,25 @@ object gui { //GUI implementation
     def doExpandAll()        = setFoldingAll(rootPath, true)
     def doCollapseAll()      = setFoldingAll(rootPath, false)
     
+    lazy val maxFontSize = 80
+    lazy val bigFontSize = 48
+    lazy val mediumFontSize = 20
+    lazy val minFontSize = 6
+    
     def doIncrEditorFontSize() = {
       def incr(i: Int) = i match {
-        case _ if i >= 60 => 60
-        case _ if i >= 20 => (i * 1.2).toInt
-        case _ if i >= 6 => i + 1
-        case _  => 6
+        case _ if i >= maxFontSize => maxFontSize
+        case _ if i >= mediumFontSize => (i * 1.2).toInt
+        case _ if i >= minFontSize => i + 1
+        case _  => minFontSize
       }
       setEditorFont(incr(editor.getFont.getSize)) 
     }
 
     def doDecrEditorFontSize() = {
       def decr(i: Int) = i match {
-        case _ if i > 20 => (i * 0.8).toInt
-        case _ if i > 6 => i - 1
+        case _ if i > mediumFontSize => (i * 0.8).toInt
+        case _ if i > minFontSize => i - 1
         case _  => i
       }
       setEditorFont(decr(editor.getFont.getSize)) 
@@ -651,9 +721,7 @@ object gui { //GUI implementation
     }  recover { case e => println(e); msgError("Export failed, see console message.")  }
     
     def doTextify() {
-      if (parse.Textified.isEntityOrAttributeStart(editor.getText)) doUntextify()
-      else if (editor.getText.trim.startsWith("Model")) 
-        repl.interpretModel(editor.getText) match {
+      if (isEditorStartsWithModel) repl.interpretModel(editor.getText) match {
           case Some(model) => editor.setText(export.toText(model))
           case None => msgError("Parsing model failed, see console message.")
         } 
@@ -681,7 +749,7 @@ object gui { //GUI implementation
       
     def doHelpAbout()        = setEditorToModel(editorAboutModel)
     def doHelpMetamodel()    = setEditorToModel(reqT.meta.model)
-    def doHelpEditor()       = setEditorToModel(editorHelpModel)
+    def doHelpShortcuts()       = setEditorToModel(editorShortcutsModel)
     def doClose()            = frame.dispatchEvent( new WindowEvent(frame, WindowEvent.WINDOW_CLOSING))
   
     def mkInsertTextMenuItem(name: String, menu: JMenuItem, shortcut: (Int, Int, Int)) =
@@ -697,70 +765,8 @@ object gui { //GUI implementation
     }    
 
     def mkMenuBar(frame: JFrame): Unit = {
-      import KeyEvent._
-      import ActionEvent.{CTRL_MASK => CTRL, ALT_MASK => ALT}
       
-      val menuMap = AppMenus(
-        ===>("File", VK_F,
-          --->("New Model Tree Editor window", VK_N, VK_N, CTRL){ doNew() },
-          --->("Open serialized model in tree ...", VK_O, VK_O, CTRL){ doOpen() },
-          --->("Load text file to editor ...", VK_L, VK_L, CTRL) { doLoadTextToEditor() },
-          ---,
-          --->("Save tree", VK_S, VK_S, CTRL){ doSave() },
-          --->("Save tree as ...", VK_A, 0, 0){ doSaveAs() },
-          --->("Save text in editor to file...", VK_S, VK_S, ALT) { doSaveEditorTextToFile() },
-          ---,
-          --->("Close window without saving", VK_C, 0, 0){ doClose() },
-          --->("Exit reqT without saving", VK_E, 0, 0){ java.lang.System.exit(0) }),
-        ===>("Tree", VK_T,
-          ===>("Import", VK_I,
-            --->("Scala Model .scala...", VK_S, 0, 0) { doOpenScala() },
-            ===>("Tabular", VK_T,
-              --->("Prio Table .csv (Stakeholder; Feature; Prio) ...", VK_P, 0, 0) { doImportStakeholderFeaturePrioTable() },
-              --->("Path Table .csv (Path; Elem) ...", VK_A, 0, 0) { doImportPathTable() })),
-          ===>("Export", VK_X,
-            --->("Tree To Scala Model .scala ...", VK_S, 0, 0) { doSaveAsScala()},
-            --->("Tree To Path Table .csv ...", VK_P, 0, 0) { doExportTo(".csv", export.toPathTable(model)) },
-            --->("Tree To HTML ...", VK_H, 0, 0) { doExportToHtml() },
-            --->("Tree To Latex ...", VK_H, 0, 0) { doExportToLatex() },
-            ===>("Tree To GraphViz .dot", VK_G,
-              --->("Nested ...", VK_N, 0, 0) { doToGraphViz("-nested",export.toGraphVizNested(model)) },
-              --->("Flat ...", VK_F, 0, 0) { doToGraphViz("-flat", export.toGraphVizFlat(model)) }),
-            --->("Tree To Release Allocation Table ...", VK_R, 0, 0) { doExportTo(".csv", export.toReleaseAllocationTable(model)) }),
-          --->("Replace selected node from editor", VK_R, VK_R, CTRL) { doUpdate() },
-          --->("Insert after selected node from editor", VK_I, VK_I, CTRL) { doInsert() },
-          --->("Apply function in editor to selected node", VK_A, VK_A, ALT) { doTransform() },
-          --->("Delete selected node", VK_D, VK_DELETE, 0) { doDelete() },
-          ---,
-          --->("Collapse all", VK_C, VK_LEFT, ALT) { doCollapseAll() },
-          --->("Expand all", VK_E, VK_RIGHT, ALT) { doExpandAll() },
-          --->("Refresh all nodes", VK_F, VK_F5, 0) { doRefresh() },
-          --->("Revert Tree to initial model", VK_V, 0, 0) { doUndoAll() }),
-        ===>("Editor", VK_E,
-          --->("Edit selected tree node in Editor", VK_E, VK_E, CTRL) { doEnter() },
-          --->("Run Script => Console", VK_R, VK_ENTER, CTRL) { doRunToConsole() },
-          --->("{Evaluate} => Editor", VK_E, VK_ENTER, ALT) { doRunToEditor() },
-          ---,
-          --->("Toggle between textified and scala model", VK_T, VK_T, CTRL) { doTextify() }),
-        ===>("Metamodel", VK_M),
-        ===>("Templates", VK_P,
-          MenuRadioGroup("templateToggle", Map[String, () => Unit](
-            "Editor Replace" -> ( () => { templateProcessor = editor.setText _ } ), 
-            "Editor Insert"  -> ( () => { templateProcessor = editor.replaceSelection _ } )   
-          ), default = "Editor Replace"), --- ),
-        ===>("View", VK_V,
-          --->("Toggle Fullscreen", VK_T, VK_F11, 0) { fullScreen.toggleFullScreen(frame) },
-          --->("Exit Fullscreen", VK_T, VK_ESCAPE, 0) { fullScreen.exitFullScreen(frame) },
-          --->("Toggle Post-It", VK_T, VK_F12, 0) { fullScreen.toggleDecorations(frame) },
-          ---,
-          ===>("Editor Font Size", VK_F,
-            --->("Increase editor font size", VK_I, VK_PLUS, CTRL)  { doIncrEditorFontSize() },
-            --->("Decrease editor font size", VK_D, VK_MINUS, CTRL) { doDecrEditorFontSize() })),
-        ===>("Help", VK_H,
-          --->("Shortcuts to Editor", VK_E, 0, 0) { doHelpEditor() },
-          --->("Metamodel to Editor", VK_M, 0, 0) { doHelpMetamodel() },
-          --->("About reqT to Editor", VK_A, 0, 0) { doHelpAbout() })
-      ).installTo(frame)
+      // menuMap.installTo(frame) moved to top lazy val to enable global attribute access
       
       val metamodelMenu = menuMap("Metamodel").asInstanceOf[JMenuItem]
       mkMenuTreeFromModel(
@@ -813,6 +819,11 @@ object gui { //GUI implementation
       editorView.getGutter.setLineNumberFont(lnfNew)
     } 
     
+    def setSyntaxColorAndUpdate(syntax: String) = {editor.setSyntaxEditingStyle(syntax); updateEditor() }
+    def setReqTScalaSyntaxColoring() = setSyntaxColorAndUpdate("text/reqT")
+    def setScalaSyntaxColoring() = setSyntaxColorAndUpdate(SyntaxConstants.SYNTAX_STYLE_SCALA)
+    def setNoSyntaxColoring() = setSyntaxColorAndUpdate(SyntaxConstants.SYNTAX_STYLE_NONE)
+    
     val ENTITY_TOKEN = TokenTypes.DATA_TYPE
     val ATTR_TOKEN = TokenTypes.RESERVED_WORD_2
     val REL_TOKEN = TokenTypes.FUNCTION
@@ -822,12 +833,11 @@ object gui { //GUI implementation
     // //editor.setContentType("text/html");
     //   val editorView = new JScrollPane(editor);
     val editor = new RSyntaxTextArea(10, 80)
-    //editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SCALA)  
     val atmf = TokenMakerFactory.getDefaultInstance().asInstanceOf[AbstractTokenMakerFactory];
     atmf.putMapping("text/reqT", "org.fife.ui.rsyntaxtextarea.modes.ReqTTokenMaker");
-    editor.setSyntaxEditingStyle("text/reqT"); 
     editor.setCodeFoldingEnabled(false)
     editor.setAntiAliasingEnabled(true)
+    editor.setAutoIndentEnabled(true)
     editor.setBracketMatchingEnabled(true)
     editor.setLineWrap(true)
     editor.setWrapStyleWord(true)
@@ -862,7 +872,8 @@ object gui { //GUI implementation
     //editor.addKeyListener(onAltEnter { doRunToEditor()} )//not needed as accelerator already fires as expected
 
     val editorView = new RTextScrollPane(editor)
-
+    def updateEditor() = editorView.updateUI
+    setReqTScalaSyntaxColoring() 
     setEditorFont(Settings.gui.fontSize, Settings.gui.editorFonts.headOption.getOrElse(Font.MONOSPACED))
    
     //install auto-completions
@@ -895,7 +906,7 @@ object gui { //GUI implementation
     splitPane.setTopComponent(treeView);
     splitPane.setBottomComponent(editorView);
     val (startHeight, startWidth) = (768, 1024)
-    val smallestDim = new Dimension(100, 100);
+    val smallestDim = new Dimension(100, 1);
     val prefferedDim = new Dimension(startWidth, startHeight)
     val dividerAt = startHeight / 2
     editorView.setMinimumSize(smallestDim);
