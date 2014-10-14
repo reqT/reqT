@@ -370,13 +370,13 @@ Carry out these steps using the ModelTree Editor:
 \end{enumerate}
 \end{framed}
 
-The Editor can toggle between two different textual representations of a model: (1) the normal scala code that we have been using so far, and (2) a simplified model language called {\it ''reqT textified''} that represents models without any parenthesis and quotes, while using indentation to represent levels of submodels. \footnote{A textified reqT model is analogous to the \href{http://en.wikipedia.org/wiki/Markdown}{markdown} representation of a html document.} The toggling is made using the <Ctrl+T> shortcut.
+The Editor can toggle between two different textual representations of a model: (1) the normal scala code that we have been using so far, and (2) a simplified model language called {\it ''reqT textified''} that represents models without any parenthesis and quotes, while using indentation to represent levels of submodels. \footnote{A textified reqT model is analogous to the \href{http://en.wikipedia.org/wiki/Markdown}{markdown} representation of a html document.} The toggling is made using the <F9> shortcut.
 
 \begin{framed}
 Carry out these steps using the ModelTree Editor:
 \begin{enumerate}
 \item Load your \verb+feat.txt+ file into the using the <Ctrl+L> shortcut.
-\item Toggle between {\it textified} and scala representations by pressing <Ctrl+T> several times.
+\item Toggle between {\it textified} and scala representations by pressing <F9> several times.
 \item When you have toggled to a scala model representation of your features in the Editor, select the root tree node and press <Ctrl+R> to replace the tree with your feature model.
 \item Click in the Editor pane to make sure that the Editor is in focus and press <Ctrl+A> to select all.
 \item Replace the text in the editor by entering this code: {\scriptsize\begin{verbatim}
@@ -386,7 +386,7 @@ m =>
     case Text(i) => Gist(i)
   }
 \end{verbatim}}
-\item Select the {\it Apply function in editor to selected node} menu item in the {\bf Tree} menu, or use the <Alt+A> shortcut to apply the above function to the Tree model.
+\item Select the {\it Apply function in editor to selected node} menu item in the {\bf Tree} menu, or use the <Ctrl+Alt+Shift+R> shortcut to apply the above function to the Tree model.
 \item Enter this code in the Editor and then press <Alt+A>: {\scriptsize\begin{verbatim}
 m =>
   println("Size: " + m.size)
@@ -400,7 +400,7 @@ m =>
 \newline Depth: \underline{\hspace{2cm}}
 \newline Number of features: \underline{\hspace{2cm}}
 
-\item Select the root node of your tree and press <Ctrl+E> and then <Ctrl+T> and then <Alt+S> to save a textified model of your transformed feature model in the file \verb+feat-v2.txt+
+\item Select the root node of your tree and press <Ctrl+T> and then <Alt+S> to save a textified model of your transformed feature model in the file \verb+feat-v2.txt+
 \end{enumerate}
 \end{framed}
 
@@ -408,6 +408,27 @@ m =>
 
 In order to inter-operate with other apps and services, reqT can export and import data in various formats. A basic format of inter-operation is the textual scala representation of models, which can be opened in any code editor, pasted into emails, uploaded to GitHub etc.   
 
+\begin{framed}
+Carry out these steps using the ModelTreeEditor gui:
+\begin{enumerate}
+\item Load the ''Model to exemplify HTML export'' in the {\it Templates} menu and press <Ctrl+R>.
+\item Choose the Export -> ''HTML from tree ...'' menu and give a file name for the static site to be generated.
+\item A browser window should appear on your desktop with the generated html file.
+\item How are the different special elements Title, Section, and Text rendered in your browser? \newline\newline\underline{\hspace{10cm}}
+\item Inspect the html code generated in the index.html file. 
+\end{enumerate}
+\end{framed}
+
+\begin{framed}
+If you have \url{http://graphviz.org} installed on your machine, carry out these steps using the ModelTreeEditor gui:
+\begin{enumerate}
+\item Load your context.scala file into the Tree.
+\item Choose the Export -> ''GraphViz .dot nested ...'' menu and give a file name for the generated graph.
+\item A pdf reader window should appear on your desktop with the generated pdf file.
+\item Compare with the ''GraphViz .dot flat ...'' export. \newline What is the difference between nested and flat graph export?
+\newline\newline\underline{\hspace{10cm}}
+\end{enumerate}
+\end{framed}
 
 
 \subsection{Investigate the Status attribute for tracking requirements evolution}
