@@ -367,6 +367,7 @@ trait ImplicitAttributeEnrichments {
     def up: StatusValue = reqT.meta.statusUp(sv)
     def down: StatusValue = reqT.meta.statusDown(sv)
     def start: StatusValue = reqT.meta.statusStart
+    def init = start //for backward compatibility with reqT v2
     def end: StatusValue = reqT.meta.statusEnd
     def dead: StatusValue = reqT.meta.statusDead
   }
@@ -375,6 +376,7 @@ trait ImplicitAttributeEnrichments {
     def up: Status = Status(s.value.up)
     def down: Status = Status(s.value.down)
     def start: Status = Status(s.value.start)
+    def init = start //for backward compatibility with reqT v2
     def end: Status = Status(s.value.end)
     def dead: Status = Status(s.value.dead)
   }
@@ -383,6 +385,7 @@ trait ImplicitAttributeEnrichments {
     def up: Status = Status(reqT.meta.statusStart.up)
     def down: Status = Status(reqT.meta.statusStart.down)
     def start: Status = Status(reqT.meta.statusStart)
+    def init = start //for backward compatibility with reqT v2
     def end: Status = Status(reqT.meta.statusEnd)
     def dead: Status = Status(reqT.meta.statusDead)
   }
