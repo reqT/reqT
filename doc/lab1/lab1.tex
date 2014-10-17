@@ -2,6 +2,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{times}
+\usepackage{inconsolata}
 \usepackage{amsmath}
 \usepackage{framed}
 \usepackage{graphicx}
@@ -18,22 +19,21 @@
 
 \section{Introduction}
 
-\subsection{Purpose} This document provides instructions on how to prepare for and run a computer lab session on requirements modeling. The lab session illustrates how computer-supported requirements modeling can help in requirements engineering. {\it The preparations in this document should be completed before the actual lab is run.}
+\subsection{Purpose} This document provides instructions on how to prepare for and run a computer lab session on requirements modeling. The lab session illustrates how computer-supported requirements modeling can help in requirements engineering. {\it The preparations in Section~\ref{section:prep} should be completed before the actual lab is run.}
 
-\subsection{Background} Requirements engineering is a dynamic process where the understanding of an imagined future system (of systems) is evolving over time. During this evolution we can capture the knowledge and creative ideas we elicit in various ways, depending on how we foresee the (later) usage of that knowledge. We could create and use, for example, spread sheets, post-it notes, emails, wikis, video clips, mockups, sketches, diagrams, mathematical specifications, etc. 
+\subsection{Background} In this lab you will learn how to get started with requirements modeling through the open source tool reqT, and reflect on how you could model requirements in your own project. The reqT tool enables scalable requirements modeling, ranging from small models of a couple of features to large models containing elaborate structures of thousands of requirements. 
 
-If we want to keep track of many different types of inter-related requirements and if we see a future benefit of more structure beyond just a flat list, we can use {\it requirements models} where requirements are expressed using relevant (meta-) {\bf entities}, {\bf attributes} and {\bf relations} that can capture what we want to model.   
-
-The free, open source tool reqT enables scalable requirements modeling, ranging from small models of a couple of features to large models containing elaborate structures of thousands of requirements. In this lab you will learn how to get started with requirements modeling through the use of reqT and reflect on how you could model the requirements of your own project with reqT.
+Requirements engineering is a dynamic process where the understanding of an imagined future system (of systems) is evolving over time. During this evolution we can capture the knowledge and creative ideas that we elicit in various ways, depending on how we foresee the (later) usage of that knowledge. For example, we could create and use spread sheets, post-it notes, emails, wikis, video clips, mockups, sketches, diagrams, mathematical specifications, etc. If we want to keep track of many different types of inter-related requirements and if we see a future benefit of more structure beyond just a flat list, one option is to use requirements models where requirements-related information is expressed using relevant {\bf entity}, {\bf attribute}, and {\bf relation} concepts to capture what we want to model, as illustrated by this lab and the metamodel of reqT. 
 
 \clearpage\newpage
-\section{Preparations}
+\section{Preparations}\label{section:prep}
 
-Before the lab session, please complete all preparations below and bring requested items to the lab. In particular you need to make sure that you can access the text files you prepare below at your lab session computer.
+\begin{framed} \noindent Before doing the lab session in Section~\ref{section:instr}, complete all preparations 1--4 below and bring requested items to the lab. In particular you need to make sure that you can access the text files you prepare below at your lab session computer.
+\end{framed}
 
 \begin{enumerate}
 \item {\bf Do the reqT "hello world".} Run the reqT hello world example on your computer, as explained here: \newline \url{http://reqt.org/documentation.html\#hello}
-\item {\bf Draw a context diagram.} Draw a context diagram that  is relevant to your development project. Make the drawing on paper and bring to the lab. The context diagram should include entities outside of the system you are building that are communicating directly with the system under development. 
+\item {\bf Draw a context diagram.} Draw a context diagram\footnote{\url{http://en.wikipedia.org/wiki/System_context_diagram}} that  is relevant to your development project. Make the drawing on paper and bring to the lab. The context diagram should include entities outside of the system you are building that communicate with your system. 
 \item {\bf Create a context model.} Transform your context diagram into a reqT model, analogous to this  example: 
 {\footnotesize\begin{verbatim}
 Model(
@@ -43,8 +43,8 @@ Model(
     System("telephony"), 
     System("accounting")))
 \end{verbatim}}
-Saved the model in a text file called \verb+context.scala+
-\item {\bf Create a list of features.} Make a list of at least 5 features relevant to your project, divided into 2 sections, analogous to the example below. Use the exact formatting and indentation according to the example with hash tag before the name of each group and an asterisk before the name of each feature: 
+Enter the code in your favorite editor and save the model in a text file called \verb+context.scala+
+\item {\bf Create a list of features.} Make a list of at least 5 features relevant to your project, divided into named sections, analogous to the example below. Use the exact formatting and indentation according to the example with hash tag before the name of each section and an asterisk before the name of each feature: 
 {\footnotesize\begin{verbatim}
 # receptionFeatures
   * groupCheckIn
@@ -55,14 +55,14 @@ Saved the model in a text file called \verb+context.scala+
   * exportAccounting
     Export accounting data to external system.
 \end{verbatim}}
-Saved the list of features in a text file called \verb+feat.txt+  
+Save the list of features in a text file called \verb+feat.txt+  
 \end{enumerate}
 \clearpage\newpage
 
-\section{Lab instructions}
+\section{Lab instructions}\label{section:instr}
 
 \subsection{Start reqT}
-Download the reqT.jar file from \url{http://reqT.org} and start reqT in a terminal window using this command: \verb+java -jar reqT.jar+ as shown in Figure~\ref{fig:console}. Make sure you have the text files from your preparations available in the same directory as you start reqT.
+Download the reqT.jar file from \url{http://reqT.org} and start reqT in a terminal window using this command: \verb+java -jar reqT.jar+ as shown in Figure~\ref{fig:console}. Make sure you have the text files from your preparations from Section~\ref{section:prep} available in the same directory as you start reqT.
 
 \begin{figure}[h]
     \centering
@@ -76,7 +76,7 @@ In the reqT console these keystrokes and commands work as follows:
 \begin{itemize}[label={}]
 \item <Ctrl+A> to move the cursor to the beginning of a line.
 \item <Ctrl+E> to move the cursor to the end of a line.
-\item <Ctrl+K> to ''kill'' the characters from the cursor to the line end.
+\item <Ctrl+K> ''kill'': clears text after the cursor.
 \item <Arrow Left/Right> to move the cursor backward/forward within a line. 
 \item <Arrow Up/Down> to move backward/forward in the command history. 
 \item <TAB> to invoke code completion.
@@ -87,7 +87,7 @@ In the reqT console these keystrokes and commands work as follows:
 }
 
 {\begin{framed}\noindent
-Try out the commands above in the reqT console. Use the \verb+:help+ command to figure out how to enter paste mode. Paste some text when in paste mode using mouse right-click. End paste mode with <Ctrl+D>. What is the shortest, unambiguous abbreviation of the enter-paste-mode-command?  \underline{\hspace{2cm}}
+Try out the commands above in the reqT console. Use the \verb+:help+ command to figure out how to enter paste mode. Paste some text when in paste mode using mouse right-click. End paste mode pressing <ENTER> and then press <Ctrl+D> at the beginning of a new line. %What is the shortest, unambiguous abbreviation of the enter-paste-mode-command?  \underline{\hspace{2cm}}
 \end{framed}}
 
 \subsection{Create and update models using the reqT console}
@@ -106,9 +106,8 @@ reqT> ((m3 + Stakeholder("y")) ++ m2).size
 \end{verbatim}}
 
 
-\noindent What is the integer value result of the last evaluation? 
+\noindent What is the integer value result of the last evaluation above? Why?
 \newline 
-\verb?((m3 + Stakeholder("y")) ++ m2).size?
 \newline
 \newline \underline{\hspace{10cm}}
 
@@ -133,7 +132,7 @@ reqT> m4 = m4.transform{case Req(id) => Feature(id) has Status(ELICITED)}
 \end{verbatim}}
 \end{framed}
 \begin{framed}\noindent
-What is the size of the m4 model after the above transform? 
+What is the size of the m4 model after the above transform? Why?
 \newline
 \verb+m4.size+
 \newline
@@ -153,8 +152,7 @@ A reqT model can be viewed as a vector of elements. Elements can be entities, at
 
 Investigate what different entity types, attribute types and relation types that the reqT metamodel contains, using the evaluations in the reqT console below. 
 
-\begin{framed}
-{\footnotesize\begin{verbatim}
+\begin{framed}{\footnotesize\begin{verbatim}
 reqT> reqT.metamodel.  // Press <TAB> after the dot
 
 reqT> reqT.metamodel.ent // Press <TAB> after the t
@@ -174,13 +172,13 @@ How many different entity types, attribute types and relation types are there re
 \newline
 \newline \underline{\hspace{10cm}}
 \newline\newline
-How many \verb+Meta+ entity concepts are there in the reqT metamodel? 
+How many entity concepts of type \verb+Meta+  are there in the reqT metamodel (as calculated by the last evaluation above)? 
 \newline
 \newline \underline{\hspace{10cm}}
 \end{framed}
 
 The meta model elements can be used in many different ways. There are no restrictions on how to combine the elements, except for these three basic rules:
-\begin{enumerate}
+\begin{enumerate}[nolistsep]
 \item {\bf Attribute identity}. A model or submodel can only contain at most {\it one} attribute of a specific type at its top level. However, the same type of attribute can co-exist if they reside in different submodels of the same model. 
 \item {\bf Entity-Link identity}. A model or a submodel can only contain at most {\it one} entity with a certain id and a certain relation link at its top level. If you add an entity with the same id and the same relation link at the top level of a model or submodel, it will merge the elements of each submodel, and if the above rule applies then the last same-typed attribute will be overwrite the former. 
 \item {\bf Leaf entity has empty submodel}. The \verb+has+-relation is special, as a leaf entity that has no relations to any subelements is equivalent to an entity with a has-relation to an empty submodel. 
@@ -227,7 +225,7 @@ A model is represented using a recursive data structure where relation elements 
 A {\it head} is a start of a relation that combines an entity with a relation type using dot notation, such as  
 \verb+Feature("x").has+ and \verb+Stakeholder("b").requires+  
 
-Paths begin with a sequence of {\it heads} separated by \verb+/+ and may end with either (1) a head, (2) an entity, (3) an attribute type or (4) an attribute. The has relation is special: in paths an entity without any relation type is interpreted as an entity with a \verb+.has+ relation. 
+Paths begin with a sequence of {\it heads} separated by \verb+/+ and may end with either (1) a head, (2) an entity, (3) an attribute type or (4) an attribute. The \verb+has+ relation is special: in paths an entity without any relation type is interpreted as an entity with a \verb+has+ relation. 
 
 \begin{framed}\noindent
 Try these path examples in the reqT console: 
@@ -266,10 +264,12 @@ reqT> val rm = rndModel(10)
  
 reqT> rm.pp
 
-reqT> rm.leafPaths.map(_.depth).max 
+reqT> rm.leafPaths.map(_.depth).max    // Write down the max depth: _____
+
+reqT> rm.leafPaths.filter(_.depth == 2).head
 \end{verbatim}}
-\noindent Write down the path needed to access the value of one of the deepest attributes:\newline\newline
-\verb+reqt> rm/+\underline{\hspace{9cm}}
+\noindent Write down the path to the first attribute at level 2:\newline\newline
+\underline{\hspace{11cm}}
 \end{framed}
  
 If a path ends with an attribute type, then it refers to the corresponding value that is boxed by that attribute in a model. If the attribute is not available when the path is applied to a model with the enter operator \verb+/+ then a default value is produced. 
@@ -327,7 +327,7 @@ Saved string to file: C:/Users/bjornr/tmp/context-v2.scala
 reqT> m.save("context.reqt")
 Model serialized to file: context.reqt
 \end{verbatim}}
-\noindent Create a large random model using the command: \newline{\scriptsize\verb+val r = rndModel(52,2)  //max 52 at top level and then max 26 etc.+} \newline and compare the binary model size on disk with the string model text file size, by checking the file sizes in your OS. If the files get too big or it takes too much time, reduce the number of max elements at top level.\newline
+\noindent Create a large random model using the command: \newline{\scriptsize\verb+val r = rndModel(52,2)  //max 52 at top level and then max 26 etc.+} \newline and compare the binary model size on disk with the string model text file size, by checking the file sizes in your OS. If the files get so big that it takes too much time, reduce the number of max elements at top level.\newline
 \newline Number of elements in the model: {\footnotesize\verb+r.size+} \underline{\hspace{2cm}} 
 \newline Size of binary file: {\footnotesize\verb+r.save("big.reqt")+}  \underline{\hspace{2cm}} 
 \newline Size of text file: {\footnotesize\verb+r.toString.save("big.scala")+} \underline{\hspace{2cm}}
@@ -337,7 +337,7 @@ Model serialized to file: context.reqt
 
 The reqT ModelTreeEditor is a graphical user interface for navigating and updating reqT model. You start the editor with the \verb+edit+ command. You can start many ModelTreeEditor windows. 
 
-You can also preload a ModelTreeEditor instance with a model, e.g. called \verb+m+, by simply passing it as a paramter to the edit command, e.g. \verb+edit(m)+. The ModelTreeEditor is shown in Figure~\ref{fig:gui}.
+You can also preload a ModelTreeEditor instance with a model, e.g. called \verb+m+, by simply passing it as a paramter to the edit command, e.g. \verb+edit(m)+. The ModelTreeEditor is shown in Figure~\ref{fig:gui}. You can start many ModelTreeEditor windows by repeating the edit command.
 
 \begin{figure}[h]
     \centering
@@ -405,15 +405,15 @@ m =>
 
 \subsection{Export/Import of models to inter-operate with other apps}
 
-In order to inter-operate with other apps and services, reqT can export and import data in various formats. A basic format of inter-operation is the textual scala representation of models, which can be opened in any code editor, pasted into emails, uploaded to GitHub etc.   
+In order to inter-operate with other apps and services, reqT can export and import data in various formats. A general format of inter-operation is text, as you worked with in the previous section. With reqT, you can also inter-operate with html, tabular text, and other formats.
 
 \begin{framed}
-Carry out these steps using the ModelTreeEditor gui:
-\begin{enumerate}
+\noindent Carry out these steps using the ModelTreeEditor gui:
+\begin{enumerate}[nolistsep,noitemsep]
 \item Load the ''Model to exemplify HTML export'' in the {\it Templates} menu and press <Ctrl+R>.
 \item Choose the Export -> ''HTML from tree ...'' menu and give a file name for the static site to be generated.
 \item A browser window should appear on your desktop with the generated html file.
-\item How are the different special elements Title, Section, and Text rendered in your browser? \newline\newline\underline{\hspace{10cm}}
+\item How are the different special elements Title, Section, and Text rendered in your browser? \newline\newline\underline{\hspace{10cm}}\newline
 \item Inspect the html code generated in the index.html file. 
 \end{enumerate}
 \end{framed}
@@ -433,14 +433,14 @@ If you have \url{http://graphviz.org} installed on your machine, carry out these
 
 \subsection{Investigate the Status attribute for tracking requirements evolution}
 
-As requirements evolve, it is often interesting to keep track of how far we have come in the evolution from elicitation to release. To enable this, reqT has a \verb+Status+ attribute which boxes a status value that  represents states of a requirements state machine similar to a ''salmon ladder'' where requirements can travel up and down an analogous ''release ladder''. In the subsequent tasks you will use the Editor to investigate the transitions between status values as requirements go up and down the ''ladder''.  
+As requirements evolve, it is often interesting to keep track of how far we have come in the process from elicitation to release. To enable this, reqT has a \verb+Status+ attribute which boxes a status value that  represents states of a requirements state machine, where requirements can travel up and down a  ''release ladder''. In the subsequent tasks you will use the Editor to investigate the transitions between status values as requirements go up and down the ''ladder''.  
 
 \begin{framed}
 \noindent You can use the Editor to evaluate expressions and let the evaluation results be pasted into the Editor after the evaluation using the <Alt+Enter> shortcut. Enter the following code snippets and press <Alt+Enter> after each code snippet. When the Editor is in scope you can press <Ctrl+Z> to undo in several steps.
 \begin{enumerate}[noitemsep,nolistsep]
 \item Enter in editor: \verb+StatusValue.values+ and then press <Alt+Enter>.
 \item Enter in editor: \verb+ELICITED.up+ and then press <Alt+Enter>. (You can use code completion to enter ELICITED without typing so much by entering E and the press <Ctrl+Space>.)
-\item Enter in editor: \verb+ELICITED.down+ and then press <Alt+Enter>.
+\item Enter in editor: \verb+ELICITED.down+ and then press <Alt+Enter>.\newline Write down the status if you go down from \verb+ELICITED+\newline\underline{\hspace{10cm}}
 \end{enumerate}
 \end{framed}
 
@@ -449,7 +449,7 @@ As requirements evolve, it is often interesting to keep track of how far we have
 \noindent Draw the state machine representing all reqT's built-in requirements status transitions by carrying out the steps below:
 \begin{enumerate}
 \item Use repeated evaluations with <Alt+Enter> in the Editor to check what happens if you call \verb+up+ or  \verb+down+ on all values in \verb+StatusValue.values+ respectively. Use <Ctrl+Space> to type faster. 
-\item Draw below a state-transition diagram with all nodes \verb+ELICITED+, \verb+SPECIFIED+, etc., with two directed edghes from each state labeled \verb+up+ and \verb+down+ respectively, showing all the transitions. \newline
+\item Draw below a state-transition diagram with all nodes \verb+ELICITED+, \verb+SPECIFIED+, etc., with two directed edges from each state labeled \verb+up+ and \verb+down+ respectively, showing all the transitions. \newline
 \vspace{7cm}
 \item Reflect upon what in a hypothetical project may be different paths of different features through the above diagram. Are there any transitions missing that you think might be needed? If so, why are they needed?
 \item Type this code into the Editor and select the root node in the Tree and press <Ctrl+R>:{\scriptsize\begin{verbatim}
