@@ -43,7 +43,7 @@ case class Search(
       variableSelection: jacop.VariableSelection = jacop.Settings.defaultVariableSelection,
       assignOption: Option[Seq[Var]] = None)
 
-case class ConstraintProblem(m: Model, cs: Seq[Constr]) {
+case class ConstraintProblem(cs: Seq[Constr]) {
   //Any propagates because of Map invariance in first Type argument:
   def mkModel(vmap: Map[Var, Int]): Model = { 
     var newModel = Model()
@@ -64,15 +64,17 @@ case class ConstraintProblem(m: Model, cs: Seq[Constr]) {
   def solve(search: Search): (Model, Result) =  {
     val r = jacop.Solver(cs, search).solve
     if (r.conclusion == SolutionFound) (mkModel(r.lastSolution), r) 
-    else { 
-      jacop.Settings.warningPrinter(r.conclusion.toString)
-      (Model(), r) 
-    } 
+    else (Model(), r) 
   }
-  
-  def satisfy: Model = solve(Search(Satisfy))._1
-  def maximize(v: Var): Model = solve(Search(Maximize(v)))._1
-  def minimize(v: Var): Model = solve(Search(Minimize(v)))._1 
+  private def searchModelAndWarnIfNoSolution(search: Search): Model = {
+    val (model, result) = solve(search)
+    if (result.conclusion != SolutionFound)
+      jacop.Settings.warningPrinter(result.conclusion.toString)
+    model
+  }
+  def satisfy: Model          = searchModelAndWarnIfNoSolution(Search(Satisfy))
+  def maximize(v: Var): Model = searchModelAndWarnIfNoSolution(Search(Maximize(v)))
+  def minimize(v: Var): Model = searchModelAndWarnIfNoSolution(Search(Minimize(v)))
 }
   
 class JacopSolutions( 
@@ -299,7 +301,7 @@ value selection methods not yet implemented
     def solutionMap(s: jcore.Store, nameToVar: Map[String, Var] ): Map[Var, Int] = 
           collectIntVars(s).filter(_.singleton).map(iv => (nameToVar(iv.id), iv.value) ).toMap
 
-    def solve: Result = {
+    def solve: Result = if (constraints.size > 0) {
       val store = new jcore.Store
       val vs = distinctVars(flatConstr)
       val cs = collectConstr(flatConstr)
@@ -384,7 +386,7 @@ value selection methods not yet implemented
       }
       if (Settings.verbose) println(store)
       conclusion
-    } //end def solve
+    } else Result(SolutionNotFound) //end def solve
     
   } //end class Solver
 } // end object jacop
