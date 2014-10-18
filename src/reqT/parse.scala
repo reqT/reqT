@@ -74,7 +74,6 @@ object loadTab {
 }
 
 object Textified {
-  //TODO: finish integration with gui
   //TODO: make this work for Contstraints and other Vector attributes
   val test1 = """
   Section sect1 has
@@ -163,3 +162,62 @@ object Textified {
     recursiveMerge(indentElemSeq(text)).map{ case (_, elem) => elem } .toModel
 }
 
+object comparisonParser {
+  def parse(
+        input: String, 
+        allowedDeviation: Int = 0,
+        entType: EntityType = Req,
+        attrType: AttributeType[Int] = Value,        
+        verbose: Boolean = false
+  ): Model = {
+    assert(allowedDeviation >= 0, "allowedDeviation >= 0")
+    def elem(id: String): AttrRef[Int] = entType(id)/attrType  
+    val xs = input.split("\n").toVector
+    var e = 0
+    var ids = Vector.empty[String]
+    val comparisons = xs.filterNot(_.trim.startsWith("//")).flatMap { s =>
+      val ixOpt: Option[Int] = Some(s.indexWhere(c => Set('>','<').contains(c))).filter(_ > 0)
+      ixOpt.map { i =>
+        e += 1
+        val (pre,post) = s.splitAt(i)
+        val (x,r,y) = (pre.trim, s(i), post.drop(1).trim)
+        ids = ids :+ x :+ y
+        r match {
+          case '<' => XplusYlteqZ(elem(x),Var(s"-error$e"),elem(y))
+          case '>' => XplusYlteqZ(elem(y),Var(s"-error$e"),elem(x))
+        }
+      }     
+    }
+    ids = ids.distinct
+    if (ids.size > 0 && comparisons.size > 0) {
+      val valueBounds = ids.map(id => elem(id) :: Interval(1, ids.size))
+      val errorVars = (1 to e).map( i=> Var(s"-error$i"))
+      def errorBounds(deviation: Int) = errorVars.map(_ :: Interval(1-deviation, 1))
+      val sumError = Sum(errorVars) === Var("-TotalError")
+      val allDiff = AllDifferent(ids.map(id => Var(elem(id))))
+      def prioProblem(dev: Int) = ConstraintProblem(Constraints(
+        (comparisons ++ valueBounds ++ errorBounds(dev) :+ sumError :+ allDiff)  :_* ))
+      def solve(deviation: Int, untilDev: Int): Model = {
+        val problem = prioProblem(deviation)
+        if (verbose) println(s"""\n--- Solving problem:\n${problem.cs.mkString("\n")}""")
+        val (model, result) = problem.solve(Search(Maximize(Var("-TotalError"))))
+        if (verbose) println(s"--- Parse comparison list result: $result\n--- Generated model:\n$model")
+        if (result.conclusion == SolutionFound) model
+        else {
+          println("*** Warning: Inconsistency found.") 
+          if (deviation < untilDev) {
+            println(s"Attempting new solution search with relaxed deviation: ${deviation+1}")
+            solve(deviation+1, untilDev)
+          } else {
+            println(s"*** Warning: No solution found within allowed deviation: $allowedDeviation")
+            println("Try to eliminate inconsistencies or allow higher deviation.")
+            Model()
+          }
+        } 
+      }
+      if (verbose) println(s"Parsed comparisons:\n$comparisons")
+      solve(0,allowedDeviation)
+    } else throw new Error("Parsing comparison list. Input must be lines with 'id1 < id2' etc.")
+  }
+}
+  
