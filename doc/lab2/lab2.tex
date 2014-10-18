@@ -1,0 +1,229 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{times}
+\usepackage{inconsolata}
+\usepackage{amsmath}
+\usepackage{framed}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+\definecolor{entityColor}{RGB}{0,100,200}
+\definecolor{attributeColor}{RGB}{0,100,50}
+\definecolor{relationColor}{RGB}{160,0,30}
+\usepackage{listings}
+\lstdefinestyle{reqT}{
+  belowcaptionskip=1\baselineskip,
+  breaklines=true,
+  showstringspaces=false,
+  basicstyle=\scriptsize\sffamily,
+  emph={Ent,Meta,Item,Label,Section,Term,Actor,App,Component,Domain,Module,Product,Release,Resource,Risk,Service,Stakeholder,System,User,Class,Data,Input,Member,Output,Relationship,Design,Screen,MockUp,Function,Interface,Epic,Feature,Goal,Idea,Issue,Req,Ticket,WorkPackage,Breakpoint,Barrier,Quality,Target,Scenario,Task,Test,Story,UseCase,VariationPoint,Variant},
+  emphstyle=\bfseries\color{entityColor},
+  emph={[2]has,is,superOf,binds,deprecates,excludes,helps,hurts,impacts,implements,interactsWith,precedes,requires,relatesTo,verifies},
+  emphstyle={[2]\bfseries\color{relationColor}},
+  emph={[3]Attr,Code,Constraints,Comment,Deprecated,Example,Expectation,FileName,Gist,Image,Spec,Text,Title,Why,Benefit,Capacity,Cost,Damage,Frequency,Min,Max,Order,Prio,Probability,Profit,Value,Status},
+  emphstyle={[3]\color{attributeColor}},  
+}
+\lstset{style=reqT}
+\usepackage{fancyvrb}
+\usepackage[english]{babel}
+\usepackage{enumitem} 
+\setlist[itemize]{noitemsep}
+\title{{\bf LAB 2:\\Requirements Prioritization \& Release Planning}\\ Preparations and instructions}
+\author{Björn Regnell and Oskar Präntare}
+\date{\today}
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+\subsection{Purpose} This document provides instructions on how to prepare for and run a computer lab session on requirements selection. The lab session illustrates how requirements prioritization and release planning can be supported by computer tools, and demonstrates the complexity in finding solutions to these problems. {\it The preparations in Section~\ref{section:prep} should be completed before the actual lab is run.} 
+
+\subsection{Prerequisites} This lab assumes that you have installed the open source tool \href{http://reqT.org}{reqT.org} and that you are familiar with basic requirements modeling using reqT. It is also assumed that you have completed \href{https://github.com/reqT/reqT/blob/3.0.x/doc/lab1/lab1.pdf}{Lab 1 Requirements Modeling}.
+
+\subsection{Background} In this lab you will learn how to get started with requirements prioritization and release planning through the open source tool reqT, and reflect on how you could select requirements in your own project. 
+
+In real-world requirements engineering you are continuously faced with different types of trade-off problems. As we have limited development resources and normally would like our most important features ready as soon as possible, we need to make hard decisions on what to develop next and what to postpone. If we spend some time on assessing the cost or benefit (or some other aspect) of the tings we have at hand, we can hopefully find a good trade-off in how we spend our effort in relation to the available lead time. Two main trade-off problems in requirements engineering are
+\begin{itemize}
+\item {\bf requirements prioritization}, where (a subset of) requirements are traded off against each other according to the opinions of the stakeholders based on some criteria such as the {\it benefit}, e.g. with respect to the strengthening of our product's brand, or the {\it cost}, e.g. of lost sales in case a requirement is not implemented. There are many prioritisation methods that can be used to elicit the stakeholders'
+opinions. In this lab we use the \$100 method and an ordinal scale ranking method, and
+\item {\bf release planning}, where requirements are scheduled in time over several releases under trade-offs with respect to constraints of the available capacities of different resources, requirements priorities and requirements inter-dependencies. 
+\end{itemize}
+
+It is also likely that you will need to do hard choices of how you spend your efforts in the requirements engineering process. Probably you will have to make trade-offs such as: Is it more important to do more stakeholder analysis at this point, or should we instead focus on validation of the quality requirements that we have elicited so far? The prioritization planning methods in this lab may be used to prioritize and plan the tasks of the requirements process itself, although we will exemplify the methods by using features under consideration for development.
+
+
+
+\clearpage\newpage
+\section{Preparations}\label{section:prep}
+\begin{framed} \noindent Before doing the lab session in Section~\ref{section:instr}, complete all preparations in this section and bring requested items to the lab. In particular you need to make sure that you can access the text files you prepare below at your lab session computer.
+\end{framed}
+
+\subsection{Prioritization Preparations}
+
+\subsubsection{Definitions}
+
+Here is one way to formalize the requirements prioritization problem: 
+\begin{description}
+\item [] $S$ is a set of $m$ stakeholders, $S=\{s_1, s_2 ..., s_m\}$
+\item [] $Q$ is set of $n$ requirements $Q=\{q_1, q_2, ..., q_n\}$
+\item [] $p(s_i, q_j)$ is a number representing the importance of requirement $q_j$ assigned by stakeholder $s_i$
+\item [] $w(s_i)$ is a number representing the importance of stakeholder $s_i$
+\item [] $P(q_j)$ is the total priority of requirement $q_j$ calculated by some function that maps all $p(s_i, q_j)$ and $w(s_i)$ to a single, numeric value.
+\item[] A {\it prioritization method} defines a procedure that assigns numeric values to $p(s_i, q_j)$ for all stakeholders $s_i$ and all requirements $q_j$, and to $w(s_i)$ for all stakeholders, according to some predefined priority criteria.  
+\end{description}
+%\footnote{If you prepare your files on mac/windows and use them on linux then reqT may provide strange results for some characters. See \url{http://manpages.ubuntu.com/manpages/maverick/man1/dos2unix.1.html}}
+
+\noindent Before carrying out a prioritization method, a prioritization criteria needs to be defined. Examples of criteria are: market value, stakeholder benefit, risk of loss and urgency of delivery. 
+
+\begin{framed}
+\noindent {\bf Define a prioritization criteria}. Choose a prioritization criteria relevant to your project. Define your criteria so that it is desirable to maximize the priority value. 
+\newline\newline Criteria def.: \underline{\hspace{10cm}}
+ \end{framed}
+ 
+  \begin{framed}
+ \noindent {\bf Define requirements and stakeholders}. Make a reqT model with 2 stakeholders and 15 requirements from your project, analogous to this template: 
+ 
+\begin{lstlisting}
+Model(
+  Req("autoSave"),
+  Req("exportGraph"), 
+  Req("exportTable"), 
+  Req("modelTemplates"), 
+  Req("releasePlanning"), 
+  Req("syntaxColoring"), 
+  Req("autoCompletion"), 
+  Stakeholder("modeler"),
+  Stakeholder("tester"))     
+\end{lstlisting}
+Save the model in a text file called \verb+req.scala+
+\end{framed}
+ 
+\subsubsection{Methods}
+
+\noindent The {\bf \$100 method} gives each stakeholder a fictitious sum of money to ''spend'' on the requirements, where $p(s_i, q_j)$ is assigned to the amount of money ''spent'' for each requirement representing its importance according to some criteria. The combined priorities $P(q_j)$ are calculated as  
+\begin{displaymath}
+P(q_j) = \sum\limits_{s_i \in S} p(s_i, q_j) w(s_i) k_i
+\end{displaymath}
+where the normalization constants $k_i$ are selected so that the sum of all $P(q_i)$ is normalized to 100 units, thus 
+\begin{displaymath}
+k_i = \frac{100}{   w \sum\limits_{q_j \in Q} p(s_i, q_j)} \text{ \hspace{4mm} where \hspace{2mm}}
+w = \sum\limits_{s_i \in S} w(s_i)
+\end{displaymath} 
+
+\begin{framed}
+\noindent {\bf Simplified \$100 method}. If all stakeholders are equally important, the formulas above can be simplified. Simplify $P(q_i)$ when $w(s_i) = a \text{ for all  } s_i \in S$: \newline\newline\newline\newline    \underline{\hspace{11cm}}
+ \end{framed}
+
+ \clearpage\newpage 
+\begin{framed}
+\noindent {\bf Use the \$100 method}. Put yourself in the shoes of each of your 2 stakeholders and use the \$100 method to prioritize each of your 15 requirements according to your selected criteria. 
+
+\vspace{1em}
+
+\begin{tabular}{| c | p{3cm} | c | c |}
+\hline
+          &     & Amount of dollars & Amount of dollars \\ 
+ Req    & Id & Stakeholder 1 & Stakeholder 2 \\ \hline
+\hline 1 & & &  \\ 
+\hline 2 & & & \\
+\hline 3 & &  &\\
+\hline 4 & &  &\\
+\hline 5 & &  &\\
+\hline 6 & &  &\\
+\hline 7 & & & \\
+\hline 8 & & & \\
+\hline 9 & &  &\\
+\hline 10 & &  &\\
+\hline 11 & &  &\\
+\hline 12 & &  &\\
+\hline 13 & & & \\
+\hline 14 & & & \\
+\hline 15 & & & \\
+\hline
+\end{tabular}
+
+\vspace{2em}
+\noindent Transfer your priority data above into a model file of this form:
+\begin{lstlisting}
+Model(
+  Stakeholder("modeler") has (
+    Prio(1),
+    Req("autoSave") has Benefit(25),
+    Req("exportGraph") has Benefit(10),
+    Req("exportTable") has Benefit(8), 
+    //...
+    Req("autoCompletion") has Benefit(28)),
+  Stakeholder("tester") has (
+    Prio(2),
+    Req("autoSave") has Benefit(3),
+    Req("exportGraph") has Benefit(25),
+    Req("exportTable") has Benefit(14), 
+    //...
+    Req("autoCompletion") has Benefit(2)))
+ \end{lstlisting}
+ Save the model code in a text file called \verb+prio100.scala+   
+ \end{framed}
+
+\clearpage\newpage
+\noindent The {\bf ordinal priority ranking method} assigns a positive integer number to each requirement $q_j$ for each stakeholder $s_i$ denoted $p(s_i, q_j) \in [1..n]$, where $n$ is the total number of requirements and all $p(s_i, q_j)$ are different for each stakeholder $s_i$. The priority $p(s_i, q_j)$ represents an ordinal scale estimation of the preference order of the requirement $q_j$ according to the views of stakeholder $s_i$. Estimations on an ordinal scale imply that the estimates only provide ordinal information and not ratio information, which means that it is not possible to tell if one priority is, say $33\%$ or $50\%$ of another priority, just because it has a lower ordinal value. 
+
+One way to assign ordinal priority values is to use {\bf pairwise comparison} of the requirements and then by some algorithm (e.g. insertion sort\footnote{\url{http://en.wikipedia.org/wiki/Insertion_sort}}) sort the requirements in priority order, and when the sorting is ready, let $p(s_i, q_j) = n$ for the first requirement,  $p(s_i, q_j) = n - 1$ for the second, etc. down to $p(s_i, q_j) = 1$ for the last requirement. 
+
+
+\begin{framed}
+\noindent 
+If there are $n$ requirements, what is the total number of possible pairwise combinations, without considering order? 
+\newline\newline   \underline{\hspace{11cm}}
+\newline\newline Try these lines in the reqT console to check your answer above:
+
+{\scriptsize\begin{verbatim}
+reqT> def allComb(n: Int) = (1 to n).combinations(2).toVector
+
+reqT> allComb(100).foreach(println)    
+
+reqT> allComb(100).size    //size: _____ 
+\end{verbatim}}
+
+\noindent
+Consider a directed graph of comparisons, where a directed edge $(a,b)$ represents a pair-wise comparison $a < b$. If there are $n$ requirements nodes, what is the lowest number of comparison edges needed to connect all requirement with each other? 
+\newline\newline   \underline{\hspace{11cm}}
+\newline\newline Try these lines in the reqT console to check your answer above:
+
+{\scriptsize\begin{verbatim}
+reqT> def comb(n:Int) = (1 to n-1).map(i => (i,i+1)).toVector        
+
+reqT> comb(100).foreach(println)    
+
+reqT> comb(100).size //size: _____ 
+\end{verbatim}}
+ \end{framed}
+
+
+
+
+\subsection{Release Planning Preparations}
+
+The reqT tool includes a constraint solver\footnote{\url{http://jacop.eu/}}, enabling the formulation of prioritization and release planning problems using constraints over integer values in requirements models. After the problem has been formulated, then the constraint solver in reqT may automatically find a solution (if it exists), without the need for any further algorithm implementation. 
+
+\clearpage\newpage
+
+\section{Lab Instructions}\label{section:instr}
+
+\subsection{Prioritization Lab Instructions}
+
+\subsection{Release Planning Lab Instructions}
+
+
+\section{Conclusion and reflection}
+
+
+\begin{framed}
+Reflect upon these discussion questions and write down some reflections:
+\begin{enumerate}
+\item How ... ?
+\end{enumerate}
+\end{framed}
+
+\end{document}
