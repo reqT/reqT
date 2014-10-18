@@ -115,6 +115,9 @@ trait ModelIterators extends ModelBase {
     }
   } .toModel  
   
+  def transformEntityTypesByIdIn(that: Model): Model = 
+    transform { case e: Entity if that.idType.isDefinedAt(e.id) => that.idType(e.id)(e.id) } 
+  
   def withFilter(f: Elem => Boolean): FilterMonadic[reqT.Elem,Iterable[reqT.Elem]] = 
     toIterable.withFilter(f) //needed to make for-comprehensions work (do theyalso with guards???)over Model 
     //is the withFilter iteration too shallow??
