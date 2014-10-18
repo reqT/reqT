@@ -232,11 +232,14 @@ trait ModelBasicOps  {
   lazy val tipEntitiesOfId: Map[String, Set[Entity]] = SetBag(tipEntities.map(e => (e.id, e)):_*).withDefaultValue(Set())
   
   lazy val ids: Vector[String] = collect { case e: Entity => e.id } .distinct
+  lazy val idType: Map[String, EntityType] = entities.map(e => (e.id, e.myType)).toMap
   lazy val entitiesOfId: Map[String, Set[Entity]] = 
     SetBag(collect { case e: Entity => (e.id, e) } :_*).withDefaultValue(Set())
   lazy val entityOfId: Map[String, Entity] = 
     entitiesOfId.collect { case (id, es) if !es.isEmpty => (id, es.head) } .toMap.withDefaultValue(NoEntity)
-  
+  lazy val isIdUnique: Map[String, Boolean] = entitiesOfId.map{ case (id, xs) => (id, xs.size <= 1) }
+  lazy val nonUniqueId: Map[String, Set[Entity]] = entitiesOfId.collect { case (id, es) if es.size > 1 => (id, es) } 
+  lazy val isAllIdUnique: Boolean = !isIdUnique.find{ case (id, b) => !b }.isDefined
   def existsElem(p: Elem => Boolean): Boolean = myMap.exists((kc: (Key, MapTo) )=> p(kc.toElem)) //??? rename to exists? Deep???
   
   lazy val entityAttributePairs: Vector[(Entity, Attribute[_])] = collectLeafPaths { 
