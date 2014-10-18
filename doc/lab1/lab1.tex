@@ -7,6 +7,7 @@
 \usepackage{framed}
 \usepackage{graphicx}
 \usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
 \usepackage{fancyvrb}
 \usepackage[english]{babel}
 \usepackage{enumitem} 
@@ -21,7 +22,7 @@
 
 \subsection{Purpose} This document provides instructions on how to prepare for and run a computer lab session on requirements modeling. The lab session illustrates how computer-supported requirements modeling can help in requirements engineering. {\it The preparations in Section~\ref{section:prep} should be completed before the actual lab is run.}
 
-\subsection{Background} In this lab you will learn how to get started with requirements modeling through the open source tool reqT, and reflect on how you could model requirements in your own project. The reqT tool enables scalable requirements modeling, ranging from small models of a couple of features to large models containing elaborate structures of thousands of requirements. 
+\subsection{Background} In this lab you will learn how to get started with requirements modeling through the open source tool \href{http://reqT.org}{reqT.org}, and reflect on how you could model requirements in your own project. The reqT tool enables scalable requirements modeling, ranging from small models of a couple of features to large models containing elaborate structures of thousands of requirements. 
 
 Requirements engineering is a dynamic process where the understanding of an imagined future system (of systems) is evolving over time. During this evolution we can capture the knowledge and creative ideas that we elicit in various ways, depending on how we foresee the (later) usage of that knowledge. For example, we could create and use spread sheets, post-it notes, emails, wikis, video clips, mockups, sketches, diagrams, mathematical specifications, etc. If we want to keep track of many different types of inter-related requirements and if we see a future benefit of more structure beyond just a flat list, one option is to use requirements models where requirements-related information is expressed using relevant {\bf entity}, {\bf attribute}, and {\bf relation} concepts to capture what we want to model, as illustrated by this lab and the metamodel of reqT. 
 
@@ -43,9 +44,9 @@ Model(
     System("telephony"), 
     System("accounting")))
 \end{verbatim}}
-Enter the code in your favorite editor and save the model in a text file called \verb+context.scala+
+Enter the code in your favorite editor and save it\footnote{If you prepare your files on mac/windows and use them on linux then reqT may provide strange results for some characters. See \url{http://manpages.ubuntu.com/manpages/maverick/man1/dos2unix.1.html}} in a text file called \verb+context.scala+
 \item {\bf Create a list of features.} Make a list of at least 5 features relevant to your project, divided into named sections, analogous to the example below. Use the exact formatting and indentation according to the example with hash tag before the name of each section and an asterisk before the name of each feature: 
-{\footnotesize\begin{verbatim}
+{\scriptsize\begin{verbatim}
 # receptionFeatures
   * groupCheckIn
     Check in many guests arriving in bulk.
@@ -369,13 +370,13 @@ Carry out these steps using the ModelTree Editor:
 \end{enumerate}
 \end{framed}
 
-The Editor can toggle between two different textual representations of a model: (1) the normal scala code that we have been using so far, and (2) a simplified model language called {\it ''reqT textified''} that represents models without any parenthesis and quotes, while using indentation to represent levels of submodels. \footnote{A textified reqT model is analogous to the \href{http://en.wikipedia.org/wiki/Markdown}{markdown} representation of a html document.} The toggling is made using the <F9> shortcut.
+The Editor can toggle between two different textual representations of a model: (1) the normal scala code that we have been using so far, and (2) a simplified model language called {\it ''reqT textified''} that represents models without any parenthesis and quotes, while using indentation to represent levels of submodels. \footnote{A textified reqT model is analogous to the \href{http://en.wikipedia.org/wiki/Markdown}{markdown} representation of a html document.} The toggling is made using the <Ctrl+T> shortcut.
 
 \begin{framed}
 Carry out these steps using the ModelTree Editor:
 \begin{enumerate}
 \item Load your \verb+feat.txt+ file into the using the <Ctrl+L> shortcut.
-\item Toggle between {\it textified} and scala representations by pressing <F9> several times.
+\item Toggle between {\it textified} and scala representations by pressing <Ctrl+T> several times.
 \item When you have toggled to a scala model representation of your features in the Editor, select the root tree node and press <Ctrl+R> to replace the tree with your feature model.
 \item Click in the Editor pane to make sure that the Editor is in focus and press <Ctrl+A> to select all.
 \item Replace the text in the editor by entering this code: {\scriptsize\begin{verbatim}
@@ -466,7 +467,7 @@ up ++ down
 
 \section{Conclusion and reflection}
 
-There are many different ways that development projets may want to work with requirements. If there are several project members, it may be useful to distribute the evolving work results into different files to make version management easier as things evolve and grow. Some projects may want to use html or wikis, while others may want to use a word processor or a spreadsheet. Some may want to use latex while others may want to collaborate using docs in a cloud app. Some may want to manage their evolving requirements models in a version control cloud service such at \url{http://GitHub.org} or \url{http://Bitbucket.org}. 
+There are many different ways that development projets may want to work with requirements. If there are several project members, it may be useful to distribute the evolving work results into different files to make version management easier as things evolve and grow. Some projects may want to use html or wikis, while others may want to use a word processor or a spreadsheet. Some may want to use latex while others may want to collaborate using docs in a cloud app. Some may want to manage their evolving requirements models in a version controlled source repo cloud service such at \url{http://GitHub.org} or \url{http://Bitbucket.org}. 
 
 The basic idea behind reqT is to offer a flexible tool that can enable users to work in different ways. The flexibility of reqT is also shown in that the concept in its metamodel can be used in whatever way the users want as long as the hierarchical entity-attribute-relationship semantics are followed. You get a bag of concepts to use in your model, but you have to come up with your own modeling policy on how to use the bag of concepts available.
 
