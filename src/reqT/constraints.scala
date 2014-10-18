@@ -16,7 +16,7 @@ package reqT
 import scala.language.{postfixOps, implicitConversions}
 
 trait ImplicitContraints { // mixed into reqT package object
-  implicit def modelToCP(m: Model): ConstraintProblem = ConstraintProblem(m, m.constraints ++ m.intAttrToConstraints)
+  implicit def modelToCP(m: Model): ConstraintProblem = ConstraintProblem(m.constraints ++ m.intAttrToConstraints)
   
   implicit def constrVectorToConst(cs: Vector[Constr]): Constraints = Constraints(cs)
   implicit def constraintsToVector(cs: Constraints): Vector[Constr] = cs.value
@@ -24,8 +24,8 @@ trait ImplicitContraints { // mixed into reqT package object
 
   implicit def constrToConstraints(c:Constr) = Constraints(c)
   
-  implicit def constraintsToCP(cs: Constraints): ConstraintProblem = ConstraintProblem(Model(), cs)
-  implicit def constrVectorToCP(cs: Vector[Constr]): ConstraintProblem = ConstraintProblem(Model(), Constraints(cs))
+  implicit def constraintsToCP(cs: Constraints): ConstraintProblem = ConstraintProblem(cs)
+  implicit def constrVectorToCP(cs: Vector[Constr]): ConstraintProblem = ConstraintProblem(Constraints(cs))
   
   implicit def attrRefToVar(ar: AttrRef[Int]): Var = Var(ar) 
   
@@ -135,6 +135,7 @@ case class MulBuilder(x: Var, y: Var) {
 
 case class PlusBuilder(x: Var, y: Var) {
   def ===(z: Var) = XplusYeqZ(x, y, z)
+  def <=(z: Var) = XplusYlteqZ(x, y, z)
 }
 
 object Sum {
