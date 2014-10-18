@@ -44,7 +44,7 @@
 
 \subsection{Background} In this lab you will learn how to get started with requirements prioritization and release planning through the open source tool reqT, and reflect on how you could select requirements in your own project. 
 
-In real-world requirements engineering you are continuously faced with different types of trade-off problems. As we have limited development resources and normally would like our most important features ready as soon as possible, we need to make hard decisions on what to develop next and what to postpone. If we spend some time on assessing the cost or benefit (or some other aspect) of the tings we have at hand, we can hopefully find a good trade-off in how we spend our effort in relation to the available lead time. Two main trade-off problems in requirements engineering are
+In real-world requirements engineering you are continuously faced with different types of trade-off problems. As we have limited development resources and normally would like our most important features to be ready as soon as possible, we need to make hard decisions on what to develop next and what to postpone. If we spend some time on assessing the cost and benefit of the tings we have at hand, we can hopefully find a good balance in how we spend our effort wisely in relation to the available lead time. Two main trade-off problems in requirements engineering are
 \begin{itemize}
 \item {\bf requirements prioritization}, where (a subset of) requirements are traded off against each other according to the opinions of the stakeholders based on some criteria such as the {\it benefit}, e.g. with respect to the strengthening of our product's brand, or the {\it cost}, e.g. of lost sales in case a requirement is not implemented. There are many prioritisation methods that can be used to elicit the stakeholders'
 opinions. In this lab we use the \$100 method and an ordinal scale ranking method, and
@@ -179,29 +179,26 @@ If there are $n$ requirements, what is the total number of possible pairwise com
 \newline\newline Try these lines in the reqT console to check your answer above:
 
 {\scriptsize\begin{verbatim}
-reqT> def allComb(n: Int) = (1 to n).combinations(2).toVector
+reqT> def allPairs(n: Int) = (1 to n).combinations(2).toVector
 
-reqT> allComb(100).foreach(println)    
+reqT> allPairs(100).foreach(println)    
 
-reqT> allComb(100).size    //size: _____ 
+reqT> allPairs(100).size    //size: _____ 
 \end{verbatim}}
 
 \noindent
-Consider a directed graph of comparisons, where a directed edge $(a,b)$ represents a pair-wise comparison $a < b$. If there are $n$ requirements nodes, what is the lowest number of comparison edges needed to connect all requirement with each other? 
+Consider a directed graph of comparisons, where a directed edge $(a,b)$ represents a pair-wise comparison $a < b$. If there are $n$ requirements nodes, what is the minimum number of comparison edges needed to connect all requirement with each other? 
 \newline\newline   \underline{\hspace{11cm}}
 \newline\newline Try these lines in the reqT console to check your answer above:
 
 {\scriptsize\begin{verbatim}
-reqT> def comb(n:Int) = (1 to n-1).map(i => (i,i+1)).toVector        
+reqT> def minPairs(n:Int) = (1 to n-1).map(i => (i,i+1)).toVector        
 
-reqT> comb(100).foreach(println)    
+reqT> minPairs(100).foreach(println)    
 
-reqT> comb(100).size //size: _____ 
+reqT> minPairs(100).size //size: _____ 
 \end{verbatim}}
  \end{framed}
-
-
-
 
 \subsection{Release Planning Preparations}
 
