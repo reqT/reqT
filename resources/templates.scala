@@ -1,4 +1,4 @@
-//Model with Feature having Why+Spec+Example
+//Why+Spec+Example
 Model(
   Feature("navigate") has (
     Why(
@@ -9,7 +9,7 @@ Model(
 "Might be done with mini keyboard (wrist keys), foot pedal, voice recognition, etc.")
   )
 )
-//Model to exemplify Html export
+//Html Export Test Model
 Model(
   Title("Test Model"),
   Text("This is a model to test html generation."),
@@ -67,6 +67,40 @@ Model(
       Output("serviceNote")),
     Interface("guestUI") has (
       Output("confirmation"), Output("invoice"))))
+//Prioritization $100 Method
+val m = Model(
+  Stakeholder("a") has (
+    Prio(2),
+    Req("1") has Benefit(5),
+    Req("2") has Benefit(300),
+    Req("3") has Benefit(8), 
+    Req("4") has Benefit(9),     
+    Req("5") has Benefit(100),
+    Req("6") has Benefit(10),
+    Req("7") has Benefit(20)),
+  Stakeholder("b") has (
+    Prio(4),
+    Req("1") has Benefit(100),
+    Req("2") has Benefit(7),
+    Req("3") has Benefit(20), 
+    Req("4") has Benefit(80),     
+    Req("5") has Benefit(10),
+    Req("6") has Benefit(90),
+    Req("7") has Benefit(20)))
+    
+val shs = m.entitiesOfType(Stakeholder)
+val rs = m.entitiesOfType(Req)
+val prioSum = shs.map(s => m/s/Prio).sum
+val benefitSum = shs.map(s => s -> (m/s).collect{ case Benefit(b) => b}.sum).toMap
+val normalized = rs.map(r => 
+  r has Benefit(
+    math.round(shs.map(s => 
+      (m/s/Prio)*(m/s/r/Benefit)*100.0 / (benefitSum(s)*prioSum)).sum).toInt)).toModel
+println("\n--- Normalized, weighted priorities:\n" + normalized)
+val sum = normalized.collect{ case Benefit(b) => b}.sum
+println("\n--- Sum: " + sum)
+normalized
+//Prioritization Ordinal ranking 
 //Task: Hotel reception work
 Model(
   Task("receptionWork") has (
