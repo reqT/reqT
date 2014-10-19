@@ -30,7 +30,8 @@
 \usepackage[english]{babel}
 \usepackage{enumitem} 
 \setlist[itemize]{noitemsep}
-\title{{\bf LAB 2:\\Requirements Prioritization \& Release Planning}\\ Preparations and instructions}
+\title{{\bf LAB 2:\\Requirements Prioritization \& Release Planning}\\ Preparations %and instructions
+}
 \author{Björn Regnell and Oskar Präntare}
 \date{\today}
 \begin{document}
@@ -38,7 +39,9 @@
 
 \section{Introduction}
 
-\subsection{Purpose} This document provides instructions on how to prepare for and run a computer lab session on requirements selection. The lab session illustrates how requirements prioritization and release planning can be supported by computer tools, and demonstrates the complexity in finding solutions to these problems. {\it The preparations in Section~\ref{section:prep} should be completed before the actual lab is run.} 
+\subsection{Purpose} This document provides instructions on how to prepare for 
+%and run 
+a computer lab session on requirements selection. The lab session illustrates how requirements prioritization and release planning can be supported by computer tools, and demonstrates the complexity in finding solutions to these problems. {\it The preparations in Section~\ref{section:prep} should be completed before the actual lab is run.} 
 
 \subsection{Prerequisites} This lab assumes that you have installed the open source tool \href{http://reqT.org}{reqT.org} and that you are familiar with basic requirements modeling using reqT. It is also assumed that you have completed \href{https://github.com/reqT/reqT/blob/3.0.x/doc/lab1/lab1.pdf}{Lab 1 Requirements Modeling}.
 
@@ -100,15 +103,15 @@ Model(
 Save the model in a text file called \verb+req.scala+
 \end{framed}
  
-\subsubsection{Methods}
+\subsubsection{Methods}\label{section:priomethods}
 
 \noindent The {\bf \$100 method} gives each stakeholder a fictitious sum of money to ''spend'' on the requirements, where $p(s_i, q_j)$ is assigned to the amount of money ''spent'' for each requirement representing its importance according to some criteria. The combined priorities $P(q_j)$ are calculated as  
 \begin{displaymath}
-P(q_j) = \sum\limits_{s_i \in S} p(s_i, q_j) w(s_i) k_i
+P(q_j) = \sum\limits_{s_i \in S} p(s_i, q_j) w(s_i) a_i
 \end{displaymath}
-where the normalization constants $k_i$ are selected so that the sum of all $P(q_i)$ is normalized to 100 units, thus 
+where the normalization constants $a_i$ are selected so that the sum of all $P(q_i)$ is normalized to 100 units, thus 
 \begin{displaymath}
-k_i = \frac{100}{   w \sum\limits_{q_j \in Q} p(s_i, q_j)} \text{ \hspace{4mm} where \hspace{2mm}}
+a_i = \frac{100}{   w \sum\limits_{q_j \in Q} p(s_i, q_j)} \text{ \hspace{4mm} where \hspace{2mm}}
 w = \sum\limits_{s_i \in S} w(s_i)
 \end{displaymath} 
 
@@ -199,28 +202,282 @@ reqT> minPairs(100).foreach(println)
 reqT> minPairs(100).size //size: _____ 
 \end{verbatim}}
  \end{framed}
+ 
+ \subsubsection{Compare methods}\label{section:priocmpr}
+  
+{ \begin{framed}
+\noindent {\bf Define a cost criteria}. Choose a cost criteria relevant to your project. Define your criteria so that it is desirable to minimize the priority value. A typical cost criteria is {\it ''total effort of development including unit and system testing''}. 
+\newline\newline Criteria def.: \underline{\hspace{10cm}}
+\newline\newline {\bf Use two methods and compare}. Use first the ordinal-scale priority ranking method using insertion sort and then the ratio-scale \$100 method, both with the same cost criteria applied to your 15 features. 
 
+When you do insertion sort to order your requirements in cost order on a ratio scale, you can e.g. put each requirement on a post-it note and then enact the algorithm physically, or you could enter your requirements in an editor and copy-paste them into the right order while building the final list.
+
+Put yourself in the shoes of those stakeholders, e.g. the developers of your project, that are knowledgeable about your costs. While you carry out the prioritization, reflect on pros and cons of each method.
+
+
+\vspace{1em}
+
+\begin{tabular}{| c | p{25mm} | p{31mm} | p{31mm} |}
+\hline
+          &     & Cost (insertion sort)& Cost (\$100) \\ 
+ Req    & Id & Ordinal  scale &  Ratio scale \\ \hline
+\hline 1 & & &  \\ 
+\hline 2 & & & \\
+\hline 3 & &  &\\
+\hline 4 & &  &\\
+\hline 5 & &  &\\
+\hline 6 & &  &\\
+\hline 7 & & & \\
+\hline 8 & & & \\
+\hline 9 & &  &\\
+\hline 10 & &  &\\
+\hline 11 & &  &\\
+\hline 12 & &  &\\
+\hline 13 & & & \\
+\hline 14 & & & \\
+\hline 15 & & & \\
+\hline
+\end{tabular}
+ \end{framed}}
+ 
+ 
+\begin{framed}
+\noindent {\bf Reflect on pros and cons of each method}. Write down your reflections from comparing the ordinal-scale-priority-ranking-by-insertion-sort-method with the \$100-method. 
+
+\begin{enumerate}[noitemsep]
+\item What are the pros and cons of each method? 
+\item How do the methods scale as the number of requirements increases? 
+\item Which method is easiest to carry out incrementally when a new requirement is elicited?
+\item Which method may give most accurate/useful/honest estimations? 
+\item In which different contexts may the methods differ in usability? 
+\item Was the \$100-method easier because of what you learned about the costs in your first round with the insertion sort method? 
+\item Any other reflections?
+\vspace{12cm}
+\end{enumerate}
+
+\end{framed}
+
+\clearpage\newpage 
 \subsection{Release Planning Preparations}
+
+\subsubsection{Definitions}\label{section:rpdef}
+
+An optimal release plan can be defined as an allocation of requirements to different releases that maximizes a benefit under some constraints, such as cost and precedence. 
+
+The definitions below represents one of many possible models of the release planning problem. Here we use a simplified model that does not take different types of resources and costs into account. In the model below, we also exclude precedence constraints. In subsequent assignments, different types of resources and precedence constraints are introduced.
+
+\begin{description}
+
+\item [] $S$ is a set of $m$ stakeholders, $S=\{s_1, s_2 ..., r_m\}$
+\item [] $Q$ is set of $n$ requirements $Q=\{q_1, q_2, ..., q_n\}$
+\item [] $R$ is a set of $k$ releases, $R=\{r_1, r_2,  ..., r_k\}$
+\item [] $r_i$ represents release $i$ containing some subset of requirements $\{q_j\} \subseteq Q$, where every requirement $q_j$ only belongs to one release
+\item [] $p(s_i, q_j)$ is a number representing the priority of requirement $q_j$ assigned by stakeholder $s_i$
+\item [] $w(s_i)$ is a number representing the importance of stakeholder $s_i$
+\item [] $P(q_i)$ is the weighted, normalized sum of all stakeholders' priorities of requirement $q_i$, defined as $P(q_i) = \sum\limits_{s_j \in S} p(s_j, q_i)w(s_j)a_i$, where $a_i$ are constants of normalization defined similar to the $a_i$ constants in Section~\ref{section:priomethods}.
+\item [] $c(q_i)$ is the cost of implementing requirement $q_i$
+\item [] $C(r_i)$ is the capacity of release $r_i$
+\end{description}
+
+\noindent
+{\bf Optimization}. The releases should be optimized by maximizing the total sum of all priorities of the requirements included in each release, for all releases:
+\begin{displaymath}
+max [ \sum\limits_{r_i \in R} \sum\limits_{q_j \in r_i}P(q_j) ]
+\end{displaymath}
+
+\begin{flushleft}subjected to  the constraint that the sum of all requirements' costs in a release should be less than the capacity of the release:\end{flushleft}
+\begin{displaymath}
+\sum\limits_{q_i \in r_i} c(q_i) \leq C(r_i)\text{,  for all }r_i \in R
+\end{displaymath}
+\subsubsection{Simple release planning}
+The definitions in Section~\ref{section:rpdef} represents a simplified model of the release planning problem, where there is only one type of cost and no special constraints on the ordering of requirements. Based on previous data that you have gathered about your 15 requirements, create a simplified release plan by following the steps below. We start by simplifying the model even further considering only one stakeholder.
+
+\begin{framed}
+\footnotesize
+\noindent {\bf Calculate a simple release plan manually} by allocating some of your $n=15$ requirements to two releases, denoted $r_1$ and $r_2$. In $r_1$ only a maximum of $35\%$ of the total cost can be fitted, and in $r_2$ there is only room for max $15\%$ of the total cost.
+
+ \begin{enumerate}[noitemsep]
+\item Fill in the priority data in the Priority column in the table below by transferring the data from one of your 2 stakeholders in Section~\ref{section:priomethods}.
+\item   Fill in the priority data in the Cost column in the table below by transferring the data from the \$100 method in Section~\ref{section:priocmpr}.
+\item Allocate some $q_i$ to either $r_1$ or $r_2$ and transfer costs and priorities to the selected release respectively. The cost of a requirement is not allowed to be split between releases. Try to maximize the sum of priorities of scheduled requirements. 
+\end{enumerate}
+\begin{tabular}{| p{8mm} | p{12mm} | p{12mm} | p{1.4cm} | p{1.4cm} | p{1.4cm} |  p{1.4cm} |}
+\hline
+Req $q_i$ &  
+Prio $p(q_i)$ & 
+Cost $c(q_i)$ & 
+$p(q_i)$ if $q_i \in r_1$ else $0$ &
+$c(q_i)$ if $q_i \in r_1$ else $0$ &
+$p(q_i)$ if $q_i \in r_2$ else $0$ & 
+$c(q_i)$ if $q_i \in r_2$ else $0$  \\
+\hline
+\hline 1 & & & & & &\\ 
+\hline 2 & & & & & &\\
+\hline 3 & & & & & &\\
+\hline 4 & & & & & &\\
+\hline 5 & & & & & &\\
+\hline 6 & & & & & &\\
+\hline 7 & & & & & &\\
+\hline 8 & & & & & &\\
+\hline 9 & & & & & &\\
+\hline 10 & & &  &  & &\\ 
+\hline 11 & & & &  & &\\
+\hline 12 & & & &  & &\\
+\hline 13 & & & &  & &\\
+\hline 14 & & & &  & &\\
+\hline 15 & & & &  & &\\
+\hline
+\hline Sum:   &  & &  & &  & \\
+\hline
+\end{tabular}
+\begin{description}
+\item[] \vspace{1em}Total sum of allocated priorities 
+$\sum\limits_{q_i \in r_1} p(q_i)  + \sum\limits_{q_i \in r_2} p(q_i) = $ \underline{\hspace{3cm}}
+\item[] \vspace{1em}Total sum of non-allocated priorities
+$\sum\limits_{q_i \not\in r_1, r_2} p(q_i) = $ \hspace{8.5mm}\underline{\hspace{3cm}}
+\item[] \vspace{1em}How long did it take to make a good manual release plan? \hspace{8.5mm}\underline{\hspace{2.3cm}}
+\end{description}
+\end{framed}
+
+    
+
+\subsubsection{Advanced release planning}\label{section:advRP}
+By involving different priorities from more than one stakeholder, adding multiple resources that each have their on costs per requirement, and introducing constraints on the ordering of requirements, the release planning problem becomes significantly more challenging. 
+
+As a preparation for the lab, you are requested to manually try to solve an advanced release planning problem for a small set of requirements. (We will stick with just one stakeholder to make it a bit easier.) ...Don't spend ages on this :)
+
+\begin{framed}
+\noindent As an example we will use 9 features listed in Table~\ref{advPlan} below. We assume a hypothetical release planning problem with two releases \verb+Release("March")+ and  \verb+Release("July")+ and two development resources \verb+Resource("Team A")+ and \verb+Resource("Team B")+. Team A and Team B have different skills and therefore the time to do their part of different types of feature varies.
+
+The teams have different available capacities to spend on the different releases. For the March release Team A can max spend 20 hours and Team B can spend max 15 hours. For the July release Team A have max 15 hours and Team B max 15 hours.
+
+\begin{enumerate}[noitemsep,nolistsep]
+\item Allocate some or all of the features in Table~\ref{advPlan} by filling in its last column with a release name, March or July (or -- if not allocated to any release), while abiding the resource constraints. {\it Try to maximize the sum of all priorities of the allocated features.}
+\item Fill in the requested results in the blank cells of  Table~\ref{advSum}.
+\item We now introduce the following precedence constraint:\\ \verb+Feature("exportHtml") preceedes Feature("exportGraphViz")+ implying that exportHtml must be in \verb+Release("March")+ release while exportGraphViz must be in \verb+Release("July")+ if both are allocated. Re-allocate some or all of the features in Table~\ref{advPlan2} now taking into account the above precedence constraint, while still abiding the same resource constraints as before. {\it Try to maximize the sum of all priorities of the allocated features.}
+\item Fill in the requested results in the blank cells of  Table~\ref{advSum2}.
+\item How long did it take to make a good manual release plan? \underline{\hspace{1.3cm}}
+\item How did you find your solution? Describe your methodology.
+\item What are the difficulties of release planning?
+\item How does the methodology to find the release plan change when precedence constraints are introduced?
+\item Are the suggested solutions you have found optimal? Why or why not?
+\end{enumerate}
+\end{framed}
+
+\clearpage\newpage
+\begin{table}[ht]
+\caption{Advanced release planning without precedence constraints.}
+\centering
+\begin{tabular}{|c |  c | c | c| p{15mm} |}
+\hline
+Feature &  Priority & \parbox[t]{14mm}{Team A \\ cost\\}  & \parbox[t]{14mm}{Team B \\ cost} & Release \\
+\hline
+\hline exportHtml &  10 & 9 & 2 & \\
+\hline exportGraphViz   & 10 & 7 & 8 & \\ 
+\hline exportTabular & 10 & 3 & 9 &\\
+\hline exportLatex & 7 & 6 & 4 &\\
+\hline exportContextDiagramSvg  & 6 & 3 & 4 &\\
+\hline syntaxColoring  & 3 & 6 & 2 &\\
+\hline autoCompletion & 4 & 3 & 3 &\\
+\hline releasePlanning    & 7 & 4 & 5 &\\
+\hline autoSave  & 9 & 6 & 7 &\\ 
+\hline
+\end{tabular}
+\label{advPlan}
+\end{table}
+
+\begin{table}[ht]
+\caption{Sums without precedence constraints.}
+\centering
+\begin{tabular}{| c | c | c | c |}
+\hline
+Sum & Release March & Release July & \parbox[t]{14mm}{Total \\} \\ 
+\hline
+\hline Team A's capacity & 20 & 15 & 35\\ 
+\hline Team B's capacity & 15 & 15 & 30 \\
+\hline Sum of hours Team A worked & & & \\
+\hline Sum of hours Team B worked & & & \\
+\hline Sum of priorities & & & \\
+\hline
+\end{tabular}
+\label{advSum}
+\end{table}
+
+\begin{framed}
+\noindent Room for answering questions 6--7 in Section~\ref{section:advRP}.
+\vspace{5.5cm}
+\end{framed}
+
+\clearpage\newpage
+\begin{table}[ht]
+\caption{Advanced release planning {\it with} precedence constraints.}
+\centering
+\begin{tabular}{|c |  c | c | c| p{15mm} |}
+\hline
+Feature &  Priority & \parbox[t]{14mm}{Team A \\ cost\\}  & \parbox[t]{14mm}{Team B \\ cost} & Release \\
+\hline
+\hline exportHtml &  10 & 9 & 2 & \\
+\hline exportGraphViz   & 10 & 7 & 8 & \\ 
+\hline exportTabular & 10 & 3 & 9 &\\
+\hline exportLatex & 7 & 6 & 4 &\\
+\hline exportContextDiagramSvg  & 6 & 3 & 4 &\\
+\hline syntaxColoring  & 3 & 6 & 2 &\\
+\hline autoCompletion & 4 & 3 & 3 &\\
+\hline releasePlanning    & 7 & 4 & 5 &\\
+\hline autoSave  & 9 & 6 & 7 &\\ 
+\hline
+\end{tabular}
+\label{advPlan2}
+\end{table}
+
+\begin{table}[ht]
+\caption{Sums {\it with} precedence constraints.}
+\centering
+\begin{tabular}{| c | c | c | c |}
+\hline
+Sum & Release March & Release July & \parbox[t]{14mm}{Total \\} \\ 
+\hline
+\hline Team A's capacity & 20 & 15 & 35\\ 
+\hline Team B's capacity & 15 & 15 & 30 \\
+\hline Sum of hours Team A worked & & & \\
+\hline Sum of hours Team B worked & & & \\
+\hline Sum of priorities & & & \\
+\hline
+\end{tabular}
+\label{advSum2}
+\end{table}
+
+\begin{framed}
+\noindent Room for answering questions 8--9 in Section~\ref{section:advRP}.
+\vspace{5.5cm}
+\end{framed}
+
+
+\clearpage\newpage
+\subsubsection{Constraint solving}
 
 The reqT tool includes a constraint solver\footnote{\url{http://jacop.eu/}}, enabling the formulation of prioritization and release planning problems using constraints over integer values in requirements models. After the problem has been formulated, then the constraint solver in reqT may automatically find a solution (if it exists), without the need for any further algorithm implementation. 
 
-\clearpage\newpage
+%\clearpage\newpage
 
-\section{Lab Instructions}\label{section:instr}
+%\section{Lab Instructions}\label{section:instr}
 
-\subsection{Prioritization Lab Instructions}
+%\subsection{Prioritization Lab Instructions}
 
-\subsection{Release Planning Lab Instructions}
+%<TODO>
+
+%\begin{enumerate}
+%\item Load req.scala and make pairwise comparisons using reqT.comparisonParser.parse
+%\item Load prio100.scala and calculate weighted normalized priorities using template menu -> \$100 method 
+%\end{enumerate}
+
+%\subsection{Release Planning Lab Instructions}
+
+%<TODO>
+
+%\section{Conclusion and reflection}
 
 
-\section{Conclusion and reflection}
-
-
-\begin{framed}
-Reflect upon these discussion questions and write down some reflections:
-\begin{enumerate}
-\item How ... ?
-\end{enumerate}
-\end{framed}
+%<TODO>
 
 \end{document}
