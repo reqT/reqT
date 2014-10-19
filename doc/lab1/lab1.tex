@@ -372,8 +372,9 @@ Carry out these steps using the ModelTree Editor:
 
 The Editor can toggle between two different textual representations of a model: (1) the normal scala code that we have been using so far, and (2) a simplified model language called {\it ''reqT textified''} that represents models without any parenthesis and quotes, while using indentation to represent levels of submodels. \footnote{A textified reqT model is analogous to the \href{http://en.wikipedia.org/wiki/Markdown}{markdown} representation of a html document.} The toggling is made using the <Ctrl+T> shortcut.
 
+
 \begin{framed}
-Carry out these steps using the ModelTree Editor:
+\noindent Carry out these steps using the ModelTree Editor:
 \begin{enumerate}
 \item Load your \verb+feat.txt+ file into the using the <Ctrl+L> shortcut.
 \item Toggle between {\it textified} and scala representations by pressing <Ctrl+T> several times.
@@ -386,7 +387,12 @@ m =>
     case Text(i) => Gist(i)
   }
 \end{verbatim}}
+
+
+
 \item Select the {\it Apply function in editor to selected node} menu item in the {\bf Tree} menu, or use the <Ctrl+Alt+Shift+R> shortcut to apply the above function to the Tree model.
+
+
 \item Enter this code in the Editor and then press <Alt+A>: {\scriptsize\begin{verbatim}
 m =>
   println("Size: " + m.size)
@@ -395,12 +401,16 @@ m =>
     m.collect{case f: Feature => 1}.sum)
   m
 \end{verbatim}}
+
+
+
 \item Explain what the above function does. Check what is printed in the console and write down the numbers: 
-\newline Size: \underline{\hspace{2cm}}
-\newline Depth: \underline{\hspace{2cm}}
-\newline Number of features: \underline{\hspace{2cm}}
+\newline Size: \underline{\hspace{1cm}} Depth: \underline{\hspace{1cm}}  Number of features: \underline{\hspace{1cm}}
 
 \item Select the root node of your tree and press <Ctrl+T> and then <Alt+S> to save a textified model of your transformed feature model in the file \verb+feat-v2.txt+
+
+
+\item Enter \verb?1 + 41? in the editor and press <Alt+Enter>. What happens?
 \end{enumerate}
 \end{framed}
 
