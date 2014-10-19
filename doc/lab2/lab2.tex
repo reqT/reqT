@@ -54,13 +54,17 @@ opinions. In this lab we use the \$100 method and an ordinal scale ranking metho
 \item {\bf release planning}, where requirements are scheduled in time over several releases under trade-offs with respect to constraints of the available capacities of different resources, requirements priorities and requirements inter-dependencies. 
 \end{itemize}
 
-It is also likely that you will need to do hard choices of how you spend your efforts in the requirements engineering process. Probably you will have to make trade-offs such as: Is it more important to do more stakeholder analysis at this point, or should we instead focus on validation of the quality requirements that we have elicited so far? The prioritization planning methods in this lab may be used to prioritize and plan the tasks of the requirements process itself, although we will exemplify the methods by using features under consideration for development.
+It is also likely that you will need to do hard choices regarding how you spend your efforts in the requirements engineering process. Probably you will have to make trade-offs such as: Is it more important to do more stakeholder analysis at this point, or should we instead focus on validation of the quality requirements that we have elicited so far? Is it more urgent to reduce critical incompleteness issues or should we first improve the verifiability of our scheduled requirements?
+
+The prioritization planning methods in this lab may also be goof for prioritizing and planning the tasks of the requirements process itself, although we will exemplify the methods by using features under consideration for development.
 
 
 
 \clearpage\newpage
 \section{Preparations}\label{section:prep}
-\begin{framed} \noindent Before doing the lab session in Section~\ref{section:instr}, complete all preparations in this section and bring requested items to the lab. In particular you need to make sure that you can access the text files you prepare below at your lab session computer.
+\begin{framed} \noindent Before doing the lab session% in Section~\ref{section:instr}
+, complete all preparations in this document %section 
+and bring requested items to the lab. In particular you need to make sure that you can access the text files you prepare below at your lab session computer.
 \end{framed}
 
 \subsection{Prioritization Preparations}
@@ -410,7 +414,7 @@ Sum & Release March & Release July & \parbox[t]{14mm}{Total \\} \\
 
 \clearpage\newpage
 \begin{table}[ht]
-\caption{Advanced release planning {\it with} precedence constraints.}
+\caption{Advanced release planning {\it with} a precedence constraint.}
 \centering
 \begin{tabular}{|c |  c | c | c| p{15mm} |}
 \hline
@@ -431,7 +435,7 @@ Feature &  Priority & \parbox[t]{14mm}{Team A \\ cost\\}  & \parbox[t]{14mm}{Tea
 \end{table}
 
 \begin{table}[ht]
-\caption{Sums {\it with} precedence constraints.}
+\caption{Sums {\it with} a precedence constraint.}
 \centering
 \begin{tabular}{| c | c | c | c |}
 \hline
@@ -456,7 +460,43 @@ Sum & Release March & Release July & \parbox[t]{14mm}{Total \\} \\
 \clearpage\newpage
 \subsubsection{Constraint solving}
 
-The reqT tool includes a constraint solver\footnote{\url{http://jacop.eu/}}, enabling the formulation of prioritization and release planning problems using constraints over integer values in requirements models. After the problem has been formulated, then the constraint solver in reqT may automatically find a solution (if it exists), without the need for any further algorithm implementation. 
+The reqT tool includes an efficient constraint solver called JaCoP\footnote{See \url{http://jacop.eu/} and \url{http://cs.lth.se/edan01} if you want to learn more about CSP.}, enabling the formulation of prioritization and release planning problems using constraints over integer values in requirements models. After the problem has been formulated the constraint solver in reqT may automatically find a solution (if it exists), without the need for any further algorithm implementation.  
+\begin{framed}
+\noindent 1. Try these lines in the reqT console:
+
+{\scriptsize\begin{verbatim}
+reqT> Var("a")          //constructs a variable named "a" that can be used in constraints
+
+reqT> Var("a") > Var("b")     //constructs a XgtY constraint
+
+reqT> Var("a") :: {1 to 10}   //constructs a Bounds constraint on values of Var("a")
+
+reqT> val cs = Constraints(Var("a")>Var("b"), Var("a")::{1 to 10}, Var("b")::{5 to 15})
+
+reqT> var m = Model(Stakeholder("s1") has cs)  //Constraints may be attributes in a model
+
+reqT> cs.satisfy   //Constraints can be satisfied if a solution exists
+
+reqT> cs.maximize(Var("b"))   //search for a solution that maximizes Var("b")
+
+reqT> m = m + (Section("solution") has m.satisfy) //m.satisfy returns solution model
+
+reqT> cs.satisfy   //By default, the solution search is initialized with random values
+      //... thus if many solutions exists, each call to satisfy may pick a new solution
+
+reqT> Req("q1")/Benefit >  Req("q2")/Benefit  //A constraint of integer attribute paths
+
+reqT> m = m ++ Model(Req("q1")/Benefit > Req("q2")/Benefit).satisfy
+                         //default bounds if no tighter bounds are given: {-1000 to 1000}
+\end{verbatim}}
+\noindent 2. Construct a constraint problem with no solution:
+\newline\newline
+\newline\newline 3. Call \verb+satisfy+ on your unsatisfiable problem. What is the output?  \newline
+\newline\newline 4. Investigate available constraints in this reqT source file at line 261: \newline {\footnotesize\url{https://github.com/reqT/reqT/blob/3.0.x/src/reqT/constraints.scala#L261}}
+\noindent 5. Construct and solve some constraint problem using the \verb+AllDifferent+ constraint. You can construct a sequence of variables by typing e.g. \verb+Vector(Var("x"), Var("y"))+, which is a subtype of \verb+Seq[Var]+. 
+
+\end{framed}
+ 
 
 %\clearpage\newpage
 
