@@ -348,14 +348,14 @@ $\sum\limits_{q_i \not\in r_1, r_2} p(q_i) = $ \hspace{8.5mm}\underline{\hspace{
 \subsubsection{Advanced release planning}\label{section:advRP}
 By involving different priorities from more than one stakeholder, adding multiple resources that each have their on costs per requirement, and introducing constraints on the ordering of requirements, the release planning problem becomes significantly more challenging. 
 
-As a preparation for the lab, you are requested to manually try to solve an advanced release planning problem for a small set of requirements. (We will stick with just one stakeholder to make it a bit easier.) ...Don't spend ages on this :)
+As a preparation for the lab, you are requested to manually try to solve an advanced release planning problem for a small set of requirements. We will stick with just one stakeholder to make it a bit easier. --  Don't spend ages on this :)
 
-\begin{framed}
-\noindent As an example we will use 9 features listed in Table~\ref{advPlan} below. We assume a hypothetical release planning problem with two releases \verb+Release("March")+ and  \verb+Release("July")+ and two development resources \verb+Resource("Team A")+ and \verb+Resource("Team B")+. Team A and Team B have different skills and therefore the time to do their part of different types of feature varies.
+{\fontsize{9}{11}\begin{framed}
+\noindent As an example we will use 9 features listed in Table~\ref{advPlan} below. We assume a hypothetical release planning problem with two releases \verb+Release("March")+ and  \verb+Release("July")+ and two development resources \verb+Resource("Team A")+ and \verb+Resource("Team B")+. Team A and Team B have different skills (back-end and client dev) and  the time to do their respective part differ, while both are needed.
 
 The teams have different available capacities to spend on the different releases. For the March release Team A can max spend 20 hours and Team B can spend max 15 hours. For the July release Team A have max 15 hours and Team B max 15 hours.
 
-\begin{enumerate}[noitemsep,nolistsep]
+\begin{enumerate}[noitemsep]
 \item Allocate some or all of the features in Table~\ref{advPlan} by filling in its last column with a release name, March or July (or -- if not allocated to any release), while abiding the resource constraints. {\it Try to maximize the sum of all priorities of the allocated features.}
 \item Fill in the requested results in the blank cells of  Table~\ref{advSum}.
 \item We now introduce the following precedence constraint:\\ \verb+Feature("exportHtml") preceedes Feature("exportGraphViz")+ implying that exportHtml must be in \verb+Release("March")+ release while exportGraphViz must be in \verb+Release("July")+ if both are allocated. Re-allocate some or all of the features in Table~\ref{advPlan2} now taking into account the above precedence constraint, while still abiding the same resource constraints as before. {\it Try to maximize the sum of all priorities of the allocated features.}
@@ -367,7 +367,7 @@ The teams have different available capacities to spend on the different releases
 \item Are the suggested solutions you have found optimal? Why or why not?
 \end{enumerate}
 \end{framed}
-
+}
 \clearpage\newpage
 \begin{table}[ht]
 \caption{Advanced release planning without precedence constraints.}
