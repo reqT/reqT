@@ -113,7 +113,7 @@ reqT> ((m3 + Stakeholder("y")) ++ m2).size
 \newline \underline{\hspace{10cm}}
 
 \vspace{7mm}
-\noindent Continue to type in the following lines in the reqT console after the \verb+reqT>+ prompt. Press enter after each line. The \verb+for+ keyword is used to make a for-loop. The \verb+yield+ keyword is used in a for-comprehension to construct a sequence of values.  The \verb+val+ keyword is used to declare a name that refers to an immutable value (a constant) and the \verb+var+ keyword is used to declare a name that refers to a mutable value (a variable). The \verb?-? operator is used to remove elements from a model. With the \verb+transform+ method you can make transformations of specific elements in a model. 
+\noindent Continue to type in the following lines in the reqT console after the \verb+reqT>+ prompt. Press enter after each line. The \verb+for+ keyword is used to make a for-loop. The \verb+yield+ keyword is used in a for-comprehension to construct a sequence of values, that are picked one by one by the reserved  \verb+<-+ operator.  The \verb+val+ keyword is used to declare a name that refers to an immutable value (a constant) and the \verb+var+ keyword is used to declare a name that refers to a mutable value (a variable). The \verb?-? operator is used to remove elements from a model. With the \verb+transform+ method you can make transformations of specific elements in a model. 
 
 
 {\scriptsize\begin{verbatim}
@@ -221,7 +221,7 @@ javax.swing.JOptionPane.showMessageDialog(null,"Hello Swing!")
 \end{framed}
 \subsection{Access elements in models using paths}
 
-A model is represented using a recursive data structure where relation elements can include submodels, which in turn can include relation elements that include submodels. The recursive nature of the model data structure thus enables hierarchical, tree-like requirements models of arbitrary depths. The submodels and elements of submodels at different levels can be accesses using paths that are constructed using the \verb+/+ operator called {\it enter}. 
+A model is represented using a recursive data structure where relation elements can include submodels, which in turn can include relation elements that include submodels. The recursive nature of the model data structure thus enables hierarchical, tree-like requirements models of arbitrary depths. The submodels and elements of submodels at different levels can be extracted using paths that are constructed using the \verb+/+ operator called {\it enter}. 
 
 A {\it head} is a start of a relation that combines an entity with a relation type using dot notation, such as  
 \verb+Feature("x").has+ and \verb+Stakeholder("b").requires+  
@@ -237,7 +237,7 @@ reqT> p1.depth    //write down the depth: _______
 
 reqT> val p2 = Stakeholder("b")/Feature("x")/Prio(21)
 
-reqT> p2.init
+reqT> p2.init     //what does the init method on a Path do? _________________ 
 
 reqT> val p3 = p2.init/Feature("sub")/Prio(9)
 
@@ -328,7 +328,7 @@ Saved string to file: C:/Users/bjornr/tmp/context-v2.scala
 reqT> m.save("context.reqt")
 Model serialized to file: context.reqt
 \end{verbatim}}
-\noindent Create a large random model using the command: \newline{\scriptsize\verb+val r = rndModel(52,2)  //max 52 at top level and then max 26 etc.+} \newline and compare the binary model size on disk with the string model text file size, by checking the file sizes in your OS. If the files get so big that it takes too much time, reduce the number of max elements at top level.\newline
+\noindent Create a large random model using \verb+rndModel+ e.g. with these parameters: \newline{\scriptsize\verb+val r = rndModel(52,2)  //max 52 at top level and then max 26 etc.+} \newline and compare the binary model size on disk with the string model text file size, by checking the file sizes in your OS. If the text file is bigger then generate a larger model.  If the files get so big that it takes too much time, reduce the number of max elements at top level.\newline
 \newline Number of elements in the model: {\footnotesize\verb+r.size+} \underline{\hspace{2cm}} 
 \newline Size of binary file: {\footnotesize\verb+r.save("big.reqt")+}  \underline{\hspace{2cm}} 
 \newline Size of text file: {\footnotesize\verb+r.toString.save("big.scala")+} \underline{\hspace{2cm}}
@@ -364,7 +364,7 @@ Carry out these steps using the ModelTree Editor:
 \item Select the {\bf Help} menu item {\it Shortcuts to Editor} and investigate the different shortcuts and locate where in the menus they are. 
 \item Use the {\bf File} menu item {\it Load text file to Editor} to load your prepared model \verb+context.scala+ into the Editor.
 \item Select the root tree node and replace the tree with the model in the Editor using the Ctrl+R shortcut.
-\item Use the {\bf File} menu to serialize your context model into a new file \verb+context.reqt+
+\item Use the {\bf File} menu "Save As..." to save your context model into a new file \verb+context.reqt+ in binary format.
 \item Make sure you have your context model in the editor. Double click on \verb+Product+ to select it. Then select the {\bf Metamodel} {\it -> Entity -> Context -> System} menu item to replace \verb+Product+ with \verb+System+
 \item Use code completion with <Ctrl+SPACE> to change \verb+System+ to \verb+Component+ 
 \end{enumerate}
@@ -390,10 +390,10 @@ m =>
 
 
 
-\item Select the {\it Apply function in editor to selected node} menu item in the {\bf Tree} menu, or use the <Ctrl+Alt+Shift+R> shortcut to apply the above function to the Tree model.
+\item Select the {\it Replace selected node by applying function in editor} menu item in the {\bf Tree} menu, or use the <Ctrl+Alt+Shift+R> shortcut to apply the above function to the Tree model.
 
 
-\item Enter this code in the Editor and then press <Alt+A>: {\scriptsize\begin{verbatim}
+\item Enter this code in the Editor and then press <Ctrl+Alt+Shift+R>: {\scriptsize\begin{verbatim}
 m =>
   println("Size: " + m.size)
   println("Depth:" + m.leafPaths.map(_.depth).max)
@@ -451,7 +451,7 @@ As requirements evolve, it is often interesting to keep track of how far we have
 \begin{enumerate}[noitemsep,nolistsep]
 \item Enter in editor: \verb+StatusValue.values+ and then press <Alt+Enter>.
 \item Enter in editor: \verb+ELICITED.up+ and then press <Alt+Enter>. (You can use code completion to enter ELICITED without typing so much by entering E and the press <Ctrl+Space>.)
-\item Enter in editor: \verb+ELICITED.down+ and then press <Alt+Enter>.\newline Write down the status if you go down from \verb+ELICITED+\newline\underline{\hspace{10cm}}
+\item Enter in editor: \verb+ELICITED.down+ and then press <Alt+Enter>. Write down the status if you go down from \verb+ELICITED+ \underline{\hspace{3cm}}
 \end{enumerate}
 \end{framed}
 
@@ -460,7 +460,7 @@ As requirements evolve, it is often interesting to keep track of how far we have
 \noindent Draw the state machine representing all reqT's built-in requirements status transitions by carrying out the steps below:
 \begin{enumerate}
 \item Use repeated evaluations with <Alt+Enter> in the Editor to check what happens if you call \verb+up+ or  \verb+down+ on all values in \verb+StatusValue.values+ respectively. Use <Ctrl+Space> to type faster. 
-\item Draw below a state-transition diagram with all nodes \verb+ELICITED+, \verb+SPECIFIED+, etc., with two directed edges from each state labeled \verb+up+ and \verb+down+ respectively, showing all the transitions. \newline
+\item Draw below a \href{http://en.wikipedia.org/wiki/State_diagram}{state diagram} with all nodes \verb+ELICITED+, \verb+SPECIFIED+, etc., with two directed edges from each state labeled \verb+up+ and \verb+down+ respectively, showing all the transitions. \newline
 \vspace{7cm}
 \item Reflect upon what in a hypothetical project may be different paths of different features through the above diagram. Are there any transitions missing that you think might be needed? If so, why are they needed?
 \item Type this code into the Editor and select the root node in the Tree and press <Ctrl+R>:{\scriptsize\begin{verbatim}
