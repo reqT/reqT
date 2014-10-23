@@ -33,7 +33,7 @@ Requirements engineering is a dynamic process where the understanding of an imag
 \end{framed}
 
 \begin{enumerate}
-\item {\bf Do the reqT "hello world".} Run the reqT hello world example on your computer, as explained here: \newline \url{http://reqt.org/documentation.html\#hello}
+\item {\bf "hello reqT".} Do the reqT hello world example on your computer, as explained here:  \url{http://reqt.org/documentation.html\#hello}
 \item {\bf Draw a context diagram.} Draw a context diagram\footnote{\url{http://en.wikipedia.org/wiki/System_context_diagram}} that  is relevant to your development project. Make the drawing on paper and bring to the lab. The context diagram should include entities outside of the system you are building that communicate with your system. 
 \item {\bf Create a context model.} Transform your context diagram into a reqT model, analogous to this  example: 
 {\footnotesize\begin{verbatim}
@@ -113,7 +113,7 @@ reqT> ((m3 + Stakeholder("y")) ++ m2).size
 \newline \underline{\hspace{10cm}}
 
 \vspace{7mm}
-\noindent Continue to type in the following lines in the reqT console after the \verb+reqT>+ prompt. Press enter after each line. The \verb+for+ keyword is used to make a for-loop. The \verb+yield+ keyword is used in a for-comprehension to construct a sequence of values, that are picked one by one by the reserved  \verb+<-+ operator.  The \verb+val+ keyword is used to declare a name that refers to an immutable value (a constant) and the \verb+var+ keyword is used to declare a name that refers to a mutable value (a variable). The \verb?-? operator is used to remove elements from a model. With the \verb+transform+ method you can make transformations of specific elements in a model. 
+\noindent Continue to type in the following lines in the reqT console after the \verb+reqT>+ prompt. Press enter after each line. The \verb+for+ keyword is used to make a for-loop. The \verb+yield+ keyword is used in a for-loop to construct a sequence of values, that are picked one by one by the reserved  \verb+<-+ operator.  The \verb+val+ keyword is used to declare a name that refers to an immutable value (a constant) and the \verb+var+ keyword is used to declare a name that refers to a mutable value (a variable). The \verb?-? operator is used to remove elements from a model. With the \verb+transform+ method you can make transformations of specific elements in a model. 
 
 
 {\scriptsize\begin{verbatim}
@@ -142,7 +142,7 @@ What is the size of the m4 model after the above transform? Why?
 
 \subsection{Investigate the reqT metamodel}
 
-A reqT model can be viewed as a vector of elements. Elements can be entities, attributes and relations. An entity has an id of type String. An attribute holds a value that can be of different types. A relation connects and entity via a link of a certain RelationType to a submodel that, in turn, can contain elements. A part of the reqT metamodel is shown in Figure~\ref{fig:metamodel}. 
+A reqT model can be viewed as a vector of elements. Elements can be entities, attributes and relations. An entity has an id of type String. An attribute holds a value that can be of different types. A relation connects an entity via a link of a certain RelationType to a submodel that, in turn, can contain elements. A part of the reqT metamodel is shown in Figure~\ref{fig:metamodel}. 
 
 \begin{figure}[h]
     \centering
@@ -487,7 +487,7 @@ Reflect upon these discussion questions and write down some reflections:
 \item How would you like to keep track of the evolving requirements of your development project?
 \item How could you benefit from using reqT in your project?
 \item What are the pros and cons of using a desktop word processor versus reqT models? 
-\item What type of entities, attributes and relations in the reqT metamodel are relevant to your project?
+\item What types of requirements entities, attributes and relations are important for the requirements modeling that you need to do in your project?
 \item Investigate the templates in the Templates menu of the ModelTreeEditor. Are any of these types of models relevant to your project? What other types of models will you need?
 \end{enumerate}
 \end{framed}
