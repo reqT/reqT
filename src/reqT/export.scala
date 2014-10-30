@@ -247,13 +247,14 @@ trait HtmlExporter extends FileExporter {
   override def preamble(m: Model): String = s"""
      |<!DOCTYPE html>
      |<html>
-     |  <head>
-     |    <title>${titleOrDefault(m)}</title>
-     |  </head>
+     |<head>
+     |<title>${titleOrDefault(m)}</title>
+     |<link rel="stylesheet" type="text/css" href="reqT-style.css">
+     |</head>
   """.stripMargin
   override def ending(m: Model): String = "</html>\n"
   override def body(m: Model): String = 
-    "  <body>\n" + exportTopModel(m) + "\n  </body>\n"
+    "<body>\n" + exportTopModel(m) + "\n</body>\n"
 
   def topLevelSectionsContents(m: Model): String = topLevelSections(m).
     map(section => s"""<li><a href="#$section">$section</a></li>""").
@@ -267,53 +268,67 @@ trait HtmlExporter extends FileExporter {
     m.get(Text).map(text => s"<p>$text</p>").getOrElse("")    
   }
   
+  def mkEnt(e: Entity) = 
+            s"""<span class="entityColor">${e.myType}</span> ${e.id}"""
+    
+  def mkAttr[T](a: Attribute[T]) = 
+            s"""<span class="attributeColor">${a.myType}</span>: ${a.value}"""
+  
+  def mkRel(r: RelationType) = 
+            s"""<span class="relationColor">${r.myType}</span>"""
+  
   def renderModelBody(m: Model, level: Int): String = {
-      val lvl = cut(level)
-      val elemHead = if ((m.tip - Title - Text).isEmpty || level > 1) "" else s"""
-        <h$lvl> <a id="Elements">Elements</a></h$lvl>
-      """
       def elemBody(m: Model, indent: String): String = m.toVector.map {
-        case Title(t) if level <= 2 => "" //rendered in renderModelHead
-        case Text(t) if level <= 2 => "" //rendered in renderModelHead
-        case a: Attribute[_]  => indent + s"<li>${a.myType}: ${a.value}</li>"
-        case sect: Section => indent + s"TODO: Subsection $sect"
-        case e: Entity     => indent + s"<li>${e.myType} ${e.id}</li>"
-        case Relation(e, link, submodel) => indent +
-          s"<li>${e.myType} ${e.id} $link</li>\n" + elemBody(submodel, indent+(" " * 2))    
+        case NoElem => ""
+        case Title(t) => "" //rendered in renderModelHead
+        case Text(t)  => "" //rendered in renderModelHead
+        case Image(f) =>  s"""<img src="$f" alt="$f"/>""" 
+        case a: Attribute[_]  => indent + s"<li>${mkAttr(a)}</li>"
+        //case sect: Section => indent + s"TODO: Subsection $sect"
+        case e: Entity     => indent + s"<li>${mkEnt(e)}</li>"
+        case Relation(e, r, submodel) => indent +
+          s"<li>${mkEnt(e)} ${mkRel(r)}</li>\n" + elemBody(submodel, indent+("  "))    
       }.mkString("\n" + indent + "<ul>\n", "\n"+indent,"</ul>\n")  
-      elemHead + elemBody(m, " " * 8)
+      elemBody(m, "  " * level)
   }
   
-  def renderSections(m: Model): String = submodelOfSectionId(m).map {
-    case (section, submodel) => s"""
-       <h1>$section</h1>
-       ${renderModelHead(submodel, 2)}
-       ${renderModelBody(submodel, 2)}
-    """     
+  def renderSections(m: Model, level: Int): String = submodelOfSectionId(m).map {
+    case (section, submodel) => 
+      val lvl = cut(level)
+      s"""
+       <h$lvl><a id="$section">$section</a></h$lvl>
+       ${renderModelHead(submodel, level+1)}
+       ${renderModelBody(submodel, level+1)}
+      """     
   }.mkString("\n        ")
   
-  def contents(m: Model) = {
-    val elementsItem = if ((m.tip - Title - Text).isEmpty) "" else s"""
-      <a href="#Elements">Elements</a>
-    """
-    s"""
-      <h1>Contents</h1>
-      <ul>
-        <li>${elementsItem}</li>
-        ${topLevelSectionsContents(m)}
-        <li><a href="#model-code">Model Code</a></li>
-      </ul>
-    """
+  def contents(m: Model, level: Int) = {
+    val tlsc = topLevelSectionsContents(m)
+    val lvl = cut(level)
+    val modelCodeHeading = 
+      if (level < 3 || !Settings.isGeneratingHtmlRawModel) "" 
+      else s"""<li><a href="#model-code">Raw model</a></li>"""
+    if (tlsc.isEmpty) ""
+    else s"""
+      |<h$lvl>Contents</h$lvl>
+      |<ul>
+      |  $tlsc
+      |  $modelCodeHeading
+      |</ul>
+      """.stripMargin 
   }
-  def exportTopModel(m: Model) = s"""
-    |${renderModelHead(topExceptSections(m), 1)}
-    |${contents(m)}
-    |${renderModelBody(topExceptSections(m), 1)}
-    |${renderSections(m)}
-    |<h1><a id="model-code">Model Code</a></h1>
+  def modelCode(m: Model) = if (!Settings.isGeneratingHtmlRawModel) "" else s"""
+    |<h2><a id="model-code">Raw model</a></h2>
     |<pre>
     |${m.toString} 
     |</pre>
+  """
+  def exportTopModel(m: Model) = s"""
+    |${renderModelHead(topExceptSections(m), 1)}
+    |${renderModelBody(topExceptSections(m), 1)}
+    |${contents(m, 2)}
+    |${renderSections(m, 2)}
+    |${modelCode(m)}
   """.stripMargin
 
   override def exportModelToFile(m: Model, outDir: String, fileName: String) {

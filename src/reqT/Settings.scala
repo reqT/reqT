@@ -21,6 +21,7 @@ object Settings {
   var defaultModelToString: export.StringExporter = export.toScalaCompact
   var defaultModelToTable: export.StringExporter = export.toPathTable
   var defaultModelToGraph: export.StringExporter = export.toGraphVizNested
+  var isGeneratingHtmlRawModel = false
   var defaultTitle: String = "untitled"
   var defaultModelFileName: String = defaultTitle+".reqt"
   var dotType = "pdf"
