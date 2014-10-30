@@ -20,13 +20,16 @@ import java.lang.{System => JSystem}
 
 object repl { 
   val helpOnReqT = 
-    "** Type  edit   to start model editor gui\n" +
-    "** Type  :help  for help on the Scala interpreter"
+      "** Type  edit      to start model editor gui" +
+    "\n** Type  :help     for help on the Scala interpreter" +
+    "\n** Type  :pa       to enter paste mode" +
+    "\n** Type  :q        to exit when all sub-threads are done" +
+    "\n** Type  sys.exit  to exit and terminate all threads"
   val versionMsg = s"\n** Welcome to reqT version $reqT_VERSION" +
     s"\n** Snapshot build: $BUILD_DATE" + 
-    s"\n** Compiled with Scala $SCALA_VERSION" +  
-     "\n** Running Java version " + JSystem.getProperty("java.version") +  
-     "\n** Running on " + JSystem.getProperty("java.vm.name")
+    s"\n** Scala $SCALA_VERSION" +  
+     "\n** Java  version " + JSystem.getProperty("java.version") +  
+     " " + JSystem.getProperty("java.vm.name")
   val startMsg = versionMsg +
      s"\n$PREAMBLE\n$helpOnReqT"  
   
