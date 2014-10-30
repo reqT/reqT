@@ -17,6 +17,7 @@ Model(
   Feature("deepTopStuff") has (Feature("Gurka") has Spec("hejsan")),
   Section("Context") has (
     Text("This section describes the context of the system"),
+    Image("context-diagram.svg"),
     Product("hotelApp") implements (
       Interface("receptionUI") has Actor("receptionist"),
       Interface("guestUI") has Actor("guest"), 
