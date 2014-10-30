@@ -249,9 +249,9 @@ object gui { //GUI implementation
         --->("Prio Table .csv (Stakeholder; Feature; Prio) to Tree...", VK_P, 0, 0) { doImportStakeholderFeaturePrioTable() },
         --->("Path Table .csv (Path; Elem) to Tree...", VK_A, 0, 0) { doImportPathTable() }),
       ===>("Export", VK_X,
-        --->("Scala Model .scala from Tree...", VK_S, 0, 0) { doSaveAsScala()},
         --->("HTML from Tree...", VK_H, 0, 0) { doExportToHtml() },
         --->("Latex from Tree...", VK_H, 0, 0) { doExportToLatex() },
+        --->("Scala Model .scala from Tree...", VK_S, 0, 0) { doSaveAsScala()},
         ---,
         --->("GraphViz .dot Nested from Tree...", VK_N, 0, 0) { doToGraphViz("-nested",export.toGraphVizNested(model)) },
         --->("GraphViz .dot Flat from Tree...", VK_F, 0, 0) { doToGraphViz("-flat", export.toGraphVizFlat(model)) },
@@ -691,7 +691,12 @@ object gui { //GUI implementation
       chooseFile(this, "index.html","Generate site").foreach { choice =>
         val ioFile = new java.io.File(choice)
         val (dir, file) = (ioFile.getParent, ioFile.getName)        
-        export.toHtml(model, dir, file)  
+        export.toHtml(model, dir, file)
+        val css = "/reqT-style.css"
+        Try {  
+          if (!fileUtils.exists(dir+css))
+            fileUtils.loadResource(css).mkString("\n").save(dir+css) 
+        } .recover { case e => println(e); msgError(s"Error saving $css, see console message.")  }
         println(s"Desktop open: $choice")
         desktopOpen(choice)       
       }      

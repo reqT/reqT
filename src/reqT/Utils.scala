@@ -191,6 +191,7 @@ trait FileUtils {
       val fn = slashify(f.toString)
       if (f.isAbsolute || fn.take(1) == "/" || fn.contains(":")) fn else workingDirectory + "/" + fn
     }
+    def exists(fileName: String) = ( new java.io.File(fileName) ).exists
     def listFiles(dir: String): Option[List[java.io.File]] = 
       new java.io.File(resolveFileName(dir)).listFiles match { case null => None; case a => Some(a.toList) }
     def saveString(s:String, fileName:String) = {
