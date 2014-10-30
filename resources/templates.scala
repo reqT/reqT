@@ -9,14 +9,14 @@ Model(
 "Might be done with mini keyboard (wrist keys), foot pedal, voice recognition, etc.")
   )
 )
-//Html Export Test Model
+//Model with sections for export
 Model(
   Title("Test Model"),
   Text("This is a model to test html generation."),
   Feature("topStuff") has Spec("hejsan"),
   Feature("deepTopStuff") has (Feature("Gurka") has Spec("hejsan")),
   Section("Context") has (
-    Text("This section describes the context of the system"),
+    Text("This section describes the context of the system."),
     Image("context-diagram.svg"),
     Product("hotelApp") implements (
       Interface("receptionUI") has Actor("receptionist"),
