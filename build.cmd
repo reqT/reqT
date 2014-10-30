@@ -17,7 +17,7 @@ echo Compilation ready!  %TIME%
 
 :copy_resources
 echo Copying resources  ...  %TIME%
-copy /Y "resources\*" "bin\." 
+xcopy "resources\*" "bin" /Y /S /I 
 if %ERRORLEVEL% NEQ 0 goto error
 
 :package
