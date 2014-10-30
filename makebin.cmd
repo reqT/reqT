@@ -1,5 +1,4 @@
 @echo OFF
-set _jarfilename=reqT.jar
 :clearbin
 if exist bin echo Clear bin & rd /S /Q bin
 if not exist bin md bin
