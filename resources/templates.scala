@@ -1,5 +1,15 @@
-//Why+Spec+Example
+//Goal-Design scale 
 Model(
+  Goal("accuracy") has 
+    Spec("Our pre-calculations shall hit within 5%"), 
+  Feature("quotation") has 
+    Spec("Product shall support cost recording and quotation with experience data"), 
+  Function("experienceData") has 
+    Spec("Product shall have recording and retrieval functions for experience data"), 
+  Design("screenX") has 
+    Spec("System shall have screen pictures as shown in Fig. X"))
+//Why+Spec+Example
+Model(  
   Feature("navigate") has (
     Why(
 "Measuring neural response is a bit painful to the  patient. Electrodes must be kept in place ... So both hands should be at the patient during a measurement."),
@@ -9,7 +19,31 @@ Model(
 "Might be done with mini keyboard (wrist keys), foot pedal, voice recognition, etc.")
   )
 )
-//Model with sections for export
+//Context diagram simple
+Model(
+  Product("hotelApp") interactsWith (
+    User("receptionist"), 
+    User("guest"), 
+    System("telephony"), 
+    System("accounting")))  
+//Context diagram elaborated
+Model( 
+  Product("hotel application") has (
+    Interface("receptionUI"),
+    Interface("guestUI"), 
+    Interface("phoneAPI"), 
+    Interface("accountAPI")), 
+  Interface("receptionUI") has Actor("receptionist"),
+  Interface("guestUI") has Actor("guest"), 
+  Interface("phoneAPI") has System("telephony"), 
+  Interface("accountAPI") has System("accounting"),
+  Data("InterfaceIO") has (
+    Interface("receptionUI") has (
+      Input("booking"), Input("checkOut"), 
+      Output("serviceNote")),
+    Interface("guestUI") has (
+      Output("confirmation"), Output("invoice"))))
+//Model with sections
 Model(
   Title("Test Model"),
   Text("This is a model to test html generation."),
@@ -44,30 +78,6 @@ Model(
       Spec("Product shall be able to process 100 payment transactions per second in peak load.")   
   )
 )
-//Context diagram simple
-Model(
-  Product("hotelApp") interactsWith (
-    User("receptionist"), 
-    User("guest"), 
-    System("telephony"), 
-    System("accounting")))  
-//Context diagram elaborated
-Model( 
-  Product("hotel application") has (
-    Interface("receptionUI"),
-    Interface("guestUI"), 
-    Interface("phoneAPI"), 
-    Interface("accountAPI")), 
-  Interface("receptionUI") has Actor("receptionist"),
-  Interface("guestUI") has Actor("guest"), 
-  Interface("phoneAPI") has System("telephony"), 
-  Interface("accountAPI") has System("accounting"),
-  Data("InterfaceIO") has (
-    Interface("receptionUI") has (
-      Input("booking"), Input("checkOut"), 
-      Output("serviceNote")),
-    Interface("guestUI") has (
-      Output("confirmation"), Output("invoice"))))
 //Prioritization $100 Method
 val m = Model(
   Stakeholder("a") has (
