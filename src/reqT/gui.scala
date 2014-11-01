@@ -219,7 +219,7 @@ object gui { //GUI implementation
         ---,
         --->("Save tree", VK_S, VK_S, CTRL){ doSave() },
         --->("Save tree as ...", VK_A, 0, 0){ doSaveAs() },
-        --->("Save text in editor to file...", VK_S, VK_S, ALT) { doSaveEditorTextToFile() },
+        --->("Save text in editor to file ...", VK_S, VK_S, ALT) { doSaveEditorTextToFile() },
         ---,
         --->("Close window without saving", VK_C, 0, 0){ doClose() },
         --->("Exit reqT without saving", VK_E, 0, 0){ java.lang.System.exit(0) }),
@@ -249,15 +249,20 @@ object gui { //GUI implementation
         --->("Prio Table .csv (Stakeholder; Feature; Prio) to Tree...", VK_P, 0, 0) { doImportStakeholderFeaturePrioTable() },
         --->("Path Table .csv (Path; Elem) to Tree...", VK_A, 0, 0) { doImportPathTable() }),
       ===>("Export", VK_X,
-        --->("HTML from Tree...", VK_H, 0, 0) { doExportToHtml() },
-        --->("Latex from Tree...", VK_H, 0, 0) { doExportToLatex() },
-        --->("Scala Model .scala from Tree...", VK_S, 0, 0) { doSaveAsScala()},
+        MenuRadioGroup("exportToggle", Map[String, () => Unit](
+          "From tree root" -> ( () => { exportModel = rootModel _ } ), 
+          "From selected tree node"  -> ( () => { exportModel = selectedModel _ } )   
+        ), default = "From tree root"),
         ---,
-        --->("GraphViz .dot Nested from Tree...", VK_N, 0, 0) { doToGraphViz("-nested",export.toGraphVizNested(model)) },
-        --->("GraphViz .dot Flat from Tree...", VK_F, 0, 0) { doToGraphViz("-flat", export.toGraphVizFlat(model)) },
+        --->("HTML ...", VK_H, 0, 0) { doExportToHtml() },
+        --->("Latex ...", VK_H, 0, 0) { doExportToLatex() },
+        --->("Scala Model .scala ...", VK_S, 0, 0) { doExportToScala()},
         ---,
-        --->("Path Table .csv from Tree...", VK_P, 0, 0) { doExportTo(".csv", export.toPathTable(model)) },
-        --->("Release Allocation Table .csv from Tree...", VK_R, 0, 0) { doExportTo(".csv", export.toReleaseAllocationTable(model)) }),
+        --->("GraphViz .dot Nested ...", VK_N, 0, 0) { doToGraphViz("-nested",export.toGraphVizNested(exportModel())) },
+        --->("GraphViz .dot Flat ...", VK_F, 0, 0) { doToGraphViz("-flat", export.toGraphVizFlat(exportModel())) },
+        ---,
+        --->("Path Table .csv ...", VK_P, 0, 0) { doExportTo(".csv", export.toPathTable(exportModel())) },
+        --->("Release Allocation Table .csv ...", VK_R, 0, 0) { doExportTo(".csv", export.toReleaseAllocationTable(exportModel())) }),
       ===>("Metamodel", VK_M),
       ===>("Templates", VK_P,
         MenuRadioGroup("templateToggle", Map[String, () => Unit](
@@ -292,6 +297,7 @@ object gui { //GUI implementation
     lazy val menuMap: Map[String, JComponent] = initAppMenus.installTo(frame)
 
     private var templateProcessor: String => Unit = editor.setText _
+    private var exportModel: () => Model = rootModel _
     
     def windowTitle = fileName + "  -  " + windowType
     def updateTitle() { frame.setTitle(windowTitle) }
@@ -330,8 +336,8 @@ object gui { //GUI implementation
         Feature("plan") has Gist("allocate requirements to releases with constraint solving"))
     )
 
-    def model: Model = createModelFromTreeNode(top) 
-    def selectedModel: Model = selectedOpt match {
+    def rootModel(): Model = createModelFromTreeNode(top) 
+    def selectedModel(): Model = selectedOpt match {
       case Some(current) => createModelFromTreeNode(current)
       case None => Model()
     }
@@ -464,7 +470,7 @@ object gui { //GUI implementation
       setTopTo(currentModel)
     }
     
-    def reconstructModel() { setTopTo(model)}
+    def reconstructModel() { setTopTo(rootModel)}
 
     def expandSelectFocus(path: TreePath) = {
       tree.expandPath(path)
@@ -477,7 +483,7 @@ object gui { //GUI implementation
         case None => msgNothingSelected
         case Some(currentNode) if currentNode == top =>  //top selected
           if (isReplace) setTopTo(newModel)
-          else if (!newModel.isEmpty) setTopTo(newModel ++ model)
+          else if (!newModel.isEmpty) setTopTo(newModel ++ rootModel)
           setFoldingAll(rootPath, true)
         case Some(currentNode) => //a node inside the tree was selected
           iter(newModel.toVector, isReplace, currentNode)  //new try; was: iter(newModel.toVector.reverse, isReplace, currentNode)
@@ -595,11 +601,11 @@ object gui { //GUI implementation
     def msgNothingSelected() = msgError("No tree node selected.")
     def msgTODO() = msgError("Not yet implemented...")
 
-    def saveModel(f: String) {
+    def saveModel(f: String, model: () => Model = rootModel _) {
       f match {
-        case _ if f.endsWith(".reqt")  => model.save(f)
-        case _ if f.endsWith(".scala") => model.toString.save(f)
-        case _ => model.save(f.newFileType(".reqt"))
+        case _ if f.endsWith(".reqt")  => model().save(f)
+        case _ if f.endsWith(".scala") => model().toString.save(f)
+        case _ => model().save(f.newFileType(".reqt"))
       }
       updateFileName(f.newFileType(".reqt"))
     }
@@ -691,7 +697,7 @@ object gui { //GUI implementation
       chooseFile(this, "index.html","Generate site").foreach { choice =>
         val ioFile = new java.io.File(choice)
         val (dir, file) = (ioFile.getParent, ioFile.getName)        
-        export.toHtml(model, dir, file)
+        export.toHtml(exportModel(), dir, file)
         val css = "/reqT-style.css"
         Try {  
           if (!fileUtils.exists(dir+css))
@@ -706,8 +712,12 @@ object gui { //GUI implementation
       chooseFile(this, "model.tex","Generate latex files").foreach { choice =>
         val ioFile = new java.io.File(choice)
         val (dir, file) = (ioFile.getParent, ioFile.getName)        
-        export.toLatex(model, dir, file)  
+        export.toLatex(exportModel(), dir, file)  
       }      
+    } recover { case e => println(e); msgError("Export failed, see console message.")  }
+    
+    def doExportToScala() = Try {
+      chooseFile(this, fileName.newFileType(".scala"), "Export Textual").foreach{saveModel(_, exportModel)}
     } recover { case e => println(e); msgError("Export failed, see console message.")  }
     
     def doToGraphViz(tpe: String, exp: => String) =  Try {
