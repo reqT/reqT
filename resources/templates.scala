@@ -28,15 +28,11 @@ Model(
     System("accounting")))  
 //Context diagram elaborated
 Model( 
-  Product("hotel application") has (
-    Interface("receptionUI"),
-    Interface("guestUI"), 
-    Interface("phoneAPI"), 
-    Interface("accountAPI")), 
-  Interface("receptionUI") has Actor("receptionist"),
-  Interface("guestUI") has Actor("guest"), 
-  Interface("phoneAPI") has System("telephony"), 
-  Interface("accountAPI") has System("accounting"),
+  Product("HotelApp") has (
+    Interface("receptionUI") has Actor("Receptionist"),
+    Interface("guestUI") has Actor("Guest"), 
+    Interface("phoneAPI") has System("Telephony"), 
+    Interface("accountAPI") has System("Accounting")), 
   Data("InterfaceIO") has (
     Interface("receptionUI") has (
       Input("booking"), Input("checkOut"), 
