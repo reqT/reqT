@@ -144,16 +144,21 @@ trait GraphVizNested extends GraphViz {
     case _ => ""
   }
   
-  def node(e: Elem, path: NodePath): String = s"  $q$path$e$q"
+  def node(e: Elem, path: NodePath): String = {
+    val i = if (path == /) "" else "/"
+    s"  $q$i$path$e$q"
+  }
   
   def singleSubnodeLink(from: Entity, link: RelationType, to: Elem, path: NodePath): String = 
+    s"\n//singleSubnodeLink($from,$link,$to,$path)\n\n"+
     indent(path.depth) + node(from, path) + style(from) + ";\n" +
-    indent(path.depth) + node(to, path/from) + style(to) + ";\n" +
-    indent(path.depth) + node(from, path) + " -> " + node(to, path/from) + s"[label=$link]" + ";\n"
+    indent(path.depth) + node(to, path/Head(from,link)) + style(to) + ";\n" +
+    indent(path.depth) + node(from, path) + " -> " + node(to, path/Head(from,link)) + s"[label=$link]" + ";\n"
       
   def subGraphPre(from: Entity, link: RelationType, to: Elem, path: NodePath): String =
+    s"\n//subGraphPre($from,$link,$to,$path)\n\n"+
     indent(path.depth) + node(from, path) + style(from) + ";\n" +
-    indent(path.depth) + node(from, path) + " -> " + node(to, path/from) + 
+    indent(path.depth) + node(from, path) + " -> " + node(to, path/Head(from,link)) + 
     s" [label=$link, lhead=${q}cluster_$from$q]" + ";\n" +
     indent(path.depth) + s"  subgraph ${q}cluster_$from$q { \n"
 
@@ -165,11 +170,11 @@ trait GraphVizNested extends GraphViz {
       case Model(Relation(e2, _ , Model())) => singleSubnodeLink(e1, l1, e2, path)
       case Model(Relation(e2, l2, sub2)) if sub2.tip.size == 1 => 
         singleSubnodeLink(e1, l1, e2, path) + 
-        singleSubnodeLink(e2, l2, sub2.tip.elems.head, path/e1) +
-        exportModel(sub2, path/e1/e2)
+        singleSubnodeLink(e2, l2, sub2.tip.elems.head, path/Head(e1,l1)) +
+        exportModel(sub2, path/Head(e1,l1)/Head(e2,l2))
       case _ => 
         subGraphPre(e1, l1, sub.tip.elems.head, path) +
-        exportModel(sub, path/e1)  + indent(path.depth + 1) + "}\n"
+        exportModel(sub, path/Head(e1,l1))  + indent(path.depth + 1) + "}\n"
     }
   } .mkString
     
