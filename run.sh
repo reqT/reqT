@@ -1,3 +1,4 @@
 #!/bin/bash
 
-scala -toolcp bin reqT.Main $@
+#scala -toolcp bin reqT.Main $@
+java -jar reqT.jar $@

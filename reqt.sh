@@ -1,5 +1,5 @@
 #!/bin/bash
 
-REQT_JAR=~/reqT/lib/reqT.jar
-scala -toolcp $REQT_JAR $REQT_JAR $@
+REQT_LIB=~/reqT/lib
+java -jar $REQT_LIB/reqT.jar $@
 

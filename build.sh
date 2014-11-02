@@ -21,7 +21,7 @@ fi
 #COMPILE
 echo "scalac -feature -deprecation -cp \"lib/*\" -d bin src/reqT/*"
 echo "Start compilation  ...  $(date)"
-scalac -feature -deprecation -cp "lib/*" -d bin src/reqT/* > /dev/null 2>&1
+scalac -feature -deprecation -cp "lib/*" -d bin src/reqT/*
 error_check
 echo "Compilation ready!  $(date)"
 
@@ -33,7 +33,7 @@ error_check
 #PACKAGE
 echo "Packaging reqT into jar file: $JAR_FILENAME"
 echo "Start packaging ... $(date)"
-jar cfe $JAR_FILENAME reqT.Main -C bin/ . > /dev/null 2>&1
+jar cfe $JAR_FILENAME reqT.Main -C bin/ . 
 error_check
 echo "Packaging ready!    $(date)"
 
@@ -43,9 +43,11 @@ mkdir -p ~/reqT/bin
 
 #COPY BUILD FILES
 echo "Copying $JAR_FILENAME to $HOME/reqT/lib/"
-cp -rf $JAR_FILENAME $HOME/reqT/lib/
+cp $JAR_FILENAME ~/reqT/lib/.
 
-echo "Copying reqT.sh to $HOME/reqT/bin/"
-cp -rf reqT.sh $HOME/reqT/bin/
+echo "Copying reqt.sh to $HOME/reqT/bin/reqt"
+cp reqt.sh ~/reqT/bin/reqt
+chmod a+x ~/reqT/bin/reqt
 
-echo "If $HOME/reqT/bin is in your Path you can run reqT as a command"
+echo "Put $HOME/reqT/bin in your Path to run reqt as a command"
+
