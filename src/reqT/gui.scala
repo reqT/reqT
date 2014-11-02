@@ -244,31 +244,57 @@ object gui { //GUI implementation
         ---,
         --->("Run Script => Console", VK_R, VK_ENTER, CTRL) { doRunToConsole() },
         --->("{Evaluate} => Editor", VK_E, VK_ENTER, ALT) { doRunToEditor() }),
-      ===>("Import", VK_I,
-        --->("Scala Model .scala to Tree...", VK_S, 0, 0) { doOpenScala() },
-        --->("Prio Table .csv (Stakeholder; Feature; Prio) to Tree...", VK_P, 0, 0) { doImportStakeholderFeaturePrioTable() },
-        --->("Path Table .csv (Path; Elem) to Tree...", VK_A, 0, 0) { doImportPathTable() }),
       ===>("Export", VK_X,
         MenuRadioGroup("exportToggle", Map[String, () => Unit](
           "From tree root" -> ( () => { exportModel = rootModel _ } ), 
           "From selected tree node"  -> ( () => { exportModel = selectedModel _ } )   
         ), default = "From tree root"),
         ---,
-        --->("HTML ...", VK_H, 0, 0) { doExportToHtml() },
-        --->("Latex ...", VK_H, 0, 0) { doExportToLatex() },
-        --->("Scala Model .scala ...", VK_S, 0, 0) { doExportToScala()},
+        --->("To HTML ...", VK_H, 0, 0) { doExportToHtml() },
+        --->("To Latex ...", VK_H, 0, 0) { doExportToLatex() },
+        --->("To Scala Model .scala ...", VK_S, 0, 0) { doExportToScala()},
         ---,
-        --->("GraphViz .dot Nested ...", VK_N, 0, 0) { doToGraphViz("-nested",export.toGraphVizNested(exportModel())) },
-        --->("GraphViz .dot Flat ...", VK_F, 0, 0) { doToGraphViz("-flat", export.toGraphVizFlat(exportModel())) },
+        ===>("GraphViz format",VK_F,
+           MenuRadioGroup("dotFormatToggle", Map[String, () => Unit](
+            "pdf" -> ( () => { dotFormat = "pdf" } ), 
+            "svg"  -> ( () => { dotFormat = "svg" } ),   
+            "png"  -> ( () => { dotFormat = "png" } )   
+            ), default = "pdf")),
+        ===>("GraphViz layout",VK_F,
+           MenuRadioGroup("dotLayoutToggle", Map[String, () => Unit](
+            "dot" -> ( () => { dotLayout = "dot" } ), 
+            "neato" -> ( () => { dotLayout = "neato" } ), 
+            "circo" -> ( () => { dotLayout = "circo" } ), 
+            "twopi"  -> ( () => { dotLayout = "twopi" } )   
+            ), default = "dot")),
+        ===>("GraphViz arrows",VK_F,
+           MenuRadioGroup("dotArrowToggle", Map[String, () => Unit](
+            "default" -> ( () => { dotArrows = "" } ), 
+            "both" -> ( () => { dotArrows = "-Edir=both" } ), 
+            "none" -> ( () => { dotArrows = "-Edir=none" } ) 
+            ), default = "")),
+        --->("To GraphViz .dot Nested ...", VK_N, 0, 0) { doToGraphViz("nested",export.toGraphVizNested(exportModel())) },
+        --->("To GraphViz .dot Flat ...", VK_F, 0, 0) { doToGraphViz("flat", export.toGraphVizFlat(exportModel())) },
         ---,
-        --->("Path Table .csv ...", VK_P, 0, 0) { doExportTo(".csv", export.toPathTable(exportModel())) },
-        --->("Release Allocation Table .csv ...", VK_R, 0, 0) { doExportTo(".csv", export.toReleaseAllocationTable(exportModel())) }),
-      ===>("Metamodel", VK_M),
+        --->("To Path Table .csv ...", VK_P, 0, 0) { doExportTo(".csv", export.toPathTable(exportModel())) },
+        --->("To Release Allocation Table .csv ...", VK_R, 0, 0) { doExportTo(".csv", export.toReleaseAllocationTable(exportModel())) }),
+        ===>("Import", VK_I, 
+        MenuRadioGroup("importToggle", Map[String, () => Unit](
+          "Replace tree root"                -> ( () => { importProcessor = setTopTo _ } ), 
+          "Replace selected tree node"       -> ( () => { importProcessor = updateSelectionReplace _ } ),   
+          "Insert after selected tree node"  -> ( () => { importProcessor = updateSelectionInsert _ } )   
+        ), default = "Replace tree root"),
+        ---,
+        --->("From Scala Model .scala ...", VK_S, 0, 0) { doOpenScala(importProcessor) },
+        --->("From Prio Table .csv (Stakeholder; Feature; Prio) ...", VK_P, 0, 0) {
+          doImportStakeholderFeaturePrioTable(importProcessor) },
+        --->("From Path Table .csv (Path; Elem) ...", VK_A, 0, 0) { doImportPathTable(importProcessor) }),
       ===>("Templates", VK_P,
         MenuRadioGroup("templateToggle", Map[String, () => Unit](
           "Editor Replace" -> ( () => { templateProcessor = editor.setText _ } ), 
           "Editor Insert"  -> ( () => { templateProcessor = editor.replaceSelection _ } )   
         ), default = "Editor Replace"), --- ),
+      ===>("Metamodel", VK_M),
       ===>("View", VK_V,
         --->("Toggle Fullscreen", VK_T, VK_F11, 0) { fullScreen.toggleFullScreen(frame) },
         --->("Toggle Post-It", VK_T, VK_F12, 0) { fullScreen.toggleDecorations(frame) },
@@ -298,6 +324,10 @@ object gui { //GUI implementation
 
     private var templateProcessor: String => Unit = editor.setText _
     private var exportModel: () => Model = rootModel _
+    private var importProcessor: Model => Unit = setTopTo _
+    private var dotFormat = "pdf" 
+    private var dotLayout = "dot" 
+    private var dotArrows = ""
     
     def windowTitle = fileName + "  -  " + windowType
     def updateTitle() { frame.setTitle(windowTitle) }
@@ -478,6 +508,8 @@ object gui { //GUI implementation
       tree.requestFocus
     }
   
+    def updateSelectionReplace(newModel: Model) = updateSelection(newModel)
+    def updateSelectionInsert(newModel: Model) = updateSelection(newModel, false)
     def updateSelection(newModel: Model, isReplace: Boolean = true) {
       selectedOpt match {
         case None => msgNothingSelected
@@ -619,9 +651,9 @@ object gui { //GUI implementation
       chooseFile(this, "","Open Serialized Model").
         foreach { f => setTopTo(Model.load(f)); updateFileName(f) } }
     
-    def doOpenScala() = tryOrErrMsg {
+    def doOpenScala(updateModel: Model => Unit = setTopTo _) = tryOrErrMsg {
       chooseFile(this, "","Open Textual Model").
-        foreach{ f => setTopTo(load(f).toModel); updateFileName(f) } }
+        foreach{ f => updateModel(load(f).toModel); updateFileName(f) } }
     
     def doSave() = tryOrErrMsg {
       if (fileName.startsWith(Settings.defaultTitle) || fileName == "")
@@ -721,17 +753,25 @@ object gui { //GUI implementation
     } recover { case e => println(e); msgError("Export failed, see console message.")  }
     
     def doToGraphViz(tpe: String, exp: => String) =  Try {
-      chooseFile(this, fileName.newFileType(tpe+".dot"),"Export").foreach { choice => 
+      chooseFile(this, fileName.newFileType("-"+tpe+".dot"),"Export "+tpe).foreach { choice => 
         exp.save(choice)  
-        val dot = Settings.dotCmd(choice) 
-        println(s"Running command with arguments:\n  $dot")
+        val extraArgs: Seq[String] = 
+          ( if (dotLayout=="twopi") Seq("-Goverlap=scale","-Granksep=1.3cm") 
+          else Seq() ) ++
+         ( if (dotArrows!="") Seq(dotArrows) 
+          else Seq() )
+        val dot = dotCmd(choice,dotFormat,dotLayout,extraArgs) 
+        println(s"Executing command:\n  $dot")
         val res = runCmd(dot)
         println(s"Result code: $res")   
         if (res == 0) {        
-           val pdf = choice.newFileType(".pdf") 
+           val pdf = choice.newFileType("."+dotFormat) 
            println(s"Desktop open: $pdf")
-           desktopOpen(choice.newFileType(".pdf")) 
-        } else throw new Error("Command failed.")           
+           desktopOpen(choice.newFileType("."+dotFormat)) 
+        } else if (!isDotInstalled) 
+          msgError("The .dot file is saved but the dot command is not on your path.\n"+
+                   "Please install http://graphviz.org") 
+        else throw new Error("Command failed.")           
       }
     }  recover { case e => println(e); msgError("Export failed, see console message.")  }
     
@@ -758,9 +798,14 @@ object gui { //GUI implementation
                     msgError("Failed to run command: $dot")} }
           case Failure(e) => msgError("Export to GraphViz failed, see console message.") } */
     
-    def doImportStakeholderFeaturePrioTable() = 
-      chooseFile(this).foreach(f => transformSelection(_ ++ parse.loadTab.prioVoting(f)))
-    def doImportPathTable() = { msgTODO; ??? }      
+    def doImportStakeholderFeaturePrioTable(updateModel: Model => Unit = setTopTo _) = {
+      //chooseFile(this).foreach(f => transformSelection(_ ++ parse.loadTab.prioVoting(f)))
+      chooseFile(this).foreach{ f => 
+        Try { updateModel(parse.loadTab.prioVoting(f)) } 
+          .recover { case e => println(e); msgError("Parsion Prio table failed: " + e)  }
+      }
+    }
+    def doImportPathTable(updateModel: Model => Unit = setTopTo _) = { msgTODO; ??? }      
       
     def doHelpAbout()        = setEditorToModel(editorAboutModel)
     def doHelpMetamodel()    = setEditorToModel(reqT.meta.model)

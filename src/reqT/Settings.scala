@@ -24,14 +24,6 @@ object Settings {
   var isGeneratingHtmlRawModel = false
   var defaultTitle: String = "untitled"
   var defaultModelFileName: String = defaultTitle+".reqt"
-  var dotType = "pdf"
-  var dotCmd: String => Seq[String] = f => {
-    val q = if (isWindows) '"'.toString else "" 
-    val cmd = Seq("dot",s"-T$dotType",
-      "-o", s"""$q${f.newFileType("."+dotType)}$q""",
-        s"""$q${f.newFileType(".dot")}$q""")
-    fixCmd(cmd)
-  }
   var warningPrinter: String => Unit = (msg) => println(s"WARNING: $msg")
   object gui {
     val entRGB  = (0,100,200) //blueish
