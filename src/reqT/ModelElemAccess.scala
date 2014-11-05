@@ -13,15 +13,15 @@
 
 package reqT  
 
-trait ModelElemAccess { //isDefinedAt, apply, get, enter
+trait ModelElemAccess { //isDefinedAt, access, get, enter
   self: Model =>
 
   def isDefinedAt(k: Key): Boolean = myMap.isDefinedAt(k) 
-  def isDefinedAt[T](a: Attribute[T]): Boolean = isDefinedAt(a.myType) && (apply(a.myType) == a.value)
+  def isDefinedAt[T](a: Attribute[T]): Boolean = isDefinedAt(a.myType) && (access(a.myType) == a.value)
   def isDefinedAt(et: EntityType): Boolean = !tipEntitiesOfType(et).isEmpty  
   def isDefinedAt(e: Entity): Boolean = isDefinedAt(e.has)  
   def isDefinedAt(id: String): Boolean = !tipEntitiesOfId(id).isEmpty  
-  def isDefinedAt(r: Relation): Boolean = isDefinedAt(r.head) && apply(r.head) == r.tail
+  def isDefinedAt(r: Relation): Boolean = isDefinedAt(r.head) && access(r.head) == r.tail
   def isDefinedAt(rt: RelationType): Boolean = !topRelationsOfType(rt).isEmpty
   def isDefinedAt(ht: HeadType): Boolean = !topHeadsOfType(ht).isEmpty
 
@@ -30,57 +30,58 @@ trait ModelElemAccess { //isDefinedAt, apply, get, enter
       case p: HeadPath => 
         if (p.isEmpty) true 
         else if (p.isSingle) isDefinedAt(p.head) 
-        else isDefinedAt(p.head) && apply(p.head).isDefinedAt(p.tail)  
+        else isDefinedAt(p.head) && access(p.head).isDefinedAt(p.tail)  
       case p: AttrVal[_] => 
         if (p.isEmpty) isDefinedAt(p.attr) 
-        else if (p.isSingle) isDefinedAt(p.head) && apply(p.head).isDefinedAt(p.attr)
-        else isDefinedAt(p.head) && apply(p.head).isDefinedAt(p.tail)  
+        else if (p.isSingle) isDefinedAt(p.head) && access(p.head).isDefinedAt(p.attr)
+        else isDefinedAt(p.head) && access(p.head).isDefinedAt(p.tail)  
     }
     case p: AttrRef[_] =>
       if (p.isEmpty) isDefinedAt(p.attrType) 
-      else if (p.isSingle) isDefinedAt(p.head) && apply(p.head).isDefinedAt(p.attrType)
-      else isDefinedAt(p.head) && apply(p.head).isDefinedAt(p.tail)
+      else if (p.isSingle) isDefinedAt(p.head) && access(p.head).isDefinedAt(p.attrType)
+      else isDefinedAt(p.head) && access(p.head).isDefinedAt(p.tail)
   }
   
-  def apply(e: Entity): Model = apply(e.has)
-  def apply(id: String): Model = apply(tipEntityOfId(id).has)
-  def apply(et: EntityType): Vector[Model] = {
+   
+  def access(e: Entity): Model = access(e.has)
+  def access(id: String): Model = access(tipEntityOfId(id).has)
+  def access(et: EntityType): Vector[Model] = {
     val topEnts = tipEntitiesOfType(et)
     assert(!topEnts.isEmpty, "No top entities of type $et exists")
-    topEnts.map(apply(_))
+    topEnts.map(access(_))
   }
-  def apply(h: Head): Model =  myMap(h).asInstanceOf[Model]
-  def apply[T](at: AttributeType[T]): T = myMap(at).asInstanceOf[Attribute[T]].value
-  def apply[T](a: Attribute[T]): T = {
+  def access(h: Head): Model =  myMap(h).asInstanceOf[Model]
+  def access[T](at: AttributeType[T]): T = myMap(at).asInstanceOf[Attribute[T]].value
+  def access[T](a: Attribute[T]): T = {
     val value = myMap(a.myType).asInstanceOf[Attribute[T]].value
     assert(value == a.value, 
       s"an attribute of type ${a.myType} is defined here, but its value $value does not match "+a.value)
     value
   }
   
-  def apply[T](p: AttrRef[T]): T = if (p.isEmpty) apply(p.attrType) 
-    else if (p.isSingle) apply(p.head).apply(p.attrType)
-    else apply(p.head).apply(p.tail)
+  def access[T](p: AttrRef[T]): T = if (p.isEmpty) access(p.attrType) 
+    else if (p.isSingle) access(p.head).access(p.attrType)
+    else access(p.head).access(p.tail)
 
-  def apply[T](p: AttrVal[T]): T = if (p.isEmpty) apply(p.attr) 
-    else if (p.isSingle) apply(p.head).apply(p.attr)
-    else apply(p.head).apply(p.tail)  
+  def access[T](p: AttrVal[T]): T = if (p.isEmpty) access(p.attr) 
+    else if (p.isSingle) access(p.head).access(p.attr)
+    else access(p.head).access(p.tail)  
   
-  def apply(p: HeadPath): Model = if (p.isEmpty) this 
-    else if (p.isSingle) apply(p.head) 
-    else apply(p.head).apply(p.tail)      
+  def access(p: HeadPath): Model = if (p.isEmpty) this 
+    else if (p.isSingle) access(p.head) 
+    else access(p.head).access(p.tail) 
     
-  def get(e: Entity): Option[Model] = if (isDefinedAt(e)) Some(apply(e)) else None   
+  def get(e: Entity): Option[Model] = if (isDefinedAt(e)) Some(access(e)) else None   
   def get(id: String): Vector[Model] = tipEntitiesOfId(id).toVector.flatMap(get(_)).filterNot(_.isEmpty)   
 
   def get(h: Head): Option[Model] = myMap.get(h).asInstanceOf[Option[Model]] 
   
   def get[T](a: Attribute[T]): Option[T] = 
-    if (isDefinedAt(a.myType) && (apply(a.myType) == a.value)) Some(a.value) else None 
+    if (isDefinedAt(a.myType) && (access(a.myType) == a.value)) Some(a.value) else None 
     
-  def get[T](at: AttributeType[T]): Option[T] = if (isDefinedAt(at)) Some(apply(at)) else None 
+  def get[T](at: AttributeType[T]): Option[T] = if (isDefinedAt(at)) Some(access(at)) else None 
   
-  def get(r: Relation): Option[Model] = if (isDefinedAt(r)) Some(apply(r.head)) else None 
+  def get(r: Relation): Option[Model] = if (isDefinedAt(r)) Some(access(r.head)) else None 
   
   def get(et: EntityType): Vector[Model] = tipEntitiesOfType(et).flatMap(get(_)).filterNot(_.isEmpty)
 
@@ -90,18 +91,18 @@ trait ModelElemAccess { //isDefinedAt, apply, get, enter
   
   def get[T](p: AttrRef[T]): Option[T] = if (p.isEmpty) get(p.attrType) 
     else if (!isDefinedAt(p.head)) None
-    else if (p.isSingle) apply(p.head).get(p.attrType)
-    else apply(p.head).get(p.tail)
+    else if (p.isSingle) access(p.head).get(p.attrType)
+    else access(p.head).get(p.tail)
 
   def get[T](p: AttrVal[T]): Option[T] = 
     if (p.isEmpty) get(p.attr.myType).collect { case a if a == p.attr.value => a }   
     else if (!isDefinedAt(p.head)) None
-    else if (p.isSingle) apply(p.head).get(p.attr.myType)
-    else apply(p.head).get(p.tail)    
+    else if (p.isSingle) access(p.head).get(p.attr.myType)
+    else access(p.head).get(p.tail)    
   
   def get(p: HeadPath): Option[Model] = if (p.isEmpty || !isDefinedAt(p.head)) None 
-    else if (p.isSingle) Some(apply(p.head))
-    else apply(p.head).get(p.tail)      
+    else if (p.isSingle) Some(access(p.head))
+    else access(p.head).get(p.tail)      
     
   def enter(id: String): Model = get(tipEntityOfId(id).has).getOrElse(Model())
   

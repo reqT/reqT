@@ -25,11 +25,11 @@ trait ModelBasicOps  {
   def +(e: Elem): Model = append(e)
   def append(e: Elem): Model = e match { 
     case rel: Relation if isDefinedAt(rel.key) => 
-      var newSubmodel: Model = apply(rel.key)
+      var newSubmodel: Model = access(rel.key)
       for (e <- rel.tail.elems) newSubmodel += e
       newModel(myMap + (rel.key -> newSubmodel))
     case va: VectorAttribute[_] if isDefinedAt(va.key) =>
-      val existingVector = apply(va.key)
+      val existingVector = access(va.key)
       newModel(myMap + (va.key -> va.key.apply(existingVector ++ va.value)))
     case ent: Entity if isDefinedAt(ent.has) => this  //to keep order - is it good ???
     case NoElem => this
