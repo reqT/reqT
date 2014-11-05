@@ -38,6 +38,30 @@ Model(
       Output("serviceNote")),
     Interface("guestUI") has (
       Output("confirmation"), Output("invoice"))))
+//Data dictionary: class with spec+example+members
+Model(
+  Section("relations") has (
+    Class("Guest") relatesTo (Class("Stay"), Min(1)), 
+    Class("Stay") relatesTo (Class("RoomState"), Class("Service"), Min(1)), 
+    Class("ServiceType") relatesTo (Class("Service"), Min(1)), 
+    Class("Room") relatesTo (Class("RoomState"), Min(1))), 
+  Section("attributes") has (
+    Class("Guest") has (
+      Member("name"), 
+      Member("address1"), 
+      Member("address2"), 
+      Member("address3"), 
+      Member("passport")), 
+    Class("Stay") has (Member("stayId"), Member("paymethod"), Member("employee")), 
+    Class("ServiceType") has (Member("name"), Member("price")), 
+    Class("Service") has (Member("serviceDate"), Member("serviceCount")), 
+    Class("Room") has (
+      Member("roomId"), 
+      Member("bedCount"), 
+      Member("roomType"), 
+      Member("price1"), 
+      Member("price2")), 
+    Class("RoomState") has (Member("date"), Member("personCount"), Member("state"))))
 //Model with sections
 Model(
   Title("Test Model"),
