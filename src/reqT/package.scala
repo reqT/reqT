@@ -27,4 +27,6 @@ extends Init
    with RandomUtils 
    with SysUtils
    with DebugUtils 
-   with NanoZap
+   with NanoZap {
+   implicit class HelpDefineAny(a: Any){ def ? { println(reqT.meta.define(a))} }
+ }
