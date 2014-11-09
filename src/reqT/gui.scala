@@ -272,7 +272,7 @@ object gui { //GUI implementation
             "default" -> ( () => { dotArrows = "" } ), 
             "both" -> ( () => { dotArrows = "-Edir=both" } ), 
             "none" -> ( () => { dotArrows = "-Edir=none" } ) 
-            ), default = "")),
+            ), default = "default")),
         --->("To GraphViz .dot Nested ...", VK_N, 0, 0) { doToGraphViz("nested",export.toGraphVizNested(exportModel())) },
         --->("To GraphViz .dot Flat ...", VK_F, 0, 0) { doToGraphViz("flat", export.toGraphVizFlat(exportModel())) },
         ---,
