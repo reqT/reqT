@@ -62,6 +62,22 @@ Model(
       Member("price1"), 
       Member("price2")), 
     Class("RoomState") has (Member("date"), Member("personCount"), Member("state"))))
+//State transition model
+Model(
+  Section("roomState") has (
+    Title("Room State Model"), 
+    State("free") has (
+      Event("book") precedes State("booked"), 
+      Event("checkin") precedes State("occupied"), 
+      Event("changeRoom") precedes State("occupied"), 
+      Event("repair") precedes State("repairing")), 
+    State("booked") has (
+      Event("checkIn") precedes State("occupied"), 
+      Event("cancel") precedes State("free")), 
+    State("occupied") has (
+      Event("checkout") precedes State("free"), 
+      Event("changeRoom") precedes State("free")), 
+    State("repairing") has (Event("done") precedes State("free"))))   
 //Model with sections
 Model(
   Title("Test Model"),
