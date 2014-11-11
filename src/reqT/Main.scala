@@ -20,7 +20,7 @@ object Main {
     println("<no arg> Start the reqT shell inside the Scala Read-Evaluate-Print-Loop")
     println("help     -h  Print this message")
     println("edit     -e  <file> Launch the reqT shell editor with <file> if any")
-    println("init     -r  <file> Interpret <file> before starting the reqT shell")
+    println("init     -i  <file> Interpret <file> before starting the reqT shell")
     println("test     -t  <file> Run test script with Model in file")
     println("meta     -m  [<from>] Generate metamodel [<from>] to file: GENERATED-metamodel.scala")
     println("flex     -f  Print jflex clauses to file: reqT-flex-clauses.txt")
