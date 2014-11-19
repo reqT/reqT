@@ -316,7 +316,7 @@ Check that you have the files from the lab preparations in your working director
 {\scriptsize \begin{verbatim}
 reqT> ls
 context.scala
-prio.txt
+feat.txt
 
 reqT> var m = load("context.scala").toModel
 
@@ -467,7 +467,7 @@ As requirements evolve, it is often interesting to keep track of how far we have
 val up = StatusValue.values.map(v => 
   Label(v.toString) precedes Label(v.up.toString)).toModel
 val down = StatusValue.values.map(v => 
-  Label(v.down.toString) precedes Label(v.toString)).toModel
+  Label(v.toString) precedes Label(v.down.toString)).toModel
 up ++ down
 \end{verbatim}}
 \item If you have \url{graphvis.org} installed on your machine you can now export the Tree to a flat GraphViz graph to see the state diagram.
