@@ -25,17 +25,7 @@ object toReleaseAllocationTable extends ReleaseAllocationTableExporter
 object toHtml extends HtmlExporter
 object toText extends ModelToTextExporter
 object toLatex extends LatexExporter
-
-object toQuperSpec {
-  def apply(m: Model) = {
-    import quper._
-    def mapOf(et: EntityType): Map[String,Estimate] =
-      m.atoms.collect{ case Relation(e,l,t) if e.myType == et && t.isDefinedAt(Value) => (e.id,Estimate(t/Value)) }.toMap
-    val refs = (m.tip * !(Target || Barrier || Breakpoint)).entities.toSet
-    val refMap = m.atoms.collect{ case Relation(e,l,t) if refs.contains(e) && t.isDefinedAt(Value) => (e.id,Estimate(t/Value)) }.toMap
-    QuperSpec(mapOf(Breakpoint), mapOf(Barrier), mapOf(Target), refMap)
-  }
-}
+object toQuperSpec extends QuperSpecExporter 
 
 trait Exporter[T] { def apply(m: Model): T }
 
@@ -469,6 +459,18 @@ ${renderSections(m, level)}
 
 }
 
+trait QuperSpecExporter extends Exporter[reqT.quper.QuperSpec] {
+  import quper._
+  def apply(m: Model): QuperSpec = {
+    def mapOf(et: EntityType): Map[String,Estimate] =
+      m.atoms.collect{ case Relation(e,l,t) if e.myType == et && t.isDefinedAt(Value) => (e.id,Estimate(t/Value)) }.toMap
+    val nonRefs = Set[EntityType](Target,Barrier,Breakpoint)
+    val refMap = m.atoms.collect{ 
+      case Relation(e,l,t) if !nonRefs.contains(e.myType) && t.isDefinedAt(Value) => 
+        (e.id,Estimate(t/Value)) }.toMap
+    QuperSpec(mapOf(Breakpoint), mapOf(Barrier), mapOf(Target), refMap)
+  }
+} 
 
 
 

@@ -276,6 +276,8 @@ object gui { //GUI implementation
         --->("To GraphViz .dot Nested ...", VK_N, 0, 0) { doToGraphViz("nested",export.toGraphVizNested(exportModel())) },
         --->("To GraphViz .dot Flat ...", VK_F, 0, 0) { doToGraphViz("flat", export.toGraphVizFlat(exportModel())) },
         ---,
+        --->("To Quper .svg ...", VK_Q, 0, 0){ doExportTo(".svg", export.toQuperSpec(exportModel()).toSvgDoc) },
+        ---,
         --->("To Path Table .csv ...", VK_P, 0, 0) { doExportTo(".csv", export.toPathTable(exportModel())) },
         --->("To Release Allocation Table .csv ...", VK_R, 0, 0) { doExportTo(".csv", export.toReleaseAllocationTable(exportModel())) }),
         ===>("Import", VK_I, 

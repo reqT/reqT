@@ -164,16 +164,16 @@ Model(
   Quality("mtts") has (
     Gist("Mean time to startup"),
     Spec("Measured in milliseconds using Test startup"),
-    Breakpoint("utility") has Value(4000), 
-    Breakpoint("differentiation") has Value(1500), 
-    Breakpoint("saturation") has Value(200),
+    Breakpoint("Utility") has Value(4000), 
+    Breakpoint("Differentiation") has Value(1500), 
+    Breakpoint("Saturation") has Value(200),
     Target("basic") has (
         Value(2000), 
         Comment("Probably possible with existing architecture.")),
     Target("strech") has (
         Value(1100),
         Comment("Probably needs new architecture.")),
-    Barrier("first") has (Min(1900), Max(2100)),
+    Barrier("first") has Value(2100),
     Barrier("second") has Value(1000),
     Product("competitorX") has Value(2000),
     Product("competitorY") has Value(3000)
@@ -184,7 +184,19 @@ Model(
     Target("stretch")
   )    
 )
-
+//Quality requirements
+Model( 
+  Quality("dbCapacity") has 
+    Spec("#guests < 10,000 growing 20% per year, #rooms < 1,000"), 
+  Quality("calendarAccuracy") has 
+    Spec("Bookings shall be possible at least two years ahead."), 
+  Quality("forecastPerformance") has 
+    Spec("Product shall compute a room occupation forecast within ___ minutes. (Customer expects one minute.)"), 
+  Quality("taskTimeUsability ") has 
+    Spec("Novice users shall perform tasks Q and R in 15 minutes. Experienced users tasks Q, R, S in 2 minutes."),
+  Quality("taskTimeUsability") requires (Task("Q"), Task("R"), Task("S")),
+  Quality("peakLoadPerformance") has 
+    Spec("Product shall be able to process 100 payment transactions per second in peak load."))
 //Variability modelling
 Model(
   Component("apperance") has (
