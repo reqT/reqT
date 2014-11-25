@@ -146,7 +146,24 @@ println("\n--- Normalized, weighted priorities:\n" + normalized)
 val sum = normalized.collect{ case Benefit(b) => b}.sum
 println("\n--- Sum: " + sum)
 normalized
-//Prioritization Ordinal ranking 
+//Prioritization Ordinal Ranking 
+val m = Vector("autoSave", "exportGraph", "exportTable", "modelTemplates", "releasePlanning", "syntaxColoring", "autoCompletion").map(Req(_)).toModel 
+  /* to use your tree model, replace above line with m => */
+val rs = m.entitiesOfType(Req)
+val pairs = scala.util.Random.shuffle(rs.combinations(2).toVector)
+val rows = pairs.map{case Vector(p1,p2) => s"${p1.id} <> ${p2.id}"}.mkString("\n")
+println(rows)
+val fileName = "prio-ord.txt"
+rows.save(fileName)
+val msg1 = s"Edit file $fileName in another editor\n"
+val msg2 = "Change <> to either > or <\nto reflect your priorities."
+val msg3 = "Press OK when you have saved your changes in a NEW file called prio.txt"
+javax.swing.JOptionPane.showMessageDialog(null,msg1+msg2+msg3)
+val edited = load("prio.txt")
+val ranked = reqT.parse.comparisonParser.parseAndSolve(edited,allowedDeviation=0)
+if (ranked!=Model()) edit(ranked) else 
+  javax.swing.JOptionPane.showMessageDialog(null,"Inconsistent. See console.")
+m
 //Task: Hotel reception work
 Model(
   Task("receptionWork") has (
