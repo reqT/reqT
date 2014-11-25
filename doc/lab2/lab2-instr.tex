@@ -48,6 +48,8 @@ a computer lab session on requirements prioritization and release planning with 
 
 You should bring a file \verb+prio100.scala+ from the Lab 2 preparations to the lab computer. The file should include a reqT scala Model with at least two Stakeholder entities, each with a Prio attribute and a set of at least 15 Req entities each with a Benefit attribute. The integer Prio values should reflect the importance of each Stakeholder and the Benefit values should include your results from a \$100-method prioritization session.  
 
+\subsection{How to plan your lab session?}
+Devote approximately 25\% of your lab session time on Sections 2.1.1, 2.1.2, 2.2.1, and 2.2.2 respectively. If you get short of time, skip the {\it Extra if you are curious} steps.
 
 \clearpage\newpage
 \section{Instructions}\label{section:instr}
@@ -85,11 +87,11 @@ m
 \item What 5 requirements have the highest total normalized priority?
 \vspace{4em}
 \item Change the priorities of the stakeholders. How did the normalized requirements benefit change?
-\vspace{4em}
-\item Use a web browser to navigate to the reqT source code at GitHub and in the source file in \verb+src/reqT+ named \verb+ModelBasicOps.scala+ search for ''\verb+def entitiesOfType+'' and explain what that method does. \newline a) What is the result type? \vspace{1em}\newline b) Can the collection include duplicate items? (Hint: search for ''\verb+lazy val entities+'' and check if the method \verb+distinct+ is applied or not.)
-\vspace{1em}
-\item Check the code ins step 2 above and match each code line with the calculations in the preparations Section 2.1.2. Explain to a friend what the code above does. You can insert \verb+println+ of interesting values to better understand what the contain, e.g. \verb+println(benefitSum)+. Write down which {\verb+val+} declarations in the above code that correspond to which sums in the formulas in the preparations? 
-\vspace{6em}
+\vspace{3em}
+%\item Use a web browser to navigate to the reqT source code at GitHub and in the source file in \verb+src/reqT+ named \verb+ModelBasicOps.scala+ search for ''\verb+def entitiesOfType+'' and explain what that method does. \newline a) What is the result type? \vspace{1em}\newline b) Can the collection include duplicate items? (Hint: search for ''\verb+lazy val entities+'' and check if the method \verb+distinct+ is applied or not.)
+%\vspace{1em}
+\item {\it Extra if you are curious:} Check the code in step 2 above and try to match the code to the calculations in the preparations Section 2.1.2. You can insert \verb+println+ of interesting values to better understand what the contain, e.g. \verb+println(benefitSum)+. Try to find which {\verb+val+} declarations in the above code that correspond to which sums in the formulas in the preparations. 
+%\vspace{6em}
 \item Open a spread sheet program (e.g. LibreOffice Calc or MS Excel) and create the column headings Stakeholder;Feature;Prio and fill in the columns similar to this, using your own priorities:
 \includegraphics[width=0.9\textwidth]{spread-sheet.png}
 \item Use Save As ... or Export and save your spread sheet in the .csv text file format, using semicolons as column separators (the default is depending on your locale). Open the file in a text editor and check that it has semicolons as column separators. Fix it if not, e.g. using your favorite editor's search-replace feature.
@@ -97,13 +99,57 @@ m
 \item Add a Prio attribute to each stakeholder in the tree, using <Ctrl+E> and <Ctrl+R>, to model that stakeholders have different importance.
 \item Calculate the normalized total priorities using the code from step 2 above. The code might be available in your undo history, check with <Ctrl+Z> in the text editor pane of the reqT gui.
 \item Discuss with a friend how you could use the Import -> From Prio Table feature of reqT when you elicit priorities in your project. How would you prepare the data collection from stakeholders?
-\item Extra if you are curious: Investigate the code in the reqT source file named \verb+parse.scala+ in the reqT repo at GitHub. How could you use the \verb+load+ method in \verb+ object Tab + to import a .csv file that have another character than semicolon as column separator? 
+\item {\it Extra if you are curious:} Investigate the code in the reqT source file named \verb+parse.scala+ in the reqT repo at GitHub. How could you use the \verb+load+ method in \verb+ object Tab + to import a .csv file that have another character than semicolon as column separator? 
 \end{enumerate}
 
 \end{framed}
 
 \subsubsection{Ordinal scale prioritization}
-\blindtext
+
+In this section you will use reqT to re-prioritize your features from the previous step, now with computer-supported ordinal scale prioritization. 
+\begin{framed}
+\noindent Do the following steps: 
+
+\begin{enumerate}
+\item Load your \verb+prio100.scala+ model into the tree in the reqT ModelTreeEditor. We will not use the values from the \$100-method -- we just need the requirement entities to generate pairwise combinations in a special text file, hence the code below starts with grabbing your Req entities. Enter the following code in the reqT text editor. Similar code is available in the menu item:  Templates -> Prioritization Ordinal Ranking.
+\begin{lstlisting}
+m => 
+val rs = m.entitiesOfType(Req)
+val pairs = scala.util.Random.shuffle(rs.combinations(2).toVector)
+val rows = pairs.map{case Vector(p1,p2) => 
+  s"${p1.id} <> ${p2.id}"}.mkString("\n")
+println(rows)
+val fileName = "prio-ord.txt"
+rows.save(fileName)
+val msg1 = s"Edit file $fileName in another editor\n"
+val msg2 = "Change <> to either > or <\nto reflect your priorities."
+val msg3 = "Press OK when you have saved your changes in a NEW file called prio.txt"
+javax.swing.JOptionPane.showMessageDialog(null,msg1+msg2+msg3)
+val edited = load("prio.txt")
+val ranked = reqT.parse.comparisonParser.parseAndSolve(edited,allowedDeviation=0)
+if (ranked!=Model()) edit(ranked) else 
+  javax.swing.JOptionPane.showMessageDialog(null,"Inconsistent. See console.")
+m
+\end{lstlisting}
+The above code invokes a constraint solver that uses comparisons as input and tries to find ranks that fulfill all comparisons. If there are inconsistencies among the comparisons the  \verb+allowedDeviation+ parameter can be increased to tolerate a limited number of rank errors, and still calculate a solution.
+\item Apply the above function to the tree containing your prio100 model. Edit the file prio-ord.txt outside reqT using your favorite editor when the JOptionPane occurs, and save your comparisons in another file called prio.txt. Try to be consistent. What are the 3 best-ranked requirements?
+\vspace{3em}
+\item Introduce some inconsistencies among your comparisons and try again. Increase \verb+allowedDeviation+ to some integer > 0. Observe the retries printed in the console window. (When you re-run the ranking solving, it is actually enough to run the part from when the comparisonParser is invoked and onwards.) How many times did the solver try before succeeding to produce a ranking when you increase the \verb+allowedDeviation+? How ''bad'' is the produced ranking in comparison to a ''correct'' ranking?
+\vspace{6em}
+\item It is difficult to be consistent if there are many requirements. What does it mean that a prioritizer is inconsistent in terms of that persons knowledge about priorities?
+\vspace{4em}
+\item If you think $n(n-1)/2$ are too many comparisons, how would you go about reducing them?
+ \vspace{4em}
+\item {\it Extra if you are curious:} Generate $n-1$ comparisons and re-do your prioritization by replacing the line starting with \verb+val pairs+ in the code from step 1 above with this code:
+\begin{lstlisting}
+val pairs = 
+  for (i<- 0 until rs.size) yield 
+    Vector(rs(i),rs((i+1) % rs.size))
+\end{lstlisting}
+\item {\it Extra if you are curious:} Check out the code in the comparisonParser and try to figure out how the constraint problem is generated. \url{https://github.com/reqT/reqT/blob/3.0.x/src/reqT/parse.scala#L165} 
+\end{enumerate}
+
+\end{framed}
 
 
 \clearpage\newpage 
