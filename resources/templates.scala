@@ -236,7 +236,7 @@ Model(
     VariationPoint("color") binds (Variant("red"), Variant("green")),
     VariationPoint("shape") binds (Variant("round"), Variant("square")),
     VariationPoint("payment") binds Variant("cash")))
-//Release planning example 1
+//Release planning example, simple
 val simple = Model(
   Stakeholder("X") has (
     Prio(1),
@@ -262,59 +262,73 @@ val simple = Model(
     Release("A") has Capacity(100),
     Release("B") has Capacity(100)),
   Feature("3") precedes Feature("1"))
-val solution = csp.releasePlan(simple).
-    maximize(Release("A")/Benefit).
-    sortByTypes(Release, Feature, Stakeholder, Resource)
-solution 
-//Release planning example 2
+val problem = csp.releasePlan(simple)
+val solution = problem.maximize(Release("A")/Benefit)
+val sortedSolution = solution.sortByTypes(Release, Feature, Stakeholder, Resource)
+sortedSolution
+//Release planning example, advanced
 val m = Model(
-  Feature("autoSave") has Gist("Save a model automatically after each update."),
-  Feature("exportGraph") has Gist("Export model to graph for visualization in e.g. GraphViz."),
-  Feature("exportTable") has Gist("Export model to table format for edit in e.g. Excel."),
-  Feature("modelTemplates") has Gist("Provide templates of typical models to inspire modelling."),
-  Feature("releasePlanning") has Gist("Solve release planning problems."),
+  Feature("exportHtml") has Gist("Export model to HTML, with special treatment of Section and Image."),
+  Feature("exportGraphViz") has Gist("Export model to graph for visualization in GraphViz."),
+  Feature("exportTabular") has Gist("Export model to table format for edit in spreadsheet apps."),
+  Feature("exportLatex") has Gist("Export model to Latex, with special treatment of Section."),
+  Feature("exportContexDiagramSvg") has Gist("Solve release planning problems."),
   Feature("syntaxColoring") has Gist("Syntax colored editing of models."),
+  Feature("releasePlanning") has Gist("Constraint-solving support and gui for release planning."),  
   Feature("autoCompletion") has Gist("Auto-completion of entity, attribute and relation types."),  
-  Feature("exportTable") precedes Feature("exportGraph"),   
-  Resource("Dev") has (
-    Feature("autoSave") has Cost(4),
-    Feature("exportGraph") has Cost(5),
-    Feature("exportTable") has Cost(2),
-    Feature("modelTemplates") has Cost(7),
-    Feature("releasePlanning") has Cost(20),    
-    Feature("syntaxColoring") has Cost(20),
-    Feature("autoCompletion") has Cost(20),    
-    Release("A") has Capacity(30),
-    Release("B") has Capacity(50)),
-  Resource("Test") has (
-    Feature("autoSave") has Cost(1),
-    Feature("exportGraph") has Cost(2),
-    Feature("exportTable") has Cost(2),
-    Feature("modelTemplates") has Cost(3),
-    Feature("releasePlanning") has Cost(8),
-    Feature("syntaxColoring") has Cost(6),    
-    Feature("autoCompletion") has Cost(6),    
-    Release("A") has Capacity(20),
-    Release("B") has Capacity(20)),
-  Release("A") has Order(1),
-  Release("B") has Order(2),
+  Feature("autoSave") has Gist("Save a model automatically after each update."),
+  /* Feature("exportHtml") precedes Feature("exportGraphViz"), */
+  Resource("TeamA") has (
+    Feature("exportHtml") has Cost(9),
+    Feature("exportGraphViz") has Cost(7),
+    Feature("exportTabular") has Cost(3),
+    Feature("exportLatex") has Cost(6),
+    Feature("exportContexDiagramSvg") has Cost(3),    
+    Feature("syntaxColoring") has Cost(6),
+    Feature("autoCompletion") has Cost(3),    
+    Feature("releasePlanning") has Cost(4),    
+    Feature("autoSave") has Cost(6),    
+    Release("March") has Capacity(20),
+    Release("July") has Capacity(15),
+    Release("later") has Capacity(1000)),
+  Resource("TeamB") has (
+    Feature("exportHtml") has Cost(2),
+    Feature("exportGraphViz") has Cost(8),
+    Feature("exportTabular") has Cost(9),
+    Feature("exportLatex") has Cost(4),
+    Feature("exportContexDiagramSvg") has Cost(4),
+    Feature("syntaxColoring") has Cost(2),    
+    Feature("autoCompletion") has Cost(3),    
+    Feature("releasePlanning") has Cost(5),    
+    Feature("autoSave") has Cost(7),    
+    Release("March") has Capacity(15),
+    Release("July") has Capacity(15),
+    Release("later") has Capacity(1000)),
+  Release("March") has Order(1),
+  Release("July") has Order(2),
+  Release("later") has Order(3),
   Stakeholder("Ada") has (Prio(1), 
-      Feature("autoSave") has Benefit(10),
-      Feature("exportGraph") has Benefit(9),
-      Feature("exportTable") has Benefit(10),
-      Feature("modelTemplates") has Benefit(3),
-      Feature("releasePlanning") has Benefit(4),
-      Feature("syntaxColoring") has Benefit(7),    
-      Feature("autoCompletion") has Benefit(8)),
-    Stakeholder("Ben") has (Prio(1), 
-      Feature("autoSave") has Benefit(10),
-      Feature("exportGraph") has Benefit(9),
-      Feature("exportTable") has Benefit(10),
-      Feature("modelTemplates") has Benefit(3),
-      Feature("releasePlanning") has Benefit(4),
-      Feature("syntaxColoring") has Benefit(7),    
-      Feature("autoCompletion") has Benefit(8)))
+    Feature("exportHtml") has Benefit(10),
+    Feature("exportGraphViz") has Benefit(10),
+    Feature("exportTabular") has Benefit(10),
+    Feature("exportLatex") has Benefit(7),
+    Feature("exportContexDiagramSvg") has Benefit(6),
+    Feature("syntaxColoring") has Benefit(3),    
+    Feature("releasePlanning") has Benefit(4),    
+    Feature("autoCompletion") has Benefit(7),    
+    Feature("autoSave") has Benefit(9))
+/*  ,Stakeholder("Ben") has (Prio(1), 
+    Feature("exportHtml") has Benefit(1),
+    Feature("exportGraphViz") has Benefit(9),
+    Feature("exportTabular") has Benefit(3),
+    Feature("exportLatex") has Benefit(4),
+    Feature("exportContexDiagramSvg") has Benefit(7),
+    Feature("syntaxColoring") has Benefit(8),    
+    Feature("releasePlanning") has Benefit(5),    
+    Feature("autoCompletion") has Benefit(10),    
+    Feature("autoSave") has Benefit(4))  */
+  )
 val solution = csp.releasePlan(m).
-    maximize(Release("A")/Benefit).
+    maximize(Release("March")/Benefit).
     sortByTypes(Release, Feature, Stakeholder, Resource)
 solution
