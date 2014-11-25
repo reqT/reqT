@@ -163,9 +163,9 @@ object Textified {
 }
 
 object comparisonParser {
-  def parse(
-        input: String, 
-        allowedDeviation: Int = 0,
+  def parseAndSolve(
+        input: String, //a string with rows like 'id1 < id2'             
+        allowedDeviation: Int = 0,  //default don't tolerate inconsistencies
         entType: EntityType = Req,
         attrType: AttributeType[Int] = Value,        
         verbose: Boolean = false
@@ -211,12 +211,15 @@ object comparisonParser {
           } else {
             println(s"*** Warning: No solution found within allowed deviation: $allowedDeviation")
             println("Try to eliminate inconsistencies or allow higher deviation.")
+            println("Run with parse with param 'allowedDeviation' greater than 0.")
             Model()
           }
         } 
       }
-      if (verbose) println(s"Parsed comparisons:\n$comparisons")
-      solve(0,allowedDeviation)
+      if (verbose) {
+        println(s"Parsed comparisons:\n$comparisons")
+        solve(0,allowedDeviation) 
+      } else solve(0,allowedDeviation) - Constraints
     } else throw new Error("Parsing comparison list. Input must be lines with 'id1 < id2' etc.")
   }
 }
