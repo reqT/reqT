@@ -27,7 +27,7 @@ object repl {
     "\n** Type  sys.exit  to exit and terminate all threads" +
     "\n** Type  Feature?  to get help on a concept, e.g. Feature"
   val versionMsg = s"\n** Welcome to reqT version $reqT_VERSION" +
-    s"\n** Snapshot build: $BUILD_DATE" + 
+    s"\n** Snapshot build number: $reqT_BUILD" + 
     s"\n** Scala $SCALA_VERSION" +  
      "\n** Java  version " + JSystem.getProperty("java.version") +  
      " " + JSystem.getProperty("java.vm.name")
