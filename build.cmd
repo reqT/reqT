@@ -8,6 +8,9 @@ if %ERRORLEVEL% NEQ 0 goto error
 if exist bin\reqT echo Cleaning bin/reqT & rd /S /Q bin\reqT
 if %ERRORLEVEL% NEQ 0 goto error
 
+:newbuildnumber
+call scala update-build-number.scala
+
 :compile
 echo scalac -feature -deprecation -cp "lib\*" -d bin src/reqT/* 
 echo Start compilation  ...  %TIME%

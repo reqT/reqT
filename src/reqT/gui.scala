@@ -355,7 +355,7 @@ object gui { //GUI implementation
     
     lazy val editorAboutModel = Model(
       Title("http://reqT.org"),
-      Comment(s"version: $reqT_VERSION build: $BUILD_DATE scala version: $SCALA_VERSION"),
+      Comment(s"version: $reqT_VERSION build: $reqT_BUILD scala version: $SCALA_VERSION"),
       Gist("reqT is a free, flexible and scalable requirements engineering tool for system analysts, developers and software engineering students."),
       Section("License") has Spec("http://opensource.org/licenses/bsd-license.php"),
       Section("Features") has (
