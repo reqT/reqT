@@ -16,10 +16,12 @@
 \definecolor{relationColor}{RGB}{160,0,30}
 \usepackage{listings}
 \lstdefinestyle{reqT}{
-  belowcaptionskip=1\baselineskip,
+  %belowcaptionskip=1\baselineskip,
   breaklines=true,
-  showstringspaces=false,
-  basicstyle=\sffamily,
+  %showstringspaces=false,
+  showspaces=false,
+  %breakatwhitespace=true,
+  basicstyle=\ttfamily\small,
   emph={Ent,Meta,Item,Label,Section,Term,Actor,App,Component,Domain,Module,Product,Release,Resource,Risk,Service,Stakeholder,System,User,Class,Data,Input,Member,Output,Relationship,Design,Screen,MockUp,Function,Interface,State,Event,Epic,Feature,Goal,Idea,Issue,Req,Ticket,WorkPackage,Breakpoint,Barrier,Quality,Target,Scenario,Task,Test,Story,UseCase,VariationPoint,Variant},
   emphstyle=\bfseries\color{entityColor},
   emph={[2]has,is,superOf,binds,deprecates,excludes,helps,hurts,impacts,implements,interactsWith,precedes,requires,relatesTo,verifies},
@@ -35,6 +37,9 @@
   \titlespacing{\section}{0pt}{5pt}{2pt}
   \titlespacing{\subsection}{0pt}{5pt}{2pt}
   \titlespacing{\subsubsection}{0pt}{5pt}{2pt}
+  
+\usepackage{graphicx}
+%\frenchspacing
 \begin{document}
 \begin{multicols*}{4}
     \section*{Entity}
@@ -252,5 +257,111 @@
 \subsection*{VectorAttribute}
 
 \hangindent=1em\lstinline+Constraints+ A collection of propositions that restrict the possible values of a set of variables.
+
+\vspace{2em}
+\section*{Tree-like Model Structure}
+
+\includegraphics[width=6.3cm]{metamodel.pdf}
+
+\vspace{2em}
+\section*{Model Scripting}
+\subsection*{Model Construction}
+A Model has a body within parentheses with a comma-separated sequence of zero or more Elems. A relation links an Entity with a submodel body including a sequence of zero or more Elems.
+\begin{lstlisting}
+var m = Model(  
+  Title("example"), 
+  Feature("helloWorld") has 
+    Spec("Print hello msg."),
+  Stakeholder("x") requires (
+    Req("nice") has (
+      Prio(10),
+      Gist("gimme this")),
+    Req("cool") has (
+      Prio(5),
+      Gist("better have it")
+    )
+  )
+)   
+\end{lstlisting}
+
+\subsection*{Model Operations}
+
+Add element to a Model m: 
+\begin{lstlisting}
+m + (Req("r") has Prio(42))
+\end{lstlisting}
+
+Remove elements from a Model m:
+\begin{lstlisting}
+m - Req("nice") - Title
+\end{lstlisting}
+
+Collecting Int values in a Vector[Int]:
+\begin{lstlisting}
+m.collect{case Prio(i) => i}
+\end{lstlisting}
+
+Collecting entities in a new Model:
+\begin{lstlisting}
+m.collect{case r: Req => r}.toModel
+\end{lstlisting}
+
+Transforming Entity type in a new Model:
+\begin{lstlisting}
+m.transform{
+  case Req(id) => Feature(id)
+}
+\end{lstlisting}
+
+\subsection*{Release Constraint Solving}
+\begin{lstlisting}[basicstyle=\ttfamily\scriptsize]
+val simplePlan = Model(
+  Stakeholder("X") has (
+    Prio(1),
+    Feature("1") has Benefit(4),
+    Feature("2") has Benefit(2),
+    Feature("3") has Benefit(1)),
+  Stakeholder("Y") has (
+    Prio(2),
+    Feature("1") has Benefit(2),
+    Feature("2") has Benefit(1),
+    Feature("3") has Benefit(1)),
+  Release("A") precedes Release("B"),  
+  Resource("dev") has (
+    Feature("1") has Cost(10),
+    Feature("2") has Cost(70),
+    Feature("3") has Cost(40),
+    Release("A") has Capacity(100),
+    Release("B") has Capacity(100)),
+  Resource("test") has (
+    Feature("1") has Cost(40),
+    Feature("2") has Cost(10),
+    Feature("3") has Cost(70),
+    Release("A") has Capacity(100),
+    Release("B") has Capacity(100)),
+  Feature("3") precedes Feature("1"))
+val problem = csp.releasePlan(simplePlan)
+val solution = 
+  problem.maximize(Release("A")/Benefit)
+val sortedSolution = 
+  solution.sortByTypes(Release, Feature, Stakeholder, Resource)
+\end{lstlisting}
+
+\subsection*{Model Export}
+\begin{lstlisting}
+reqT.export.toGraphVizNested(m).
+  save("filename.dot")
+\end{lstlisting}
+Available exporters:
+\begin{lstlisting}
+toGraphVizNested  
+toGraphVizFlat  
+toPathTable
+toHtml
+toText
+toLatex
+toQuperSpec
+\end{lstlisting}
 \end{multicols*}
+
 \end{document}
