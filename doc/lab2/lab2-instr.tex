@@ -283,9 +283,9 @@ m =>
       case Relation(e,l,Model(Benefit(i))) if i >0 => 
         (e.id,i)
     }
-   println(march.mkString("\n"))
-   println("SUM: " + march.collect{case (s,b) => b}.sum)
-m  
+  println(march.mkString("\n"))
+  println("SUM: " + march.collect{case (s,b) => b}.sum)
+  m  
 \end{lstlisting}
 \item Add the precedes relation (un-comment code in template) 
 \newline\lstinline+ Feature("exportHtml")   precedes Feature("exportGraphViz")+ \newline and explain how  it impacts the allocation.  
