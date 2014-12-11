@@ -13,20 +13,21 @@
 
 package object reqT 
 extends Init 
-   with GlobalConstants
-   with GuiLaunchers
-   with ImplicitFactoryObjects 
-   with ImplicitStringSelector
-   with ImplicitAttributeEnrichments
-   with ImplicitModelElemEnrichments
-   with ImplicitContraints
-   with ConstraintGenerators
-   with RootHeadPathFactory
-   with StringUtils 
-   with FileUtils 
-   with RandomUtils 
-   with SysUtils
-   with DebugUtils 
-   with NanoZap {
-   implicit class HelpDefineAny(a: Any){ def ? { println(reqT.meta.define(a))} }
- }
+  with GlobalConstants
+  with GuiLaunchers
+  with ImplicitFactoryObjects 
+  with ImplicitStringSelector
+  with ImplicitAttributeEnrichments
+  with ImplicitModelElemEnrichments
+  with ImplicitContraints
+  with ConstraintGenerators
+  with RootHeadPathFactory
+  with StringUtils 
+  with FileUtils 
+  with RandomUtils 
+  with SysUtils
+  with DebugUtils 
+  with NanoZap {
+    implicit class HelpDefineAny(a: Any){ def ? : String = reqT.meta.define(a) } 
+}
+
