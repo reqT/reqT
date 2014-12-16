@@ -368,12 +368,10 @@ value selection methods not yet implemented
             Result(SolutionFound, solutions.nSolutions, solutionInStore, interruptOpt, Some(solutions))
           }
         case minimize: Minimize => 
-          listener.searchAll(false)
-          listener.recordSolutions(true)
+          setup(searchAll = false , recordSolutions = true )
           oneResult(label.labeling(store, selectChoicePoint, intVarMap(minimize.cost)))
         case m: Maximize =>  
-          listener.searchAll(false)
-          listener.recordSolutions(true)
+          setup(searchAll = false , recordSolutions = true )
           val intDom = new jcore.IntervalDomain()
           domainOf(m.cost) foreach (ivl => intDom.addDom( new jcore.IntervalDomain(-ivl.max, -ivl.min)))
           val negCost = new JIntVar(store, minimizeHelpVarName, intDom)
