@@ -1,6 +1,6 @@
 /***     
 **                  _______        
-**                 |__   __|   reqT - a requriements engineering tool  
+**                 |__   __|   reqT - a requirements engineering tool  
 **   _ __  ___   __ _ | |      (c) 2011-2014, Bjorn Regnell, Lund University  
 **  |  __|/ _ \ / _  || |      http://reqT.org
 **  | |  |  __/| (_| || |   
@@ -20,7 +20,7 @@ trait GlobalConstants { //mixed in by package object reqT
   lazy val PREAMBLE = """
 **                  _______        
 **                 |__   __|       
-**   _ __  ___   __ _ | |      reqT - a requriements engineering tool
+**   _ __  ___   __ _ | |      reqT - a requirements engineering tool
 **  |  __|/ _ \ / _  || |      http://reqT.org
 **  | |  |  __/| (_| || |      (c) 2011-2014, Lund University
 **  |_|   \___| \__  ||_|      Free Open Software BSD-2-clause licence

@@ -1,6 +1,6 @@
 /***     
 **                  _______        
-**                 |__   __|   reqT - a requriements engineering tool  
+**                 |__   __|   reqT - a requirements engineering tool  
 **   _ __  ___   __ _ | |      (c) 2011-2014, Lund University  
 **  |  __|/ _ \ / _  || |      http://reqT.org
 **  | |  |  __/| (_| || |   
