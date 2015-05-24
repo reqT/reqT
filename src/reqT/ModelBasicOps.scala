@@ -216,12 +216,12 @@ trait ModelBasicOps  {
   lazy val attributes: Vector[Attribute[_]] = collect { case a: Attribute[_] => a } 
     
   def entitiesOfType(et: EntityType):Vector[Entity] = entities.filter { _.myType == et }
-    
+  
   def attributesOfType[T](at: AttributeType[T]):Vector[Attribute[T]] = collect { 
-    case a: Attribute[T] if a.myType == at => a } 
+    case a: Attribute[T @unchecked] if a.myType == at => a } 
     
   def valuesOfType[T](at: AttributeType[T]):Vector[T] = collect { 
-    case a: Attribute[T] if a.myType == at => a.value }   
+    case a: Attribute[T @unchecked] if a.myType == at => a.value }   
 
   lazy val inflate: Model = map(e => e).toModel
   lazy val strip: Model = transform { case a: Attribute[_] => NoElem }  
@@ -253,7 +253,7 @@ trait ModelBasicOps  {
   lazy val attrOf: Map[Head,Attribute[_]] = headAttributePairs.toMap
   
   def refTo[T](at: AttributeType[T]): Vector[AttrRef[T]] = leafPaths.collect {
-    case av: AttrVal[T] if av.attr.myType == at => AttrRef[T](av.init,av.attr.myType)
+    case av: AttrVal[T @unchecked] if av.attr.myType == at => AttrRef[T](av.init,av.attr.myType)
   }
   
   lazy val constraints: Vector[Constr] = collect { case Constraints(cs) => cs }.flatten.toVector 
