@@ -265,49 +265,6 @@ package object meta {
     xs.flatten.mkString("\n")
   }
   
-  lazy val toSurvey: String = """;SOFTWARE REQUIREMENTS MODELING CONCEPTS SURVEY;;v1.0;;
-;The goal of this survey is to investigate opinions on requirements engineering concepts. ;;;;
-;Your answers will be treated confidential and any published statistics will be anonymized. ;;;;
-;Fill in the boxed fields next to yellow cells.;;;;
-;Email your answers in this worksheet to bjorn.regnell@cs.lth.se;;;;
-;Please use this subject field in your email: REQT SURVEY;;;;
-;Your name:;;;;
-;Your email:;;;;
-;;;;;
-;Do you teach software engineering and/or requirements engineering?;;Yes/No;;
-;Do you develop software by writing code and/or creating system models?;;Yes/No;;
-;Do you do academic research in software and/or requirements engineering?;;Yes/No;;
-;;;;;
-;Concept types:;;;;
-;Entity;An entity is a concept that has a unique identity. An entity can be related to attributes and other entities. ;;;
-;Example;FEATURE, e.g. Feature autosave;;;
-;;;;;
-;Attribute;An attribute holds a specific value of some specific type. An attribute can be attached to an entity via a relation. ;;;
-;Example;PROIRITY, e.g. Feature autosave has priority 42;;;
-;;;;;
-;Realtion;A relation connects entities with entities or entities with attributes.;;;
-;Example;REQUIRES, e.g. Feature autosave requires feature save ;;;
-;;;;;
-Explanations of questions and answer formats:;;;;;
-Q1-USAGE;In my software development or teaching, this concept is...;;;;
-;0 = never or very seldom used;;;;
-;1 = used, but mainly in an informal, non-persistent way, e.g. in oral communication, emails, chats, etc.;;;;
-;2 = used persistently, e.g. stored in wikis, documents, reports, models, diagrams, etc.;;;;
-Q2-MEANING;Do you interpret the concept similar as in the suggested definition?;;;;
-;0 = no, I am used to a significantly different meaning of the concept;;;;
-;1 = I don't know;;;;
-;2 = yes, I'm used to a similar meaning of the concept;;;;
-Q3-OTHER;If any, what is your alternative interpretation of the concept?;;;;
-;free text if you answer 0 on Q2 ;;;;
-Q4-SYNONYM;If any, what other word with the same approximate meaning would you prefer using instead?;;;;
-;free text if you answered 2 on Q1 but prefer another word;;;;
-;;;;;
-*** START OF CONCEPT SURVEY;;;;;
-TYPE;CONCEPT;APPROXIMATE MEANING / DEFINITION;Q1-USAGE;Q2-MEANING;Q3-OTHER meaning if any (free text) 
-""" + toCsv + """
-***
-TYPE (E/A/R);ADD CONCEPTS;DEFINITION
-"""
 }
 
 package meta {
