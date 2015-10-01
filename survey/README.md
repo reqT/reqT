@@ -4,4 +4,4 @@ The goal of this survey is to investigate opinions on requirements engineering c
 
 Email your answers in this worksheet to bjorn.regnell@cs.lth.se in an email with the subject "reqT survey answer".
 
-[syrvey.xsl]: https://github.com/reqT/reqT/blob/3.0.x/survey/reqT-survey.xls
+[syrvey.xsl]: https://github.com/reqT/reqT/raw/3.0.x/survey/reqT-survey.xls
