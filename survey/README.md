@@ -1,4 +1,4 @@
-# Software requirements engineering concept survey
+# Requirements engineering concept survey
 
 The goal of this survey is to investigate opinions on requirements engineering concepts. Your answers will be treated confidentially and any published statistics will be anonymized. 
 
