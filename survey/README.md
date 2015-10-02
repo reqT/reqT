@@ -6,7 +6,7 @@ The goal of this survey is to investigate opinions on requirements engineering c
 
 2. Fill in the boxed fields next to yellow cells in. You can open the file using [LibreOffice].
 
-Email your answers in this worksheet attached to an email to bjorn.regnell@cs.lth.se with the subject "**reqT survey answer**". Your response is greatly appreciated!
+3. Email your answers in this worksheet attached to an email to bjorn.regnell@cs.lth.se with the subject "**reqT survey answer**". Your response is greatly appreciated!
 
 [reqT-survey.xls]: https://github.com/reqT/reqT/raw/3.0.x/survey/reqT-survey.xls
 [LibreOffice]: https://www.libreoffice.org/download/
