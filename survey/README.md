@@ -2,7 +2,7 @@
 
 The goal of this survey is to investigate opinions on requirements engineering concepts. Your answers will be treated confidentially and any published statistics will be anonymized. 
 
-1. Download the **[reqT-survey.xls]** file.
+1. Download the **[reqT-survey.xls]** file and save it somwhere on your local storage.
 
 2. Follow the instructions in the file and fill in the boxed fields next to yellow cells in. You should not spend to much time on each concept. Most people fill in the survey in less than 20 minutes. Q1 and Q2 are the most important questions to complete. You can open the file using [LibreOffice] or any other app that can open the `xls` file format.
 
