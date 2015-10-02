@@ -8,7 +8,7 @@ The goal of this survey is to investigate opinions on requirements engineering c
 
 3. Send your completed worksheet attached to an email to bjorn.regnell@cs.lth.se and please use the subject `reqT survey response`. You should get a confirmation that your survey response has been received within a couple of days, otherwise try to email again. Your response is greatly appreciated and very valuable to requirements engineering reasearch!
 
-In the [reqT-survey] repo and you can check out how the survey is analyzed.
+In the [reqT-survey] repo you can check out how the survey is analyzed.
 
 [reqT-survey.xls]: https://github.com/reqT/reqT/raw/3.0.x/survey/reqT-survey.xls
 [LibreOffice]: https://www.libreoffice.org/download/
