@@ -22,7 +22,7 @@ How to build reqT from code
 
 1. Install Scala a version more recent than 2.11.2 from the [Scala homepage](http://scala-lang.org/download/)
 2. Download this [zip](https://github.com/reqT/reqT/archive/3.0.x.zip) and extract all files in some directory.
-3. Run the appropriate custom build script (better read it first to se what it does) among the extracted files:
+3. Run the appropriate custom build script among the extracted files (better read it first to check what it does):
     * On Windows, run in cmd: `build.cmd`
     * On Linux/Mac, run in terminal:  `./build.sh`
 4. Run the generated jar with `java -jar reqT.jar`
