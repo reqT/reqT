@@ -24,6 +24,7 @@ object Main {
     println("test     -t  <file> Run test script with Model in file")
     println("meta     -m  [<from>] Generate metamodel [<from>] to file: GENERATED-metamodel.scala")
     println("flex     -f  Print jflex clauses to file: reqT-flex-clauses.txt")
+    println("serv     -s  Server mode interpreting from stdio without jline")
   }
 
   def main(args : Array[String]) : Unit =  {
@@ -35,6 +36,7 @@ object Main {
       case a if Set("flex", "-f")(a) => genJFlex(args.drop(1))
       case a if Set("meta", "-m")(a) => genMeta(args.drop(1))
       case a if Set("test", "-t")(a) => test(args.drop(1))
+      case a if Set("serv", "-s")(a) => repl.loopInterpreterFromStandardIO()
       case _ =>
         println("ERROR Unknown arg: " + args.mkString(" ")); help()
     }
