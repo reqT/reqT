@@ -239,16 +239,29 @@ trait FileExporter extends StringExporter {
 
 trait HtmlExporter extends FileExporter {
   override def defaultOutputFile: String = "index.html"
-  override def preamble(m: Model): String = s"""
-     |<!DOCTYPE html>
-     |<html>
-     |<head>
-     |<title>${titleOrDefault(m)}</title>
-     |<link rel="stylesheet" type="text/css" href="reqT-style.css">
-     |</head>
-  """.stripMargin
+  override def preamble(m: Model): String =  {
+    var css: String = ""
+
+    scala.util.Try {
+      css = s"""
+        |<style>
+        |${fileUtils.loadResource("/reqT-style.css").mkString("\n")}
+        |</style>
+        """.stripMargin
+    }.recover { case e => println("resources/reqT-style.css not found - ignoring") }
+
+    s"""
+    |<!DOCTYPE html>
+    |<html>
+    |<head>
+    |<title>${titleOrDefault(m)}</title>
+    |$css
+    |</head>
+    """.stripMargin
+  }
+
   override def ending(m: Model): String = "</html>\n"
-  override def body(m: Model): String = 
+  override def body(m: Model): String =
     "<body>\n" + exportTopModel(m) + "\n</body>\n"
 
   def topLevelSectionsContents(m: Model): String = topLevelSections(m).
