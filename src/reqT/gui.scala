@@ -735,11 +735,6 @@ object gui { //GUI implementation
         val ioFile = new java.io.File(choice)
         val (dir, file) = (ioFile.getParent, ioFile.getName)
         export.toHtml(exportModel(), dir, file)
-        val css = "/reqT-style.css"
-        Try {
-          if (!fileUtils.exists(dir+css))
-            fileUtils.loadResource(css).mkString("\n").save(dir+css)
-        } .recover { case e => println(e); msgError(s"Error saving $css, see console message.")  }
         println(s"Desktop open: $choice")
         desktopOpen(choice)
       }
