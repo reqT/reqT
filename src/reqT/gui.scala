@@ -865,6 +865,19 @@ object gui { //GUI implementation
 
     }
 
+    val defaultGlobalFontSize = 12 + fontDeltaByScreenWidth
+
+    def fontDeltaByScreenWidth =
+      Toolkit.getDefaultToolkit.getScreenSize.getWidth match {
+        case n if n <= 1440 => 0
+        case n if n <= 1680 => 2
+        case n if n <= 1920 => 4
+        case n if n <= 2560 => 6
+        case n if n <= 2880 => 8
+        case n if n <= 3840 => 10
+        case _         => 10
+      }
+
     def setGlobalSwingFontSize(size: Int): Unit = {
       import collection.JavaConverters._
 
@@ -1022,7 +1035,7 @@ object gui { //GUI implementation
     frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
     frame.add(this)
     frame.pack()
-    setGlobalSwingFontSize(12)
+    setGlobalSwingFontSize(defaultGlobalFontSize)
     frame.setVisible(true)
 
   }
