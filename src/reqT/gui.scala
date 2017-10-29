@@ -874,10 +874,8 @@ object gui { //GUI implementation
       enumKeys
         .map(x => (x, UIManager.get(x))) // k => (k, v)
         .filter(_._2.isInstanceOf[FontUIResource])
-        .map({ case (k, v) => (k, v.asInstanceOf[FontUIResource]) })
-        .foreach({ case (k, v) =>
-          UIManager.put(k, new FontUIResource(v.getFamily, v.getStyle, size))
-        })
+        .map{ case (k, v) => (k, v.asInstanceOf[FontUIResource]) }
+        .foreach{ case (k, v) => UIManager.put(k, new FontUIResource(v.getFamily, v.getStyle, size)) }
 
       val ff = frame.getFont
 
