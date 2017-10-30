@@ -988,7 +988,6 @@ object gui { //GUI implementation
     val editorView = new RTextScrollPane(editor)
     def updateEditor() = editorView.updateUI
     setReqTScalaSyntaxColoring()
-    setEditorFont(Settings.gui.fontSize, Settings.gui.editorFonts.headOption.getOrElse(Font.MONOSPACED))
 
     //install auto-completions
     val provider = new DefaultCompletionProvider()
@@ -1036,6 +1035,8 @@ object gui { //GUI implementation
     frame.add(this)
     frame.pack()
     setGlobalSwingFontSize(defaultGlobalFontSize)
+    setEditorFont(Settings.gui.fontSize + fontDeltaByScreenWidth,
+      Settings.gui.editorFonts.headOption.getOrElse(Font.MONOSPACED))
     frame.setVisible(true)
 
   }
