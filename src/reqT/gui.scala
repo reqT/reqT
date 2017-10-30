@@ -31,7 +31,9 @@ import java.awt.event._
 import javax.swing._
 import javax.swing.tree._
 import javax.swing.event._
-import scala.util.{Try, Success, Failure}
+import javax.swing.plaf.FontUIResource
+
+import scala.util.{Failure, Success, Try}
 
 
 trait GuiLaunchers {  //mixed into package object
@@ -304,6 +306,9 @@ object gui { //GUI implementation
         --->("Toggle Fullscreen", VK_T, VK_F11, 0) { fullScreen.toggleFullScreen(frame) },
         --->("Toggle Post-It", VK_T, VK_F12, 0) { fullScreen.toggleDecorations(frame) },
         --->("Exit Fullscreen & Post-It", VK_T, VK_ESCAPE, 0) { fullScreen.exitFullScreen(frame) },
+        ---,
+        --->("Increase window font size", VK_I, 0, 0) { doIncrGlobalFontSize() },
+        --->("Decrease window font size", VK_D, 0, 0) { doDecrGlobalFontSize() },
         ---,
         ===>("Editor Font Size", VK_F,
           --->("Increase editor font size", VK_I, VK_PLUS, CTRL)  { doIncrEditorFontSize(); updateEditor() },
@@ -703,6 +708,20 @@ object gui { //GUI implementation
     lazy val mediumFontSize = 20
     lazy val minFontSize = 6
 
+    def doIncrGlobalFontSize() = {
+      val s = frame.getFont.getSize
+
+      if (s < maxFontSize)
+        setGlobalSwingFontSize(s + 1)
+    }
+
+    def doDecrGlobalFontSize() = {
+      val s = frame.getFont.getSize
+
+      if (s > minFontSize)
+        setGlobalSwingFontSize(s - 1)
+    }
+
     def doIncrEditorFontSize() = {
       def incr(i: Int) = i match {
         case _ if i >= maxFontSize => maxFontSize
@@ -845,6 +864,40 @@ object gui { //GUI implementation
 
     }
 
+    val defaultGlobalFontSize = 12 + fontDeltaByScreenWidth
+
+    def fontDeltaByScreenWidth =
+      Toolkit.getDefaultToolkit.getScreenSize.getWidth match {
+        case n if n <= 1440 => 0
+        case n if n <= 1680 => 2
+        case n if n <= 1920 => 4
+        case n if n <= 2560 => 6
+        case n if n <= 2880 => 8
+        case n if n <= 3840 => 10
+        case _         => 10
+      }
+
+    def setGlobalSwingFontSize(size: Int): Unit = {
+      import collection.JavaConverters._
+
+      val enumKeys: Iterator[Object] =
+        UIManager.getLookAndFeelDefaults.keys.asScala
+
+      enumKeys
+        .map(x => (x, UIManager.get(x))) // k => (k, v)
+        .filter(_._2.isInstanceOf[FontUIResource])
+        .map{ case (k, v) => (k, v.asInstanceOf[FontUIResource]) }
+        .foreach{ case (k, v) => UIManager.put(k, new FontUIResource(v.getFamily, v.getStyle, size)) }
+
+      val ff = frame.getFont
+
+      frame.setFont(new Font(ff.getFamily, ff.getStyle, size))
+
+      setEditorFont(editor.getFont.getSize) // handle override of editor font size
+
+      SwingUtilities.updateComponentTreeUI(frame)
+    }
+
 
     //************* main setup and show gui
     setLayout( new GridLayout(1,0))
@@ -934,7 +987,6 @@ object gui { //GUI implementation
     val editorView = new RTextScrollPane(editor)
     def updateEditor() = editorView.updateUI
     setReqTScalaSyntaxColoring()
-    setEditorFont(Settings.gui.fontSize, Settings.gui.editorFonts.headOption.getOrElse(Font.MONOSPACED))
 
     //install auto-completions
     val provider = new DefaultCompletionProvider()
@@ -981,6 +1033,9 @@ object gui { //GUI implementation
     frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
     frame.add(this)
     frame.pack()
+    setGlobalSwingFontSize(defaultGlobalFontSize)
+    setEditorFont(Settings.gui.fontSize + fontDeltaByScreenWidth,
+      Settings.gui.editorFonts.headOption.getOrElse(Font.MONOSPACED))
     frame.setVisible(true)
 
   }
