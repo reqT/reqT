@@ -10,66 +10,151 @@
 \hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
 \usepackage{fancyvrb}
 \usepackage[english]{babel}
-\usepackage{enumitem} 
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{pdfpages}
+
+
+% reqT tex notations
+\usepackage{xcolor}
+\definecolor{entityColor}{RGB}{0,100,200}
+\definecolor{attributeColor}{RGB}{0,100,50}
+\definecolor{relationColor}{RGB}{160,0,30}
+\usepackage{listings}
+\lstdefinestyle{reqT}{
+  belowcaptionskip=1\baselineskip,
+  breaklines=true,
+  showstringspaces=false,
+  basicstyle=\footnotesize\sffamily,
+  emph={Ent,Meta,Item,Label,Section,Term,Actor,App,Component,Domain,Module,Product,Release,Resource,Risk,Service,Stakeholder,System,User,Class,Data,Input,Member,Output,Relationship,Design,Screen,MockUp,Function,Interface,State,Event,Epic,Feature,Goal,Idea,Issue,Req,Ticket,WorkPackage,Breakpoint,Barrier,Quality,Target,Scenario,Task,Test,Story,UseCase,VariationPoint,Variant},
+  emphstyle=\bfseries\color{entityColor},
+  emph={[3]Attr,Code,Constraints,Comment,Deprecated,Example,Expectation,FileName,Gist,Image,Spec,Text,Title,Why,Benefit,Capacity,Cost,Damage,Frequency,Min,Max,Order,Prio,Probability,Profit,Value,Status},
+  emphstyle={[3]\color{attributeColor}},
+}
+\lstset{style=reqT}
+
+% end
+
+
+
+
+
 \setlist[itemize]{noitemsep}
 \title{{\bf LAB 1:\\Requirements Modeling}\\ Preparations and instructions}
-\author{Björn Regnell}
+\author{Björn Regnell, Emil Hammarström}
 \date{\today}
 \begin{document}
 \maketitle
 
 \section{Introduction}
 
-\subsection{Purpose} This document provides instructions on how to prepare for and run a computer lab session on requirements modeling. The lab session illustrates how computer-supported requirements modeling can help in requirements engineering. {\it The preparations in Section~\ref{section:prep} should be completed before the actual lab is run.}
+\subsection{Purpose}
 
-\subsection{Background} In this lab you will learn how to get started with requirements modeling through the open source tool \href{http://reqT.org}{reqT.org}, and reflect on how you could model requirements in your own project. The reqT tool enables scalable requirements modeling, ranging from small models of a couple of features to large models containing elaborate structures of thousands of requirements. 
+This document provides instructions for getting acquainted with the reqT ecosystem and the modeling of requirements using \textit{Entities}, \textit{Attributes}, and \textit{Relations}.
+In other words, the purpose of this lab is learning how to use reqT, and preparing the mental model of viewing requirements as a \href{https://en.wikipedia.org/wiki/Tree_(data_structure)}{tree structure}.
+The preparations will help you learn how to navigate the reqT tools.
+The first laboration part will deepen your understanding of requirements as a tree structure, and the second part will introduce the metamodel, and a more advanced usage of reqT.
 
-Requirements engineering is a dynamic process where the understanding of an imagined future system (of systems) is evolving over time. During this evolution we can capture the knowledge and creative ideas that we elicit in various ways, depending on how we foresee the (later) usage of that knowledge. For example, we could create and use spread sheets, post-it notes, emails, wikis, video clips, mockups, sketches, diagrams, mathematical specifications, etc. If we want to keep track of many different types of inter-related requirements and if we see a future benefit of more structure beyond just a flat list, one option is to use requirements models where requirements-related information is expressed using relevant {\bf entity}, {\bf attribute}, and {\bf relation} concepts to capture what we want to model, as illustrated by this lab and the metamodel of reqT. 
+\subsection{Background}
+
+In this lab you will learn how to get started with requirements modeling through the open source tool
+\href{http://reqT.org}{reqT.org}, and reflect on how you could model requirements in your own project.
+The reqT tool enables scalable requirements modeling, ranging from small models of a couple of features to large
+models containing elaborate structures of thousands of requirements.
+Requirements engineering is a dynamic process where the understanding of an imagined future system
+(of systems) is evolving over time.
+During this evolution we can capture the knowledge and creative ideas that we elicit in various ways,
+depending on how we foresee the (later) usage of that knowledge.
+For example, we could create and use spreadsheets, post-it notes, emails, wikis, video clips,
+mockups, sketches, diagrams, mathematical specifications, etc.
+If we want to keep track of many different types of inter-related requirements and if we see a future benefit
+of more structure beyond just a flat list, one option is to use requirements models where requirements-related
+information is expressed using relevant \textit{Entity}, \textit{Attribute}, and \textit{Relation} concepts to capture
+what we want to model, as illustrated by this lab and the metamodel of reqT seen in Figure~\ref{figure:metamodel}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{metamodel-simple.pdf}
+  \caption{Some classes in the reqT metamodel.}
+  \label{figure:metamodel}
+\end{figure}
 
 \clearpage\newpage
-\section{Preparations}\label{section:prep}
+\section{Preparations}\label{section:preparations}
+Throughout the lab you will find framed command snippets. Commands prefixed with \textbf{reqT>} are issued in the reqT-REPL. The \textbf{\$} prefix denotes a command issued in a terminal and may sometimes be followed by some output.
+\subsection{Installing and running reqT}\label{section:preparations:installation}
 
-\begin{framed} \noindent Before doing the lab session in Section~\ref{section:instr}, complete all preparations 1--4 below and bring requested items to the lab. In particular you need to make sure that you can access the text files you prepare below at your lab session computer.
+\subsubsection{Prerequisites}
+\begin{framed}
+\noindent Open/Oracle JDK8+ (Java Development Kit)
+{\footnotesize\begin{verbatim}
+    $ java -version
+    openjdk version "1.8.0_144"
+    OpenJDK Runtime Environment (build 1.8.0_144-b01)
+    OpenJDK 64-Bit Server VM (build 25.144-b01, mixed mode)
+\end{verbatim}}
+\noindent or
+{\footnotesize\begin{verbatim}
+    $ java -version
+    java version "1.8.0_144"
+    Java(TM) SE Runtime Environment (build 1.8.0_144-b01)
+    Java HotSpot(TM) 64-Bit Server VM (build 25.144-b01, mixed mode)
+\end{verbatim}}
+\noindent If your output is similar to this,
+{\footnotesize\begin{verbatim}
+    $ java -version
+    zsh: command not found: java
+\end{verbatim}}
+\noindent you may refer to the material in the section \textit{Installera JDK} \href{http://cs.lth.se/pgk/verktyg/}{here}
 \end{framed}
 
-\begin{enumerate}
-\item {\bf "hello reqT".} Do the reqT hello world example on your computer, as explained here:  \url{http://reqt.org/documentation.html\#hello}
-\item {\bf Draw a context diagram.} Draw a context diagram\footnote{\url{http://en.wikipedia.org/wiki/System_context_diagram}} that  is relevant to your development project. Make the drawing on paper and bring to the lab. The context diagram should include entities outside of the system you are building that communicate with your system. 
-\item {\bf Create a context model.} Transform your context diagram into a reqT model, analogous to this  example: 
+\subsubsection{Linux \& OS X}\label{section:preparations:installation:unix}
+The reqT.zip contains the reqT-REPL and reqT-webeditor, preferred installation steps:
+
+\begin{framed}
+\noindent Visit \url{https://github.com/reqT/reqT-webapp/releases} and download the latest reqT.zip. Open up a terminal and change directory to where you placed the zip and extract it:
 {\footnotesize\begin{verbatim}
-Model(
-  Product("hotelApp") interactsWith (
-    User("receptionist"), 
-    User("guest"), 
-    System("telephony"), 
-    System("accounting")))
+    $ cd <reqT.zip path>
+    $ unzip reqT.zip
+    Archive:  reqT.zip
+      creating: reqT/
+      creating: reqT/server/
+      ...
+    $ ls
+    reqT  reqT.zip
 \end{verbatim}}
-Enter the code in your favorite editor and save it\footnote{If you prepare your files on mac/windows and use them on linux then reqT may provide strange results for some characters. See \url{http://manpages.ubuntu.com/manpages/maverick/man1/dos2unix.1.html}} in a text file called \verb+context.scala+
-\item {\bf Create a list of features.} Make a list of at least 5 features relevant to your project, divided into named sections, analogous to the example below. Use the exact formatting and indentation according to the example with hash tag before the name of each section and an asterisk before the name of each feature: 
-{\scriptsize\begin{verbatim}
-# receptionFeatures
-  * groupCheckIn
-    Check in many guests arriving in bulk.
-# adminFeatures
-  * roomForecast
-    Calculate room allocation prediction.
-  * exportAccounting
-    Export accounting data to external system.
-\end{verbatim}}
-Save the list of features in a text file called \verb+feat.txt+  
+\noindent You will now see a folder named \texttt{reqT} which contains the reqT-REPL (\textit{reqT.jar}) and reqT-webeditor (\textit{start.sh} start script).
+\end{framed}
+
+\subsubsection{Windows 10}\label{section:preparations:installation:windows}
+
+\begin{enumerate}
+\item Visit \url{https://github.com/reqT/reqT-webapp/releases} and download the latest reqT.zip
+\item Unzip it (using the Windows File Explorer)
 \end{enumerate}
-\clearpage\newpage
 
-\section{Lab instructions}\label{section:instr}
+To start the webeditor double-click the \textit{start.bat} file -- Figure~\ref{figure:cmd-running-webapp} shows the webapp running in the CMD.
 
-\subsection{Start reqT}
-Download the reqT.jar file from \url{http://reqT.org} and start reqT in a terminal window using this command: \verb+java -jar reqT.jar+ as shown in Figure~\ref{fig:console}. Make sure you have the text files from your preparations from Section~\ref{section:prep} available in the same directory as you start reqT.
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.7\textwidth]{console.png}
-    \caption{The reqT console output after starting reqT in a terminal window.}
-    \label{fig:console}
+To start the REPL double-click the \textit{reqT.bat} file -- you should be greeted by a view similar to Figure~\ref{figure:reqt-repl}.
+
+\begin{figure}[H]
+  \centering
+    \includegraphics[width=\textwidth]{cmd_running_webapp.png}
+  \caption{A Windows CMD running the webeditor}
+  \label{figure:cmd-running-webapp}
+\end{figure}
+
+\subsubsection{reqT--REPL}
+
+To enter the reqT REPL (\href{https://en.wikipedia.org/wiki/Read\%E2\%80\%93eval\%E2\%80\%93print\_loop}{Read-Eval-Print-Loop})
+run \texttt{java -jar reqT.jar} --- you should be greeted with the output seen in Figure~\ref{figure:reqt-repl}.
+
+\begin{figure}[H]
+  \centering
+    \includegraphics[width=\textwidth]{reqt-repl}
+  \caption{reqT-REPL}
+  \label{figure:reqt-repl}
 \end{figure}
 
 In the reqT console these keystrokes and commands work as follows:
@@ -87,9 +172,379 @@ In the reqT console these keystrokes and commands work as follows:
 \end{itemize}
 }
 
-{\begin{framed}\noindent
-Try out the commands above in the reqT console. Use the \verb+:help+ command to figure out how to enter paste mode. Paste some text when in paste mode using mouse right-click. End paste mode pressing <ENTER> and then press <Ctrl+D> at the beginning of a new line. %What is the shortest, unambiguous abbreviation of the enter-paste-mode-command?  \underline{\hspace{2cm}}
-\end{framed}}
+\begin{framed}
+\noindent reqT wraps the scala REPL, enter:
+{
+  \footnotesize\begin{verbatim}
+    reqT> println("Requirements, requirements, requirements!")
+  \end{verbatim}
+}
+\noindent This also means that you have access to the JDK --- java libraries.
+\noindent The command below will utilize your favorite GUI library to display a message dialog!
+{
+  \footnotesize\begin{verbatim}
+    reqT> javax.swing.JOptionPane.showMessageDialog(null,"Hello Swing!")
+  \end{verbatim}
+}
+\end{framed}
+
+\subsubsection{reqT--webeditor}
+
+\begin{framed}
+\noindent To start the reqT-webeditor run the start script in the reqT folder with the terminal command (Windows users may refer to Section~\ref{section:preparations:installation:windows}):
+{
+  \footnotesize\begin{verbatim}
+    $ ./start.sh
+    [info] play.api.Play - Application started (Prod)
+    [info] p.c.s.NettyServer - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
+  \end{verbatim}
+}
+
+\noindent Once started visit the url \url{localhost:9000} using \textit{Google Chrome} --- you should now be greeted by the page seen in Figure~\ref{figure:webeditor-expected}.
+\end{framed}
+
+\textit{Note:} the webeditor is currently only supported on Google Chrome
+
+\begin{figure}[H]
+  \centering
+    \includegraphics[width=\textwidth]{reqt-webeditor-entitylist-state-annotated.png}
+  \caption{reqT-webeditor with component annotations}
+  \label{figure:webeditor-expected}
+\end{figure}
+
+The reqT-webeditor allows the use of common shortcuts such as \texttt{CTRL-C, CTRL-V, DEL}. The symbols $A-F$ describe general parts of the application:
+
+\begin{itemize}
+\item $A$ - Add-button used to create new models, followed by model tabs (right of the add-button).
+\item $B$ - Entity \& attribute list, from which you may drag and drop objects into view $C$
+\item $C$ - Model tree view
+\item $D$ - Menu bar or simply menu
+\item $E$ - Entity list and ReqBox view toggle
+\item $F$ - Webeditor terminal, here you may interact with the reqT-REPL but also view query responses
+\end{itemize}
+
+\subsection{Preparation Assignments --- \textit{Mandatory}}
+
+
+
+\begin{enumerate}
+%
+% CREATING A MODEL
+%
+\item \textbf{Creating a model in the reqT--webeditor}
+
+In this assignment you will create a small model consisting of a data requirement and a quality requirement.
+The following is an informal specification of a system providing search query capabilities.
+
+\begin{framed}
+\textit{QuackQuackGo} query system requirements:
+\begin{enumerate}
+\item Query time (in milliseconds) should be kept low
+\item Query time may not exceed 200ms
+\item A query consists of;
+\subitem query text,
+\subitem search flags,
+\subitem domain restrictions
+\end{enumerate}
+\end{framed}
+
+To start of, create a new empty model. This can be achieved by pressing the add button in the model tab bar seen by symbol $A$ in Figure~\ref{figure:webeditor-expected}, name the model \textit{QuackQuackGo}.
+
+You may now drag-and-drop Entities and Attributes into your model (definitions can be found in the \href{http://reqt.org/reqT-cheat-sheet.pdf}{reqT-cheat-sheet}). That is, dragging an object from the list seen by symbol $B$ in Figure~\ref{figure:webeditor-expected} and dropping it into the model area by symbol $C$. When adding an Entity or Attribute you are sometimes asked to pick an appropriate Relation to the Entity that you've dropped the object on top of.
+
+Now produce the \textit{QuackQuackGo} model given the specification above. Answer the following questions when done.
+
+\textit{What relation(s) would you assign the reqT--webeditor and reqT--REPL, given that the reqT--webeditor verifies its models using the reqT--REPL? \_\_\_\_\_\_} 
+
+% \texttt{Possible answers: requires, interactsWith}
+
+\textit{Try adding an attribute to another attribute, why is this not possible? (Tip: see Figure~\ref{figure:metamodel}) \_\_\_\_\_\_}
+
+% \texttt{Possible answer: the Relation in the metamodel does not allow for a recursive attribute-to-attribute sub-model}
+
+%
+% EXPORTING A MODEL FROM REQT-webeditor
+%
+\item \textbf{Exporting a model from the reqT--webeditor}
+
+The "Export"-button in the menu bar, by symbol $D$ in Figure~\ref{figure:webeditor-expected}, will download a \textit{.scala} file containing your model (if you named your model \textit{QuackQuackGo} you will download a \textit{QuackQuackGo.scala} file). Your favourite text editor (\href{https://neovim.io/}{neovim}) should now provide syntax highlighting if you want to edit a model programmatically.
+
+%
+% IMPORTING A MODEL TO REQT-REPL
+%
+\item \textbf{Importing a model with the reqT--REPL}
+
+We will now be working with our \textit{QuackQuackGo.scala} model in the REPL.
+
+\begin{framed}
+\noindent To interpret (read and evaluate) code in a file, you may use
+{
+  \footnotesize\begin{verbatim}
+ reqT> :load <path>
+  \end{verbatim}
+}
+\noindent To list (ls) files, or change directory (cd) from within the REPL
+{
+  \footnotesize\begin{verbatim}
+ reqT> ls
+ reqT> cd ("<path>")
+  \end{verbatim}
+}
+\noindent \textbf{Example}
+
+\noindent We can now load our exported model \textit{QuackQuackGo.scala}
+\noindent Given that \textit{QuackQuackGo.scala} is in our working directory
+{
+\footnotesize\begin{verbatim}
+ reqT> :load QuackQuackGo.scala
+\end{verbatim}
+}
+\noindent You may explicitly assign the model to a variable in the script file. If not the result of the script execution is stored in a variable with the naming scheme: \textit{res<number>}.
+\noindent Let's store it with a more appropriate name, such as quack
+{
+\footnotesize\begin{verbatim}
+ reqT> val quack = res<number>
+ reqT> quack.size // What's the output and what does it correspond to? __
+\end{verbatim}
+}
+\noindent By giving reqT a path to an element, you may select an Element in your tree.
+\noindent Here I select a quality requirement from \textit{my} model of QuackQuackGo, your model may differ
+{
+\footnotesize\begin{verbatim}
+ reqT> val bpVal = Quality("Query Time")/Breakpoint("Too slow")/Value(200)
+\end{verbatim}
+}
+\noindent We can check at what \textit{depth} our selected element is positioned at in the tree
+{
+\footnotesize\begin{verbatim}
+ reqT> bpVal.depth
+ // Does this correspond with your view from the reqT-webeditor tree?
+\end{verbatim}
+}
+\end{framed}
+
+Because reqT is a DSL (Domain Specific Language) embedded in Scala, we get to apply the power of Scala to our requirements model. This is not possible using the reqT--webeditor. The reqT--webeditor has another purpose --- preparing the user for thinking of requirements as a tree-structure, regardless of programming literacy.
+
+%
+% BUILDING THE CONTEXT DIAGRAM
+%
+\item \textbf{Build a model of the hotel system context diagram}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{context-diagram.png}
+  \caption{Reception domain in the Hotel system.}
+  \label{figure:receptionDomainContextDiagram}
+\end{figure}
+
+You will now model the context diagram in Figure~\ref{figure:receptionDomainContextDiagram}. It should contain the elements: \textit{User, Domain, Product, System; interactsWith}
+
+Transform this context diagram into a reqT model, this can be done using the REPL or the webeditor. Viewing \textit{interactsWith} as a doubly-linked arrow simplifies the context diagram model.
+
+Finally, we'll use the reqT-REPL to produce an HTML document with a view of our context model. It is also possible to produce: graphs using GraphViz, Latex output, and Scala code.
+
+\begin{framed}
+\noindent A model have methods such as \texttt{toGraph}, \texttt{toLatex}, and \texttt{toHtml}.\\
+\noindent We may produce an html document, given that a model is stored in $myModel$:
+{
+  \footnotesize\begin{verbatim}
+  reqT> myModel.toHtml.save("myModel.html")
+  \end{verbatim}
+}
+\noindent You will show your lab supervisor this HTML document (of the Context Diagram) --- also do this for the model in assignment 1 (\textit{QuackQuackGo}).
+
+\noindent If you edit your model in the reqT-REPL you may want to save it to text (and version control it or view it in the reqT-webeditor)
+{
+    \footnotesize\begin{verbatim}
+    reqT> myModel.toScala.save("myModel.scala")
+    \end{verbatim}
+}
+\end{framed}
+\end{enumerate}
+
+%
+% MANDATORY ASSIGNMENTS
+%
+\section{Model Assignments}\label{section:mandatoryAssignments}
+
+In the following assignments you are going to be working with a system called DuSlang. DuSlang is a video streaming service with two types of users: video viewers, and video creators. DuSlang relies on advertisement revenue and utilizes an ad system called ReklamSinne - this delegates the ad handling to the third party service.
+
+Here follows an incomplete model of the DuSlang requirements specification which you will complete and build upon - the source file is available on the course web page. As you may notice it follows the ReqBox structure you've been introduced to in the lectures. \textit{Note:} The Delivery section has been stripped away from this model view.
+
+%
+% MODEL START
+%
+\begin{framed}
+\begin{lstlisting}
+\end{lstlisting}
+       \section*{context}
+\begin{lstlisting}
+\end{lstlisting}
+       \subsection*{stakeholders}
+\begin{lstlisting}
+User videoCreator
+  Spec ______
+User videoViewer
+  Spec ______
+\end{lstlisting}
+       \subsection*{product}
+\begin{lstlisting}
+______
+\end{lstlisting}
+       \subsection*{systems}
+\begin{lstlisting}
+System ReklamSinne
+  Spec ______
+\end{lstlisting}
+       \subsection*{interfaces}
+\begin{lstlisting}
+\end{lstlisting}
+       \section*{intentions}
+\begin{lstlisting}
+\end{lstlisting}
+       \subsection*{goals}
+\begin{lstlisting}
+Goal advertisementDistribution
+  Spec DuSlang shall ensure that advertisements are received by (shown to) the videoCreator and videoViewer
+Goal freeVideoDistribution
+  Spec DuSlang shall ensure that videoCreators may distribute their media freely (as in a zero cost upload)
+
+\end{lstlisting}
+       \subsubsection*{priorities}
+\begin{lstlisting}
+\end{lstlisting}
+       \subsection*{risks}
+\begin{lstlisting}
+\end{lstlisting}
+       \subsection*{commitments}
+\begin{lstlisting}
+\end{lstlisting}
+       \section*{requirements}
+\begin{lstlisting}
+\end{lstlisting}
+       \subsection*{functions}
+\begin{lstlisting}
+Feature subscriptions
+  Why To enable a videoViewer to follow their favorite videoCreator
+  Spec The videoViewer should be able to get an overview of the latest videos from their favorite videoCreators
+Feature favorites
+  Why So that a videoViewer may easily access an older video they watched
+  Spec ______
+  Example ______
+Feature history
+  Why ______
+  Spec ______
+Feature videoViews
+  Why ______
+  Spec Views shall be recorded when a video has been viewed for more than 10 seconds - or when the full length has been viewed
+Feature videoLikes
+  Why ______
+  Spec Record the amount of like votes a video has received from its viewers
+Feature videoDislikes
+  Why ______
+  Spec Record the amount of dislike votes a video has received from its viewers
+Feature recommendedVideos
+  Spec ______
+Feature uploadVideo
+  Spec ______
+Feature playVideo
+  Spec ______
+Feature playAdvertisement
+  Why ______
+  Spec An advertisement should be played before playing the video to be viewed by the user
+Feature useAdvertisement
+  Why So that it is possible to make use of the advertised content
+  Spec The videoViewer should be able to access the contents of the viewed advertisements
+\end{lstlisting}
+       \subsection*{data}
+\begin{lstlisting}
+______
+\end{lstlisting}
+       \subsection*{qualities}
+\begin{lstlisting}
+\end{lstlisting}
+       \subsection*{tests}
+\begin{lstlisting}
+\end{lstlisting}
+\end{framed}
+%
+% MODEL END
+%
+
+\subsubsection*{1. Introducing a context}
+The section \textit{product} in the \textit{context} section should contain a context diagram of the DuSlang system. Fill in the product section of the DuSlang model. This is how a modeled context diagram might look given a hotel system, followed by the context diagram in figure~\ref{figure:hotelSystem}:
+
+{\footnotesize\begin{verbatim}
+Model(
+  Section("context") has (
+    Section("product") has (
+      Product("hotelApp") interactsWith (
+        User("receptionist"), 
+        User("guest"), 
+        System("telephony"), 
+        System("accounting")))))
+\end{verbatim}}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{context-diagram-hotel-system.png}
+  \caption{Context diagram of the hotel system.}
+  \label{figure:hotelSystem}
+\end{figure}
+
+
+\subsubsection*{2. Finalizing features}
+Now we'll move on to the \textit{functions} section, as seen in the model the functions section are missing some field values. You need to fill in these fields and you may use the informal system description of DuSlang below - from which the features have been elicited.
+
+\begin{framed}
+\subsection*{DuSlang system description}
+One of the goals of the service is to supply everyone with a free medium of video distribution. This should be made possible by distributing advertisements received from a third party supplier - and this revenue may be re-invested to improve the service.
+
+From a user perspective the service should provide an ease of use. This implies easily accessing their favorite videos or videos they have previously viewed. As noted in similar video services, users like to express their feelings towards a video - showing whether they liked it or not. It has been noted from similar video services that comment sections provide a very toxic (as in the informal sense) environment, thus DuSlang will not provide this feature.
+
+Based on what kind of videos the video viewers are consuming we want to recommend them similar video material, therefore every viewer shall get individual video recommendations.
+
+Video viewers often want to watch popular videos, to measure popularity (or lack thereof) video views, likes, and dislikes shall be measured. This is also interesting data for the video creator to verify whether they are producing good media content or not.
+
+The user is also a big driver in providing the video content for our service. Allowing the user to freely distribute their video media will supply the viewers of the service directly. It is also possible for entertainment companies to distribute their video media on the platform - both as a means of advertising and providing it for their followers.
+
+\end{framed}
+
+\subsubsection*{3. Introducing a new goal}
+Introduce a new goal for the video service. Make sure that you elicit the features necessary for fulfilling this goal.
+
+% Let the student produce data or quality requirements?
+% E.g. Specify the Data Requirements in the scope of a video - what data do we need to store? You should be able to elicit these requirements from the Features section.
+
+\subsubsection*{4. Specifying data requirements}
+Some of the features in our model, such as videoViews and videoLikes, will need to store data in our system. DuSlang shall store the following data on a per video basis: views, likes, and dislikes. Model this in the \textit{data} section.
+
+\subsubsection*{5. Introducing relationships}
+Given our goals, what features do we require? For each goal, link the required feature to the goal using relations. It is okay to reference an entity from another scope in the model as entity identifiers are to be seen as unique and global. This notion of cross-referencing is very graph-like.
+
+\subsubsection*{Verification checkpoint}
+Verify the results of this section with the lab instructor and continue with Section~\ref{section:extraAssignments}.
+
+%
+% EXTRA ASSIGNMENTS
+%
+\section{Metamodel Assignments}\label{section:extraAssignments}
+In the following section we'll describe the metamodel, by this we mean the model that describes the reqT model that you used in the previous section (the model of a model, thereby the \textit{meta} prefix).
+
+These assignments are focused on teaching fundamental principles of the REPL and metamodel. To get started you may follow these steps:
+
+\textit{Note:} You may skip this if you already have a copy of the reqT.jar
+
+\begin{framed}
+\noindent Download the reqT jar
+{\small\begin{verbatim}
+curl -O http://reqt.org/reqT.jar
+\end{verbatim}}
+\noindent And launch the REPL
+{\small\begin{verbatim}
+java -jar reqT.jar
+\end{verbatim}}
+\end{framed}
 
 \subsection{Create and update models using the reqT console}
 
@@ -142,14 +597,7 @@ What is the size of the m4 model after the above transform? Why?
 
 \subsection{Investigate the reqT metamodel}
 
-A reqT model can be viewed as a vector of elements. Elements can be entities, attributes and relations. An entity has an id of type String. An attribute holds a value that can be of different types. A relation connects an entity via a link of a certain RelationType to a submodel that, in turn, can contain elements. A part of the reqT metamodel is shown in Figure~\ref{fig:metamodel}. 
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=\textwidth]{metamodel-simple.pdf}
-    \caption{Some classes in the reqT metamodel.}
-    \label{fig:metamodel}
-\end{figure}
+A reqT model can be viewed as a vector of elements. Elements can be entities, attributes and relations. An entity has an id of type String. An attribute holds a value that can be of different types. A relation connects an entity via a link of a certain RelationType to a submodel that, in turn, can contain elements. A part of the reqT metamodel is shown in Figure~\ref{figure:metamodel}. 
 
 Investigate what different entity types, attribute types and relation types that the reqT metamodel contains, using the evaluations in the reqT console below. 
 
@@ -214,11 +662,6 @@ Create a model with two stakeholders \verb+a+ and \verb+b+, both requiring the s
 \end{framed}
 
 When you create a reqT model, you actually create an immutable, tree-like data structure that consists of computational objects in the Java Virtual Machine (JVM) runtime environment. When you encode reqT models you are actually coding in the \href{http://en.wikipedia.org/wiki/Scala_\%28programming_language\%29} {Scala programming language} that compiles to JVM byte code. The reqT metamodel classes are actually Scala classes and the reqT language is embedded in Scala. The \verb+reqT.jar+ file includes the Scala compiler and the reqT console wraps the so called Scala Read-Evaluate-Print-Loop (REPL), which enables any Scala code snippet to be interactively compiled and run on a line-by-line basis at the reqT prompt. 
-\begin{framed}\noindent All the avaliable JDK classes can be accessed from the \verb+reqT>+ prompt. Try:
-{\footnotesize\begin{verbatim}
-javax.swing.JOptionPane.showMessageDialog(null,"Hello Swing!")
-\end{verbatim}}
-\end{framed}
 \subsection{Access elements in models using paths}
 
 A model is represented using a recursive data structure where relation elements can include submodels, which in turn can include relation elements that include submodels. The recursive nature of the model data structure thus enables hierarchical, tree-like requirements models of arbitrary depths. The submodels and elements of submodels at different levels can be extracted using paths that are constructed using the \verb+/+ operator called {\it enter}. 
@@ -340,7 +783,7 @@ The reqT ModelTreeEditor is a graphical user interface for navigating and updati
 
 You can also preload a ModelTreeEditor instance with a model, e.g. called \verb+m+, by simply passing it as a paramter to the edit command, e.g. \verb+edit(m)+. The ModelTreeEditor is shown in Figure~\ref{fig:gui}. You can start many ModelTreeEditor windows by repeating the edit command.
 
-\begin{figure}[h]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.95\textwidth]{gui.png}
     \caption{The reqT ModelTreeEditor graphical user interface.}
@@ -474,28 +917,4 @@ up ++ down
 \end{enumerate}
 \end{framed}
 
-
-\section{Conclusion and reflection}
-
-There are many different ways that development projets may want to work with requirements. If there are several project members, it may be useful to distribute the evolving work results into different files to make version management easier as things evolve and grow. Some projects may want to use html or wikis, while others may want to use a word processor or a spreadsheet. Some may want to use latex while others may want to collaborate using docs in a cloud app. Some may want to manage their evolving requirements models in a version controlled source repo cloud service such at \url{http://GitHub.org} or \url{http://Bitbucket.org}. 
-
-The basic idea behind reqT is to offer a flexible tool that can enable users to work in different ways. The flexibility of reqT is also shown in that the concept in its metamodel can be used in whatever way the users want as long as the hierarchical entity-attribute-relationship semantics are followed. You get a bag of concepts to use in your model, but you have to come up with your own modeling policy on how to use the bag of concepts available.
-
-\begin{framed}
-Reflect upon these discussion questions and write down some reflections:
-\begin{enumerate}
-\item How would you like to keep track of the evolving requirements of your development project?
-\item How could you benefit from using reqT in your project?
-\item What are the pros and cons of using a desktop word processor versus reqT models? 
-\item What types of requirements entities, attributes and relations are important for the requirements modeling that you need to do in your project?
-\item Investigate the templates in the Templates menu of the ModelTreeEditor. Are any of these types of models relevant to your project? What other types of models will you need?
-\end{enumerate}
-\end{framed}
-{\footnotesize
-\noindent If time permits and you are curious, take a look at the reqT source code at \newline\url{https://github.com/reqT/reqT/tree/3.0.x/src/reqT}
-\newline\noindent You may want to start browsing the files \verb+ModelBasicOps.scala+ and  \verb+ModelIterators.scala+ 
-\begin{framed}
-\noindent What is the result of the operation \verb+strip+ implemented in  \verb+ModelBasicOps.scala+?
-\end{framed}
-}
 \end{document}
