@@ -183,10 +183,10 @@ object repl {
     interpret(s"""{$code}: Boolean""").map(_.asInstanceOf[Boolean])
 
   def interpretModel(code: String): Option[Model] =
-    interpret(s"""{$code}: reqT.Model""").map(_.asInstanceOf[Model])
+    interpret(s"""{$code}: Model""").map(_.asInstanceOf[Model])
 
   def interpretTransformer(code: String): Option[Model => Model] =
-    interpret(s"""{$code}: reqT.Model => reqT.Model""").map(_.asInstanceOf[Model => Model])
+    interpret(s"""{$code}: Model => Model""").map(_.asInstanceOf[Model => Model])
 
 
   // SERVER MODE reading from stdio, no jline, no string print truncate
