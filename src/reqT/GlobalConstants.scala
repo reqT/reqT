@@ -1,7 +1,7 @@
 /***
 **                  _______
 **                 |__   __|   reqT - a requirements engineering tool
-**   _ __  ___   __ _ | |      (c) 2011-2014, Bjorn Regnell, Lund University
+**   _ __  ___   __ _ | |      (c) 2010-2017, Lund University
 **  |  __|/ _ \ / _  || |      http://reqT.org
 **  | |  |  __/| (_| || |
 **  |_|   \___| \__  ||_|
@@ -14,16 +14,16 @@
 package reqT
 
 trait GlobalConstants { //mixed in by package object reqT
-  val reqT_VERSION = "3.1.2"
-  val reqT_BUILD = 559
+  val reqT_VERSION = "3.1.3"
+  val reqT_BUILD = 561
   val SCALA_VERSION = scala.util.Properties.versionString
   lazy val PREAMBLE = """
 **                  _______
 **                 |__   __|
 **   _ __  ___   __ _ | |      reqT - a requirements engineering tool
 **  |  __|/ _ \ / _  || |      http://reqT.org
-**  | |  |  __/| (_| || |      (c) 2011-2014, Lund University
-**  |_|   \___| \__  ||_|      Free Open Software BSD-2-clause licence
+**  | |  |  __/| (_| || |      (c) 2010-2017, Lund University
+**  |_|   \___| \__  ||_|      Open Source BSD-2-clause license
 **                 | |
 **                 |_|
 """
@@ -35,7 +35,7 @@ http://reqT.org/license
 ReqT is open source under the BSD 2-clause license:
 http://opensource.org/licenses/bsd-license.php
 
-Copyright (c) 2011-2014 Bjorn Regnell, Lund University, Sweden.
+Copyright (c) 2010-2017 Lund University, Sweden.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
