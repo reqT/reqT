@@ -400,8 +400,8 @@ object gui { //GUI implementation
     def setFoldingAll(parent: TreePath, isExpand: Boolean) {
       val node = parent.getLastPathComponent().asInstanceOf[TreeNode];
       if (node.getChildCount() >= 0) {
-        import scala.collection.JavaConversions._
-        for (e <- node.children) {
+        import scala.collection.JavaConverters._
+        for (e <- node.children.asScala) {
           val n = e.asInstanceOf[TreeNode]
           val path = parent.pathByAddingChild(n).asInstanceOf[TreePath]
           setFoldingAll(path, isExpand);
