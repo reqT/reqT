@@ -29,495 +29,452 @@
 \lstset{style=reqT}
 \usepackage{fancyvrb}
 \usepackage[english]{babel}
+\usepackage{blindtext}
 \usepackage{enumitem} 
 \setlist[itemize]{noitemsep}
-\title{{\bf LAB 2:\\Requirements Prioritization \& Release Planning}\\ Preparations %and instructions
+\title{{\bf LAB 2:\\Requirements Prioritization \& Release Planning}\\ Instructions
 }
-\author{Björn Regnell and Oskar Präntare}
+\author{Björn Regnell, Emil Hammarström}
 \date{\today}
 \begin{document}
 \maketitle
 
 \section{Introduction}
 
-\subsection{Purpose} This document provides instructions on how to prepare for 
-%and run 
-a computer lab session on requirements selection. The lab session illustrates how requirements prioritization and release planning can be supported by computer tools, and demonstrates the complexity in finding solutions to these problems. {\it The preparations in Section~\ref{section:prep} should be completed before the actual lab is run.} 
+\subsection{Purpose} This document provides instructions on how to run 
+a lab session on computer-supported requirements prioritization and release planning. Based on experiences from manually solving prioritization and release planning problems in your previous preparations, you will with this lab session gain insight into the benefits and limitations of using computer-aided constraint-based solving. 
 
-\subsection{Prerequisites} This lab assumes that you have installed the open source tool \href{http://reqT.org}{reqT.org} and that you are familiar with basic requirements modeling using reqT. It is also assumed that you have completed \href{https://github.com/reqT/reqT/raw/3.0.x/doc/lab1/lab1.pdf}{Lab 1 Requirements Modeling}.
+\subsection{Prerequisites} This lab assumes that you have installed the open source tool \href{http://reqT.org}{reqT.org} and that you are familiar with basic requirements modeling using reqT. It is also assumed that you have completed \href{https://github.com/reqT/reqT/raw/3.0.x/doc/lab1/lab1.pdf}{Lab 1 Requirements Modeling}. You should also complete the preparations for Lab 2, available at \url{https://github.com/reqT/reqT/raw/3.0.x/doc/lab2/lab2.pdf} 
 
-\subsection{Background} In this lab you will learn how to get started with requirements prioritization and release planning through the open source tool reqT, and reflect on how you could select requirements in your own project. 
-
-In real-world requirements engineering you are continuously faced with different types of trade-off problems. As we have limited development resources and normally would like our most important features to be ready as soon as possible, we need to make hard decisions on what to develop next and what to postpone. If we spend some time on assessing the cost and benefit of the things we have at hand, we can hopefully find a good balance in how we spend our effort wisely in relation to the available lead time. Two main trade-off problems in requirements engineering are
-\begin{itemize}
-\item {\bf requirements prioritization}, where (a subset of) requirements are traded off against each other according to the opinions of the stakeholders based on some criteria such as the {\it benefit}, e.g. with respect to the strengthening of our product's brand, or the {\it cost}, e.g. of lost sales in case a requirement is not implemented. There are many prioritisation methods that can be used to elicit the stakeholders'
-opinions. In this lab we use the \$100 method and an ordinal scale ranking method, and
-\item {\bf release planning}, where requirements are scheduled in time over several releases under trade-offs with respect to constraints of the available capacities of different resources, requirements priorities and requirements inter-dependencies. 
-\end{itemize}
-
-It is also likely that you will need to do hard choices regarding how you spend your efforts in the requirements engineering process. Probably you will have to make trade-offs such as: Is it more important to do more stakeholder analysis at this point, or should we instead focus on validation of the quality requirements that we have elicited so far? Is it more urgent to reduce critical incompleteness issues or should we first improve the verifiability of our scheduled requirements?
-
-The prioritization planning methods in this lab may also be good for prioritizing and planning the tasks of the requirements process itself, although we will exemplify the methods by using features under consideration for development.
-
-
+You should bring a file \verb+prio100.scala+ from the Lab 2 preparations to the lab computer, which is used in Section~\ref{section:instr}. The file should include a reqT scala Model with at least two Stakeholder entities, each with a Prio attribute and a set of at least 15 Req entities each with a Benefit attribute.   
 
 \clearpage\newpage
-\section{Preparations}\label{section:prep}
-\begin{framed} \noindent Before doing the lab session% in Section~\ref{section:instr}
-, complete all preparations in this document %section 
-and bring requested items to the lab. In particular you need to make sure that you can access the text files you prepare below at your lab session computer.
-\end{framed}
+\section{Main Assignments}\label{section:main-instr}
+If you find interest in the following problems you are recommended to do the assignments in Section~\ref{section:instr}.
 
-\subsection{Prioritization Preparations}
+We're going to be using the webeditor in this section. And similarly to lab 1 the reqT-REPL, and it's GUI, will be used in the following section, Section~\ref{section:instr}.
 
-\subsubsection{Definitions}
+%
+% ORDINAL RANKING
+%
+\subsection{Ordinal ranking using pairwise comparison}
+In this section we will use the reqT--webeditor to produce an ordinal priority ranking using pairwise comparison similar to what was seen in Section 2.1.2 of the preparations paper.
 
-Here is one way to formalize the requirements prioritization problem: 
-\begin{description}
-\item [] $S$ is a set of $m$ stakeholders, $S=\{s_1, s_2 ..., s_m\}$
-\item [] $Q$ is set of $n$ requirements $Q=\{q_1, q_2, ..., q_n\}$
-\item [] $p(s_i, q_j)$ is a number representing the importance of requirement $q_j$ assigned by stakeholder $s_i$
-\item [] $w(s_i)$ is a number representing the importance of stakeholder $s_i$
-\item [] $P(q_j)$ is the total priority of requirement $q_j$ calculated by some function that maps all $p(s_i, q_j)$ and $w(s_i)$ to a single, numeric value.
-\item[] A {\it prioritization method} defines a procedure that assigns numeric values to $p(s_i, q_j)$ for all stakeholders $s_i$ and all requirements $q_j$, and to $w(s_i)$ for all stakeholders, according to some predefined priority criteria.  
-\end{description}
-%\footnote{If you prepare your files on mac/windows and use them on linux then reqT may provide strange results for some characters. See \url{http://manpages.ubuntu.com/manpages/maverick/man1/dos2unix.1.html}}
 
-\noindent Before carrying out a prioritization method, a prioritization criteria needs to be defined. Examples of criteria are: market value, stakeholder benefit, risk of loss, cost of implementation and urgency of delivery. An example of a criteria applied in a pairwise comparison is: ''does requirement X have a higher {\it benefit for stakeholder~A} compared to requirement Y'', and an example of a criteria used in an estimation is: ''the {\it cost of implementing} requirement X will be \euro 3 million''.
+Start off by modeling the subset of the DuSlang features in Table~\ref{table:prio-table-duslang}. Because we are doing a pairwise comparison based on the prioritites we only need to model them as requirements, see Figure~\ref{fig:model-form}.
 
-\begin{framed}
-\noindent {\bf Define a prioritization criteria}. Choose a prioritization criteria relevant to your project. Define your criteria so that it is desirable to maximize the priority value. 
-\newline\newline Criteria def.: \underline{\hspace{10cm}}
- \end{framed}
- 
-  \begin{framed}
- \noindent {\bf Define requirements and stakeholders}. Make a reqT model with 2 stakeholders and 15 requirements from your project, analogous to this template: 
- 
-\begin{lstlisting}
-Model(
-  Req("autoSave"),
-  Req("exportGraph"), 
-  Req("exportTable"), 
-  Req("modelTemplates"), 
-  Req("releasePlanning"), 
-  Req("syntaxColoring"), 
-  Req("autoCompletion"), 
-  Stakeholder("modeler"),
-  Stakeholder("tester"))     
-\end{lstlisting}
-Save the model in a text file called \verb+req.scala+
-\end{framed}
- 
-\subsubsection{Methods}\label{section:priomethods}
-
-\noindent The {\bf \$100 method} gives each stakeholder a fictitious sum of money to ''spend'' on the requirements, where $p(s_i, q_j)$ is assigned to the amount of money ''spent'' for each requirement representing its importance according to some criteria. The combined priorities $P(q_j)$ are calculated as  
-\begin{displaymath}
-P(q_j) = \sum\limits_{s_i \in S} p(s_i, q_j) w(s_i) a_i
-\end{displaymath}
-where the normalization constants $a_i$ are selected so that the sum of all $P(q_j)$ is normalized to 100 units, thus 
-\begin{displaymath}
-a_i = \frac{100}{   w \sum\limits_{q_j \in Q} p(s_i, q_j)} \text{ \hspace{4mm} where \hspace{2mm}}
-w = \sum\limits_{s_i \in S} w(s_i)
-\end{displaymath} 
-
-\begin{framed}
-\noindent {\bf Simplified \$100 method}. If all stakeholders are equally important, the formulas above can be simplified. Simplify $P(q_j)$ when $w(s_i) = a \text{ for all  } s_i \in S$: \newline\newline\newline\newline    \underline{\hspace{11cm}}
- \end{framed}
-
- \clearpage\newpage 
-\begin{framed}
-\noindent {\bf Use the \$100 method}. Put yourself in the shoes of each of your 2 stakeholders and use the \$100 method to prioritize each of your 15 requirements according to your selected criteria. 
-
-\vspace{1em}
-
-\begin{tabular}{| c | p{3cm} | c | c |}
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|}
 \hline
-          &     & Amount of dollars & Amount of dollars \\ 
- Req    & Id & Stakeholder 1 & Stakeholder 2 \\ \hline
-\hline 1 & & &  \\ 
-\hline 2 & & & \\
-\hline 3 & &  &\\
-\hline 4 & &  &\\
-\hline 5 & &  &\\
-\hline 6 & &  &\\
-\hline 7 & & & \\
-\hline 8 & & & \\
-\hline 9 & &  &\\
-\hline 10 & &  &\\
-\hline 11 & &  &\\
-\hline 12 & &  &\\
-\hline 13 & & & \\
-\hline 14 & & & \\
-\hline 15 & & & \\
-\hline
+\textbf{Requirement}    & \textbf{videoCreator Prio} & \textbf{videoViewer Prio}\\ \hline
+uploadVideo         & 10                         & 4                        \\ \hline
+playVideo           & 6                          & 10                       \\ \hline
+playAdvertisement   & 6                          & 3                        \\ \hline
+useAdvertisement    & 3                          & 2                        \\ \hline
+favorites           & 3                          & 6                        \\ \hline
+history             & 2                          & 8                        \\ \hline
 \end{tabular}
+\caption{Prioritized feature subset}
+\label{table:prio-table-duslang}
+\end{table}
 
-\vspace{2em}
-\noindent Transfer your priority data above into a model file of this form:
-\begin{lstlisting}
-Model(
-  Stakeholder("modeler") has (
-    Prio(1),
-    Req("autoSave") has Benefit(25),
-    Req("exportGraph") has Benefit(10),
-    Req("exportTable") has Benefit(8), 
-    //...
-    Req("autoCompletion") has Benefit(28)),
-  Stakeholder("tester") has (
-    Prio(2),
-    Req("autoSave") has Benefit(3),
-    Req("exportGraph") has Benefit(25),
-    Req("exportTable") has Benefit(14), 
-    //...
-    Req("autoCompletion") has Benefit(2)))
- \end{lstlisting}
- Save the model code in a text file called \verb+prio100.scala+   
- \end{framed}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{model-form-cut.png}
+    \caption{Ordinal priority model snippet}
+    \label{fig:model-form}
+\end{figure}
 
-\clearpage\newpage
-\noindent The {\bf ordinal priority ranking method} assigns a positive integer number to each requirement $q_j$ for each stakeholder $s_i$ denoted $p(s_i, q_j) \in [1..n]$, where $n$ is the total number of requirements and all $p(s_i, q_j)$ are different for each stakeholder $s_i$. The priority $p(s_i, q_j)$ represents an ordinal scale estimation of the preference order of the requirement $q_j$ according to the views of stakeholder $s_i$. Estimations on an ordinal scale imply that the estimates only provide ordinal information and not ratio information, which means that it is not possible to tell if one priority is, say $33\%$ or $50\%$ of another priority, just because it has a lower ordinal value. 
-
-One way to assign ordinal priority values is to use {\bf pairwise comparison} of the requirements and then by some algorithm (e.g. insertion sort\footnote{\url{http://en.wikipedia.org/wiki/Insertion_sort}}) sort the requirements in priority order, and when the sorting is ready, let $p(s_i, q_j) = n$ for the first requirement,  $p(s_i, q_j) = n - 1$ for the second, etc. down to $p(s_i, q_j) = 1$ for the last requirement. 
-
+When the model is complete we may produce an ordinal ranking using the \textit{Ordinal Ranking}-button in the menu bar. Now we may pick what we want to solve for, in this case we're solving for Requirements ($Req$).
 
 \begin{framed}
-\noindent 
-If there are $n$ requirements, what is the total number of possible pairwise combinations, without considering order? 
-\newline\newline   \underline{\hspace{11cm}}
-\newline\newline Try these lines in the reqT console to check your answer above:
-
-{\scriptsize\begin{verbatim}
-reqT> def allPairs(n: Int) = (1 to n).combinations(2).toVector
-
-reqT> allPairs(100).foreach(println)    
-
-reqT> allPairs(100).size    //size: _____ 
-\end{verbatim}}
-
-\noindent
-Consider a directed graph of comparisons, where a directed edge $(a,b)$ represents a pair-wise comparison $a < b$. If there are $n$ requirements nodes, what is the minimum number of comparison edges needed to connect all requirement with each other? 
-\newline\newline   \underline{\hspace{11cm}}
-\newline\newline Try these lines in the reqT console to check your answer above:
-
-{\scriptsize\begin{verbatim}
-reqT> def minPairs(n:Int) = (1 to n-1).map(i => (i,i+1)).toVector        
-
-reqT> minPairs(100).foreach(println)    
-
-reqT> minPairs(100).size //size: _____ 
-\end{verbatim}}
- \end{framed}
- 
- \subsubsection{Compare methods}\label{section:priocmpr}
-  
-{ \begin{framed}
-\noindent {\bf Define a cost criteria}. Choose a cost criteria relevant to your project. Define your criteria so that it is desirable to minimize the priority value. A typical cost criteria is {\it ''total effort of development including unit and system testing''}. 
-\newline\newline Criteria def.: \underline{\hspace{10cm}}
-\newline\newline {\bf Use two methods and compare}. Use first the ordinal-scale priority ranking method using insertion sort and then the ratio-scale \$100 method, both with the same cost criteria applied to your 15 features. 
-
-When you do insertion sort to order your requirements in cost order on a ratio scale, you can e.g. put each requirement on a post-it note and then enact the algorithm physically, or you could enter your requirements in an editor and copy-paste them into the right order while building the final list.
-
-Put yourself in the shoes of those stakeholders, e.g. the developers of your project, that are knowledgeable about your costs. While you carry out the prioritization, reflect on pros and cons of each method.
-
-
-\vspace{1em}
-
-\begin{tabular}{| c | p{25mm} | p{31mm} | p{31mm} |}
-\hline
-          &     & Cost (insertion sort)& Cost (\$100) \\ 
- Req    & Id & Ordinal  scale &  Ratio scale \\ \hline
-\hline 1 & & &  \\ 
-\hline 2 & & & \\
-\hline 3 & &  &\\
-\hline 4 & &  &\\
-\hline 5 & &  &\\
-\hline 6 & &  &\\
-\hline 7 & & & \\
-\hline 8 & & & \\
-\hline 9 & &  &\\
-\hline 10 & &  &\\
-\hline 11 & &  &\\
-\hline 12 & &  &\\
-\hline 13 & & & \\
-\hline 14 & & & \\
-\hline 15 & & & \\
-\hline
-\end{tabular}
- \end{framed}}
- 
- 
-\begin{framed}
-\noindent {\bf Reflect on pros and cons of each method}. Write down your reflections from comparing the ordinal-scale-priority-ranking-by-insertion-sort-method with the \$100-method. 
-
-\begin{enumerate}[noitemsep]
-\item What are the pros and cons of each method? 
-\item How do the methods scale as the number of requirements increases? 
-\item Which method is easiest to carry out incrementally when a new requirement is elicited?
-\item Which method may give most accurate/useful/honest estimations? 
-\item In which different contexts may the methods differ in usability? 
-\item Was the \$100-method easier because of what you learned about the costs in your first round with the insertion sort method? 
-\item Any other reflections?
-\vspace{12cm}
-\end{enumerate}
-
+\textit{Note:} The ordinal ranking solver will only look for variables to solve for in the top-level set. This is why we modeled requirements at the top-level as seen in Figure~\ref{fig:model-form}.
 \end{framed}
 
-\clearpage\newpage 
-\subsection{Release Planning Preparations}
+You will now need to specify the comparisons between the features given the priority matrix in Table~\ref{table:prio-table-duslang}, you may reduce these priorities to a comparison using any method you like. This will be used by the constraint solver \href{http://www.lth.se/jacop}{JaCoP} which will try to order the features by ranks consistent with the comparisons.
 
-\subsubsection{Definitions}\label{section:rpdef}
+As you learned in the preparations (Preparations paper, Section 2.2.4, Task 9.2) there may be comparisons that are inconsistent. This means that you should try to be consistent with your comparisons. You may also increase the allowed deviation which will calculate a solution given an allowed number of inconsistencies.\\
 
-An optimal release plan can be defined as an allocation of requirements to different releases that maximizes a benefit under some constraints, such as cost and precedence. 
+\noindent\textit{What deviation was needed in order to solve for these feature priorities?}\\ \\
+\underline{\hspace{0.9\textwidth}}\\
 
-The definitions below represents one of many possible models of the release planning problem. Here we use a simplified model that does not take different types of resources and costs into account. In the model below, we also exclude precedence constraints. In subsequent assignments, different types of resources and precedence constraints are introduced.
+\noindent\textit{What were your top 3 ranked features?}\\ \\
+\underline{\hspace{0.9\textwidth}}\\
 
-\begin{description}
+\noindent\textit{What method did you use to reduce the priorities of the stakeholders into a single comparison?}\\ \\
+\underline{\hspace{0.9\textwidth}}\\
 
-\item [] $S$ is a set of $m$ stakeholders, $S=\{s_1, s_2 ..., r_m\}$
-\item [] $Q$ is set of $n$ requirements $Q=\{q_1, q_2, ..., q_n\}$
-\item [] $R$ is a set of $k$ releases, $R=\{r_1, r_2,  ..., r_k\}$
-\item [] $r_i$ represents release $i$ containing some subset of requirements $\{q_j\} \subseteq Q$, where every requirement $q_j$ only belongs to one release
-\item [] $p(s_i, q_j)$ is a number representing the priority of requirement $q_j$ assigned by stakeholder $s_i$
-\item [] $w(s_i)$ is a number representing the importance of stakeholder $s_i$
-\item [] $P(q_i)$ is the weighted, normalized sum of all stakeholders' priorities of requirement $q_i$, defined as $P(q_i) = \sum\limits_{s_j \in S} p(s_j, q_i)w(s_j)a_i$, where $a_i$ are constants of normalization defined similar to the $a_i$ constants in Section~\ref{section:priomethods}.
-\item [] $c(q_i)$ is the cost of implementing requirement $q_i$
-\item [] $C(r_i)$ is the capacity of release $r_i$
-\end{description}
+%
+% RELEASE PLANNING
+%
+\newpage
+\subsection{Release planning - the hard part}
 
-\noindent
-{\bf Optimization}. The releases should be optimized by maximizing the total sum of all priorities of the requirements included in each release, for all releases:
-\begin{displaymath}
-max [ \sum\limits_{r_i \in R} \sum\limits_{q_j \in r_i}P(q_j) ]
-\end{displaymath}
+%
+% INTRO
+%
+\subsubsection{Introduction}\label{section:rp-introduction}
+In this section we will study the difficulties of release planning. The difficulty we're going to observe is similar to the \href{https://en.wikipedia.org/wiki/Knapsack_problem}{Knapsack problem}, see Figure~\ref{fig:xkcd-287} for a summary of the problem.
 
-\begin{flushleft}subjected to  the constraint that the sum of all requirements' costs in a release should be less than the capacity of the release:\end{flushleft}
-\begin{displaymath}
-\sum\limits_{q_i \in r_i} c(q_i) \leq C(r_i)\text{,  for all }r_i \in R
-\end{displaymath}
-\subsubsection{Simple release planning}
-The definitions in Section~\ref{section:rpdef} represents a simplified model of the release planning problem, where there is only one type of cost and no special constraints on the ordering of requirements. Based on previous data that you have gathered about your 15 requirements, create a simplified release plan by following the steps below. We start by simplifying the model even further considering only one stakeholder.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{np_complete.png}
+    \caption{\href{https://xkcd.com/287/}{NP-Complete} by xkcd.com}
+    \label{fig:xkcd-287}
+\end{figure}
 
-\begin{framed}
-\footnotesize
-\noindent {\bf Calculate a simple release plan manually} by allocating some of your $n=15$ requirements to two releases, denoted $r_1$ and $r_2$. In $r_1$ only a maximum of $35\%$ of the total cost can be fitted, and in $r_2$ there is only room for max $15\%$ of the total cost.
+Start off by loading the template called \textit{Release Planning 2} in the webeditor - this is the same model used in Section 2.2.3 of the Lab 2 Preparations paper.\\
 
- \begin{enumerate}[noitemsep]
-\item Fill in the priority data in the Priority column in the table below by transferring the data from one of your 2 stakeholders in Section~\ref{section:priomethods}.
-\item   Fill in the priority data in the Cost column in the table below by transferring the data from the \$100 method in Section~\ref{section:priocmpr}.
-\item Allocate some $q_i$ to either $r_1$ or $r_2$ and transfer costs and priorities to the selected release respectively. The cost of a requirement is not allowed to be split between releases. Try to maximize the sum of priorities of scheduled requirements. 
-\end{enumerate}
-\begin{tabular}{| p{8mm} | p{12mm} | p{12mm} | p{1.4cm} | p{1.4cm} | p{1.4cm} |  p{1.4cm} |}
-\hline
-Req $q_i$ &  
-Prio $p(q_i)$ & 
-Cost $c(q_i)$ & 
-$p(q_i)$ if $q_i \in r_1$ else $0$ &
-$c(q_i)$ if $q_i \in r_1$ else $0$ &
-$p(q_i)$ if $q_i \in r_2$ else $0$ & 
-$c(q_i)$ if $q_i \in r_2$ else $0$  \\
-\hline
-\hline 1 & & & & & &\\ 
-\hline 2 & & & & & &\\
-\hline 3 & & & & & &\\
-\hline 4 & & & & & &\\
-\hline 5 & & & & & &\\
-\hline 6 & & & & & &\\
-\hline 7 & & & & & &\\
-\hline 8 & & & & & &\\
-\hline 9 & & & & & &\\
-\hline 10 & & &  &  & &\\ 
-\hline 11 & & & &  & &\\
-\hline 12 & & & &  & &\\
-\hline 13 & & & &  & &\\
-\hline 14 & & & &  & &\\
-\hline 15 & & & &  & &\\
-\hline
-\hline Sum:   &  & &  & &  & \\
-\hline
-\end{tabular}
-\begin{description}
-\item[] \vspace{1em}Total sum of allocated priorities 
-$\sum\limits_{q_i \in r_1} p(q_i)  + \sum\limits_{q_i \in r_2} p(q_i) = $ \underline{\hspace{3cm}}
-\item[] \vspace{1em}Total sum of non-allocated priorities
-$\sum\limits_{q_i \not\in r_1, r_2} p(q_i) = $ \hspace{8.5mm}\underline{\hspace{3cm}}
-\item[] \vspace{1em}How long did it take to make a good manual release plan? \hspace{8.5mm}\underline{\hspace{2.3cm}}
-\end{description}
-\end{framed}
+\noindent\textit{What's the capacity of Team A and Team B in the march release respectively?}\\ \\
+\underline{\hspace{0.9\textwidth}}\\
 
+We are now going to let \href{http://www.lth.se/jacop}{JaCoP} try to solve for the March release. Keep your preparation answers at hand as we'll compare results -- \textit{Computer vs Student}. Thereafter we will see how the computer handles the task as complexity increases.
+
+We will now solve for the maximized benefit of the March release.
+
+\begin{enumerate}
+    \item Click on \textit{Release} in the menu bar with your Release Planning 2 model active.
     
-
-\subsubsection{Advanced release planning}\label{section:advRP}
-By involving different priorities from more than one stakeholder, adding multiple resources that each have their own costs per requirement, and introducing constraints on the ordering of requirements, the release planning problem becomes significantly more challenging. 
-
-As a preparation for the lab, you are requested to manually try to solve an advanced release planning problem for a small set of requirements. We will stick with just one stakeholder to make it a bit easier. \footnote{Don't spend ages on trying to find an optimal solution manually; in practice we need tools for that as the release planning problem is similar to the so called \href{http://en.wikipedia.org/wiki/Knapsack_problem}{knapsack problem} which is \href{http://en.wikipedia.org/wiki/NP-hard}{NP-hard}!}
-
-{\fontsize{9}{10}\begin{framed}
-\noindent As an example we will use 9 features listed in Table~\ref{advPlan} below. We assume a hypothetical release planning problem with two releases ''March'' and  ''July'' and two development resources ''Team A''  and ''Team B''. The teams have different skills (back-end \& client dev) and  the time to do their respective part differ, while both are needed.
-The teams have different available capacities to spend on the different releases. For the March release Team A can max spend 20 h and Team B can spend max 15 h. For the July release Team A has max 15 h and Team B has max 15 h.
-
-\begin{enumerate}[noitemsep,nolistsep]
-\item Allocate some or all of the features in Table~\ref{advPlan} by filling in its last column with a release name: March or July (or -- if not allocated to any release), while abiding the releases' resource constraints. {\it Try to maximize the sum of all priorities of the allocated features.}
-\item Fill in the requested results in the blank cells of  Table~\ref{advSum}.
-\item We now introduce the following precedence constraint:\\ \verb+Feature("exportHtml") precedes Feature("exportGraphViz")+ implying that exportHtml must be in \verb+Release("March")+ release while exportGraphViz must be in \verb+Release("July")+ if both are allocated. Re-allocate some or all of the features in Table~\ref{advPlan2} now taking into account the above precedence constraint, while still abiding the same resource constraints as before. {\it Try to maximize the sum of all priorities of the allocated features.}
-\item Fill in the requested results in the blank cells of  Table~\ref{advSum2}.
-\item How long did it take to make a good manual release plan? \underline{\hspace{1.3cm}}
-\item How did you find your solution? Describe your methodology.
-\item What are the difficulties of release planning?
-\item How does the methodology to find the release plan change when precedence constraints are introduced?
-\item Are the suggested solutions you have found optimal? Why or why not?
+    \item In the 3 drop-down boxes respectively, select: \textit{Max, Benefit, Release(March)}.
+    
+    \item When you press the \textit{OK}-button the model with the specified rules will be sent to reqT which will translate the model to JaCoP constraints and process it.\\
+    
+    \item Repeat this process, steps 1-3, 3 times and name the received solution models \texttt{ans1}, \texttt{ans2}, and \texttt{ans3}.
+    
+    \textit{Note:} You will have to highlight (select) the \textit{Release Planning 2} model in the model-bar again before pressing the \textit{Release}-button.
 \end{enumerate}
-\end{framed}
-}
+
+When this process is finished your webeditor should be in a similar state as to that in Figure~\ref{fig:final-workstate} - where the JaCoP computation of the March release has been expanded.\\
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{final-workstate.png}
+    \caption{Final workstate of the webeditor}
+    \label{fig:final-workstate}
+\end{figure}
+
+\noindent\textit{What \texttt{Benefit} and \texttt{Cost} did JaCoP compute on the March \texttt{Release} for your 3 answers? Note that there is a likelihood that you'll receive 3 identical Benefit and Cost results.}\\ \\
+\underline{\hspace{0.9\textwidth}}\\
+
+\noindent\textit{What total \texttt{Cost} (sum of hours of Team A and Team B in the March release) did you compute manually in the Preparations for this model?}\\ \\
+\underline{\hspace{0.9\textwidth}}\\
+
+\noindent\textit{What does the term \texttt{Benefit} in this model correspond to in Table 2 of your Preparations paper?}\\ \\
+\underline{\hspace{0.9\textwidth}}\\
+
+\noindent\textit{What total \texttt{Benefit} (in the March release) did you compute?}\\ \\
+\underline{\hspace{0.9\textwidth}}\\
+
+\noindent\textit{How much time was spent doing this computation for you and JaCoP respectively?}\\ \\
+\underline{\hspace{0.9\textwidth}}\\
+
+
+%
+% HARDER
+%
+\subsubsection{A problematic release plan}
+In this section we will introduce more \textit{features} and \textit{precedences} (using \textit{Relations}) to make the release planning problem very hard to solve by hand, or using a constraint solver like JaCoP.
+
+\begin{enumerate}
+    \item Start off by downloading the accompanied release plan model found on the course webpage as a Lab 2 resource.
+    
+    \item Import the model in the webeditor.
+    
+    \item Open up a process manager, instructions depend on your operating system:
+    \begin{itemize}
+        \item On Windows you will find this in the \textit{Task Manager}.
+        \item On Linux you will find a program called \textit{htop} -- execute this in the terminal.
+        \textit{Note:} to filter out the reqT process in \textit{htop} you can press the \textit{F4}-key, type \textit{reqT}, and press the \textit{Enter}-key.
+        \item On Mac you may use the \textit{Activity Monitor}-application and sort by CPU-usage in descending order.
+    \end{itemize}  
+        
+    
+    \item With the imported model highlighted in the model-bar, press the \textit{Release}-button and prepare a release of the maximized benefit for the March release.
+    
+    \item Monitor the reqT process in your process manager. (And meanwhile answer the questions below)
+\end{enumerate}
+
+As you may have noticed the constraint solver is not able to find a solution, it is almost continually using a thread fully. This may be the case if you try producing a release plan for a large project with many features and constraints.\\
+
+\noindent\textit{What are two of the main factors making this problem harder than the previous model used in Section~\ref{section:rp-introduction}? (Inspect the model)}\\ \\
+\underline{\hspace{0.9\textwidth}}\\
+
+\noindent\textit{Given the previous question, what actions would you take in a real project to make the production of a release plan possible?}\\ \\
+\underline{\hspace{0.9\textwidth}}\\
+
+
+%
+% EXTRA ASSIGNMENTS
+%
 \clearpage\newpage
-\begin{table}[ht]
-\caption{Advanced release planning without precedence constraints.}
-\centering
-\begin{tabular}{|c |  c | c | c| p{15mm} |}
-\hline
-Feature &  Priority & \parbox[t]{14mm}{Team A \\ cost\\}  & \parbox[t]{14mm}{Team B \\ cost} & Release \\
-\hline
-\hline exportHtml &  10 & 9 & 2 & \\
-\hline exportGraphViz   & 10 & 7 & 8 & \\ 
-\hline exportTabular & 10 & 3 & 9 &\\
-\hline exportLatex & 7 & 6 & 4 &\\
-\hline exportContextDiagramSvg  & 6 & 3 & 4 &\\
-\hline syntaxColoring  & 3 & 6 & 2 &\\
-\hline autoCompletion & 4 & 3 & 3 &\\
-\hline releasePlanning    & 7 & 4 & 5 &\\
-\hline autoSave  & 9 & 6 & 7 &\\ 
-\hline
-\end{tabular}
-\label{advPlan}
-\end{table}
+\section{Extra Assignments}\label{section:instr}
 
-\begin{table}[ht]
-\caption{Sums without precedence constraints.}
-\centering
-\begin{tabular}{| c | c | c | c |}
-\hline
-Sum & Release March & Release July & \parbox[t]{14mm}{Total \\} \\ 
-\hline
-\hline Team A's capacity & 20 & 15 & 35\\ 
-\hline Team B's capacity & 15 & 15 & 30 \\
-\hline Sum of hours Team A worked & & & \\
-\hline Sum of hours Team B worked & & & \\
-\hline Sum of priorities & & & \\
-\hline
-\end{tabular}
-\label{advSum}
-\end{table}
+\subsection{Prioritization}
 
+
+\subsubsection{Ratio scale prioritization}
+In this section you will use reqT to calculate resulting priorities based your prepared \$100-method prioritization output. 
 \begin{framed}
-\noindent Room for answering questions 6--7 in Section~\ref{section:advRP}.
-\vspace{5.5cm}
+\noindent Do the following steps: 
+
+\begin{enumerate}
+\item Load your \verb+prio100.scala+ model into the tree in the reqT ModelTreeEditor.
+\item Enter the following code in the reqT text editor. Similar code is available in the menu item:  Templates -> Prioritization \$100 Method.
+\begin{lstlisting}
+m =>    
+val shs = m.entitiesOfType(Stakeholder)
+val rs = m.entitiesOfType(Req)
+val prioSum = shs.map(s => m/s/Prio).sum
+val benefitSum = shs.map(s => 
+  s -> (m/s).collect{ case Benefit(b) => b}.sum).toMap
+val normalized = rs.map(r => 
+  r has Benefit(
+    math.round(shs.map(s => 
+      (m/s/Prio)*(m/s/r/Benefit)*100.0 / (benefitSum(s)*prioSum)).sum).toInt)).toModel
+println("\n--- Normalized, weighted priorities:\n" + normalized)
+val sum = normalized.collect{ case Benefit(b) => b}.sum
+println("\n--- Sum: " + sum)
+println(normalized)
+normalized.toString.save("prio100-result.scala")
+m 
+\end{lstlisting}
+\item Apply the above function to the tree containing your prio100 model. Check the console for output and the contents of the output file \Verb+prio100-result.scala+.
+\item What 5 requirements have the highest total normalized priority?
+\vspace{4em}
+\item Change the priorities of the stakeholders. How did the normalized requirements benefit change?
+\vspace{3em}
+%\item Use a web browser to navigate to the reqT source code at GitHub and in the source file in \verb+src/reqT+ named \verb+ModelBasicOps.scala+ search for ''\verb+def entitiesOfType+'' and explain what that method does. \newline a) What is the result type? \vspace{1em}\newline b) Can the collection include duplicate items? (Hint: search for ''\verb+lazy val entities+'' and check if the method \verb+distinct+ is applied or not.)
+%\vspace{1em}
+\item {\it Extra if you are curious:} Check the code in step 2 above and try to match the code to the calculations in the preparations Section 2.1.2. You can insert \verb+println+ of interesting values to better understand what they contain, e.g. \verb+println(benefitSum)+. Try to find which {\verb+val+} declarations in the above code that correspond to which sums in the formulas in the preparations. 
+%\vspace{6em}
+\item Open a spread sheet program (e.g. LibreOffice Calc or MS Excel) and create the column headings Stakeholder;Feature;Prio and fill in the columns similar to this, using your own priorities:
+\includegraphics[width=0.9\textwidth]{spread-sheet.png}
+\item Use Save As ... or Export and save your spread sheet in the .csv text file format, using semicolons as column separators (the default is depending on your locale). Open the file in a text editor and check that it has semicolons as column separators. Fix it if not, e.g. using your favorite editor's search-replace feature.
+\item Select the Import -> From Prio Table menu item in the reqT gui, and import your spread sheet to the tree.
+\item Add a Prio attribute to each stakeholder in the tree, using <Ctrl+E> and <Ctrl+R>, to model that stakeholders have different importance. 
+\item Calculate the normalized total priorities using the code from step 2 above. The code might be available in your undo history, check with <Ctrl+Z> in the text editor pane of the reqT gui. Check that the calculations seems correct.
+\item Discuss with a friend how you could use the Import -> From Prio Table feature of reqT when you elicit priorities in your project. How would you prepare the data collection from stakeholders? Write down your reflections.
+\vspace{12em}
+\item {\it Extra if you are curious:} Investigate the code in the reqT source file named \verb+parse.scala+ in the reqT repo at GitHub. How could you use the \verb+load+ method in \verb+ object Tab + to import a .csv file that have another character than semicolon as column separator? 
+\end{enumerate}
+
+\end{framed}
+\newpage\clearpage
+\subsubsection{Ordinal scale prioritization}
+
+In this section you will use reqT to re-prioritize your features from the previous step, now with computer-supported ordinal scale prioritization. 
+\begin{framed}
+\noindent Do the following steps: 
+
+\begin{enumerate}
+\item Load your \verb+prio100.scala+ model into the tree in the reqT ModelTreeEditor. We will not use the values from the \$100-method -- we just need the requirement entities to generate pairwise combinations in a special text file, hence the code below starts with grabbing your Req entities. Enter the following code in the reqT text editor. Similar code is available in the menu item:  Templates -> Prioritization Ordinal Ranking.
+\begin{lstlisting}
+m => 
+val rs = m.entitiesOfType(Req)
+val pairs = scala.util.Random.shuffle(rs.combinations(2).toVector)
+val rows = pairs.map{case Vector(p1,p2) => 
+  s"${p1.id} <> ${p2.id}"}.mkString("\n")
+println(rows)
+val fileName = "prio-ord.txt"
+rows.save(fileName)
+val msg1 = s"Edit file $fileName in another editor\n"
+val msg2 = "Change <> to either > or <\nto reflect your priorities."
+val msg3 = "Press OK when you have saved your changes in a NEW file called prio.txt"
+javax.swing.JOptionPane.showMessageDialog(null,msg1+msg2+msg3)
+val edited = load("prio.txt")
+val ranked = reqT.parse.comparisonParser.parseAndSolve(edited,allowedDeviation=0)
+if (ranked!=Model()) edit(ranked) else 
+  javax.swing.JOptionPane.showMessageDialog(null,"Inconsistent. See console.")
+m
+\end{lstlisting}
+The above code invokes a constraint solver that uses comparisons as input and tries to find ranks that are consistent with all comparisons. If there are inconsistencies among the comparisons the  \verb+allowedDeviation+ parameter can be increased to tolerate a limited number of rank errors, and still calculate a solution.
+\item Apply the above function to the tree containing your prio100 model. Edit the file prio-ord.txt outside reqT using your favorite editor when the JOptionPane occurs, and save your comparisons in another file called prio.txt. Try to be consistent. What are the 3 best-ranked requirements?
+\vspace{1em}
+\item Introduce some inconsistencies among your comparisons and try again. Increase \verb+allowedDeviation+ to some integer > 0. Observe the retries printed in the console window. (When you re-run the ranking solving, it is actually enough to run the part from when the comparisonParser is invoked and onwards.) How many times did the solver try before succeeding to produce a ranking when you increase the \verb+allowedDeviation+? How ''bad'' is the produced ranking in comparison to a ''correct'' ranking?
+\vspace{4em}
+\item It is difficult to be consistent if there are many requirements. What does it mean that a prioritizer is inconsistent in terms of that person's knowledge about priorities of the domain?
+\vspace{4em}
+\item If you think $n(n-1)/2$ are too many comparisons, how would you go about reducing them?
+ \vspace{3em}
+\item {\it Extra if you are curious:} Generate $n-1$ comparisons only by changing how the \verb+pairs+ variable is generated in the code of step 1 to:
+\begin{lstlisting}
+val pairs = for (i<- 0 until rs.size) yield 
+    Vector(rs(i),rs((i+1) % rs.size)) 
+\end{lstlisting}
+\item {\it Extra if you are curious:} Read the code of the comparisonParser and try to figure out how the constraint problem is generated. \url{https://github.com/reqT/reqT/blob/3.0.x/src/reqT/parse.scala#L165} 
+\end{enumerate}
+
 \end{framed}
 
 \clearpage\newpage
-\begin{table}[ht]
-\caption{Advanced release planning {\it with} a precedence constraint.}
-\centering
-\begin{tabular}{|c |  c | c | c| p{15mm} |}
-\hline
-Feature &  Priority & \parbox[t]{14mm}{Team A \\ cost\\}  & \parbox[t]{14mm}{Team B \\ cost} & Release \\
-\hline
-\hline exportHtml &  10 & 9 & 2 & \\
-\hline exportGraphViz   & 10 & 7 & 8 & \\ 
-\hline exportTabular & 10 & 3 & 9 &\\
-\hline exportLatex & 7 & 6 & 4 &\\
-\hline exportContextDiagramSvg  & 6 & 3 & 4 &\\
-\hline syntaxColoring  & 3 & 6 & 2 &\\
-\hline autoCompletion & 4 & 3 & 3 &\\
-\hline releasePlanning    & 7 & 4 & 5 &\\
-\hline autoSave  & 9 & 6 & 7 &\\ 
-\hline
-\end{tabular}
-\label{advPlan2}
-\end{table}
 
-\begin{table}[ht]
-\caption{Sums {\it with} a precedence constraint.}
-\centering
-\begin{tabular}{| c | c | c | c |}
-\hline
-Sum & Release March & Release July & \parbox[t]{14mm}{Total \\} \\ 
-\hline
-\hline Team A's capacity & 20 & 15 & 35\\ 
-\hline Team B's capacity & 15 & 15 & 30 \\
-\hline Sum of hours Team A worked & & & \\
-\hline Sum of hours Team B worked & & & \\
-\hline Sum of priorities & & & \\
-\hline
-\end{tabular}
-\label{advSum2}
-\end{table}
-
+\subsection{Release Planning}
+\subsubsection{Simple release planning}
+In this section you will investigate use reqT to do release planning using a simple model with just a few features. 
 \begin{framed}
-\noindent Room for answering questions 8--9 in Section~\ref{section:advRP}.
-\vspace{5.5cm}
+\noindent Do the following steps: 
+
+\begin{enumerate}
+\item Enter the following code in the reqT gui text editor by choosing the menu item ''Templates -> Release planning example, simple''.
+
+\begin{lstlisting}
+val simple = Model(
+  Stakeholder("X") has (
+    Prio(1),
+    Feature("1") has Benefit(4),
+    Feature("2") has Benefit(2),
+    Feature("3") has Benefit(1)),
+  Stakeholder("Y") has (
+    Prio(2),
+    Feature("1") has Benefit(2),
+    Feature("2") has Benefit(1),
+    Feature("3") has Benefit(1)),
+  Release("A") precedes Release("B"),  
+  Resource("dev") has (
+    Feature("1") has Cost(10),
+    Feature("2") has Cost(70),
+    Feature("3") has Cost(40),
+    Release("A") has Capacity(100),
+    Release("B") has Capacity(100)),
+  Resource("test") has (
+    Feature("1") has Cost(40),
+    Feature("2") has Cost(10),
+    Feature("3") has Cost(70),
+    Release("A") has Capacity(100),
+    Release("B") has Capacity(100)),
+  Feature("3") precedes Feature("1"))
+val problem = csp.releasePlan(simple)
+val solution = problem.maximize(Release("A")/Benefit)
+val sortedSolution = solution.
+  sortByTypes(Release, Feature, Stakeholder, Resource)
+sortedSolution
+\end{lstlisting}
+\item Load the \verb+sortedSolution+ model into the tree by selecting the tree root and run the above code using <Ctrl+R>. 
+\item Investigate the solution in the tree and write down which features that have been allocated to releases A and B respectively:
+\newline Features of release A:
+\vspace{1em}
+\newline Features of release B:
+\vspace{1em}
+\item Run the code from step 1 again but now using <Ctrl+Enter> and then type this code in the reqT console:
+\begin{lstlisting}
+(problem/Constraints).foreach(println)
+\end{lstlisting}
+\item Try to find the constraint in the above printed listing that models the ordering of releases and write down the constraint here:
+\vspace{1.5em}
+\item Try to find the precedence constraint that models the precedes relation \newline\lstinline+Feature("3")  precedes  Feature("1")+ and write down the constraint here:
+\vspace{1.5em}
+\item Inspect the other constraints in the console listing from step 4 and try to relate some of them to the formulas of the definition of the release planning problem in the preparations.
+\item Change the problem in various ways, e.g. remove the precedes relation, change capacities and priorities etc. What happens if the problem has no solution?
+\vspace{1em}
+\item {\it Extra if you are curious:} Check out the code that generates the release planning constraint problem at \url{https://github.com/reqT/reqT/blob/3.0.x/src/reqT/csp.scala} and try to find some code lines that correspond to the definition of the release planning problem in the preparations. 
+
+Sometimes it takes very long to find a solution. The constraint solving process can be given a time out and other parameters to control the search. Look at this code to investigate opportunities of controlling the solution search: \url{https://github.com/reqT/reqT/blob/3.0.x/src/reqT/jacop.scala#L38} The SearchType trait is available here: \url{https://github.com/reqT/reqT/blob/3.0.x/src/reqT/constraints.scala#L88} 
+\end{enumerate}
+
 \end{framed}
 
-
-\clearpage\newpage
-\subsubsection{Constraint solving}
-
-The reqT tool includes an efficient constraint solver called JaCoP\footnote{See \url{http://jacop.eu/} and \url{http://cs.lth.se/edan01} if you want to learn more about CSP.}, enabling the formulation of prioritization and release planning problems using constraints over integer values in requirements models. After the problem has been formulated the constraint solver in reqT may automatically find a solution (if it exists), without the need for any further algorithm implementation.  
+\subsubsection{Advanced release planning}
 \begin{framed}
-\noindent 1. Try these lines in the reqT console:
+\noindent Do the following steps: 
 
-{\scriptsize\begin{verbatim}
-reqT> Var("a")          //constructs a variable named "a" that can be used in constraints
+\begin{enumerate}
+\item Enter the following code in the reqT gui text editor by choosing the menu item ''Templates -> Release planning example, advanced''.
 
-reqT> Var("a") > Var("b")     //constructs a XgtY constraint
+\begin{lstlisting}
+val m = Model(
+  Resource("TeamA") has (
+    Feature("exportHtml") has Cost(9),
+    Feature("exportGraphViz") has Cost(7),
+    Feature("exportTabular") has Cost(3),
+    Feature("exportLatex") has Cost(6),
+    Feature("exportContexDiagramSvg") has Cost(3),    
+    Feature("syntaxColoring") has Cost(6),
+    Feature("autoCompletion") has Cost(3),    
+    Feature("releasePlanning") has Cost(4),    
+    Feature("autoSave") has Cost(6),    
+    Release("March") has Capacity(20),
+    Release("July") has Capacity(15),
+    Release("later") has Capacity(1000)),
+  Resource("TeamB") has (
+    Feature("exportHtml") has Cost(2),
+    Feature("exportGraphViz") has Cost(8),
+    Feature("exportTabular") has Cost(9),
+    Feature("exportLatex") has Cost(4),
+    Feature("exportContexDiagramSvg") has Cost(4),
+    Feature("syntaxColoring") has Cost(2),    
+    Feature("autoCompletion") has Cost(3),    
+    Feature("releasePlanning") has Cost(5),    
+    Feature("autoSave") has Cost(7),    
+    Release("March") has Capacity(15),
+    Release("July") has Capacity(15),
+    Release("later") has Capacity(1000)),
+  Release("March") has Order(1),
+  Release("July") has Order(2),
+  Release("later") has Order(3),
+  Stakeholder("Ada") has (Prio(1), 
+    Feature("exportHtml") has Benefit(10),
+    Feature("exportGraphViz") has Benefit(10),
+    Feature("exportTabular") has Benefit(10),
+    Feature("exportLatex") has Benefit(7),
+    Feature("exportContexDiagramSvg") has Benefit(6),
+    Feature("syntaxColoring") has Benefit(3),    
+    Feature("releasePlanning") has Benefit(4),    
+    Feature("autoCompletion") has Benefit(7),    
+    Feature("autoSave") has Benefit(9)))
+val solution = csp.releasePlan(m).
+    maximize(Release("March")/Benefit).
+    sortByTypes(Release, Feature, Stakeholder, Resource)
+solution
+\end{lstlisting}
 
-reqT> Var("a") :: {1 to 10}   //constructs a Bounds constraint on values of Var("a")
+\item Press <Ctrl+R> to replace the tree root with the solution. Use the menu item ''Tree -> Collapse all'' and the inspect parts of the tree to see the allocated features. Press <Ctrl+R> again and investigate if the solution found is the same each time?
 
-reqT> val cs = Constraints(Var("a")>Var("b"), Var("a")::{1 to 10}, Var("b")::{5 to 15})
+\item Investigate which features were allocated to release March with the code below. Compare to your manual solution from the preparations. How close to optimal were you able to get?
 
-reqT> var m = Model(Stakeholder("s1") has cs)  //Constraints may be attributes in a model
-
-reqT> cs.satisfy   //Constraints can be satisfied if a solution exists
-
-reqT> cs.maximize(Var("b"))   //search for a solution that maximizes Var("b")
-
-reqT> m = m + (Section("solution") has m.satisfy) //m.satisfy returns solution model
-
-reqT> cs.satisfy   //By default, the solution search is initialized with random values
-      //... thus if many solutions exists, each call to satisfy may pick a new solution
-
-reqT> Req("q1")/Benefit >  Req("q2")/Benefit  //A constraint of integer attribute paths
-
-reqT> m = m ++ Model(Req("q1")/Benefit > Req("q2")/Benefit).satisfy
-                         //default bounds if no tighter bounds are given: {-1000 to 1000}
-\end{verbatim}}
-\noindent 2. Construct a constraint problem with no solution:
-\newline\newline
-\newline\newline 3. Call \verb+satisfy+ on your unsatisfiable problem. What is the output?  \newline
-\newline\newline 4. Investigate available constraints in this reqT source file at line 261: \newline {\footnotesize\url{https://github.com/reqT/reqT/blob/3.0.x/src/reqT/constraints.scala#L261}}
-\noindent 5. Construct and solve some constraint problem using the \verb+AllDifferent+ constraint. You can construct a sequence of variables by typing e.g. \verb+Vector(Var("x"), Var("y"))+, which is a subtype of \verb+Seq[Var]+. 
+\begin{lstlisting}
+m =>
+  val march = (m/Release("March") - Resource).atoms.
+    collect{
+      case Relation(e,l,Model(Benefit(i))) if i >0 => 
+        (e.id,i)
+    }
+  println(march.mkString("\n"))
+  println("SUM: " + march.collect{case (s,b) => b}.sum)
+  m  
+\end{lstlisting}
+\item Add the precedes relation (un-comment code in template) 
+\newline\lstinline+ Feature("exportHtml")   precedes Feature("exportGraphViz")+ \newline and explain how  it impacts the allocation.  
+\item Add another stakeholder (uncomment code in template) and explain how it impacts the allocation.
+\begin{lstlisting}
+Stakeholder("Ben") has (Prio(1), 
+    Feature("exportHtml") has Benefit(1),
+    Feature("exportGraphViz") has Benefit(9),
+    Feature("exportTabular") has Benefit(3),
+    Feature("exportLatex") has Benefit(4),
+    Feature("exportContexDiagramSvg") has Benefit(7),
+    Feature("syntaxColoring") has Benefit(8),    
+    Feature("releasePlanning") has Benefit(5),    
+    Feature("autoCompletion") has Benefit(10),    
+    Feature("autoSave") has Benefit(4)) 
+\end{lstlisting}   
+\item What is the lowest capacities of each resource that you can allocate in order for a solution to still exist?
+\vspace{1.5em}
+\item {\it Extra if you are curious:} Investigate the generated constraints of an 'advanced' problem with both precedence constraints and multiple stakeholders, by using the code template from step 1, uncommenting precedes and the second stakeholder, and by changing the last part of the code in step 1 to:
+\begin{lstlisting}
+val problem = csp.releasePlan(m)
+(problem/Constraints).foreach(println)
+println("Number of constraints:" + (problem/Constraints).size)
+val solution = problem.maximize(Release("March")/Benefit)
+val sortedSolution = solution.
+  sortByTypes(Release, Feature, Stakeholder, Resource)
+sortedSolution
+\end{lstlisting}   
+How many constraints were generated?
+How is the \verb+IfThenElse+ constraint used to allocate features?
+\item Discuss with a friend how you can conduct release planning in your project using constraint solving. Which requirements should be included in the release plan? Which stakeholders should be allowed to impact the decisions? How will you represent the release planing input data? Write down your reflections.
+\vspace{22em}
+\end{enumerate}
 
 \end{framed}
- 
-
-%\clearpage\newpage
-
-%\section{Lab Instructions}\label{section:instr}
-
-%\subsection{Prioritization Lab Instructions}
-
-%<TODO>
-
-%\begin{enumerate}
-%\item Load req.scala and make pairwise comparisons using reqT.comparisonParser.parse
-%\item Load prio100.scala and calculate weighted normalized priorities using template menu -> \$100 method 
-%\end{enumerate}
-
-%\subsection{Release Planning Lab Instructions}
-
-%<TODO>
-
-%\section{Conclusion and reflection}
-
-
-%<TODO>
-
 \end{document}
