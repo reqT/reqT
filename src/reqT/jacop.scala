@@ -13,7 +13,7 @@
 
 package reqT
 import language.implicitConversions
-import org.jacop.{ search => jsearch, core => jcore, constraints => jcon }
+import org.jacop.{constraints => jcon, core => jcore, search => jsearch}
 
 /**  http://www.jacop.eu/  */
 
@@ -242,7 +242,7 @@ value selection methods not yet implemented
               toJCon(c, store, jIntVar).asInstanceOf[jcon.PrimitiveConstraint]
             ).toArray
           )
-        case IndexValue(ix, vs, v) => new jcon.Element(jIntVar(ix), jVarArray(vs), jIntVar(v))
+        case IndexValue(ix, vs, v) => jcon.Element.choose(jIntVar(ix), jVarArray(vs), jIntVar(v))
         case SumEq(vs, x) => new jcon.Sum(vs.map(v => jIntVar(v)).toArray, jIntVar(x))
         case Count(vs, x, c) => new jcon.Count(vs.map(v => jIntVar(v)).toArray, jIntVar(x),  c)
         case XeqC(x, c) => new jcon.XeqC(jIntVar(x), c)
