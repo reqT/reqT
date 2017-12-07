@@ -13,7 +13,7 @@
 
 package reqT
 import language.implicitConversions
-import JaCoP. { search => jsearch, core => jcore, constraints => jcon }  
+import org.jacop.{ search => jsearch, core => jcore, constraints => jcon }
 
 /**  http://www.jacop.eu/  */
 
@@ -28,9 +28,9 @@ trait Solutions {
   def solutionMap(solutionIndex: Int): Map[Var, Int]
   def value(solutionIndex: Int, variableIndex: Int): Int
   def valueVector(v: Var): Vector[Int]
-  def coreDomains: Array[Array[JaCoP.core.Domain]] 
-  def coreVariables: Array[_ <: JaCoP.core.Var]
-  def domain(solutionIndex: Int, variableIndex: Int): JaCoP.core.Domain
+  def coreDomains: Array[Array[jcore.Domain]]
+  def coreVariables: Array[_ <: jcore.Var]
+  def domain(solutionIndex: Int, variableIndex: Int): jcore.Domain
   def solutionMatrix: Array[Array[Int]]
   def printSolutions: Unit
 }
