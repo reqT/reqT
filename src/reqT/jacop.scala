@@ -13,7 +13,7 @@
 
 package reqT
 import language.implicitConversions
-import JaCoP. { search => jsearch, core => jcore, constraints => jcon }  
+import org.jacop.{constraints => jcon, core => jcore, search => jsearch}
 
 /**  http://www.jacop.eu/  */
 
@@ -28,9 +28,9 @@ trait Solutions {
   def solutionMap(solutionIndex: Int): Map[Var, Int]
   def value(solutionIndex: Int, variableIndex: Int): Int
   def valueVector(v: Var): Vector[Int]
-  def coreDomains: Array[Array[JaCoP.core.Domain]] 
-  def coreVariables: Array[_ <: JaCoP.core.Var]
-  def domain(solutionIndex: Int, variableIndex: Int): JaCoP.core.Domain
+  def coreDomains: Array[Array[jcore.Domain]]
+  def coreVariables: Array[_ <: jcore.Var]
+  def domain(solutionIndex: Int, variableIndex: Int): jcore.Domain
   def solutionMatrix: Array[Array[Int]]
   def printSolutions: Unit
 }
@@ -242,8 +242,8 @@ value selection methods not yet implemented
               toJCon(c, store, jIntVar).asInstanceOf[jcon.PrimitiveConstraint]
             ).toArray
           )
-        case IndexValue(ix, vs, v) => new jcon.Element(jIntVar(ix), jVarArray(vs), jIntVar(v))
-        case SumEq(vs, x) => new jcon.Sum(vs.map(v => jIntVar(v)).toArray, jIntVar(x))
+        case IndexValue(ix, vs, v) => jcon.Element.choose(jIntVar(ix), jVarArray(vs), jIntVar(v))
+        case SumEq(vs, x) => new jcon.SumInt(store, vs.map(v => jIntVar(v)).toArray, "==", jIntVar(x))
         case Count(vs, x, c) => new jcon.Count(vs.map(v => jIntVar(v)).toArray, jIntVar(x),  c)
         case XeqC(x, c) => new jcon.XeqC(jIntVar(x), c)
         case XeqY(x, y) => new jcon.XeqY(jIntVar(x), jIntVar(y))
