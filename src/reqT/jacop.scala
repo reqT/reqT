@@ -243,7 +243,7 @@ value selection methods not yet implemented
             ).toArray
           )
         case IndexValue(ix, vs, v) => jcon.Element.choose(jIntVar(ix), jVarArray(vs), jIntVar(v))
-        case SumEq(vs, x) => new jcon.Sum(vs.map(v => jIntVar(v)).toArray, jIntVar(x))
+        case SumEq(vs, x) => new jcon.SumInt(store, vs.map(v => jIntVar(v)).toArray, "==", jIntVar(x))
         case Count(vs, x, c) => new jcon.Count(vs.map(v => jIntVar(v)).toArray, jIntVar(x),  c)
         case XeqC(x, c) => new jcon.XeqC(jIntVar(x), c)
         case XeqY(x, y) => new jcon.XeqY(jIntVar(x), jIntVar(y))
