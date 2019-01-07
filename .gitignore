@@ -2,12 +2,10 @@ bin/
 target/
 tmp/
 old/
-reqT.jar
+reqT*.jar
 .cache
 .git
 *.aux
 *.log
 *.out
 *.synctex.gz
-
-
