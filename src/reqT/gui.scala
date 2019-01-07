@@ -303,9 +303,10 @@ object gui { //GUI implementation
         ), default = "Editor Replace"), --- ),
       ===>("Metamodel", VK_M),
       ===>("View", VK_V,
-        --->("Toggle Fullscreen", VK_T, VK_F11, 0) { fullScreen.toggleFullScreen(frame) },
-        --->("Toggle Post-It", VK_T, VK_F12, 0) { fullScreen.toggleDecorations(frame) },
-        --->("Exit Fullscreen & Post-It", VK_T, VK_ESCAPE, 0) { fullScreen.exitFullScreen(frame) },
+        --->("Toggle Orientation", VK_O, VK_F9, 0) { doToggleOrientation() },
+        --->("Toggle Fullscreen", VK_F, VK_F11, 0) { fullScreen.toggleFullScreen(frame) },
+        --->("Toggle Post-It", VK_P, VK_F12, 0) { fullScreen.toggleDecorations(frame) },
+        --->("Exit Fullscreen & Post-It", VK_E, VK_ESCAPE, 0) { fullScreen.exitFullScreen(frame) },
         ---,
         --->("Increase window font size", VK_I, 0, 0) { doIncrGlobalFontSize() },
         --->("Decrease window font size", VK_D, 0, 0) { doDecrGlobalFontSize() },
@@ -708,6 +709,22 @@ object gui { //GUI implementation
     lazy val mediumFontSize = 20
     lazy val minFontSize = 6
 
+    var currentHorizontalDivide = 0.5
+    var currentVerticalDivide   = 0.5
+
+    def doToggleOrientation() = {
+      splitPane.getOrientation match {
+        case JSplitPane.VERTICAL_SPLIT =>
+          currentHorizontalDivide = splitPane.getDividerLocation / frame.getHeight.toDouble
+          splitPane.setOrientation(JSplitPane.HORIZONTAL_SPLIT)
+          splitPane.setDividerLocation(currentVerticalDivide)
+        case _ =>
+          currentVerticalDivide = splitPane.getDividerLocation / frame.getWidth.toDouble
+          splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT)
+          splitPane.setDividerLocation(currentHorizontalDivide)
+      }
+    }
+
     def doIncrGlobalFontSize() = {
       val s = frame.getFont.getSize
 
@@ -901,12 +918,12 @@ object gui { //GUI implementation
 
     //************* main setup and show gui
     setLayout( new GridLayout(1,0))
-    val tree = new JTree(top);
+    val tree = new JTree(top)
     //tree.setEditable(true) ??? how much work is it to enable editing directly in the tree???
-    tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+    tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
     tree.setSelectionPath(new TreePath(top))
-    tree.addTreeSelectionListener(this);
-    val treeView = new JScrollPane(tree);
+    tree.addTreeSelectionListener(this)
+    val treeView = new JScrollPane(tree)
 
 
     //BEGIN rsyntaxtextarea stuff
@@ -1014,18 +1031,18 @@ object gui { //GUI implementation
     //END rsyntaxtextarea stuff
 
 
-    val splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-    splitPane.setTopComponent(treeView);
-    splitPane.setBottomComponent(editorView);
+    //val splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT)
+    val splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT)
+    splitPane.setTopComponent(treeView)
+    splitPane.setBottomComponent(editorView)
     val (startHeight, startWidth) = (768, 1024)
-    val smallestDim = new Dimension(100, 1);
+    val smallestDim = new Dimension(100, 1)
     val prefferedDim = new Dimension(startWidth, startHeight)
-    val dividerAt = startHeight / 2
-    editorView.setMinimumSize(smallestDim);
-    treeView.setMinimumSize(smallestDim);
-    splitPane.setDividerLocation(dividerAt);
-    splitPane.setPreferredSize(prefferedDim);
-    add(splitPane);
+    editorView.setMinimumSize(smallestDim)
+    treeView.setMinimumSize(smallestDim)
+    splitPane.setDividerLocation(currentVerticalDivide)
+    splitPane.setPreferredSize(prefferedDim)
+    add(splitPane)
     setTopTo(currentModel)
     mkMenuBar(frame)
     if (currentModel != Model()) setEditorToModel(currentModel)
