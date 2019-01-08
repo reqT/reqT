@@ -6,11 +6,11 @@ This document provides instructions for a mandatory computer lab session in the 
 
 To complete this lab you should develop a requirements model using [http://reqt.org/download][reqT] including the following sections:
 
-    - **Context** including a context diagram for your course project product with some relevant interfaces to some relevant actors. The model does not have to be complete.
+  * **Context** including a context diagram for your course project product with some relevant interfaces to some relevant actors. The model does not have to be complete.
 
-    - **Features** including high-level features from your course project, each with a descriptive id. Each feature should also have a Gist attribute with a short description of the feature.
+  * **Features** including high-level features from your course project, each with a descriptive id. Each feature should also have a Gist attribute with a short description of the feature.
 
-    - **Priorities** including priorities for each feature based on the criteria: *which feature is most important to spend more elicitation effort on*.
+  * **Priorities** including priorities for each feature based on the criteria: *which feature is most important to spend more elicitation effort on*.
 
 
 ## Background
