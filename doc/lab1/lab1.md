@@ -4,9 +4,7 @@ This document provides instructions for a mandatory computer lab session in the 
 
 ## Goals
 
-To complete this lab you should fulfill these goals:
-
-* Develop a requirements model including the following sections:
+To complete this lab you should develop a requirements model using [http://reqt.org/download][reqT] including the following sections:
 
     - **Context** including a context diagram for your course project product with some relevant interfaces to some relevant actors. The model does not have to be complete.
 
