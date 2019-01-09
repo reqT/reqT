@@ -1,14 +1,14 @@
-/***     
-**                  _______        
-**                 |__   __|   reqT - a requirements engineering tool  
-**   _ __  ___   __ _ | |      (c) 2011-2014, Lund University  
+/***
+**                  _______
+**                 |__   __|   reqT - a requirements engineering tool
+**   _ __  ___   __ _ | |      (c) 2011-2014, Lund University
 **  |  __|/ _ \ / _  || |      http://reqT.org
-**  | |  |  __/| (_| || |   
-**  |_|   \___| \__  ||_|   
-**                 | |      
-**                 |_|      
-** reqT is open source, licensed under the BSD 2-clause license: 
-** http://opensource.org/licenses/bsd-license.php 
+**  | |  |  __/| (_| || |
+**  |_|   \___| \__  ||_|
+**                 | |
+**                 |_|
+** reqT is open source, licensed under the BSD 2-clause license:
+** http://opensource.org/licenses/bsd-license.php
 **************************************************************************/
 package reqT
 
@@ -30,12 +30,13 @@ object Settings {
     val attrRGB = (0,100,50) //greenish
     val relRGB = (160,0,30) //reddish
     val strRGB = (200,90,40) //orange-like
-    val entityColor    = new java.awt.Color(entRGB._1,entRGB._2,entRGB._3) 
-    val attributeColor = new java.awt.Color(attrRGB._1,attrRGB._2,attrRGB._3) 
-    val relationColor  = new java.awt.Color(relRGB._1, relRGB._2, relRGB._3)  
-    val stringColor    = new java.awt.Color(strRGB._1, strRGB._2, strRGB._3) 
-    var editorFonts    = List("Consolas", "Liberation Mono", "DejaVu Sans Mono", "Monospace")
+    private def col(t: (Int, Int, Int)) = new java.awt.Color(t._1, t._2, t._3)
+    val entityColor    = col(entRGB)
+    val attributeColor = col(attrRGB)
+    val relationColor  = col(relRGB)
+    val stringColor    = col(strRGB)
+    val scalaReservedWordColor = col((0,0,125))
+    var editorFonts    = List("DejaVu Sans Mono", "Liberation Mono", "Consolas",  "Monospace")
     var fontSize       = 14
   }
 }
-
