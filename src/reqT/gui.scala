@@ -713,13 +713,14 @@ object gui { //GUI implementation
     var currentVerticalDivide   = 0.5
 
     def doToggleOrientation() = {
+      def middle = splitPane.getDividerLocation + splitPane.getDividerSize / 2.0
       splitPane.getOrientation match {
         case JSplitPane.VERTICAL_SPLIT =>
-          currentHorizontalDivide = splitPane.getDividerLocation / frame.getHeight.toDouble
+          currentHorizontalDivide = middle / splitPane.getHeight.toDouble
           splitPane.setOrientation(JSplitPane.HORIZONTAL_SPLIT)
           splitPane.setDividerLocation(currentVerticalDivide)
         case _ =>
-          currentVerticalDivide = splitPane.getDividerLocation / frame.getWidth.toDouble
+          currentVerticalDivide = middle / splitPane.getWidth.toDouble
           splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT)
           splitPane.setDividerLocation(currentHorizontalDivide)
       }
@@ -1040,7 +1041,7 @@ object gui { //GUI implementation
     val prefferedDim = new Dimension(startWidth, startHeight)
     editorView.setMinimumSize(smallestDim)
     treeView.setMinimumSize(smallestDim)
-    splitPane.setDividerLocation(currentVerticalDivide)
+    splitPane.setDividerLocation(startHeight / 2)
     splitPane.setPreferredSize(prefferedDim)
     add(splitPane)
     setTopTo(currentModel)
