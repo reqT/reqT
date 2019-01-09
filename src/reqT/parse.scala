@@ -1,16 +1,16 @@
 package reqT
 package parse
 
-case class Parsed[T](opt: Option[T], errMsg: String = "") 
+case class Parsed[T](opt: Option[T], errMsg: String = "")
 object Parsed {
   def apply[T](result: T): Parsed[T] = new Parsed(Some(result))
 }
 
 object node {
   def apply(myType: String, body: String): Parsed[Node] = {
-    if (entityFromString.isDefinedAt(myType)) 
+    if (entityFromString.isDefinedAt(myType))
       Parsed(entityFromString(myType)(body.trimUnquote))
-    else if (attributeFromString.isDefinedAt(myType)) 
+    else if (attributeFromString.isDefinedAt(myType))
       Parsed(attributeFromString(myType)(body.trimUnquote))
     else Parsed(None, s"ERROR: node type unknown:  $myType($body)")
   }
@@ -28,19 +28,19 @@ object headPath {
     val ps = pathString.split("/").toSeq.map(_.split("[.]").toSeq)
     ???
   }
-  
+
 }
 
 case class Tab(
-    headings: Vector[String], 
-    table: Vector[Vector[String]], 
+    headings: Vector[String],
+    table: Vector[Vector[String]],
     separator: String = ";")
 extends Serializable {
   def apply(row: Int) = table(row)
   def apply(row: Int, col: Int) = table(row)(col)
   def mapRow[T](f: Vector[String] => T): Vector[T] = table.map(f)
   def map[T](f: String => T): Vector[Vector[T]] = table.map(_.map(f))
-  def toString(separator: String) = 
+  def toString(separator: String) =
     headings.mkString("",separator,"\n") +
     table.map(_.mkString(separator)).mkString("\n")
   override def toString = toString(separator)
@@ -54,20 +54,20 @@ object Tab {
     lines
   }
   def load(fileName: String, separator: String = ";", hasHeadingRow: Boolean = true): Tab = {
-    val lines: Vector[String] = loadLines(fileName) 
-    val headings: Vector[String] = 
-      if (hasHeadingRow) lines.headOption.getOrElse("").split(separator).toVector
+    val lines: Vector[String] = loadLines(fileName)
+    val headings: Vector[String] =
+      if (hasHeadingRow) lines.headOption.getOrElse("").split(separator).map(_.trim).toVector
       else Vector()
     val h = if (hasHeadingRow) 1 else 0
     val table: Vector[Vector[String]] =
-      lines.drop(h).map(_.split(separator).toVector).toVector
+      lines.drop(h).map(_.split(separator).map(_.trim).toVector).toVector
     Tab(headings, table, separator)
   }
 }
 
 object loadTab {
 
-  def prioVoting(fileName: String): Model = 
+  def prioVoting(fileName: String): Model =
     Tab.load(fileName).mapRow {
       case Vector(s,f,prio) => Stakeholder(s) has(Feature(f) has Prio(prio.toInt))
     }.toModel
@@ -98,7 +98,7 @@ object Textified {
   val isAttribute = metamodel.attributeTypes.map(_.toString).toSet
   def isSpecial(s: String) = s.startsWith("#") || s.startsWith("*")
   val relationTypeFromString: Map[String, RelationType] = metamodel.relationTypes.map(rt => (rt.toString, rt)).toMap
-  def split(s: String): Seq[String] = s.split("\n").filterNot(_ == "").filterNot(_.trim.startsWith("//"))  
+  def split(s: String): Seq[String] = s.split("\n").filterNot(_ == "").filterNot(_.trim.startsWith("//"))
   def indentSize(s: String): Int = s.takeWhile(c => c == ' ' ).size
   def firstWord(s: String): String = s.trim.takeWhile( _ != ' ')
   def isEntityOrAttributeStart(s: String) = { val fw = firstWord(s); isEntity(fw) || isAttribute(fw) || isSpecial(fw) }
@@ -124,11 +124,11 @@ object Textified {
   def parseElem(tuple: (Int,String,String,String)): (Int, Elem) = tuple match {
     case (indent, first, mid, last) =>
       val elem = first match {
-        case _ if isEntity(first) => Relation(Head(reqT.entityFromString(first)(mid), relationTypeFromString(last)), Model()) 
+        case _ if isEntity(first) => Relation(Head(reqT.entityFromString(first)(mid), relationTypeFromString(last)), Model())
         case _ if isAttribute(first) => reqT.attributeFromString(first)(merge(mid, last).trim)
-        case _ => reqT.makeAttribute[Text](merge(first, mid, last))        
+        case _ => reqT.makeAttribute[Text](merge(first, mid, last))
       }
-      (indent, elem)      
+      (indent, elem)
   }
   def indentElemSeq(s: String): List[(Int, Elem)] = split(s).map(parts).map(replaceSectionItem).map(placeRelation).map(parseElem).toList
   def recursiveMerge(levelElems: List[(Int, Elem)]): List[(Int, Elem)] = {
@@ -146,32 +146,32 @@ object Textified {
       case le::Nil =>levelElems
       case le1::le2::Nil if isGettingDeeper(le1, le2) => insertSub(le1,le2)::Nil
       case le1::le2::Nil => levelElems
-      case le1::le2::le3::rest if isGettingDeeper(le1, le2) && isSameOrGettingShallower(le2,le3) => 
-        recursiveMerge(insertSub(le1, le2)::le3::rest)  
-      case le1::le2::le3::rest if isGettingDeeper(le1, le2) && isGettingDeeper(le2, le3) => 
+      case le1::le2::le3::rest if isGettingDeeper(le1, le2) && isSameOrGettingShallower(le2,le3) =>
+        recursiveMerge(insertSub(le1, le2)::le3::rest)
+      case le1::le2::le3::rest if isGettingDeeper(le1, le2) && isGettingDeeper(le2, le3) =>
         val tail = recursiveMerge(le2::le3::rest)
         tail match {
           case Nil => Nil
-          case x::Nil => insertSub(le1, x)::Nil 
+          case x::Nil => insertSub(le1, x)::Nil
           case x::xs => recursiveMerge(insertSub(le1, x) :: xs)
         }
-      case le1::rest => le1::recursiveMerge(rest)     
+      case le1::rest => le1::recursiveMerge(rest)
     }
   }
-  def apply(text: String): Model = 
+  def apply(text: String): Model =
     recursiveMerge(indentElemSeq(text)).map{ case (_, elem) => elem } .toModel
 }
 
 object comparisonParser {
   def parseAndSolve(
-        input: String, //a string with rows like 'id1 < id2'             
+        input: String, //a string with rows like 'id1 < id2'
         allowedDeviation: Int = 0,  //default don't tolerate inconsistencies
         entType: EntityType = Req,
-        attrType: AttributeType[Int] = Value,        
+        attrType: AttributeType[Int] = Value,
         verbose: Boolean = false
   ): Model = {
     assert(allowedDeviation >= 0, "allowedDeviation >= 0")
-    def elem(id: String): AttrRef[Int] = entType(id)/attrType  
+    def elem(id: String): AttrRef[Int] = entType(id)/attrType
     val xs = input.split("\n").toVector
     var e = 0
     var ids = Vector.empty[String]
@@ -186,7 +186,7 @@ object comparisonParser {
           case '<' => XplusYlteqZ(elem(x),Var(s"-error$e"),elem(y))
           case '>' => XplusYlteqZ(elem(y),Var(s"-error$e"),elem(x))
         }
-      }     
+      }
     }
     ids = ids.distinct
     if (ids.size > 0 && comparisons.size > 0) {
@@ -204,7 +204,7 @@ object comparisonParser {
         if (verbose) println(s"--- Parse comparison list result: $result\n--- Generated model:\n$model")
         if (result.conclusion == SolutionFound) model
         else {
-          println("*** Warning: Inconsistency found.") 
+          println("*** Warning: Inconsistency found.")
           if (deviation < untilDev) {
             println(s"Attempting new solution search with relaxed deviation: ${deviation+1}")
             solve(deviation+1, untilDev)
@@ -214,13 +214,12 @@ object comparisonParser {
             println("Run with parse with param 'allowedDeviation' greater than 0.")
             Model()
           }
-        } 
+        }
       }
       if (verbose) {
         println(s"Parsed comparisons:\n$comparisons")
-        solve(0,allowedDeviation) 
+        solve(0,allowedDeviation)
       } else solve(0,allowedDeviation) - Constraints
     } else throw new Error("Parsing comparison list. Input must be lines with 'id1 < id2' etc.")
   }
 }
-  
