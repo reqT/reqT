@@ -199,6 +199,52 @@ object killSwingVerbosity {
     }
   }
 
+  trait AntiAliasing extends JComponent {
+    // THIS mixin DOES NOT SEEM TO HAVE ANY EFFECT ON UGGLY FONTS ???
+   override def paintComponent(g: Graphics): Unit = {
+       val g2 = g.asInstanceOf[Graphics2D]
+       g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+         RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+       g2.setRenderingHint(RenderingHints.KEY_RENDERING,
+         RenderingHints.VALUE_RENDER_QUALITY)
+       super.paintComponent(g2)
+   }
+  }
+
+  /** Return a sequence of available look and feel options. */
+  def installedLookAndFeels: Vector[String] =
+    javax.swing.UIManager.getInstalledLookAndFeels.toVector.map(_.getClassName)
+
+  /** Find a look and feel with a name including `partOfName`. */
+  def findLookAndFeel(partOfName: String): Option[String] =
+    installedLookAndFeels.find(_.toLowerCase contains partOfName)
+
+  /** Test if the current operating system name includes `partOfName`. */
+  def isOS(partOfName: String): Boolean =
+    scala.sys.props("os.name").toLowerCase.contains(partOfName.toLowerCase)
+
+  private var isSwingInit = false
+
+  /** Init the Swing GUI toolkit and set platform-specific look and feel.*/
+  def swingInit(): Unit = if (!isSwingInit) {
+    setPlatformSpecificLookAndFeel()
+    isSwingInit = true
+  }
+
+  def setLookAndFeel(laf: String): Unit  = javax.swing.UIManager.setLookAndFeel(laf)
+
+  def setPlatformSpecificLookAndFeel(): Unit = {
+    if (isOS("linux")) findLookAndFeel("gtk").foreach(setLookAndFeel)
+    else if (isOS("win")) findLookAndFeel("win").foreach(setLookAndFeel)
+    else if (isOS("mac")) findLookAndFeel("apple").foreach(setLookAndFeel)
+    else javax.swing.UIManager.setLookAndFeel(
+      javax.swing.UIManager.getSystemLookAndFeelClassName()
+    )
+  }
+
+  def isOk(frame: java.awt.Component, msg: String): Boolean =
+    JOptionPane.showConfirmDialog(frame, msg, "Confirm", JOptionPane.YES_NO_OPTION) == 0
+
 } //END killSwingVerbosity
 
 object gui { //GUI implementation
@@ -223,32 +269,57 @@ object gui { //GUI implementation
         --->("Load text file to editor ...", VK_L, VK_L, CTRL) { doLoadTextToEditor() },
         ---,
         --->("Save tree", VK_S, VK_S, CTRL){ doSave() },
-        --->("Save tree as ...", VK_A, 0, 0){ doSaveAs() },
+        --->("Save tree as ...", VK_A, VK_S, CTRL+SHIFT){ doSaveAs() },
         --->("Save text in editor to file ...", VK_S, VK_S, ALT) { doSaveEditorTextToFile() },
         ---,
-        --->("Close window without saving", VK_C, 0, 0){ doClose() },
-        --->("Exit reqT without saving", VK_E, 0, 0){ java.lang.System.exit(0) }),
+        --->("Close window without saving", VK_C, VK_W, CTRL){ if (isOk(getFrame, "Close window without saving?")) doClose() },
+        --->("Exit reqT without saving", VK_E, VK_Q, CTRL){ if (isOk(getFrame, "Exit reqT without saving?")) java.lang.System.exit(0) }
+      ),
       ===>("Tree", VK_T,
-        --->("Replace selected node with scala model from editor", VK_R, VK_R, CTRL) { doUpdate(isScala=true) },
-        --->("Replace selected node with textified model from editor", VK_E, VK_R, CTRL+SHIFT) { doUpdate(isScala=false) },
-        --->("Replace selected node by applying function [Model => Model] in editor", VK_A, VK_R, CTRL+SHIFT+ALT) { doTransform() },
+        --->("Edit node as text model", VK_E, VK_E, CTRL) { doEnterTextified() },
+        --->("Edit node as scala model", VK_S, VK_E, CTRL+SHIFT) { doEnterScala() },
         ---,
-        --->("Insert scala model from editor after selected node", VK_I, VK_I, CTRL) { doInsert(isScala=true) },
-        --->("Insert textified model from editor after selected node", VK_N, VK_I, CTRL+SHIFT) { doInsert(isScala=false) },
+        --->("Replace node with text model in editor", VK_R, VK_R, CTRL) { doUpdate(isScala = false) },
+        --->("Replace node with scala model in editor", VK_P, VK_R, CTRL+SHIFT) { doUpdate(isScala = true) },
+        --->("Apply lambda in editor to node", VK_A, VK_R, CTRL+SHIFT+ALT) { doTransform() },
+        ---,
+        --->("Insert text model from editor after node", VK_I, VK_I, CTRL) { doInsert(isScala = false) },
+        --->("Insert scala model from editor after node", VK_N, VK_I, CTRL+SHIFT) { doInsert(isScala = true) },
         ---,
         --->("Collapse all", VK_C, VK_LEFT, ALT) { doCollapseAll() },
         --->("Expand all", VK_X, VK_RIGHT, ALT) { doExpandAll() },
         ---,
+        --->("Focus editor", VK_F, VK_TAB, 0) {  },
         --->("Delete selected node", VK_D, VK_DELETE, 0) { doDelete() },
         --->("Refresh and delete duplicate elements", VK_F, VK_DELETE, CTRL) { doRefresh() },
-        --->("Revert Tree to initial model", VK_V, 0, 0) { doUndoAll() }),
+        --->("Revert Tree to initial model", VK_V, 0, 0) { doUndoAll() }
+      ),
       ===>("Editor", VK_E,
-        --->("Edit selected tree node in Editor as scala model", VK_E, VK_E, CTRL) { doEnterScala() },
-        --->("Edit selected tree node in Editor as textified model", VK_T, VK_E, CTRL+SHIFT) { doEnterTextified() },
-        --->("Toggle between textified and scala model", VK_O, VK_T, CTRL) { doTextify() },
+        --->("Toggle between text and scala model", VK_O, VK_T, CTRL) { doTextify() },
         ---,
         --->("Run Script => Console", VK_R, VK_ENTER, CTRL) { doRunToConsole() },
-        --->("{Evaluate} => Editor", VK_E, VK_ENTER, ALT) { doRunToEditor() }),
+        --->("{Evaluate} => Editor", VK_E, VK_ENTER, ALT) { doRunToEditor() },
+        ---,
+        --->("Focus tree", VK_F, VK_TAB, CTRL) { tree.requestFocus },
+      ),
+      ===>("View", VK_V,
+        --->("Toggle Orientation", VK_O, VK_F9, 0) { doToggleOrientation() },
+        --->("Toggle Fullscreen", VK_F, VK_F11, 0) { fullScreen.toggleFullScreen(frame) },
+        --->("Toggle Post-It", VK_P, VK_F12, 0) { fullScreen.toggleDecorations(frame) },
+        --->("Exit Fullscreen & Post-It", VK_E, VK_ESCAPE, 0) { fullScreen.exitFullScreen(frame) },
+        ---,
+        --->("Increase window font size", VK_I, VK_PLUS, ALT+SHIFT) { doIncrGlobalFontSize() },
+        --->("Decrease window font size", VK_D, VK_MINUS, ALT+SHIFT) { doDecrGlobalFontSize() },
+        ---,
+        ===>("Editor Font Size", VK_F,
+          --->("Increase editor font size", VK_I, VK_PLUS, CTRL)  { doIncrEditorFontSize(); updateEditor() },
+          --->("Decrease editor font size", VK_D, VK_MINUS, CTRL) { doDecrEditorFontSize(); updateEditor() },
+          --->("Set big editor font size", VK_D, VK_PLUS, ALT) { setEditorFont(bigFontSize); updateEditor() },
+          --->("Set minimal font size", VK_D, VK_MINUS, ALT) { setEditorFont(minFontSize); updateEditor() }),
+        ===>("Editor syntax coloring", VK_F,
+          --->("reqT and Scala coloring", VK_R, VK_1, ALT)  { setReqTScalaSyntaxColoring() },
+          --->("Scala coloring", VK_S, VK_2, ALT) { setScalaSyntaxColoring() },
+          --->("No coloring", VK_S, VK_0, ALT) { setNoSyntaxColoring() })),
       ===>("Export", VK_X,
         MenuRadioGroup("exportToggle", Map[String, () => Unit](
           "From tree root" -> ( () => { exportModel = rootModel _ } ),
@@ -302,24 +373,6 @@ object gui { //GUI implementation
           "Editor Insert"  -> ( () => { templateProcessor = editor.replaceSelection _ } )
         ), default = "Editor Replace"), --- ),
       ===>("Metamodel", VK_M),
-      ===>("View", VK_V,
-        --->("Toggle Orientation", VK_O, VK_F9, 0) { doToggleOrientation() },
-        --->("Toggle Fullscreen", VK_F, VK_F11, 0) { fullScreen.toggleFullScreen(frame) },
-        --->("Toggle Post-It", VK_P, VK_F12, 0) { fullScreen.toggleDecorations(frame) },
-        --->("Exit Fullscreen & Post-It", VK_E, VK_ESCAPE, 0) { fullScreen.exitFullScreen(frame) },
-        ---,
-        --->("Increase window font size", VK_I, 0, 0) { doIncrGlobalFontSize() },
-        --->("Decrease window font size", VK_D, 0, 0) { doDecrGlobalFontSize() },
-        ---,
-        ===>("Editor Font Size", VK_F,
-          --->("Increase editor font size", VK_I, VK_PLUS, CTRL)  { doIncrEditorFontSize(); updateEditor() },
-          --->("Decrease editor font size", VK_D, VK_MINUS, CTRL) { doDecrEditorFontSize(); updateEditor() },
-          --->("Set big editor font size", VK_D, VK_PLUS, ALT) { setEditorFont(bigFontSize); updateEditor() },
-          --->("Set minimal font size", VK_D, VK_MINUS, ALT) { setEditorFont(minFontSize); updateEditor() }),
-        ===>("Editor syntax coloring", VK_F,
-          --->("reqT and Scala coloring", VK_R, VK_1, ALT)  { setReqTScalaSyntaxColoring() },
-          --->("Scala coloring", VK_S, VK_2, ALT) { setScalaSyntaxColoring() },
-          --->("No coloring", VK_S, VK_0, ALT) { setNoSyntaxColoring() })),
       ===>("Help", VK_H,
         --->("Shortcuts to Editor", VK_E, 0, 0) { doHelpShortcuts() },
         --->("Metamodel to Editor", VK_M, 0, 0) { doHelpMetamodel() },
@@ -330,6 +383,7 @@ object gui { //GUI implementation
     val windowType = "ModelTreeEditor"
 
     val frame = new JFrame(windowTitle)
+    def getFrame = frame
 
     lazy val menuMap: Map[String, JComponent] = initAppMenus.installTo(frame)
 
@@ -592,14 +646,18 @@ object gui { //GUI implementation
       case None => msgNothingSelected
     }
 
-    def isEditorStartsWithModel: Boolean = editor.getText.trim.startsWith("Model")
+    def isEditorStartsWithModel: Boolean = editor.getText.trim.startsWith("Model(")
 
     def interpretModelAndUpdate(isReplace: Boolean, isScala: Boolean) {
       val mopt: Option[Model] =
         if (isScala)
           repl.interpretModel(editor.getText)
-        else Try{ Some(parse.Textified(editor.getText)) }
-               .recover { case e => println(s"Error when parsing textified model: $e"); None} .get
+        else {
+          if (isEditorStartsWithModel) repl.interpretModel(editor.getText)
+          else
+            Try{ Some(parse.Textified(editor.getText)) }
+              .recover { case e => println(s"Error when parsing text model: $e"); None} .get
+        }
       mopt match {
         case Some(model) => updateSelection(model, isReplace)
         case None =>
@@ -615,7 +673,7 @@ object gui { //GUI implementation
       }
     }
 
-    def interpretScript() {
+    def interpretScript() {  // TODO ??? not used
 
     }
 
@@ -918,13 +976,14 @@ object gui { //GUI implementation
 
 
     //************* main setup and show gui
+    //swingInit()
     setLayout( new GridLayout(1,0))
     val tree = new JTree(top)
     //tree.setEditable(true) ??? how much work is it to enable editing directly in the tree???
     tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
     tree.setSelectionPath(new TreePath(top))
     tree.addTreeSelectionListener(this)
-    val treeView = new JScrollPane(tree)
+    val treeView = new JScrollPane(tree) with AntiAliasing
 
 
     //BEGIN rsyntaxtextarea stuff
@@ -942,9 +1001,10 @@ object gui { //GUI implementation
       editor.setFont(fPlain)
       val fBold = new Font(fn, Font.BOLD, fontSize)
       editor.getSyntaxScheme.setStyle(ENTITY_TOKEN, new Style(Settings.gui.entityColor, Style.DEFAULT_BACKGROUND, fBold))
-      editor.getSyntaxScheme.setStyle(ATTR_TOKEN,   new Style(Settings.gui.attributeColor))
+      editor.getSyntaxScheme.setStyle(ATTR_TOKEN,   new Style(Settings.gui.attributeColor, Style.DEFAULT_BACKGROUND, fBold))
       editor.getSyntaxScheme.setStyle(REL_TOKEN,    new Style(Settings.gui.relationColor, Style.DEFAULT_BACKGROUND, fBold))
       editor.getSyntaxScheme.setStyle(TokenTypes.LITERAL_STRING_DOUBLE_QUOTE, new Style(Settings.gui.stringColor))
+      editor.getSyntaxScheme.setStyle(TokenTypes.RESERVED_WORD, new Style(Settings.gui.scalaReservedWordColor, Style.DEFAULT_BACKGROUND, fBold)) // more descrete coloring???
       val lnf = editorView.getGutter.getLineNumberFont
       val lnfNew = new Font(lnf.getFamily, lnf.getStyle, fontSize - 2)
       editorView.getGutter.setLineNumberFont(lnfNew)
@@ -963,10 +1023,10 @@ object gui { //GUI implementation
     //  editor.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
     // //editor.setContentType("text/html");
     //   val editorView = new JScrollPane(editor);
-    val editor = new RSyntaxTextArea(10, 80)
+    val editor = new RSyntaxTextArea(10, 80) with AntiAliasing
     val atmf = TokenMakerFactory.getDefaultInstance().asInstanceOf[AbstractTokenMakerFactory];
     atmf.putMapping("text/reqT", "org.fife.ui.rsyntaxtextarea.modes.ReqTTokenMaker");
-    editor.setCodeFoldingEnabled(false)
+    editor.setCodeFoldingEnabled(false)  
     editor.setAntiAliasingEnabled(true)
     editor.setAutoIndentEnabled(true)
     editor.setBracketMatchingEnabled(true)
@@ -1033,7 +1093,7 @@ object gui { //GUI implementation
 
 
     //val splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT)
-    val splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT)
+    val splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT)
     splitPane.setTopComponent(treeView)
     splitPane.setBottomComponent(editorView)
     val (startHeight, startWidth) = (768, 1024)
@@ -1041,7 +1101,6 @@ object gui { //GUI implementation
     val prefferedDim = new Dimension(startWidth, startHeight)
     editorView.setMinimumSize(smallestDim)
     treeView.setMinimumSize(smallestDim)
-    splitPane.setDividerLocation(startHeight / 2)
     splitPane.setPreferredSize(prefferedDim)
     add(splitPane)
     setTopTo(currentModel)
@@ -1055,6 +1114,7 @@ object gui { //GUI implementation
     setEditorFont(Settings.gui.fontSize + fontDeltaByScreenWidth,
       Settings.gui.editorFonts.headOption.getOrElse(Font.MONOSPACED))
     frame.setVisible(true)
+    splitPane.setDividerLocation(0.5)  //(startWidth / 2)
 
   }
 
