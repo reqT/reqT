@@ -22,7 +22,7 @@ trait GlobalConstants { //mixed in by package object reqT
 **                 |__   __|
 **   _ __  ___   __ _ | |      reqT - a requirements engineering tool
 **  |  __|/ _ \ / _  || |      http://reqT.org
-**  | |  |  __/| (_| || |      (c) 2010-2017, Lund University
+**  | |  |  __/| (_| || |      (c) 2010-2019, Lund University
 **  |_|   \___| \__  ||_|      Open Source BSD-2-clause license
 **                 | |
 **                 |_|
