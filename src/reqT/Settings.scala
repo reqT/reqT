@@ -22,6 +22,7 @@ object Settings {
   var defaultModelToTable: export.StringExporter = export.toPathTable
   var defaultModelToGraph: export.StringExporter = export.toGraphVizNested
   var isGeneratingHtmlRawModel = false
+  var isMarkdownSymbolsInToText = false
   var defaultTitle: String = "untitled"
   var defaultModelFileName: String = defaultTitle+".reqt"
   var warningPrinter: String => Unit = (msg) => println(s"WARNING: $msg")
