@@ -46,6 +46,8 @@ trait GuiLaunchers {  //mixed into package object
     gui(m, f)
   }
   def edit(m: Model, fileName: String) = gui(m, fileName)
+  def currentTree: Model = gui.currentTreeRoot.getOrElse(Model())
+  def currentTreeNode: Model = gui.currentTreeNode.getOrElse(Model())
 }
 
 object killSwingVerbosity {
@@ -68,6 +70,11 @@ object killSwingVerbosity {
   }
   def onAltEnter(act: => Unit): KeyListener = onKeyPressed { e =>
     if (e.getKeyCode == KeyEvent.VK_ENTER && e.getModifiers == ActionEvent.ALT_MASK) act
+  }
+
+  def onFocusGained(act: => Unit): FocusListener = new FocusListener {
+    def focusGained(e: FocusEvent): Unit = { act }
+    def focusLost(e: FocusEvent): Unit = { }
   }
 
   // def chooseFileAndSaveString(data: String, c: AWTComponent, fname: String = "", text: String = "Save"): Unit = {
@@ -252,6 +259,22 @@ object gui { //GUI implementation
   import KeyEvent._
   import ActionEvent.{CTRL_MASK => CTRL, ALT_MASK => ALT, SHIFT_MASK => SHIFT}
 
+  private var _editors: Vector[ModelTreeEditor] = Vector.empty
+
+  private var _lastFocused: Option[ModelTreeEditor] = None
+
+  def editors: Vector[ModelTreeEditor] = _editors
+
+  def currentModelTreeEditor: Option[ModelTreeEditor] = _lastFocused
+
+  def currentTreeRoot: Option[Model] = currentModelTreeEditor.map(_.rootModel)
+
+  def currentTreeNode: Option[Model] =
+    currentModelTreeEditor.flatMap(mte => mte.selectedOpt.map(n => mte.createModelFromTreeNode(n)))
+
+  def currentEditorText: Option[String] =
+    currentModelTreeEditor.map(_.editor.getText )
+
   def apply(m: Model = Model(), fileName: String = Settings.defaultModelFileName): ModelTreeEditor =
     if (!repl.isServerMode) new ModelTreeEditor(m, fileName) else {
       println("ERROR: reqT is runnig in server mode - gui not available!")
@@ -261,6 +284,8 @@ object gui { //GUI implementation
   class ModelTreeEditor(
     val initModel: Model, private var fileName: String) extends JPanel
       with TreeSelectionListener  {
+
+    _editors +:= this  // append this instance to gui._editors
 
     val initAppMenus =  AppMenus(
       ===>("File", VK_F,
@@ -366,7 +391,11 @@ object gui { //GUI implementation
         --->("From Scala Model .scala ...", VK_S, 0, 0) { doOpenScala(importProcessor) },
         --->("From Prio Table .csv (Stakeholder; Feature; Prio) ...", VK_P, 0, 0) {
           doImportStakeholderFeaturePrioTable(importProcessor) },
-        --->("From Path Table .csv (Path; Elem) ...", VK_A, 0, 0) { doImportPathTable(importProcessor) }),
+        --->("From Path Table .csv (Path; Elem) ...", VK_A, 0, 0) { doImportPathTable(importProcessor) }
+      ),
+      ===>("Tools", VK_O,
+        --->("Prioritize entities of selected tree node", VK_A, 0, 0) { msgTODO }
+      ),
       ===>("Templates", VK_P,
         MenuRadioGroup("templateToggle", Map[String, () => Unit](
           "Editor Replace" -> ( () => { templateProcessor = editor.setText _ } ),
@@ -399,13 +428,14 @@ object gui { //GUI implementation
 
     def updateFileName(s: String) {fileName = s.newFileType(".reqt"); updateTitle()}
 
-    override def toString = s"ModelTreeEditor($fileName)"
+    override def toString = s"ModelTreeEditor($fileName)@${this.hashCode}"
 
     case object ModelRoot { override val toString = "Model" }
 
     val top = new DefaultMutableTreeNode(ModelRoot)
 
-    private var currentModel: Model = initModel
+    private var _currentModel: Model = initModel
+      //use def rootModel to get current tree as model
 
     lazy  val editorShortcutsModel = menuMap
       .map{ case (t, jmi) => (jmi.asInstanceOf[javax.swing.JMenuItem].getAccelerator, t)}
@@ -555,14 +585,14 @@ object gui { //GUI implementation
           treeModel.nodeStructureChanged(top)
           tree.setSelectionPath(topPath)
         }
-        currentModel = createModelFromTreeNode(top)
+        _currentModel = createModelFromTreeNode(top)
         tree.requestFocus
       }
     }
 
     def revertToInitModel() {
-      currentModel = initModel
-      setTopTo(currentModel)
+      _currentModel = initModel
+      setTopTo(_currentModel)
     }
 
     def reconstructModel() { setTopTo(rootModel)}
@@ -648,7 +678,7 @@ object gui { //GUI implementation
 
     def isEditorStartsWithModel: Boolean = editor.getText.trim.startsWith("Model(")
 
-    def interpretModelAndUpdate(isReplace: Boolean, isScala: Boolean) {
+    def interpretModelAndUpdate(isReplace: Boolean, isScala: Boolean): Unit = {
       val mopt: Option[Model] =
         if (isScala)
           repl.interpretModel(editor.getText)
@@ -666,20 +696,22 @@ object gui { //GUI implementation
       }
     }
 
-    def interpretTransformerAndUpdate() {
+    def interpretTransformerAndUpdate(): Unit = {
       repl.interpretTransformer(editor.getText) match {
         case Some(f) => transformSelection(f)
         case None => msgParseTransformerError
       }
     }
 
-    def interpretScript() {  // TODO ??? not used
+    def interpretScript(): Unit = {  // TODO ??? not used
 
     }
 
-    def setEditorToModel(m: Model) { editor.setText(export.toScalaCompact(m)) }
+    def setEditorToModel(m: Model): Unit = {
+      editor.setText(export.toScalaCompact(m))
+    }
 
-    def setEditorToSelection(isToScala: Boolean = true) {
+    def setEditorToSelection(isToScala: Boolean = true): Unit = {
       val currentSelection: TreePath = tree.getSelectionPath();
       //println("setEditorToSelection, currentSelection = " +  currentSelection)
       if (currentSelection != null) {
@@ -940,16 +972,16 @@ object gui { //GUI implementation
 
     }
 
-    val defaultGlobalFontSize = 12 + fontDeltaByScreenWidth
+    val defaultGlobalFontSize = 10 + fontDeltaByScreenHeight
 
-    def fontDeltaByScreenWidth =
-      Toolkit.getDefaultToolkit.getScreenSize.getWidth match {
-        case n if n <= 1440 => 0
-        case n if n <= 1680 => 2
-        case n if n <= 1920 => 4
-        case n if n <= 2560 => 6
-        case n if n <= 2880 => 8
-        case n if n <= 3840 => 10
+    def fontDeltaByScreenHeight =
+      Toolkit.getDefaultToolkit.getScreenSize.getHeight match {
+        case n if n <= 600 => 0
+        case n if n <= 720 => 1
+        case n if n <= 800 => 2
+        case n if n <= 1024 => 6
+        case n if n <= 1080 => 7
+        case n if n <= 1440 => 8
         case _         => 10
       }
 
@@ -983,6 +1015,7 @@ object gui { //GUI implementation
     tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
     tree.setSelectionPath(new TreePath(top))
     tree.addTreeSelectionListener(this)
+    tree.addFocusListener(onFocusGained{ gui._lastFocused = Some(this) })
     val treeView = new JScrollPane(tree) with AntiAliasing
 
 
@@ -1026,7 +1059,7 @@ object gui { //GUI implementation
     val editor = new RSyntaxTextArea(10, 80) with AntiAliasing
     val atmf = TokenMakerFactory.getDefaultInstance().asInstanceOf[AbstractTokenMakerFactory];
     atmf.putMapping("text/reqT", "org.fife.ui.rsyntaxtextarea.modes.ReqTTokenMaker");
-    editor.setCodeFoldingEnabled(false)  
+    editor.setCodeFoldingEnabled(false)
     editor.setAntiAliasingEnabled(true)
     editor.setAutoIndentEnabled(true)
     editor.setBracketMatchingEnabled(true)
@@ -1061,6 +1094,7 @@ object gui { //GUI implementation
 
     editor.addKeyListener(onCtrlEnter { doRunToConsole()} )  //needed as accelerator CTRL+ENTER never fires WHY????
     //editor.addKeyListener(onAltEnter { doRunToEditor()} )//not needed as accelerator already fires as expected
+    editor.addFocusListener(onFocusGained{gui._lastFocused = Some(this)})
 
     val editorView = new RTextScrollPane(editor)
     def updateEditor() = editorView.updateUI
@@ -1103,15 +1137,15 @@ object gui { //GUI implementation
     treeView.setMinimumSize(smallestDim)
     splitPane.setPreferredSize(prefferedDim)
     add(splitPane)
-    setTopTo(currentModel)
+    setTopTo(_currentModel)
     mkMenuBar(frame)
-    if (currentModel != Model()) setEditorToModel(currentModel)
+    if (_currentModel != Model()) setEditorToModel(_currentModel)
 
     frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
     frame.add(this)
     frame.pack()
     setGlobalSwingFontSize(defaultGlobalFontSize)
-    setEditorFont(Settings.gui.fontSize + fontDeltaByScreenWidth,
+    setEditorFont(Settings.gui.fontSize + fontDeltaByScreenHeight,
       Settings.gui.editorFonts.headOption.getOrElse(Font.MONOSPACED))
     frame.setVisible(true)
     splitPane.setDividerLocation(0.5)  //(startWidth / 2)

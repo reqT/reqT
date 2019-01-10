@@ -36,7 +36,7 @@ object Settings {
     val relationColor  = col(relRGB)
     val stringColor    = col(strRGB)
     val scalaReservedWordColor = col((0,0,125))
-    var editorFonts    = List("DejaVu Sans Mono", "Liberation Mono", "Consolas",  "Monospace")
+    var editorFonts    = List("DejaVu Sans Mono", "Consolas", "Liberation Mono", "Monospace")
     var fontSize       = 14
   }
 }
