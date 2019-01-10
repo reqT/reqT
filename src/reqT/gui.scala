@@ -207,7 +207,6 @@ object killSwingVerbosity {
   }
 
   trait AntiAliasing extends JComponent {
-    // THIS mixin DOES NOT SEEM TO HAVE ANY EFFECT ON UGGLY FONTS ???
    override def paintComponent(g: Graphics): Unit = {
        val g2 = g.asInstanceOf[Graphics2D]
        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
@@ -394,7 +393,40 @@ object gui { //GUI implementation
         --->("From Path Table .csv (Path; Elem) ...", VK_A, 0, 0) { doImportPathTable(importProcessor) }
       ),
       ===>("Tools", VK_O,
-        --->("Prioritize entities of selected tree node", VK_A, 0, 0) { msgTODO }
+        --->("Prioritization: compare entities", VK_P, 0, 0) {
+          val ids: Vector[String] =
+            if (isRootSelected) rootModel.tipIds else selectedModel.topIds.drop(1)
+          val n = ids.map(_.size).max
+          val show = ids.combinations(2).map{ case Vector(s1, s2) =>
+            s"${s1.padTo(n, ' ')} <> $s2"
+          }.mkString("\n")
+          editor.setText(
+            if (show.nonEmpty)
+              s"//change each <> to either < or > and then select Tools->Analyze ordinal\n$show"
+            else "// There are no children of selected tree node"
+          )
+        },
+        --->("Prioritization: analyze comparisons", VK_A, 0, 0) {
+          val solution = parse.comparisonParser.analyze(editor.getText, rootModel)
+          def valueOrder(r: Relation): String = r.tail.attributes.headOption.map(_.value.toString).getOrElse("")
+          val sorted = solution.toVector.collect {
+              case r: Relation => r
+            }.sortBy(valueOrder).reverse.toModel
+          val prioModel = Model(Section("Priorities") has sorted)
+          editor.setText(prioModel.toString)
+        },
+
+        ---,
+        --->("Show non-unique types of entity ids", VK_U, 0, 0){
+          val idmap: Map[String, Set[Entity]] = selectedModel.nonUniqueId
+          val n = idmap.keys.map(_.size).max
+          val show: String = idmap.map{ case (k,v) =>
+              val id = k.padTo(n,' ')
+              val types = v.map(_.myType).mkString(",")
+              s"""$id -> $types"""
+          }.mkString("\n")
+          editor.setText(if (show.nonEmpty) show else "// All ids have unique type")
+        }
       ),
       ===>("Templates", VK_P,
         MenuRadioGroup("templateToggle", Map[String, () => Unit](
@@ -466,6 +498,7 @@ object gui { //GUI implementation
       case Some(current) => createModelFromTreeNode(current)
       case None => Model()
     }
+    def isRootSelected(): Boolean = selectedOpt.map(_ == top).getOrElse(false)
 
     def valueChanged(e: TreeSelectionEvent) { } //Required by TreeSelectionListener
 
