@@ -973,7 +973,10 @@ object gui { //GUI implementation
     def doImportPathTable(updateModel: Model => Unit = setTopTo _) = { msgTODO; ??? }
 
     def doHelpAbout()        = setEditorToModel(editorAboutModel)
-    def doHelpMetamodel()    = setEditorToModel(reqT.meta.model)
+    def doHelpMetamodel()    = setEditorToModel(
+      reqT.meta.model
+        .transformLeafEntity{ case x => x has Spec(x.myType.?) }
+    )
     def doHelpShortcuts()       = setEditorToModel(editorShortcutsModel)
     def doClose()            = frame.dispatchEvent( new WindowEvent(frame, WindowEvent.WINDOW_CLOSING))
 
