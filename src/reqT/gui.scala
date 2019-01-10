@@ -408,10 +408,10 @@ object gui { //GUI implementation
         },
         --->("Prioritization: analyze comparisons", VK_A, 0, 0) {
           val solution = parse.comparisonParser.analyze(editor.getText, rootModel)
-          def valueOrder(r: Relation): String = r.tail.attributes.headOption.map(_.value.toString).getOrElse("")
+          def prioOrder(r: Relation): String = r.tail.attributes.headOption.map(_.value.toString).getOrElse("")
           val sorted = solution.toVector.collect {
               case r: Relation => r
-            }.sortBy(valueOrder).reverse.toModel
+            }.sortBy(prioOrder).reverse.toModel
           val prioModel = Model(Section("Priorities") has sorted)
           editor.setText(prioModel.toString)
         },
