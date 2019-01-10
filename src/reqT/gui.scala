@@ -417,15 +417,18 @@ object gui { //GUI implementation
         },
 
         ---,
-        --->("Show non-unique types of entity ids", VK_U, 0, 0){
-          val idmap: Map[String, Set[Entity]] = selectedModel.nonUniqueId
-          val n = idmap.keys.map(_.size).max
-          val show: String = idmap.map{ case (k,v) =>
+        --->("Show non-unique types of entity ids in tree", VK_U, 0, 0){
+          val idMap: Map[String, Set[Entity]] = rootModel.nonUniqueId
+          val show = if (idMap.nonEmpty) {
+            val n = idMap.keys.map(_.size).max
+            idMap.map{ case (k,v) =>
               val id = k.padTo(n,' ')
               val types = v.map(_.myType).mkString(",")
               s"""$id -> $types"""
-          }.mkString("\n")
-          editor.setText(if (show.nonEmpty) show else "// All ids have unique type")
+            }.mkString("\n")
+          } else ""
+          if (show.nonEmpty) editor.setText(show)
+          else msgInfo("Every id has a unique entity type!")
         }
       ),
       ===>("Templates", VK_P,
@@ -756,6 +759,8 @@ object gui { //GUI implementation
         editor.requestFocus
       } else msgNothingSelected
     }
+
+    def msgInfo(msg: String) =  JOptionPane.showMessageDialog(frame, msg, "Information", JOptionPane.INFORMATION_MESSAGE)
 
     def msgError(msg: String) =  JOptionPane.showMessageDialog(frame, msg, "ERROR", JOptionPane.ERROR_MESSAGE)
 
