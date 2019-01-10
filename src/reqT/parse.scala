@@ -163,6 +163,15 @@ object Textified {
 }
 
 object comparisonParser {
+  def analyze(comparisons: String, refModel: Model): Model = {
+    val m = parseAndSolve(
+      input = comparisons,
+      allowedDeviation = comparisons.length,
+      attrType = Prio
+    )
+    m.transformEntityTypesByIdIn(refModel)
+  }
+
   def parseAndSolve(
         input: String, //a string with rows like 'id1 < id2'
         allowedDeviation: Int = 0,  //default don't tolerate inconsistencies
