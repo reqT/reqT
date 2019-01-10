@@ -975,7 +975,7 @@ object gui { //GUI implementation
     def doHelpAbout()        = setEditorToModel(editorAboutModel)
     def doHelpMetamodel()    = setEditorToModel(
       reqT.meta.model
-        .transformLeafEntity{ case x => x has Spec(x.myType.?) }
+        .transformLeafEntity{ case x => x has Spec(x.id.?) }
     )
     def doHelpShortcuts()       = setEditorToModel(editorShortcutsModel)
     def doClose()            = frame.dispatchEvent( new WindowEvent(frame, WindowEvent.WINDOW_CLOSING))
