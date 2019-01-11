@@ -15,7 +15,7 @@ package reqT
 
 trait GlobalConstants { //mixed in by package object reqT
   val reqT_VERSION = "3.1.3"
-  val reqT_BUILD = 563
+  val reqT_BUILD = 564
   val SCALA_VERSION = scala.util.Properties.versionString
   lazy val PREAMBLE = """
 **                  _______
@@ -35,7 +35,7 @@ http://reqT.org/license
 ReqT is open source under the BSD 2-clause license:
 http://opensource.org/licenses/bsd-license.php
 
-Copyright (c) 2010-2017 Lund University, Sweden.
+Copyright (c) 2010-2019 Lund University, Sweden.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
