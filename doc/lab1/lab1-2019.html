@@ -7,8 +7,6 @@
 <li><p>A <strong>features</strong> section with at least 7 high-level features from your course project, each with a descriptive id. Each feature should also have a Gist attribute with a short description of the feature.</p></li>
 <li><p>A <strong>priorities</strong> section with priorities for each feature based on the criteria: <em>which feature is most important to spend more elicitation effort on</em>.</p></li>
 </ul>
-<h2 id="background">Background</h2>
-<p>About requirements models, example entities, attributes and relations etc.</p>
 <h2 id="task-0-mandatory-preparations">Task 0: Mandatory Preparations</h2>
 <ul>
 <li><p>Make sure you can run reqT in terminal and launch the swing desktop gui using the <code>edit</code> command.</p>
@@ -18,8 +16,13 @@
 </ul></li>
 <li><p>Study the slides from the reqT intro at lecture L3.</p></li>
 <li><p>Read chapter TODO of the reqt tutorial here TODO</p></li>
+<li><p>Draw an initial version of a context diagram for your project using some drawing tool, e.g. <em>LibreOffice Draw</em> and save it as <code>.png</code> or <code>.jpg</code> or <code>.svg</code></p></li>
 </ul>
 <h2 id="task-1-create-a-context-section">Task 1: Create a <code>context</code> section</h2>
+<ul>
+<li><p>Launch reqT and open the swing desktop gui editor with the <code>edit</code> command in terminal.</p></li>
+<li><p>Create a textual model of your project context diagram from your lab preparatins in Task 0 above. Use entities in a similar way as in the example below.</p></li>
+</ul>
 <pre><code>Section context
   Product hotelApp interactsWith
     User receptionist
@@ -47,4 +50,5 @@
 Hello Wörld!
   <span class="kw">&lt;/body&gt;</span>
 <span class="kw">&lt;/html&gt;</span></code></pre></div></li>
+<li><p>Include an <code>Image</code> attribute in your reqt model similar to <code>Image(&quot;http://adress.to.your/page/ctx.jpg&quot;)</code> and reqT will then insert a link to your diagram in your html code when you export to html.</p></li>
 </ul>
