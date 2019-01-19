@@ -25,10 +25,12 @@ Model(
 )
 //Context diagram simple
 Model(
-  Product("hotelApp") interactsWith (User("receptionist"), User("guest"), System("accounting")),
-  User("guest") interactsWith Product("hotelApp"),
-  User("receptionist") interactsWith Product("hotelApp"),
-  System("telephony") interactsWith Product("hotelApp"))
+  Section("context") has (
+    Product("hotelApp") interactsWith (
+      User("receptionist"),
+      User("guest"),
+      System("accounting"),
+      System("telephony"))))
 //Context diagram with interface
 Model(
   Product("HotelApp") has (
