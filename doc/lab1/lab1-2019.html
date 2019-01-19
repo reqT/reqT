@@ -10,8 +10,16 @@
 <h2 id="background">Background</h2>
 <p>About requirements models, example entities, attributes and relations etc.</p>
 <h2 id="task-0-mandatory-preparations">Task 0: Mandatory Preparations</h2>
-<p>On how to download and start reqT and some basics about the editor.</p>
-<h2 id="task-1-create-a-context-section">Task 1: Create a Context section</h2>
+<ul>
+<li><p>Make sure you can run reqT in terminal and launch the swing desktop gui using the <code>edit</code> command.</p>
+<ul>
+<li><p>How to start reqT on the student Linux computers in the E building at LTH: <a href="http://cs.lth.se/krav/reqt" class="uri">http://cs.lth.se/krav/reqt</a></p></li>
+<li><p>How to download and run reqT on your own machine: <a href="http://cs.lth.se/krav/reqt">http://reqt.org/download.html</a></p></li>
+</ul></li>
+<li><p>Study the slides from the reqT intro at lecture L3.</p></li>
+<li><p>Read chapter TODO of the reqt tutorial here TODO</p></li>
+</ul>
+<h2 id="task-1-create-a-context-section">Task 1: Create a <code>context</code> section</h2>
 <pre><code>Section Context
   Product hotelApp interactsWith
     User receptionist
@@ -23,8 +31,8 @@
     Product hotelApp
   System telephony interactsWith
     Product hotelApp   </code></pre>
-<h2 id="task-2-create-a-features-section">Task 2: Create a Features section</h2>
-<h2 id="task-3-prioritize-features">Task 3: Prioritize Features</h2>
+<h2 id="task-2-create-a-features-section">Task 2: Create a <code>features</code> section</h2>
+<h2 id="task-3-prioritize-your-features">Task 3: Prioritize your features</h2>
 <h2 id="task-4-publish-your-model-on-the-web">Task 4: Publish your model on the web</h2>
 <ul>
 <li><p>Do this optional task if you still have time left at the lab session.</p></li>
@@ -33,7 +41,7 @@
 <li><p>You can generate html and save a web page of your model in the tree using the menu <code>Export -&gt; To Html</code>.</p></li>
 <li><p>You can generate html and save a web page of your model in the tree using this command in the <code>reqT</code> terminal: <code>currentTree.toHtml.save(&quot;index.html&quot;)</code></p></li>
 </ul></li>
-<li><p>If you have an account on the student computers in the E building at LTH, you can publish web pages if you create a folder called <code>public_html</code>. You can put <code>.html</code> files there for example called <code>index.html</code> inside that directory. Everyone can then access your page by surfing to <code>http://users.student.lth.se/user/index.html</code> where <code>user</code> is replaced with your login StilID. Here is a minimal <code>index.html</code> page:</p>
+<li><p>If you have an account on the student Linux computers in the E building at LTH, you can publish web pages if you create a folder called <code>public_html</code>. You can put <code>.html</code> files there for example called <code>index.html</code> inside that directory. Everyone can then access your page by surfing to <code>http://users.student.lth.se/user/index.html</code> where <code>user</code> is replaced with your login StilID. Here is a minimal <code>index.html</code> page:</p>
 <div class="sourceCode"><pre class="sourceCode html"><code class="sourceCode html"><span class="dt">&lt;!DOCTYPE </span>html<span class="dt">&gt;</span>
 <span class="kw">&lt;html&gt;</span>
   <span class="kw">&lt;head&gt;</span>
