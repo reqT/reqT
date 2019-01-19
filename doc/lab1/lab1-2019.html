@@ -1,0 +1,27 @@
+<h1 id="lab-1-context-features-and-priorities">LAB 1: Context, Features and Priorities</h1>
+<p>This document provides instructions for a mandatory computer lab session in the course ETSN15 &quot;Requirements Engineering&quot; given at Lund University.</p>
+<h2 id="goals">Goals</h2>
+<p>To complete this lab you should develop a requirements model using <a href="http://reqt.org/download.html">reqT</a>. Your requirements model should be based on your course project and it should include the following sections:</p>
+<ul>
+<li><p>A <strong>Context</strong> section including a draft product context of your course project with some relevant interfaces to some relevant actors. The model does not have to be complete.</p></li>
+<li><p>A <strong>Features</strong> section with at least 7 high-level features from your course project, each with a descriptive id. Each feature should also have a Gist attribute with a short description of the feature.</p></li>
+<li><p>A <strong>Priorities</strong> section with priorities for each feature based on the criteria: <em>which feature is most important to spend more elicitation effort on</em>.</p></li>
+</ul>
+<h2 id="background">Background</h2>
+<p>About requirements models, example entities, attributes and relations etc.</p>
+<h2 id="task-0-mandatory-preparations">Task 0: Mandatory Preparations</h2>
+<p>On how to download and start reqT and some basics about the editor.</p>
+<h2 id="task-1-create-a-context-section">Task 1: Create a Context section</h2>
+<pre><code>Section Context
+  Product hotelApp interactsWith
+    User receptionist
+    User guest
+    System accounting
+  User guest interactsWith
+    Product hotelApp
+  User receptionist interactsWith
+    Product hotelApp
+  System telephony interactsWith
+    Product hotelApp   </code></pre>
+<h2 id="create-a-features-section">Create a Features section</h2>
+<h2 id="prioritize-features">Prioritize Features</h2>
