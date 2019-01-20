@@ -151,7 +151,7 @@ val normalized = rs.map(r =>
 println("\n--- Normalized, weighted priorities:\n" + normalized)
 val sum = normalized.collect{ case Benefit(b) => b}.sum
 println("\n--- Sum: " + sum)
-normalized
+Model(Section("weightedBenefits") has normalized)
 //Prioritization Ordinal Ranking
 val m = Vector("autoSave", "exportGraph", "exportTable", "modelTemplates", "releasePlanning", "syntaxColoring", "autoCompletion").map(Req(_)).toModel
   /* to use your tree model, replace above line with m => */
