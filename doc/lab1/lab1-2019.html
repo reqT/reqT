@@ -76,9 +76,10 @@
 <li><p>Were there any circular contradictions among your comparisons?</p></li>
 </ul></li>
 </ul></li>
-<li><p>Ratio-scale prioritization: the 100 dollar method</p>
+<li><p>Ratio-scale prioritization: the 100-dollar method</p>
 <ul>
-<li>TODO</li>
+<li><p>Choose the template <em>Prioritization 100$ method</em> from the <strong>Templates</strong> menu. Study the code and try to figure out what it does. Explain how the benefits values of each stakeholder are weighted together to normalized total benefit values. See what happens when you select the Tree root and press <code>Ctrl+Sift-I</code> or choose <em>Insert Scala model from Editor</em> from the <strong>Tree</strong> menu.</p></li>
+<li><p>Adapt the script from the previous step to include fake estimations of benefits of features from your project from the viewpoint of two different stakeholders. Then insert a section with weighted benefits into your tree.</p></li>
 </ul></li>
 </ul>
 <h2 id="task-4-optional-publish-your-model-on-the-web">Task 4 (Optional): Publish your model on the web</h2>
@@ -89,17 +90,19 @@
 <li><p>You can generate html and save a web page of your model in the <strong>Tree</strong> pane using the menu <strong>Export</strong>: <em>To Html</em>.</p></li>
 <li><p>You can generate html and save a web page of your model in the tree using this command in the <code>reqT</code> terminal: <code>currentTree.toHtml.save(&quot;index.html&quot;)</code></p></li>
 </ul></li>
-<li><p>If you have an account on the student Linux computers in the E building at LTH, you can publish web pages if you create a folder called <code>public_html</code>. You can put <code>.html</code> files there for example called <code>index.html</code> inside that directory. Everyone can then access your page by surfing to <code>http://users.student.lth.se/user/index.html</code> where <code>user</code> is replaced with your login StilID. Here is a minimal <code>index.html</code> page:</p>
+<li><p>If you have an account on the student Linux computers in the E building at LTH, you can publish web pages if you create a folder called <code>public_html</code>. You can put <code>.html</code> files there for example called <code>index.html</code> inside that directory. Everyone can then access your page by surfing to <code>http://users.student.lth.se/user/index.html</code> where <code>user</code> is replaced with your login StilID. Here is a minimal <code>index.html</code> page:</p></li>
+</ul>
 <div class="sourceCode"><pre class="sourceCode html"><code class="sourceCode html"><span class="dt">&lt;!DOCTYPE </span>html<span class="dt">&gt;</span>
 <span class="kw">&lt;html&gt;</span>
   <span class="kw">&lt;head&gt;</span>
-<span class="kw">&lt;meta</span><span class="ot"> charset=</span><span class="st">&quot;utf-8&quot;</span><span class="kw">&gt;</span>
-<span class="kw">&lt;title&gt;</span>Test<span class="kw">&lt;/title&gt;</span>
+    <span class="kw">&lt;meta</span><span class="ot"> charset=</span><span class="st">&quot;utf-8&quot;</span><span class="kw">&gt;</span>
+    <span class="kw">&lt;title&gt;</span>Test<span class="kw">&lt;/title&gt;</span>
   <span class="kw">&lt;/head&gt;</span>
   <span class="kw">&lt;body&gt;</span>
-Hello Wörld!
+    Hello Wörld!
   <span class="kw">&lt;/body&gt;</span>
-<span class="kw">&lt;/html&gt;</span></code></pre></div></li>
+<span class="kw">&lt;/html&gt;</span></code></pre></div>
+<ul>
 <li><p>Include an <code>Image</code> attribute in your reqt model similar to <code>Image(&quot;http://adress.to.your/page/ctx.jpg&quot;)</code> with a link to your context diagram drawing from Task 1, and reqT will then insert that link in your html code when you export to html.</p></li>
 <li><p>Publish your context diagram image together with your illustrated model on the web. Your image file should be placed next to your html file in the <code>public_html</code> folder.</p></li>
 </ul>
