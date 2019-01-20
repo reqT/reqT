@@ -9,7 +9,7 @@
 </ul>
 <h2 id="task-0-mandatory-preparations">Task 0: Mandatory Preparations</h2>
 <ul>
-<li><p>Draw an initial version of a context diagram for your project using some drawing tool, e.g. <em>LibreOffice Draw</em> and save it as <code>.png</code> or <code>.jpg</code> or <code>.svg</code></p></li>
+<li><p>Draw an initial version of a context diagram for your project using some drawing tool, e.g. <em>LibreOffice Draw</em>, or take a photo of a hand drawing, and save it as <code>.png</code> or <code>.jpg</code> or <code>.svg</code></p></li>
 <li><p>Select around 5 to 10 high-level features from your project and for each feature create a short description of one line of text.</p></li>
 <li><p>Name at least 2 stakeholders from your project.</p></li>
 <li><p>Make sure you can run reqT in terminal and launch the swing desktop gui using the <code>edit</code> command.</p>
@@ -19,7 +19,7 @@
 </ul></li>
 <li><p>Study the slides of lectures L1-L4, especially those describing requirements modeling and reqT.</p></li>
 <li><p>Read chapter ??? of the reqt tutorial here TODO</p></li>
-<li><p>At the begining of the lab session contact a supervisor and be prepared to:</p>
+<li><p>At the begining of the lab session be prepared to:</p>
 <ul>
 <li><p>Show your context diagram and a list of your feature with one-line descriptions and stakeholders.</p></li>
 <li><p>Answer these questions:</p>
@@ -32,7 +32,7 @@
 <h2 id="task-1-create-a-context-section">Task 1: Create a <code>context</code> section</h2>
 <ul>
 <li><p>Launch reqT and open the swing desktop gui editor with the <code>edit</code> command in terminal.</p></li>
-<li><p>Create a textual model of your project context diagram from your lab preparatins in Task 0 above. Use entities in a similar way as in the example below.</p></li>
+<li><p>Create a textual model of your project context diagram from your lab preparatins in Task 0 above, using reqT. Use entities in a similar way as in the example below.</p></li>
 </ul>
 <pre><code>Section context
   Product hotelApp interactsWith
@@ -40,14 +40,53 @@
     User guest
     System accounting
     System telephony  </code></pre>
+<ul>
+<li><p>Save your reqT model.</p></li>
+<li><p>Export your reqT model as html.</p></li>
+<li><p>(Optional.) If you are on a machine with Graphviz installed (e.g. LTH computers in the E building), generate a GraphViz diagram.</p></li>
+<li><p>(Optional.) Study the template <em>Context diagram with interfaces</em> in the <strong>Templates</strong> menu and make a more detailed context diagram of your project including a model of interfaces with input/output data.</p></li>
+</ul>
 <h2 id="task-2-create-a-features-section">Task 2: Create a <code>features</code> section</h2>
+<ul>
+<li>Add a <code>Section(&quot;features&quot;)</code> to your model and include your feature according to the following example. Each feature should have a short identifier (id) that use camel case capitalization. Place your feature description in a <code>Gist</code> attribute. If you type <code>Gist ?</code> in the reqT terminal you can see an explanation/definition of what a <code>Gist</code> attribute is.</li>
+</ul>
+<pre><code>Section features
+  Feature checkIn
+    Gist Guests can be checked in upon arrival.
+  Feature checkOut
+    Gist Guests can be checked out after paying and leaving.
+  Feature groupCheckIn
+    Gist Many guest arriving simultaneously can be checked in as a group.
+  Feature roomSearch
+    Gist Receptionists can find available rooms based on search criteria.
+  Feature webBooking
+    Gist A guest can book a future stay via a web interface.</code></pre>
 <h2 id="task-3-prioritize-your-features">Task 3: Prioritize your features</h2>
+<ul>
+<li><p>Ordinal-scale prioritization: parwise comparison</p>
+<ul>
+<li><p>Select your features section in the Tree pane and choose <em>Prioritize: compare entities</em> in the <strong>Tools</strong> menu. You should get a list of id pairs for all combinations of sub-entities of the features section loaded into the editor.</p></li>
+<li><p>Change all diamonds <code>&lt;&gt;</code> to either <code>&lt;</code> or <code>&gt;</code> depending on your prioritization of the features according to this crietria for each pair of features A and B:</p>
+<ul>
+<li><em>A is more/less important to spend more elicitation effort on than B</em>.</li>
+</ul></li>
+<li><p>Choose <em>Proiritize: analyse comparisions</em> in the <strong>Tools</strong> menu. You should get a model with priorities calculated as a solution to a constraint problem based on your compariosions. Write down reflections on the result:</p>
+<ul>
+<li><p>Are the priorities reflecting your gut feeling of &quot;importance&quot; according to the prioritization criteria?</p></li>
+<li><p>Were there any circular contradictions among your comparisons?</p></li>
+</ul></li>
+</ul></li>
+<li><p>Ratio-scale prioritization: the 100 dollar method</p>
+<ul>
+<li>TODO</li>
+</ul></li>
+</ul>
 <h2 id="task-4-optional-publish-your-model-on-the-web">Task 4 (Optional): Publish your model on the web</h2>
 <ul>
 <li><p>Do this optional task if you still have time left at the lab session.</p></li>
 <li><p>Save your model as a web page.</p>
 <ul>
-<li><p>You can generate html and save a web page of your model in the tree using the menu <code>Export -&gt; To Html</code>.</p></li>
+<li><p>You can generate html and save a web page of your model in the <strong>Tree</strong> pane using the menu <strong>Export</strong>: <em>To Html</em>.</p></li>
 <li><p>You can generate html and save a web page of your model in the tree using this command in the <code>reqT</code> terminal: <code>currentTree.toHtml.save(&quot;index.html&quot;)</code></p></li>
 </ul></li>
 <li><p>If you have an account on the student Linux computers in the E building at LTH, you can publish web pages if you create a folder called <code>public_html</code>. You can put <code>.html</code> files there for example called <code>index.html</code> inside that directory. Everyone can then access your page by surfing to <code>http://users.student.lth.se/user/index.html</code> where <code>user</code> is replaced with your login StilID. Here is a minimal <code>index.html</code> page:</p>
@@ -61,5 +100,10 @@
 Hello Wörld!
   <span class="kw">&lt;/body&gt;</span>
 <span class="kw">&lt;/html&gt;</span></code></pre></div></li>
-<li><p>Include an <code>Image</code> attribute in your reqt model similar to <code>Image(&quot;http://adress.to.your/page/ctx.jpg&quot;)</code> and reqT will then insert a link to your diagram in your html code when you export to html.</p></li>
+<li><p>Include an <code>Image</code> attribute in your reqt model similar to <code>Image(&quot;http://adress.to.your/page/ctx.jpg&quot;)</code> with a link to your context diagram drawing from Task 1, and reqT will then insert that link in your html code when you export to html.</p></li>
+<li><p>Publish your context diagram image together with your illustrated model on the web. Your image file should be placed next to your html file in the <code>public_html</code> folder.</p></li>
+</ul>
+<h2 id="task-5-optional-dig-deeper-into-reqt">Task 5 (Optional): Dig deeper into reqT</h2>
+<ul>
+<li>Follow the old, more technically focused, lab instructions from 2017 and learn more about how you can manipulate and analyze reqT models using scripts in Scala. The old lab instructions are available here: <a href="https://github.com/reqT/reqT/blob/3.0.x/doc/lab1/lab1.pdf" class="uri">https://github.com/reqT/reqT/blob/3.0.x/doc/lab1/lab1.pdf</a></li>
 </ul>
