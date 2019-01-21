@@ -70,15 +70,16 @@
 <ul>
 <li><em>A is more/less important to spend more elicitation effort on than B</em>.</li>
 </ul></li>
-<li><p>Choose <em>&quot;Proiritize: analyse comparisions&quot;</em> in the <strong>Tools</strong> menu. You should get a model with priorities calculated as a solution to a constraint problem based on your compariosions. Write down reflections on the result:</p>
+<li><p>Choose <em>&quot;Proiritize: analyse comparisions&quot;</em> in the <strong>Tools</strong> menu. You should get a model with priorities calculated as a solution to a constraint problem based on your comparisons. A higher prio value means higher priority (more important). Write down reflections on the result:</p>
 <ul>
 <li><p>Are the priorities reflecting your gut feeling of &quot;importance&quot; according to the prioritization criteria?</p></li>
-<li><p>Were there any circular contradictions among your comparisons?</p></li>
+<li><p>Were there any circular contradictions among your comparisons? This is shown as a warning in the reqT terminal.</p></li>
+<li><p>Circular contradictions make the constraint problem unsolvable, but the constraint solver in reqT does not give up; instead a <em>relaxed deviation</em> <code>d</code> is allowed starting with <code>d = 1</code> and the retrying with <code>d += 1</code> until a solution can be found. This means that each priority rank <code>r</code> is representing any value within an error margin range of <code>[r - d, r + d]</code>. Given the minimum deviation needed for a solution to exist with your contradictory comparisons: find some features in your resulting priority rank order that could have be swapped and still fulfill the constraints if the deviation <code>d</code> is allowed.</p></li>
 </ul></li>
 </ul></li>
 <li><p>Ratio-scale prioritization: the 100-dollar method</p>
 <ul>
-<li><p>Choose the template <em>&quot;Prioritization 100$ method&quot;</em> from the <strong>Templates</strong> menu. Study the code and try to figure out what it does. Explain how the benefits values of each stakeholder are weighted together to normalized total benefit values. See what happens when you select the Tree root and press <code>Ctrl+Sift-I</code> or choose <em>&quot;Insert Scala model from Editor&quot;</em> from the <strong>Tree</strong> menu.</p></li>
+<li><p>Choose the template <em>&quot;Prioritization 100$ method&quot;</em> from the <strong>Templates</strong> menu. Study the code and try to figure out what it does. Explain how the benefits values of each stakeholder are weighted together to normalized total benefit values. See what happens when you select the Tree root and press <code>Ctrl+Shift-I</code> or choose <em>&quot;Insert Scala model from Editor after node&quot;</em> from the <strong>Tree</strong> menu.</p></li>
 <li><p>Adapt the script from the previous step to include fake estimations of benefits of features from your project from the viewpoint of two different stakeholders. Then insert a section with weighted benefits into your tree.</p></li>
 </ul></li>
 </ul>
