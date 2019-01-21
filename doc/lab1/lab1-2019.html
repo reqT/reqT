@@ -74,7 +74,7 @@
 <ul>
 <li><p>Are the priorities reflecting your gut feeling of &quot;importance&quot; according to the prioritization criteria?</p></li>
 <li><p>Were there any circular contradictions among your comparisons? This is shown as a warning in the reqT terminal.</p></li>
-<li><p>Circular contradictions make the constraint problem unsolvable, but the constraint solver in reqT does not give up; instead a <em>relaxed deviation</em> <code>d</code> is allowed starting with <code>d = 1</code> and the retrying with <code>d += 1</code> until a solution can be found. This means that each priority rank <code>r</code> is representing any value within an error margin range of <code>[r - d, r + d]</code>. Given the minimum deviation needed for a solution to exist with your contradictory comparisons: find some features in your resulting priority rank order that could have be swapped and still fulfill the constraints if the deviation <code>d</code> is allowed.</p></li>
+<li><p>Circular contradictions make the constraint problem unsolvable, but the constraint solver in reqT does not give up; instead a <em>relaxed deviation</em> <code>d</code> is allowed starting with <code>d = 1</code> and the retrying with <code>d += 1</code> until a solution can be found. This means that each priority rank <code>r</code> is representing any value within an error margin <code>[r - d, r + d]</code>. Given the minimum deviation needed for a solution to exist with your contradictory comparisons: find some features in your resulting priority rank order that could have be swapped and still fulfill the constraints if the deviation <code>d</code> is allowed.</p></li>
 </ul></li>
 </ul></li>
 <li><p>Ratio-scale prioritization: the 100-dollar method</p>
