@@ -396,7 +396,7 @@ object gui { //GUI implementation
         --->("Prioritization: compare entities", VK_P, 0, 0) {
           val ids: Vector[String] =
             if (isRootSelected) rootModel.tipIds else selectedModel.topIds.drop(1)
-          val n = ids.map(_.size).max
+          val n = if (ids.nonEmpty) ids.map(_.size).max else 0 // TODO: errmsg dialog???
           val show = ids.combinations(2).map{ case Vector(s1, s2) =>
             s"${s1.padTo(n, ' ')} <> $s2"
           }.mkString("\n")
