@@ -395,7 +395,13 @@ object gui { //GUI implementation
       ===>("Tools", VK_O,
         --->("Prioritization: compare entities", VK_P, 0, 0) {
           val ids: Vector[String] =
-            if (isRootSelected) rootModel.tipIds else selectedModel.topIds.drop(1)
+            if (isRootSelected) {
+              val ids: Vector[String] = rootModel.tipIds
+              // take care of special case with only one entity on top
+              if (ids.length == 1)
+                rootModel.tails.headOption.map(_.tipIds).getOrElse(ids)
+              else ids
+            } else selectedModel.topIds.drop(1) // only include children of selected
           val n = if (ids.nonEmpty) ids.map(_.size).max else 0 // TODO: errmsg dialog???
           val show = ids.combinations(2).map{ case Vector(s1, s2) =>
             s"${s1.padTo(n, ' ')} <> $s2"
@@ -403,17 +409,26 @@ object gui { //GUI implementation
           editor.setText(
             if (show.nonEmpty)
               s"//change each <> to either < or > and then select Tools->Analyze ordinal\n$show"
-            else "// There are no children of selected tree node"
+            else "// There are less than two children of the selected tree node"
           )
         },
         --->("Prioritization: analyze comparisons", VK_A, 0, 0) {
-          val solution = parse.comparisonParser.analyze(editor.getText, rootModel)
-          def prioOrder(r: Relation): String = r.tail.attributes.headOption.map(_.value.toString).getOrElse("")
-          val sorted = solution.toVector.collect {
-              case r: Relation => r
-            }.sortBy(prioOrder).reverse.toModel
-          val prioModel = Model(Section("Priorities") has sorted)
-          editor.setText(prioModel.toString)
+          val isAnyUncomparedPairsInEditor = editor.getText
+            .split("\n")
+            .filterNot(_.trim.startsWith("//"))
+            .exists(_.contains("<>"))
+
+          if (isAnyUncomparedPairsInEditor) msgError(
+            "Change all <> to either < or >, or remove unwanted comparisons."
+          ) else {
+            val solution = parse.comparisonParser.analyze(editor.getText, rootModel)
+            def prioOrder(r: Relation): String = r.tail.attributes.headOption.map(_.value.toString).getOrElse("")
+            val sorted = solution.toVector.collect {
+                case r: Relation => r
+              }.sortBy(prioOrder).reverse.toModel
+            val prioModel = Model(Section("Priorities") has sorted)
+            editor.setText(prioModel.toString)
+          }
         },
 
         ---,

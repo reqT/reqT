@@ -25,13 +25,15 @@ Model(
 )
 //Context diagram simple
 Model(
-  Product("hotelApp") interactsWith (User("receptionist"), User("guest"), System("accounting")),
-  User("guest") interactsWith Product("hotelApp"),
-  User("receptionist") interactsWith Product("hotelApp"),
-  System("telephony") interactsWith Product("hotelApp"))
+  Section("context") has (
+    Product("hotelApp") interactsWith (
+      User("receptionist"),
+      User("guest"),
+      System("accounting"),
+      System("telephony"))))
 //Context diagram with interface
 Model(
-  Product("HotelApp") has (
+  Product("hotelApp") has (
     Interface("receptionUI") has Actor("Receptionist"),
     Interface("guestUI") has Actor("Guest"),
     Interface("phoneAPI") has System("Telephony"),
@@ -88,7 +90,7 @@ Model(
   Text("This is a model to test html generation."),
   Feature("topStuff") has Spec("hejsan"),
   Feature("deepTopStuff") has (Feature("Gurka") has Spec("hejsan")),
-  Section("Context") has (
+  Section("context") has (
     Text("This section describes the context of the system."),
     Image("context-diagram.svg"),
     Product("hotelApp") implements (
@@ -102,7 +104,7 @@ Model(
     Interface("guestUI") has (
       Output("confirmation"), Output("invoice"))
   ),
-  Section("Quality") has (
+  Section("quality") has (
     Text("This section contains system-wide quality requirements."),
     Quality("databaseCapacity") has
       Spec("#guests < 10,000 growing 20% per year, #rooms < 1,000"),
@@ -149,7 +151,7 @@ val normalized = rs.map(r =>
 println("\n--- Normalized, weighted priorities:\n" + normalized)
 val sum = normalized.collect{ case Benefit(b) => b}.sum
 println("\n--- Sum: " + sum)
-normalized
+Model(Section("weightedBenefits") has normalized)
 //Prioritization Ordinal Ranking
 val m = Vector("autoSave", "exportGraph", "exportTable", "modelTemplates", "releasePlanning", "syntaxColoring", "autoCompletion").map(Req(_)).toModel
   /* to use your tree model, replace above line with m => */
