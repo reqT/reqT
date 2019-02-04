@@ -17,8 +17,7 @@
 <li><p>Read the paper on release planning [<strong>RP</strong>] (download pdf on internal moodle page) Ruhe, Gunther, and Moshood Omolade Saliu. &quot;The art and science of software release planning.&quot; IEEE software 22.6 (2005): 47-53. doi: 10.1109/MS.2005.164</p></li>
 </ul></li>
 <li><p><strong>Select and write down</strong> at least three quality requirements relevant to your course project. They should cover at least two different types of quality aspects (e.g. capacity, accuracy, performance, security, usability, ...).</p></li>
-<li><p><strong>Select and write down</strong> 3 features and 2 stakeholders from your project and make estimates of relative <em>benefit</em> for each feature from the viewpoint of each stakeholder, and estimates of relative <em>cost</em> for each feature from development and test perspectives, e.g. using e.g. the 100$-method from <a href="http://cs.lth.se/krav/labs/lab1">lab1</a>. Use fictitious estimates if necessary but aim to be realistic if possible.</p></li>
-</ul>
+<li><p><strong>Select and write down</strong> 3 features and 2 stakeholders from your project and make estimates of relative <em>benefit</em> for each feature from the viewpoint of each stakeholder, and estimates of relative <em>cost</em> for each feature from development and test perspectives, e.g. using e.g. the 100$-method from <a href="http://cs.lth.se/krav/labs/lab1">lab1</a>. Use fictitious estimates if necessary but aim to be realistic if possible. Create a tables with your estimates for each feature id similar to the following:</p>
 <table>
 <thead>
 <tr class="header">
@@ -100,7 +99,8 @@
 <td align="left">70</td>
 </tr>
 </tbody>
-</table>
+</table></li>
+</ul>
 <h2 id="task-1-create-quality-requirements">Task 1: Create Quality Requirements</h2>
 <ul>
 <li><p>Create a model i the reqT tree including a <code>Section(&quot;quality&quot;)</code>.</p></li>
@@ -109,4 +109,13 @@
 <li><p>Based on the template in the <code>Templates -&gt; Quper</code>, create a Quper model relevant to your project with at least two different targets. Use fictitious estimates if necessary but aim to be realistic if possible.</p></li>
 </ul>
 <h2 id="task-2-create-a-release-plan">Task 2: Create a Release Plan</h2>
-<p>TODO</p>
+<ul>
+<li><p>Create a node in your three called <code>Section(&quot;ReleasePlan1&quot;)</code> and select the node.</p></li>
+<li><p>Load the editor with reqT script in menu <code>Templates -&gt; Realease plan - simple</code> and study the code. What is maximized? Discuss how easy it would be for you to manually find an optimal release plan. How would you go about solving this constraint problem if you were using pen and paper?</p></li>
+<li><p>Run the script and store the result in your tree by choosing the menu <code>Tree -&gt; Replace node with Scala model in editor</code> <em>Ctrl+Shift+R</em></p></li>
+<li><p>Study the solution. The features with zero cost in a certain release are de-allocated from that release. Which feature(s) are choosen by the constraint solver for the first release? Why?</p></li>
+<li><p>Change the capacity of the first release for dev and test and re-evaluate the script until the order of features in the solution is changed. If you want to try solutions directly in terminal you can choose <code>Editor -&gt; Run Script =&gt; Console</code> and the type <code>sortedSolution.pp</code> to pretty-print the solution in terminal. Experiment with different priorities of stakeholders.</p></li>
+<li><p>What does it mean in practice that the release planning problem is <strong>NP-complete</strong>? See e.g. <a href="https://en.wikipedia.org/wiki/Knapsack_problem">wikipedia Knapsack_problem</a></p></li>
+<li><p>TODO: <em>Do the same for the advanced model; check old tasks for inspiration. Can we provoke long execution times?</em></p></li>
+<li><p>TODO: <em>create a release plan for at least three features, two stake holders and two releases for your project; check old tasks for inspiration. Can we provoke long execution times?</em></p></li>
+</ul>
