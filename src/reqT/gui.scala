@@ -402,7 +402,7 @@ object gui { //GUI implementation
                 rootModel.tails.headOption.map(_.tipIds).getOrElse(ids)
               else ids
             } else selectedModel.topIds.drop(1) // only include children of selected
-          val n = ids.map(_.size).max
+          val n = if (ids.nonEmpty) ids.map(_.size).max else 0 // TODO: errmsg dialog???
           val show = ids.combinations(2).map{ case Vector(s1, s2) =>
             s"${s1.padTo(n, ' ')} <> $s2"
           }.mkString("\n")
