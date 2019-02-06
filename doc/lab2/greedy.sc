@@ -8,7 +8,7 @@ def allocate(m: Model, f: Feature, r: Release): Model = m + (r has f)
 def isAllocated(m: Model, f: Feature): Boolean = releases(m).exists(r => (m/r).contains(f))
 def allocatedCost(m: Model, r: Release): Int = (m/r).entities.collect{case f => m/f/Cost}.sum
 def isRoom(m: Model, f: Feature, r: Release) = m/r/Capacity >= allocatedCost(m,r) + m/f/Cost
-def featuresInGreedyOrder(m: Model) = features(m).sortBy(f => m/f/Benefit).reverse
+def featuresInGreedyOrder(m: Model): Vector[Feature] = features(m).sortBy(f => m/f/Benefit).reverse
 
 def random(m: Model, r: Release): Option[Feature] =
   scala.util.Random.shuffle(features(m)).
