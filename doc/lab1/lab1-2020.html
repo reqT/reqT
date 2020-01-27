@@ -85,20 +85,17 @@
 <li><p>Adapt the script from the previous step to include fake estimations of benefits of features from your project from the viewpoint of two different stakeholders. Then insert a section with weighted benefits into your tree.</p></li>
 </ul></li>
 </ul>
-<h2 id="task-4-optional-create-a-web-page-from-your-model-with-an-image-link">Task 4 (Optional): Create a web page from your model with an image link</h2>
+<h2 id="task-4-optional-create-a-web-page-from-your-model">Task 4 (Optional): Create a web page from your model</h2>
 <p>Do this optional task if you still have time left at the lab session.</p>
 <ul>
-<li><p>Save your model as a web page.</p>
-<ul>
 <li><p>If a model has an <strong>Image</strong> attribute with a URL to an .jpg-file, you can generate a web page of your model with that image included.</p></li>
-<li><p>You can generate html and save a web page of your model in the <strong>Tree</strong> pane using the menu <strong>Export</strong> and choosing <em>&quot;To Html&quot;</em>.</p></li>
-<li><p>Or you can generate html and save a web page of your model using a similar command as this:</p>
-<pre><code>val m = Model(Stakeholder(&quot;me&quot;) has Image(&quot;file:///home/username/folder/me.jpg&quot;))
-m.toHtml.save(&quot;index.html&quot;)</code></pre></li>
-<li><p>You generate a web page from your current model in the three editor using this command: <code>currentTree.toHtml.save(&quot;index.html&quot;)</code></p></li>
+<li><p>Save your model as a web page in a file called <code>index.html</code>.</p>
+<ul>
+<li><p>You can generate html from your model in the <strong>Tree</strong> pane using the menu <strong>Export</strong> and choosing <em>&quot;To Html&quot;</em>.</p></li>
+<li><p>Or you can generate a web page from your current model in the three editor using this command: <code>currentTree.toHtml.save(&quot;index.html&quot;)</code></p></li>
 </ul></li>
 <li><p>Open the <code>index.html</code> file from within your browser using the <code>File -&gt; Open</code> menu.</p></li>
-<li><p>Include an <code>Image</code> attribute in your reqt model similar to <code>Image(&quot;file:///home/bjornr/proj/ctx.jpg&quot;)</code> with a link to your context diagram drawing from Task 1, and reqT will then insert that link in your html code when you export to html; note the three slashes after <code>file:</code>. Re-load your <code>index.html</code> file in your browser and click on the image link to se the image inserted in you model.</p></li>
+<li><p>Now include an <code>Image</code> attribute in your reqt model similar to <code>Image(&quot;file:///home/bjornr/proj/ctx.jpg&quot;)</code> with a link to your context diagram drawing from Task 1, and reqT will then insert that link in your html code when you export to html. <strong>Note:</strong> There should be <em>three</em> slashes after <code>file:</code>. Re-load <code>index.html</code> in your browser and see the image inserted into you model.</p></li>
 </ul>
 <h2 id="task-5-optional-dig-deeper-into-reqt">Task 5 (Optional): Dig deeper into reqT</h2>
 <p>Do this optional task if you still have time left at the lab session.</p>
