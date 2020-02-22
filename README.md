@@ -6,7 +6,7 @@ reqT is a free requirements modelling tool for software developers. With reqT yo
 
 For more information see http://reqT.org 
 
-This is the 3.0.x branch. The old 2.3.x branch is [here](https://github.com/reqT/reqT/tree/2.3.x)
+This is the 3.1.x branch. The old 2.3.x branch is [here](https://github.com/reqT/reqT/tree/2.3.x)
 
 How to run reqT
 ---------------
