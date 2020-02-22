@@ -6,8 +6,6 @@ reqT is a free requirements modelling tool for software developers. With reqT yo
 
 For more information see http://reqT.org 
 
-This is the 3.1.x branch. The old 2.3.x branch is [here](https://github.com/reqT/reqT/tree/2.3.x)
-
 How to run reqT
 ---------------
 * Download [reqT.jar](http://reqT.org/reqT.jar) 
@@ -20,8 +18,8 @@ How to run reqT
 How to build reqT from code
 ---------------------------
 
-1. Install Scala a version more recent than 2.11.2 from the [Scala homepage](http://scala-lang.org/download/)
-2. Download this [zip](https://github.com/reqT/reqT/archive/3.0.x.zip) and extract all files in some directory.
+1. Install Scala the latest 2.12.x from the [Scala homepage](http://scala-lang.org/download/)
+2. Download this [zip](https://github.com/reqT/reqT/archive/3.1.x.zip) and extract all files in some directory.
 3. Run the appropriate custom build script among the extracted files (better read it first to check what it does):
     * On Windows, run in cmd: `build.cmd`
     * On Linux/Mac, run in terminal:  `./build.sh`
@@ -44,9 +42,3 @@ The creators and users of reqT sincerely thank all the contributors of the follo
 * [Autocomplete](http://fifesoft.com/autocomplete/) used for autocompletion
 * [jLine](https://github.com/jline/jline2) used for the reqT command line interface
 
-Editors with Scala support
---------------------------
-* [Notepad++](http://notepad-plus-plus.org/) for windows: use this [Scala-definition userDefineLang.xml file](http://www.reqt.org/download/userDefineLang.xml) and put it in `%APPDATA%\Notepad++`
-* [Textwrangler](http://www.barebones.com/products/textwrangler/) for MacOS: use this [config file](https://github.com/scala/scala-dist/tree/master/tool-support/src/textwrangler) 
-* [Sublime text 2](http://www.sublimetext.com/2)
-* [Eclipse Scala IDE](http://scala-ide.org/)
