@@ -1,0 +1,12 @@
+.metals/
+project/metals.sbt
+
+.bloop/
+**/target/
+**/*.class
+
+.cache
+.history
+.lib/
+dist/*
+project/boot/
