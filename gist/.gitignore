@@ -1,6 +1,8 @@
 .metals/
-project/metals.sbt
-
+**/metals.sbt
+**/.dotty-ide-artifact
+**/.dotty-ide.json
+**/.vscode
 .bloop/
 **/target/
 **/*.class
