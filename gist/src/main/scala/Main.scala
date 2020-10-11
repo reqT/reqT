@@ -19,13 +19,13 @@ enum RelationType:
   case has, requires
 
 case class Relation (
-  val entity: Entity,
+  val head: Entity,
   val link: RelationType,
   val tail: Model,
 ) extends Elem
 
-extension [T](e: Entity)
-  def has(es: Elem*): Relation = Relation(e, RelationType.has, Model(es: _*)) 
+extension [T](e: Entity):
+  def has     (es: Elem*): Relation = Relation(e, RelationType.has, Model(es: _*)) 
   def requires(es: Elem*): Relation = Relation(e, RelationType.has, Model(es: _*)) 
 
 @main def run = println("*** HELLO Scala 3! ***")
