@@ -9,3 +9,8 @@ reqT*.jar
 *.log
 *.out
 *.synctex.gz
+**/.metals
+**/.bloop
+**/.vscode
+**/.dotty*
+**/metals.sbt
