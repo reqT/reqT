@@ -1,4 +1,4 @@
-object reqt { // a new simpler design for next generation of reqt
+object reqt4 { // a new simpler design for next generation of reqt
 
   /* jars/subprojects:
     reqt-dsl_2.13-4.1.1.jar dsl bare bone
