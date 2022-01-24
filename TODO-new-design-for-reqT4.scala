@@ -13,11 +13,12 @@ object reqt4 { // a new simpler design for next generation of reqt
   sealed trait Elem
   sealed trait Node extends Elem
 
+  /** a type marker */
   trait EntityType extends Product with Serializable {
     def apply(id: String): Entity = Entity(this, id)
   }
 
-
+  // should id be a type param? pro: then people can choose to use an int or whatever; con: more complex
   final case class Entity(tpe: EntityType, id: String) extends Node {
     override def toString = s"""$tpe("$id")"""
   }
@@ -43,6 +44,12 @@ object reqt4 { // a new simpler design for next generation of reqt
   }
 
   // metamodel:
+
+  /** an alternative way to do it: */
+  enum AltEnt: 
+    /** a feature */ 
+    case Feature
+    case Req
 
   case object Feature extends EntityType
   case object Req     extends EntityType
