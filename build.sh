@@ -10,6 +10,12 @@ function error_check {
    fi
 }
 
+#SET SCALA VERSION
+source ~/.sdkman/bin/sdkman-init.sh
+sdk use scala 2.12.15
+scala -version
+error_check
+
 #CLEAN
 source makebin.sh
 if ! [ -d bin/reqT ]; then
