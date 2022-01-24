@@ -1,5 +1,3 @@
-echo "scp reqT.jar reqt.org@ssh.reqt.org:/www/reqT.jar"
-scp reqT.jar reqt.org@ssh.reqt.org:/www/reqT.jar
+echo "ssh to reqt.org:/www/reqT.jar not used; use web interface at one.com File Manager"
 
-echo "scp reqT.jar tts-bre@cs.e.lth.lu.se:/usr/local/cs/reqt/reqT.jar"
-scp reqT.jar tts-bre@cs.e.lth.lu.se:/usr/local/cs/reqt/reqT.jar
+scp reqT.jar $LUCATID@cs.e.lth.lu.se:/usr/local/cs/reqt/reqT.jar
