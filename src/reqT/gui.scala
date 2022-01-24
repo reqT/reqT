@@ -55,7 +55,7 @@ object killSwingVerbosity {
   lazy val fileChooser = new JFileChooser( new java.io.File(fileUtils.workDir))
 
   def runnable(code: => Unit) = new Runnable { def run = code }
-  def runInSwingThread(code: => Unit) { SwingUtilities.invokeLater(runnable(code)) }
+  def runInSwingThread(code: => Unit) = { SwingUtilities.invokeLater(runnable(code)) }
   def onEvent(act: ActionEvent => Unit): ActionListener = new ActionListener {
     def actionPerformed(e: ActionEvent) = act(e)
   }
@@ -66,10 +66,10 @@ object killSwingVerbosity {
     def keyReleased(e: KeyEvent) { }
   }
   def onCtrlEnter(act: => Unit): KeyListener = onKeyPressed { e =>
-    if (e.getKeyCode == KeyEvent.VK_ENTER && e.getModifiers == ActionEvent.CTRL_MASK) act
+    if (e.getKeyCode == KeyEvent.VK_ENTER && e.getModifiersEx == java.awt.event.InputEvent.CTRL_DOWN_MASK) act
   }
   def onAltEnter(act: => Unit): KeyListener = onKeyPressed { e =>
-    if (e.getKeyCode == KeyEvent.VK_ENTER && e.getModifiers == ActionEvent.ALT_MASK) act
+    if (e.getKeyCode == KeyEvent.VK_ENTER && e.getModifiersEx == java.awt.event.InputEvent.ALT_DOWN_MASK) act
   }
 
   def onFocusGained(act: => Unit): FocusListener = new FocusListener {
