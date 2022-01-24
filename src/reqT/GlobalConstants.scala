@@ -1,7 +1,7 @@
 /***
 **                  _______
 **                 |__   __|   reqT - a requirements engineering tool
-**   _ __  ___   __ _ | |      (c) 2010-2017, Lund University
+**   _ __  ___   __ _ | |      (c) 2010-2022, Lund University
 **  |  __|/ _ \ / _  || |      http://reqT.org
 **  | |  |  __/| (_| || |
 **  |_|   \___| \__  ||_|
@@ -14,15 +14,15 @@
 package reqT
 
 trait GlobalConstants { //mixed in by package object reqT
-  val reqT_VERSION = "3.1.5"
-  val reqT_BUILD = 567
+  val reqT_VERSION = "3.1.6"
+  val reqT_BUILD = 568
   val SCALA_VERSION = scala.util.Properties.versionString
   lazy val PREAMBLE = """
 **                  _______
 **                 |__   __|
 **   _ __  ___   __ _ | |      reqT - a requirements engineering tool
 **  |  __|/ _ \ / _  || |      http://reqT.org
-**  | |  |  __/| (_| || |      (c) 2010-2019, Lund University
+**  | |  |  __/| (_| || |      (c) 2010-2022, Lund University
 **  |_|   \___| \__  ||_|      Open Source BSD-2-clause license
 **                 | |
 **                 |_|
@@ -35,7 +35,7 @@ http://reqT.org/license
 ReqT is open source under the BSD 2-clause license:
 http://opensource.org/licenses/bsd-license.php
 
-Copyright (c) 2010-2019 Lund University, Sweden.
+Copyright (c) 2010-2022 Lund University, Sweden.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
