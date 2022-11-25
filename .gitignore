@@ -14,3 +14,4 @@ reqT*.jar
 **/.vscode
 **/.dotty*
 **/metals.sbt
+.project
