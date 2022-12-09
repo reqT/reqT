@@ -18,12 +18,14 @@ How to run reqT
 How to build reqT from code
 ---------------------------
 
-1. Install Scala the latest 2.12.x from the [Scala homepage](http://scala-lang.org/download/)
+The reqT build is only supported for Linux but it may work on other systems.
+
+1. Install SDKMAN from https://sdkman.io/install
 2. Download this [zip](https://github.com/reqT/reqT/archive/3.1.x.zip) and extract all files in some directory.
-3. Run the appropriate custom build script among the extracted files (better read it first to check what it does):
-    * On Windows, run in cmd: `build.cmd`
-    * On Linux/Mac, run in terminal:  `./build.sh`
+3. Run the `./build.sh` script among the extracted files
 4. Run the generated jar with `java -jar reqT.jar`
+
+The reqT v3 branch is unfortunately stuck on old Scala 2.12.15 because of its tight integration with the repl and the standard library.
 
 How to change the reqT metamodel
 --------------------------------
