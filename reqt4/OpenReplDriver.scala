@@ -117,7 +117,11 @@ class OpenReplDriver(settings: Array[String],
    *
    *  Possible reason for unsuccessful run are raised flags in CLI like --help or --version
    */
-  final def tryRunning = if shouldStart then runUntilQuit()
+  final def tryRunning(): Option[State] = if shouldStart then Some(runUntilQuit()) else None
+
+  @volatile var exposeMyState: java.util.concurrent.atomic.AtomicReference[State] = 
+    java.util.concurrent.atomic.AtomicReference(initialState)
+    // this is an ugly hack to expose the state for experimentation
 
   /** Run REPL with `state` until `:quit` command found
    *
@@ -150,6 +154,7 @@ class OpenReplDriver(settings: Array[String],
     }
 
     @tailrec def loop(state: State): State = {
+      //println(s"*** DEBUG: another loop with state=$state***") // to be removed
       val res = readLine(state)
       if (res == Quit) state
       else loop(interpret(res)(state))
@@ -216,7 +221,7 @@ class OpenReplDriver(settings: Array[String],
   }
 
   private def interpret(res: ParseResult)(implicit state: State): State = {
-    res match {
+    val result = res match {
       case parsed: Parsed if parsed.trees.nonEmpty =>
         compile(parsed, state)
 
@@ -233,6 +238,9 @@ class OpenReplDriver(settings: Array[String],
       case _ => // new line, empty tree
         state
     }
+    println(s"*** DEBUG inside interpet ${exposeMyState.get != null}")
+    exposeMyState.set(result)  // THIS IS a hack
+    result
   }
 
   /** Compile `parsed` trees and evolve `state` in accordance */
