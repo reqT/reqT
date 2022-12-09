@@ -119,7 +119,7 @@ class OpenReplDriver(settings: Array[String],
    */
   final def tryRunning(): Option[State] = if shouldStart then Some(runUntilQuit()) else None
 
-  @volatile var exposeMyState: java.util.concurrent.atomic.AtomicReference[State] = 
+  val exposeMyState: java.util.concurrent.atomic.AtomicReference[State] = 
     java.util.concurrent.atomic.AtomicReference(initialState)
     // this is an ugly hack to expose the state for experimentation
 
@@ -238,8 +238,9 @@ class OpenReplDriver(settings: Array[String],
       case _ => // new line, empty tree
         state
     }
-    println(s"*** DEBUG inside interpet ${exposeMyState.get != null}")
-    exposeMyState.set(result)  // THIS IS a hack
+    println(s"*** DEBUG inside interpret ${exposeMyState.get != null}")
+    var old = exposeMyState.get
+    while !exposeMyState.compareAndSet(old, result) do old = exposeMyState.get
     result
   }
 
