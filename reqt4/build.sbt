@@ -1,4 +1,4 @@
-scalaVersion := "3.1.1-RC1"
+scalaVersion := "3.2.1"
 
 fork                := true // https://stackoverflow.com/questions/18676712
 connectInput        := true // http://www.scala-sbt.org/1.x/docs/Forking.html
@@ -6,7 +6,15 @@ outputStrategy      := Some(StdoutOutput)
 
 run / javaOptions ++= Seq("-cp", "'./lib/*'")
 
-assembly / assemblyJarName := "reqt4.jar",
+assembly / assemblyJarName := "reqt4.jar"
+
+//assembly / assemblyMergeStrategy := { case x => MergeStrategy.first }
+ThisBuild / assemblyMergeStrategy := {
+  case PathList(ps @ _*) if ps.last endsWith "module-info.class" => MergeStrategy.first
+  case x =>
+    val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
+    oldStrategy(x)
+}
 
 // libraryDependencies ++= Seq(
 //   "org.scala-lang" %% "scala3-compiler" % "3.1.0",
