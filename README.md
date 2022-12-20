@@ -25,7 +25,7 @@ The reqT build is only supported for Linux but it may work on other systems.
 3. Run the `./build.sh` script among the extracted files
 4. Run the generated jar with `java -jar reqT.jar`
 
-The reqT v3 branch is unfortunately stuck on old Scala 2.12.15 because of its tight integration with the repl and the standard library.
+The reqT v3 branch is unfortunately stuck on old Scala 2.12.17 because of its tight integration with the repl and the standard library.
 
 How to change the reqT metamodel
 --------------------------------
