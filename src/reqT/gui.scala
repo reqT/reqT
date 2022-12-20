@@ -373,13 +373,13 @@ object gui { //GUI implementation
             "both" -> ( () => { dotArrows = "-Edir=both" } ),
             "none" -> ( () => { dotArrows = "-Edir=none" } )
             ), default = "default")),
-        --->("To GraphViz .dot Nested ...", VK_N, 0, 0) { doToGraphViz("nested",export.toGraphVizNested(exportModel())) },
-        --->("To GraphViz .dot Flat ...", VK_F, 0, 0) { doToGraphViz("flat", export.toGraphVizFlat(exportModel())) },
+        --->("To GraphViz .dot Nested ...", VK_N, 0, 0) { doToGraphViz("nested",exporter.toGraphVizNested(exportModel())) },
+        --->("To GraphViz .dot Flat ...", VK_F, 0, 0) { doToGraphViz("flat", exporter.toGraphVizFlat(exportModel())) },
         ---,
-        --->("To Quper .svg ...", VK_Q, 0, 0){ doExportTo(".svg", export.toQuperSpec(exportModel()).toSvgDoc) },
+        --->("To Quper .svg ...", VK_Q, 0, 0){ doExportTo(".svg", exporter.toQuperSpec(exportModel()).toSvgDoc) },
         ---,
-        --->("To Path Table .csv ...", VK_P, 0, 0) { doExportTo(".csv", export.toPathTable(exportModel())) },
-        --->("To Release Allocation Table .csv ...", VK_R, 0, 0) { doExportTo(".csv", export.toReleaseAllocationTable(exportModel())) }),
+        --->("To Path Table .csv ...", VK_P, 0, 0) { doExportTo(".csv", exporter.toPathTable(exportModel())) },
+        --->("To Release Allocation Table .csv ...", VK_R, 0, 0) { doExportTo(".csv", exporter.toReleaseAllocationTable(exportModel())) }),
         ===>("Import", VK_I,
         MenuRadioGroup("importToggle", Map[String, () => Unit](
           "Replace tree root"                -> ( () => { importProcessor = setTopTo _ } ),
@@ -759,7 +759,7 @@ object gui { //GUI implementation
     }
 
     def setEditorToModel(m: Model): Unit = {
-      editor.setText(export.toScalaCompact(m))
+      editor.setText(exporter.toScalaCompact(m))
     }
 
     def setEditorToSelection(isToScala: Boolean = true): Unit = {
@@ -914,7 +914,7 @@ object gui { //GUI implementation
       chooseFile(this, "index.html","Generate site").foreach { choice =>
         val ioFile = new java.io.File(choice)
         val (dir, file) = (ioFile.getParent, ioFile.getName)
-        export.toHtml(exportModel(), dir, file)
+        exporter.toHtml(exportModel(), dir, file)
         println(s"Desktop open: $choice")
         desktopOpen(choice)
       }
@@ -924,7 +924,7 @@ object gui { //GUI implementation
       chooseFile(this, "model.tex","Generate latex files").foreach { choice =>
         val ioFile = new java.io.File(choice)
         val (dir, file) = (ioFile.getParent, ioFile.getName)
-        export.toLatex(exportModel(), dir, file)
+        exporter.toLatex(exportModel(), dir, file)
       }
     } recover { case e => println(e); msgError("Export failed, see console message.")  }
 
@@ -957,7 +957,7 @@ object gui { //GUI implementation
 
     def doTextify() = {
       if (isEditorStartsWithModel) repl.interpretModel(editor.getText) match {
-          case Some(model) => editor.setText(export.toText(model))
+          case Some(model) => editor.setText(exporter.toText(model))
           case None => msgError("Parsing model failed, see console message.")
         }
       else doUntextify()

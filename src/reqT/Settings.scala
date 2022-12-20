@@ -18,9 +18,9 @@ object Settings {
   var lineLength = 72
   var columnSeparator = ";"
   var rowSeparator = "\n"
-  var defaultModelToString: export.StringExporter = export.toScalaCompact
-  var defaultModelToTable: export.StringExporter = export.toPathTable
-  var defaultModelToGraph: export.StringExporter = export.toGraphVizNested
+  var defaultModelToString: exporter.StringExporter = exporter.toScalaCompact
+  var defaultModelToTable: exporter.StringExporter = exporter.toPathTable
+  var defaultModelToGraph: exporter.StringExporter = exporter.toGraphVizNested
   var isGeneratingHtmlRawModel = false
   var isMarkdownSymbolsInToText = false
   var defaultTitle: String = "untitled"
