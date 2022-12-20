@@ -1,11 +1,21 @@
 %compile with XeLaTeX
 \documentclass[9pt,a4paper,oneside]{report}
 \usepackage[margin=18mm,landscape]{geometry}
-\usepackage{xltxtra,fontspec,xunicode} %requires XeLaTeX
-  \setromanfont{Source Sans Pro}
-  \setsansfont{Source Sans Pro}
-  \setmonofont{DejaVu Sans Mono}
+%\usepackage{xltxtra}%requires XeLaTeX
+%\usepackage{fontspec}%requires XeLaTeX
+% \usepackage{xunicode} %requires XeLaTeX
+%   \setromanfont{Source Sans Pro} %{Source Sans Pro}
+%   \setsansfont{Source Sans Pro} %{Source Sans Pro}
+%   \setmonofont{DejaVu Sans Mono} %{DejaVu Sans Mono}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[scaled=0.95]{beramono}
+\usepackage{tgtermes}
+\usepackage{tgheros}
 \usepackage{fancyhdr}
+\usepackage{sectsty}
+\allsectionsfont{\sffamily}
+%\renewcommand{\familydefault}{\sfdefault}
 \pagestyle{fancy}
 \chead{\url{http://reqT.org/reqT-cheat-sheet.pdf}}
 \usepackage{hyperref}
@@ -349,10 +359,12 @@ val sortedSolution =
 
 \subsection*{Model Export}
 \begin{lstlisting}
-reqT.export.toGraphVizNested(m).
+reqT.exporter.toGraphVizNested(m).
   save("filename.dot")
 \end{lstlisting}
-Available exporters:
+{\small Older than reqT v3.1.7 use \lstinline{reqT.export}}
+
+\vspace{0.5em}\noindent Available exporters:
 \begin{lstlisting}
 toGraphVizNested  
 toGraphVizFlat  
