@@ -8,6 +8,8 @@ reqT*.jar
 *.aux
 *.log
 *.out
+*.fls
+*.fdb*
 *.synctex.gz
 **/.metals
 **/.bloop
