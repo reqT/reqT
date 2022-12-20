@@ -12,7 +12,7 @@ function error_check {
 
 #SET SCALA VERSION
 source ~/.sdkman/bin/sdkman-init.sh
-sdk use scala 2.12.15
+sdk use scala 2.12.17
 scala -version
 error_check
 
