@@ -75,7 +75,7 @@ trait ModelBase extends Serializable {
   def pp(): Unit = prettyPrint()
   def p(): Unit = println(toText)
   
-  def save(fileName: String) {
+  def save(fileName: String) = {
     val outFile = new java.io.FileOutputStream(fileName)
     val out = new java.io.ObjectOutputStream(outFile)
     out.writeObject(this)

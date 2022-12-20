@@ -339,7 +339,7 @@ trait HtmlExporter extends FileExporter {
     |${modelCode(m)}
   """.stripMargin
 
-  override def exportModelToFile(m: Model, outDir: String, fileName: String) {
+  override def exportModelToFile(m: Model, outDir: String, fileName: String) = {
     ( new java.io.File(outDir) ).mkdirs
     apply(m).save(outDir+fileUtils.fileSep+fileName)
   }
@@ -461,7 +461,7 @@ ${renderSections(m, level)}
     """
   }.mkString("\n        ")
 
-  override def exportModelToFile(m: Model, outDir: String, fileName: String) {
+  override def exportModelToFile(m: Model, outDir: String, fileName: String) = {
     ( new java.io.File(outDir) ).mkdirs
     val docPath = outDir+fileUtils.fileSep+fileName.newFileType("-doc.tex")
     val bodyPath = outDir+fileUtils.fileSep+fileName

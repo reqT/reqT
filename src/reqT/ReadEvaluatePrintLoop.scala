@@ -36,12 +36,12 @@ object repl {
 
   @volatile
   var interpreter: Option[ReqTILoop] = None
-  def checkIntp() {
+  def checkIntp() = {
     if (interpreter == None)
       throw new Error("No interpreter available. Try reqT.initInterpreter() ")
   }
 
-  def reset() {
+  def reset() = {
   /*
     //the idea was that this should avoid the memory leak bug:
     //https://issues.scala-lang.org/browse/SI-4331
@@ -66,12 +66,12 @@ object repl {
   }
 
   class ReqTILoop(out : PrintWriter) extends ILoop(None, out) {
-    override def createInterpreter() {
+    override def createInterpreter() = {
       super.createInterpreter()
       initReqT()
     }
     override val prompt = "\nreqT> "
-    def initReqT() {
+    def initReqT() = {
       intp.quietRun("import scala.language._")
       intp.quietRun("import reqT._")
     }
@@ -87,7 +87,7 @@ object repl {
   }
 
   class FileRunner(out : PrintWriter, fileName: String) extends ReqTILoop(out : PrintWriter) {
-     override def createInterpreter() {
+     override def createInterpreter() = {
       super.createInterpreter()
       intp.quietRun(reqT.load(fileName))
      }
@@ -95,7 +95,7 @@ object repl {
   }
 
   class CodeRunner(out : PrintWriter, code: String) extends ReqTILoop(out : PrintWriter) {
-    override def createInterpreter() {
+    override def createInterpreter() = {
       super.createInterpreter()
       intp.quietRun(s"{$code}")
     }
@@ -104,7 +104,7 @@ object repl {
 
   class EditorLauncher(out : PrintWriter, args : Array[String])
   extends ReqTILoop(out : PrintWriter) {
-    override def createInterpreter() {
+    override def createInterpreter() = {
       super.createInterpreter()
       println("Launching Editor with args: " + args.mkString(","))
       if (args.isEmpty) run("val editor0 = edit()")
@@ -119,7 +119,7 @@ object repl {
     }
   }
 
-  def startInterpreting() {
+  def startInterpreting() = {
     val out = new PrintWriter( new BufferedWriter( new OutputStreamWriter(JSystem.out) ) )
     val settings = new GenericRunnerSettings(out.println)
     settings.usejavacp.value = true
@@ -127,7 +127,7 @@ object repl {
     interpreter.map(_.process(settings))
   }
 
-  def interpretFile(fileName: String) {
+  def interpretFile(fileName: String) = {
     val out = new PrintWriter( new BufferedWriter( new OutputStreamWriter(JSystem.out) ) )
     val settings = new GenericRunnerSettings(out.println)
     settings.usejavacp.value = true
@@ -135,7 +135,7 @@ object repl {
     interpreter.map(_.process(settings))
   }
 
-  def initInterpreterAndRun(code: String) {
+  def initInterpreterAndRun(code: String) = {
     val out = new PrintWriter( new BufferedWriter( new OutputStreamWriter(JSystem.out) ) )
     val settings = new GenericRunnerSettings(out.println)
     settings.usejavacp.value = true
@@ -143,7 +143,7 @@ object repl {
     interpreter.map(_.process(settings))
   }
 
-  def initInterpreterAndEdit(args : Array[String]) {
+  def initInterpreterAndEdit(args : Array[String]) = {
     val out = new PrintWriter( new BufferedWriter( new OutputStreamWriter(JSystem.out) ) )
     val settings = new GenericRunnerSettings(out.println)
     settings.usejavacp.value = true
@@ -151,7 +151,7 @@ object repl {
     interpreter.map(_.process(settings))
   }
 
-  def quietRun(code: String) {
+  def quietRun(code: String) = {
     checkIntp()
     interpreter .map { i => i.quietRun(code) }
   }
@@ -197,14 +197,14 @@ object repl {
   var isServerMode = false
 
   class ServerILoop(in: BufferedReader, out : PrintWriter) extends ILoop(in, out) {
-    override def createInterpreter() {
+    override def createInterpreter() = {
       super.createInterpreter()
       initReqTServer()
     }
 
     override val prompt = "\n<!-- reqT server ready for input -->\n"
 
-    def initReqTServer() {
+    def initReqTServer() = {
       intp.quietRun("import scala.language._")
       intp.quietRun("import reqT._")
       intp.isettings.maxPrintString = Int.MaxValue

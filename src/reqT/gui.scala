@@ -61,9 +61,9 @@ object killSwingVerbosity {
   }
   def onAction(act: => Unit): ActionListener = onEvent( _ => act)
   def onKeyPressed(act: KeyEvent => Unit) = new KeyListener {
-    def keyTyped(e: KeyEvent) { }
-    def keyPressed(e: KeyEvent) { act(e) }
-    def keyReleased(e: KeyEvent) { }
+    def keyTyped(e: KeyEvent) = { }
+    def keyPressed(e: KeyEvent) = { act(e) }
+    def keyReleased(e: KeyEvent) = { }
   }
   def onCtrlEnter(act: => Unit): KeyListener = onKeyPressed { e =>
     if (e.getKeyCode == KeyEvent.VK_ENTER && e.getModifiersEx == java.awt.event.InputEvent.CTRL_DOWN_MASK) act
@@ -97,7 +97,7 @@ object killSwingVerbosity {
 
     def addTo(parent: JComponent): Map[String, JComponent] = {
       var menuMap: Map[String, JComponent] = Map()
-      def addToMenuMap(name: String, menu: JComponent) {
+      def addToMenuMap(name: String, menu: JComponent) = {
         if (!menuMap.isDefinedAt(name)) menuMap += name -> menu
         else throw new Error("Menu name not unique: " + name)
       }
@@ -474,9 +474,9 @@ object gui { //GUI implementation
     private var dotArrows = ""
 
     def windowTitle = fileName + "  -  " + windowType
-    def updateTitle() { frame.setTitle(windowTitle) }
+    def updateTitle() = { frame.setTitle(windowTitle) }
 
-    def updateFileName(s: String) {fileName = s.newFileType(".reqt"); updateTitle()}
+    def updateFileName(s: String) = {fileName = s.newFileType(".reqt"); updateTitle()}
 
     override def toString = s"ModelTreeEditor($fileName)@${this.hashCode}"
 
@@ -518,22 +518,22 @@ object gui { //GUI implementation
     }
     def isRootSelected(): Boolean = selectedOpt.map(_ == top).getOrElse(false)
 
-    def valueChanged(e: TreeSelectionEvent) { } //Required by TreeSelectionListener
+    def valueChanged(e: TreeSelectionEvent) = { } //Required by TreeSelectionListener
 
-    def printTree(t: TreeModel, obj: Any) {
+    def printTree(t: TreeModel, obj: Any): Unit = {
       val n = t.getChildCount(obj)
       for ( i <- 0 until n) {
-        val child = t.getChild(obj, i);
+        val child = t.getChild(obj, i)
         if (t.isLeaf(child))
-          println(child.toString());
+          println(child.toString())
         else {
-          println(child.toString()+"--");
-          printTree(t,child );
+          println(child.toString()+"--")
+          printTree(t,child )
         }
        }
      }
 
-    def setFoldingAll(parent: TreePath, isExpand: Boolean) {
+    def setFoldingAll(parent: TreePath, isExpand: Boolean): Unit = {
       val node = parent.getLastPathComponent().asInstanceOf[TreeNode];
       if (node.getChildCount() >= 0) {
         import scala.collection.JavaConverters._
@@ -622,7 +622,7 @@ object gui { //GUI implementation
     def currentSelectionPath: TreePath = tree.getSelectionPath()
     val topPath = new TreePath(top)
 
-    def removeCurrentNode() {
+    def removeCurrentNode() = {
       if (currentSelectionPath == null) msgNothingSelected else {
         val currentNode =
           currentSelectionPath.getLastPathComponent().asInstanceOf[DefaultMutableTreeNode]
@@ -641,12 +641,12 @@ object gui { //GUI implementation
       }
     }
 
-    def revertToInitModel() {
+    def revertToInitModel() = {
       _currentModel = initModel
       setTopTo(_currentModel)
     }
 
-    def reconstructModel() { setTopTo(rootModel)}
+    def reconstructModel() = { setTopTo(rootModel)}
 
     def expandSelectFocus(path: TreePath) = {
       tree.expandPath(path)
@@ -656,7 +656,7 @@ object gui { //GUI implementation
 
     def updateSelectionReplace(newModel: Model) = updateSelection(newModel)
     def updateSelectionInsert(newModel: Model) = updateSelection(newModel, false)
-    def updateSelection(newModel: Model, isReplace: Boolean = true) {
+    def updateSelection(newModel: Model, isReplace: Boolean = true) = {
       selectedOpt match {
         case None => msgNothingSelected
         case Some(currentNode) if currentNode == top =>  //top selected
@@ -667,14 +667,14 @@ object gui { //GUI implementation
           iter(newModel.toVector, isReplace, currentNode)  //new try; was: iter(newModel.toVector.reverse, isReplace, currentNode)
       }
       //recursive replace/insert
-      def iter(elems: Vector[Elem], isReplace: Boolean, currentNode: DefaultMutableTreeNode) {
+      def iter(elems: Vector[Elem], isReplace: Boolean, currentNode: DefaultMutableTreeNode): Unit = {
         elems.headOption match {
           case None => //empty elems
             if (isReplace) removeCurrentNode()
             else () //do nothing; inserting empty model yields no change
           case Some(elem) =>
 
-            def update(node: DefaultMutableTreeNode) {
+            def update(node: DefaultMutableTreeNode) = {
               treeModel.nodeChanged(node)
               treeModel.nodeStructureChanged(node)
             }
@@ -787,7 +787,7 @@ object gui { //GUI implementation
     def msgNothingSelected() = msgError("No tree node selected.")
     def msgTODO() = msgError("Not yet implemented...")
 
-    def saveModel(f: String, model: () => Model = rootModel _) {
+    def saveModel(f: String, model: () => Model = rootModel _) = {
       f match {
         case _ if f.endsWith(".reqt")  => model().save(f)
         case _ if f.endsWith(".scala") => model().toString.save(f)
@@ -955,7 +955,7 @@ object gui { //GUI implementation
       }
     }  recover { case e => println(e); msgError("Export failed, see console message.")  }
 
-    def doTextify() {
+    def doTextify() = {
       if (isEditorStartsWithModel) repl.interpretModel(editor.getText) match {
           case Some(model) => editor.setText(export.toText(model))
           case None => msgError("Parsing model failed, see console message.")
