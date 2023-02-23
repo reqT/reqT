@@ -1,8 +1,8 @@
-<img src="http://reqt.org/reqT.jpg" width="100"> 
+<img src="https://github.com/reqT/reqT/raw/4.x/logo/reqT.jpeg" width="100"> 
 
 reqT: Requirements => Code
 ==========================
-reqT is a free requirements modelling tool for software developers. With reqT you can model, analyse and visualize your system requirements and test specifications using a powerful DSL embedded in Scala.
+reqT is a free requirements modelling tool for software developers. With reqT you can model, analyze and visualize your system requirements using both readable natural language and a powerful DSL embedded in Scala.
 
 For more information see http://reqT.org 
 
@@ -18,27 +18,18 @@ How to run reqT
 How to build reqT from code
 ---------------------------
 
-1. Install Scala the latest 2.12.x from the [Scala homepage](http://scala-lang.org/download/)
-2. Download this [zip](https://github.com/reqT/reqT/archive/3.1.x.zip) and extract all files in some directory.
-3. Run the appropriate custom build script among the extracted files (better read it first to check what it does):
-    * On Windows, run in cmd: `build.cmd`
-    * On Linux/Mac, run in terminal:  `./build.sh`
-4. Run the generated jar with `java -jar reqT.jar`
-
-How to change the reqT metamodel
---------------------------------
-
-The metamodel of reqT is written in reqT [here](https://github.com/reqT/reqT/blob/3.0.x/src/reqT/meta.scala) and is used to generate the concrete case classes in the reqT Scala DSL as shown [here](https://github.com/reqT/reqT/blob/3.0.x/src/reqT/GENERATED-metamodel.scala). If you change the metamodel you need to first recompile reqT and then generate a new `GENERATED-metamodel.scala` and then recompile again. All this is done by the provided `meta-build` script. 
-
-If you want the syntax coloring in the reqT gui editor to be updated in line with your new metamodel you also need to update [reqT-syntax](https://github.com/reqT/reqT-syntax) as described [here](https://github.com/reqT/reqT-syntax/blob/master/README.md).   
+1. Clone this repo locally. You may want to use git clone --depth 1 (to avoid the historic past including some binaries).
+2. Install sbt
+3. Run `sbt package` in terminal.
 
 Dependencies 
 -------------
 
-The creators and users of reqT sincerely thank all the contributors of the following **open source libraries** [(licences)](https://github.com/reqT/reqT/tree/3.0.x/licences):
+This repo depends on [reqT-lang](https://github.com/reqT/reqT-lang/) library containing the underlying language and api.
+
+This repo builds on the following open source projects (with their own licenses):
 * [Scala](http://www.scala-lang.org/) used for embedded DSL construction and more
-* [JaCoP](http://sourceforge.net/projects/jacop-solver/) used for constraint solving
+* [JaCoP](https://github.com/radsz/jacop) used for constraint solving
 * [RSyntaxTextArea](http://fifesoft.com/rsyntaxtextarea/) used for syntax coloring
 * [Autocomplete](http://fifesoft.com/autocomplete/) used for autocompletion
-* [jLine](https://github.com/jline/jline2) used for the reqT command line interface
 
