@@ -4,11 +4,11 @@ reqT: Requirements => Code
 ==========================
 reqT is a free requirements modelling tool for software developers. With reqT you can model, analyze and visualize your system requirements using both readable natural language and a powerful DSL embedded in Scala.
 
-For more information see http://reqT.org 
+For more information see https://reqt.github.io/ 
 
 How to run reqT
 ---------------
-* Download [reqT.jar](http://reqT.org/reqT.jar) 
+* Download the latest [reqT.jar](https://github.com/reqT/reqT/releases) 
 
 * Launch reqT with this command: 
     
@@ -18,7 +18,7 @@ How to run reqT
 How to build reqT from code
 ---------------------------
 
-1. Clone this repo locally. You may want to use git clone --depth 1 (to avoid the historic past including some binaries).
+1. Clone this repo locally. You may want to use `git clone --depth 1` (to avoid the history with some old binaries).
 2. Install sbt
 3. Run `sbt package` in terminal.
 
