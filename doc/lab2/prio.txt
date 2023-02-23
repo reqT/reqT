@@ -1,7 +1,0 @@
-// run in reqT>  reqT.parse.comparisonParser.parse(load("prio.txt"))
-// run in reqT>  reqT.parse.comparisonParser.parse(load("prio.txt"), allowedDeviation = 2, verbose = true)
-a > b
-b > c
-e > f
-f > g
-g > e
