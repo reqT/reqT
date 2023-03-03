@@ -1,4 +1,6 @@
 package reqt
 
 object Main:
-  def main(args: Array[String]): Unit = println("TODO")
+  def main(args: Array[String]): Unit = 
+    println("TODO")
+    javax.swing.JOptionPane.showMessageDialog(null, "TODO")
