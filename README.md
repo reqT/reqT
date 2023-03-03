@@ -6,8 +6,9 @@ reqT: Requirements => Code
 * With reqT you can model, analyze and visualize your system requirements using both readable natural language and a powerful DSL embedded in Scala.
 * For more information on **how to use reqT** see docs at https://reqt.github.io/ 
 
-How to run reqT
----------------
+How to run reqT in terminal
+---------------------------
+
 * Install Java 17 from here: https://adoptium.net 
 
 * Download the latest stable [reqT.jar](https://github.com/reqT/reqT/releases) 
@@ -22,9 +23,9 @@ How to build the latest reqT from code
 
 1. Clone this repo locally. You may want to use `git clone --depth 1` (to avoid the history with some old binaries).
 2. Install java, scala, sbt
-3. Run `sbt assembly` in terminal.
-4. Run the thin jar with `scala target/scala-3.3.0-RC2/reqt_3-4.0.0-M1.jar` (check target for latest version)
-5. Run the fat jar with `java -jar target/scala-3.3.0-RC2/reqT.jar` (check target for latest version)
+3. Run `sbt "clean; package; assembly"`
+4. Run the *thin* jar with `scala target/scala-latest-version/reqt_3-latest-version.jar` (check target for latest version)
+5. Run the **fat** jar with `java -jar target/scala-latest-version/reqT.jar` (check target for latest version)
 
 Dependencies 
 -------------
