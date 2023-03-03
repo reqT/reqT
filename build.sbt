@@ -15,6 +15,7 @@ lazy val `reqT` = (project in file("."))
     name := "reqT",
     scalacOptions := List("-encoding", "utf8", "-Werror", "-deprecation", "-unchecked"),
     assembly / assemblyJarName := "reqT.jar",
+    assembly / mainClass := Some("reqt.Main"),
 
     libraryDependencies += "reqt-lang" % "reqt-lang" % reqtLangVer from 
       s"https://github.com/reqT/reqT-lang/releases/download/$reqtLangVer/reqt-lang_3-$reqtLangVer.jar",
