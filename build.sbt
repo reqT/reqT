@@ -1,6 +1,6 @@
 ThisBuild / version      := "4.0.0-M1"
 
-ThisBuild / scalaVersion := "3.3.0-RC2"
+ThisBuild / scalaVersion := "3.3.0-RC3"
 
 ThisBuild / organization := "io.github.reqt"
 
@@ -8,7 +8,7 @@ console / initialCommands := """import reqt.*"""
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-lazy val reqtLangVer = "4.0.0-M1"
+lazy val reqtLangVer = "4.0.0-M2"
 
 lazy val `reqT` = (project in file("."))
   .settings(
