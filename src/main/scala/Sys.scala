@@ -2,15 +2,21 @@ package reqt
 
 export Sys.{ls, pwd, cd}
 
+import scala.sys.process._
+
 object Sys:
-  import scala.sys.process._
   val startDir = java.lang.System.getProperty("user.dir").slashify
 
   val homeDir = java.lang.System.getProperty("user.home").slashify
 
   @volatile private var workingDirectory = startDir
 
-  def isWindows = sys.props("os.name").startsWith("Windows")
+  def isOS(partOfName: String): Boolean =
+    scala.sys.props("os.name").toLowerCase.contains(partOfName.toLowerCase)
+
+  def isWindows = isOS("win") //scala.sys.props("os.name").startsWith("Windows")
+  def isLinux   = isOS("nux") 
+  def isMacOS   = isOS("mac") 
   
   def fileSep = java.lang.System.getProperty("file.separator")
 
