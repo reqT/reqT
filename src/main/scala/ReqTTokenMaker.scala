@@ -15,9 +15,9 @@ object ReqTTokenMaker:
   val StrAttrTokenType = TokenTypes.RESERVED_WORD_2
   val RelTokenType = TokenTypes.FUNCTION
 
-  def init() =
-    val atmf = TokenMakerFactory.getDefaultInstance().asInstanceOf[AbstractTokenMakerFactory]
-    atmf.putMapping("text/reqT", "reqt.ReqTTokenMaker")
+  def init(): Unit =
+    val tmf = TokenMakerFactory.getDefaultInstance().asInstanceOf[AbstractTokenMakerFactory]
+    tmf.putMapping("text/reqT", "reqt.ReqTTokenMaker")
 
 class ReqTTokenMaker extends AbstractTokenMaker:
   //https://github.com/bobbylight/RSyntaxTextArea/wiki/Adding-Syntax-Highlighting-for-a-new-Language
@@ -174,3 +174,5 @@ class ReqTTokenMaker extends AbstractTokenMaker:
     firstToken
 
   end getTokenList
+  
+end ReqTTokenMaker

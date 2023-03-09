@@ -92,10 +92,8 @@ class DesktopGUI extends JFrame:
     val fn = if (fontFamily == "") textArea.getFont.getFamily else {
       val available = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment.getAvailableFontFamilyNames
       val possible = (fontFamily :: Settings.gui.editorFonts).filter(available.contains(_))
-      println(s"possible $possible \n available: ${available.mkString(",")}")
       possible.headOption.getOrElse(Font.MONOSPACED)
     }
-    println(s"font family: $fn")
     val fPlain = new Font(fn, Font.PLAIN, fontSize)
     val fBold = new Font(fn, Font.BOLD, fontSize)
     
