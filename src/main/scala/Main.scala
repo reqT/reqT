@@ -4,6 +4,8 @@ object Main:
   @volatile var win: Option[DesktopGUI] = None
   def main(args: Array[String]): Unit = 
     println("Starting DesktopGUI")
-    //javax.swing.JOptionPane.showMessageDialog(null, "TODO")
-    //win.setEditorFont(12)
-    SwingPlatform.runInSwingThread{ win = Some(new DesktopGUI()) }
+    SwingPlatform.swingInit()
+    SwingPlatform.runInSwingThread{ 
+      win = Some(new DesktopGUI()) 
+      win.map(w => w.textArea.setText("Feature bla has\n  Spec Blaha"))
+    }

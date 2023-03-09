@@ -27,7 +27,7 @@ object SwingPlatform:
   def isSwingInit = _isSwingInit
 
   /** Init the Swing GUI toolkit and set platform-specific look and feel.*/
-  def swingInit(): Unit = if (!_isSwingInit) then
+  def swingInit(): Unit = if !_isSwingInit then
     setPlatformSpecificLookAndFeel()
     _isSwingInit = true
 

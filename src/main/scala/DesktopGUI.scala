@@ -24,22 +24,21 @@ object DesktopGUI:
 
 class DesktopGUI extends JFrame:
   val initModel: Model = Model()
-  val windowType = "reqT Model Editor Window"
-  val frame = new JFrame(windowTitle)
+  val windowType = "reqT Editor Window"
+  val frame = this
 
-  lazy val maxFontSize = 80
-  lazy val bigFontSize = 48
-  lazy val mediumFontSize = 20
-  lazy val minFontSize = 6
+  val initEditorWidth = 80
+  val initEditorHeight = 30
+  val maxFontSize = 80
+  val bigFontSize = 48
+  val mediumFontSize = 18
+  val minFontSize = 6
   
-  var currentHorizontalDivide = 0.5
-  var currentVerticalDivide   = 0.5
-
   private var _fileName = "untitled.reqt"
   def fileName = _fileName 
   def windowTitle = fileName + "  -  " + windowType
   def updateTitle() = frame.setTitle(windowTitle) 
-  def updateFileName(s: String) = { _fileName = s.newFileType(".reqt"); updateTitle() }
+  def updateFileName(fn: String) = { _fileName = fn; updateTitle() }
 
   val initMenus =
     AppMenus(
@@ -78,9 +77,9 @@ class DesktopGUI extends JFrame:
 
     val ff = frame.getFont
 
-    frame.setFont(new Font(ff.getFamily, ff.getStyle, size))
-
-    setEditorFont(editor.getFont.getSize) // handle override of editor font size
+    if ff != null then 
+      frame.setFont(new Font(ff.getFamily, ff.getStyle, size))
+      setEditorFont(frame.getFont.getSize) // handle override of editor font size
 
     javax.swing.SwingUtilities.updateComponentTreeUI(frame)
   }
@@ -90,14 +89,15 @@ class DesktopGUI extends JFrame:
   // import org.fife.ui.rtextarea._
   // import org.fife.ui.rsyntaxtextarea._
 
-  def setEditorFont(fontSize: Int, fontFamily: String = "") = runInSwingThread {
-    val fn = if (fontFamily == "") editor.getFont.getFamily else {
+  def setEditorFont(fontSize: Int, fontFamily: String = "") = //runInSwingThread:
+    val fn = if (fontFamily == "") textArea.getFont.getFamily else {
       val available = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment.getAvailableFontFamilyNames
       val possible = (fontFamily :: Settings.gui.editorFonts).filter(available.contains(_))
       possible.headOption.getOrElse(Font.MONOSPACED)
     }
+    println(s"font = $fn")
     val fPlain = new Font(fn, Font.PLAIN, fontSize)
-    editor.setFont(fPlain)
+    textArea.setFont(fPlain)
     val fBold = new Font(fn, Font.BOLD, fontSize)
     // editor.getSyntaxScheme.setStyle(ENTITY_TOKEN, new Style(Settings.gui.entityColor, Style.DEFAULT_BACKGROUND, fBold))
     // editor.getSyntaxScheme.setStyle(ATTR_TOKEN,   new Style(Settings.gui.attributeColor, Style.DEFAULT_BACKGROUND, fBold))
@@ -107,10 +107,9 @@ class DesktopGUI extends JFrame:
     // val lnf = editorView.getGutter.getLineNumberFont
     // val lnfNew = new Font(lnf.getFamily, lnf.getStyle, fontSize - 2)
     // editorView.getGutter.setLineNumberFont(lnfNew)
-  }
   
-  val editor = JPanel(java.awt.BorderLayout())
-  val textArea = new org.fife.ui.rsyntaxtextarea.RSyntaxTextArea(20, 60) with AntiAliasing
+  val panel = JPanel(java.awt.BorderLayout())
+  val textArea = new org.fife.ui.rsyntaxtextarea.RSyntaxTextArea(initEditorHeight, initEditorWidth) 
   //textArea.setSyntaxEditingStyle(org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_JAVA)
   textArea.setCodeFoldingEnabled(true)
   textArea.setAntiAliasingEnabled(true)
@@ -125,19 +124,21 @@ class DesktopGUI extends JFrame:
   textArea.setMatchedBracketBGColor(new java.awt.Color(247, 247, 247))
   textArea.setMatchedBracketBorderColor(new java.awt.Color(192, 192, 192))
   textArea.setAnimateBracketMatching(true)
-  textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 20))
+  //textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 20))
+  setEditorFont(mediumFontSize, "Monospaced")
 
-  val editorView = new org.fife.ui.rtextarea.RTextScrollPane(textArea)
+  val textPane = new org.fife.ui.rtextarea.RTextScrollPane(textArea) with AntiAliasing
   
-  editor.add(editorView)
-  setContentPane(editor)
+  panel.add(textPane)
+  setContentPane(panel)
   setTitle("TITLE TODO")
   setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)  //EXIT_ON_CLOSE
   
-  editorView.updateUI
+  textPane.updateUI
   pack()
   setLocationRelativeTo(null)
   setVisible(true)
+  updateTitle()
 
   //--- end rsyntaxtextarea stuff  TODO
 
