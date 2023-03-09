@@ -22,7 +22,7 @@ object DesktopGUI:
   val x = 42
 
 
-class DesktopGUI extends JPanel:
+class DesktopGUI extends JFrame:
   val initModel: Model = Model()
   val windowType = "reqT Model Editor Window"
   val frame = new JFrame(windowTitle)
@@ -108,44 +108,74 @@ class DesktopGUI extends JPanel:
     // val lnfNew = new Font(lnf.getFamily, lnf.getStyle, fontSize - 2)
     // editorView.getGutter.setLineNumberFont(lnfNew)
   }
+  
+  val editor = JPanel(java.awt.BorderLayout())
+  val textArea = new org.fife.ui.rsyntaxtextarea.RSyntaxTextArea(20, 60) with AntiAliasing
+  //textArea.setSyntaxEditingStyle(org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_JAVA)
+  textArea.setCodeFoldingEnabled(true)
+  textArea.setAntiAliasingEnabled(true)
+  textArea.setAutoIndentEnabled(true)
+
+  textArea.setBracketMatchingEnabled(true)
+  textArea.setLineWrap(true)
+  textArea.setWrapStyleWord(true)
+  textArea.setTabSize(2)
+  textArea.setTabsEmulated(true)
+  
+  textArea.setMatchedBracketBGColor(new java.awt.Color(247, 247, 247))
+  textArea.setMatchedBracketBorderColor(new java.awt.Color(192, 192, 192))
+  textArea.setAnimateBracketMatching(true)
+  textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 20))
+
+  val editorView = new org.fife.ui.rtextarea.RTextScrollPane(textArea)
+  
+  editor.add(editorView)
+  setContentPane(editor)
+  setTitle("TITLE TODO")
+  setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)  //EXIT_ON_CLOSE
+  
+  editorView.updateUI
+  pack()
+  setLocationRelativeTo(null)
+  setVisible(true)
 
   //--- end rsyntaxtextarea stuff  TODO
 
   // ---- Body of DesktopGUI
 
-  //--- begin instead of rsyntaxtextarea
-  val editor = new JEditorPane();
-  editor.setEditable(true);
-  editor.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 20));
-  editor.setContentType("text/html");
-  val editorView = new JScrollPane(editor)
-  def updateEditor() = editorView.updateUI
+  // //--- begin instead of rsyntaxtextarea
+  // val editor = new JEditorPane();
+  // editor.setEditable(true);
+  // editor.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 20));
+  // editor.setContentType("text/html");
+  // val editorView = new JScrollPane(editor)
+  // def updateEditor() = editorView.updateUI
   
-  // --- end instead of rsyntaxtextarea
+  // // --- end instead of rsyntaxtextarea
 
-  val splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT)
+  //val splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT)
 
   //val splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT)
   //splitPane.setTopComponent(treeView)
-  splitPane.setTopComponent(editorView)
+  //splitPane.setTopComponent(editorView)
   //splitPane.setBottomComponent(editorView)
-  val (startHeight, startWidth) = (768, 1024)
-  val smallestDim = new Dimension(100, 100)
-  val prefferedDim = new Dimension(startWidth, startHeight)
-  editorView.setMinimumSize(smallestDim)
-  editorView.setPreferredSize(prefferedDim)
-  //treeView.setMinimumSize(smallestDim)
-  splitPane.setPreferredSize(prefferedDim)
-  add(splitPane)
+  //val (startHeight, startWidth) = (768, 1024)
+  //val smallestDim = new Dimension(100, 100)
+  //val prefferedDim = new Dimension(startWidth, startHeight)
+  //editorView.setMinimumSize(smallestDim)
+  //editorView.setPreferredSize(prefferedDim)
+  //  //treeView.setMinimumSize(smallestDim)
+  //splitPane.setPreferredSize(prefferedDim)
+  //add(splitPane)
   //add(editorView)
 
-  frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
-  frame.add(this)
-  frame.pack()
-  setGlobalSwingFontSize(defaultGlobalFontSize)
-  setEditorFont(Settings.gui.fontSize + fontDeltaByScreenHeight,
-    Settings.gui.editorFonts.headOption.getOrElse(Font.MONOSPACED))
-  frame.setVisible(true)
-  splitPane.setDividerLocation(0.5)  //(startWidth / 2)
-  updateEditor()
+  //frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
+  //frame.add(this)
+  //frame.pack()
+  //setGlobalSwingFontSize(defaultGlobalFontSize)
+  //setEditorFont(Settings.gui.fontSize + fontDeltaByScreenHeight,
+  //  Settings.gui.editorFonts.headOption.getOrElse(Font.MONOSPACED))
+  //frame.setVisible(true)
+  //splitPane.setDividerLocation(0.5)  //(startWidth / 2)
+  //updateEditor()
 end DesktopGUI
