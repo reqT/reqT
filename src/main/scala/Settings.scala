@@ -21,11 +21,13 @@ object Settings {
     val strRGB = (200,90,40) //orange-like
     private def col(t: (Int, Int, Int)) = new java.awt.Color(t._1, t._2, t._3)
     val entityColor    = col(entRGB)
-    val attributeColor = col(attrRGB)
+    val intAttributeColor = col(strRGB)
+    val strAttributeColor = col(attrRGB)
     val relationColor  = col(relRGB)
     val stringColor    = col(strRGB)
     val scalaReservedWordColor = col((0,0,125))
-    var editorFonts    = List("DejaVu Sans Mono", "Consolas", "Liberation Mono", "Monospace")
+    val defaultEditorFont = "DejaVu Sans Mono"
+    var editorFonts    = List("Source Code Pro Medium" , "Fira Code Medium", "DejaVu Sans Mono", "JetBrains Mono Medium" , "Consolas", "Liberation Mono", "Monospace")
     var fontSize       = 14
   }
 }

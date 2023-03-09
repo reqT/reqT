@@ -30,6 +30,7 @@ object SwingPlatform:
   def swingInit(): Unit = if !_isSwingInit then
     setPlatformSpecificLookAndFeel()
     _isSwingInit = true
+    ReqTTokenMaker.init()
 
   def installedLookAndFeels: Vector[String] =
     javax.swing.UIManager.getInstalledLookAndFeels.toVector.map(_.getClassName)

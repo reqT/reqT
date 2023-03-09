@@ -21,10 +21,9 @@ import javax.swing.JSplitPane
 object DesktopGUI:
   val x = 42
 
-
 class DesktopGUI extends JFrame:
   val initModel: Model = Model()
-  val windowType = "reqT Editor Window"
+  val windowType = "reqT Model Editor"
   val frame = this
 
   val initEditorWidth = 80
@@ -86,31 +85,50 @@ class DesktopGUI extends JFrame:
 
   //--- begin rsyntaxtextarea stuff  TODO
   // import org.fife.ui.autocomplete._
-  // import org.fife.ui.rtextarea._
-  // import org.fife.ui.rsyntaxtextarea._
+  import org.fife.ui.rtextarea.*
+  import org.fife.ui.rsyntaxtextarea.*
 
   def setEditorFont(fontSize: Int, fontFamily: String = "") = //runInSwingThread:
     val fn = if (fontFamily == "") textArea.getFont.getFamily else {
       val available = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment.getAvailableFontFamilyNames
       val possible = (fontFamily :: Settings.gui.editorFonts).filter(available.contains(_))
+      println(s"possible $possible \n available: ${available.mkString(",")}")
       possible.headOption.getOrElse(Font.MONOSPACED)
     }
-    println(s"font = $fn")
+    println(s"font family: $fn")
     val fPlain = new Font(fn, Font.PLAIN, fontSize)
-    textArea.setFont(fPlain)
     val fBold = new Font(fn, Font.BOLD, fontSize)
-    // editor.getSyntaxScheme.setStyle(ENTITY_TOKEN, new Style(Settings.gui.entityColor, Style.DEFAULT_BACKGROUND, fBold))
-    // editor.getSyntaxScheme.setStyle(ATTR_TOKEN,   new Style(Settings.gui.attributeColor, Style.DEFAULT_BACKGROUND, fBold))
-    // editor.getSyntaxScheme.setStyle(REL_TOKEN,    new Style(Settings.gui.relationColor, Style.DEFAULT_BACKGROUND, fBold))
-    // editor.getSyntaxScheme.setStyle(TokenTypes.LITERAL_STRING_DOUBLE_QUOTE, new Style(Settings.gui.stringColor))
-    // editor.getSyntaxScheme.setStyle(TokenTypes.RESERVED_WORD, new Style(Settings.gui.scalaReservedWordColor, Style.DEFAULT_BACKGROUND, fBold)) // more descrete coloring???
-    // val lnf = editorView.getGutter.getLineNumberFont
-    // val lnfNew = new Font(lnf.getFamily, lnf.getStyle, fontSize - 2)
-    // editorView.getGutter.setLineNumberFont(lnfNew)
+    
+    textArea.setFont(fPlain)
+    
+    textArea.getSyntaxScheme.setStyle(ReqTTokenMaker.EntTokenType, new Style(Settings.gui.entityColor, Style.DEFAULT_BACKGROUND, fBold))
+    
+    textArea.getSyntaxScheme.setStyle(ReqTTokenMaker.StrAttrTokenType,   new Style(Settings.gui.strAttributeColor, Style.DEFAULT_BACKGROUND, fBold))
+    
+    textArea.getSyntaxScheme.setStyle(ReqTTokenMaker.IntAttrTokenType,   new Style(Settings.gui.intAttributeColor, Style.DEFAULT_BACKGROUND, fBold))
+
+    textArea.getSyntaxScheme.setStyle(ReqTTokenMaker.RelTokenType,    new Style(Settings.gui.relationColor, Style.DEFAULT_BACKGROUND, fBold))
+    
+    // textArea.getSyntaxScheme.setStyle(TokenTypes.LITERAL_STRING_DOUBLE_QUOTE, new Style(Settings.gui.stringColor))
+    
+    // textArea.getSyntaxScheme.setStyle(TokenTypes.RESERVED_WORD, new Style(Settings.gui.scalaReservedWordColor, Style.DEFAULT_BACKGROUND, fBold)) // more discrete coloring???
+
+    val lnf = textPane.getGutter.getLineNumberFont
+    val lnfNew = new Font(lnf.getFamily, lnf.getStyle, fontSize - 3)
+    textPane.getGutter.setLineNumberFont(lnfNew)
+  end setEditorFont
   
   val panel = JPanel(java.awt.BorderLayout())
-  val textArea = new org.fife.ui.rsyntaxtextarea.RSyntaxTextArea(initEditorHeight, initEditorWidth) 
+  val textArea = new RSyntaxTextArea(initEditorHeight, initEditorWidth) 
   //textArea.setSyntaxEditingStyle(org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_JAVA)
+  //textArea.setSyntaxEditingStyle(org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_SCALA)
+
+  // textArea.getSyntaxScheme.setStyle(org.fife.ui.rsyntaxtextarea.TokenTypes.IDENTIFIER,
+  //   new org.fife.ui.rsyntaxtextarea.Style(Settings.gui.attributeColor, 
+  //     org.fife.ui.rsyntaxtextarea.Style.DEFAULT_BACKGROUND, new Font(java.awt.Font.MONOSPACED, Font.BOLD, mediumFontSize)))
+
+  textArea.setSyntaxEditingStyle("text/reqT")
+
   textArea.setCodeFoldingEnabled(true)
   textArea.setAntiAliasingEnabled(true)
   textArea.setAutoIndentEnabled(true)
@@ -125,10 +143,10 @@ class DesktopGUI extends JFrame:
   textArea.setMatchedBracketBorderColor(new java.awt.Color(192, 192, 192))
   textArea.setAnimateBracketMatching(true)
   //textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 20))
-  setEditorFont(mediumFontSize, "Monospaced")
 
   val textPane = new org.fife.ui.rtextarea.RTextScrollPane(textArea) with AntiAliasing
-  
+  setEditorFont(mediumFontSize, Settings.gui.defaultEditorFont)
+
   panel.add(textPane)
   setContentPane(panel)
   setTitle("TITLE TODO")
