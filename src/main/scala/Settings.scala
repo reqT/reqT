@@ -15,14 +15,15 @@ object Settings {
   var defaultModelFileName: String = defaultTitle+".reqt"
   var warningPrinter: String => Unit = (msg) => println(s"WARNING: $msg")
   object gui {
-    val entRGB  = (0,100,200) //blueish
-    val attrRGB = (0,100,50) //greenish
+    val entRGB  = (0,30,200) //blueish
+    val intAttrRGB = (0,120,50) //greenish
+    val strAttrRGB = (180,100,40) //orange-like
     val relRGB = (160,0,30) //reddish
     val strRGB = (200,90,40) //orange-like
     private def col(t: (Int, Int, Int)) = new java.awt.Color(t._1, t._2, t._3)
     val entityColor    = col(entRGB)
-    val intAttributeColor = col(strRGB)
-    val strAttributeColor = col(attrRGB)
+    val intAttributeColor = col(intAttrRGB)
+    val strAttributeColor = col(strAttrRGB)
     val relationColor  = col(relRGB)
     val stringColor    = col(strRGB)
     val scalaReservedWordColor = col((0,0,125))

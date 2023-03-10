@@ -9,34 +9,60 @@ import org.fife.ui.rsyntaxtextarea.Token
 import org.fife.ui.rsyntaxtextarea.RSyntaxUtilities
 import javax.swing.text.Segment
 
+//https://github.com/bobbylight/RSyntaxTextArea/wiki/Adding-Syntax-Highlighting-for-a-new-Language
+
 object ReqTTokenMaker:
   val EntTokenType = TokenTypes.DATA_TYPE
   val IntAttrTokenType = TokenTypes.RESERVED_WORD
   val StrAttrTokenType = TokenTypes.RESERVED_WORD_2
   val RelTokenType = TokenTypes.FUNCTION
+  val nbrOfTokens = meta.concepts.size
+  val tokenMap = TokenMap(nbrOfTokens)
+  for c <- meta.entityNames   do tokenMap.put(c, ReqTTokenMaker.EntTokenType)
+  for c <- meta.intAttrNames  do tokenMap.put(c, ReqTTokenMaker.IntAttrTokenType)
+  for c <- meta.strAttrNames  do tokenMap.put(c, ReqTTokenMaker.StrAttrTokenType)
+  for c <- meta.relationNames do tokenMap.put(c, ReqTTokenMaker.RelTokenType)
 
   def init(): Unit =
     val tmf = TokenMakerFactory.getDefaultInstance().asInstanceOf[AbstractTokenMakerFactory]
     tmf.putMapping("text/reqT", "reqt.ReqTTokenMaker")
 
 class ReqTTokenMaker extends AbstractTokenMaker:
-  //https://github.com/bobbylight/RSyntaxTextArea/wiki/Adding-Syntax-Highlighting-for-a-new-Language
-  val nbrOfTokens = meta.concepts.size
-  wordsToHighlight = TokenMap(nbrOfTokens)
-  for c <- meta.entityNames do wordsToHighlight.put(c, ReqTTokenMaker.EntTokenType)
-  for c <- meta.intAttrNames do wordsToHighlight.put(c, ReqTTokenMaker.IntAttrTokenType)
-  for c <- meta.strAttrNames do wordsToHighlight.put(c, ReqTTokenMaker.StrAttrTokenType)
-  for c <- meta.relationNames do wordsToHighlight.put(c, ReqTTokenMaker.RelTokenType)
+  wordsToHighlight = ReqTTokenMaker.tokenMap
+
+  def exists(p: Token => Boolean): Boolean = 
+    var current: Token = firstToken
+    var found = false
+    while current != null && current.getType() != TokenTypes.NULL && !found do
+      found = p(current)
+      current = current.getNextToken()
+    end while
+    found
+  
+  def hasStrAttr() = exists(_.getType == ReqTTokenMaker.StrAttrTokenType)
+  def hasRelAttr() = exists(_.getType == ReqTTokenMaker.RelTokenType)
 
   override def getWordsToHighlight(): TokenMap = wordsToHighlight
 
   override def addToken(segment: Segment, start: Int, end: Int, tokenType: Int, startOffset: Int): Unit =
     // This assumes all keywords, etc. were parsed as "identifiers."
     var actualTokenType = tokenType
-    if tokenType == TokenTypes.IDENTIFIER then
+    if tokenType == TokenTypes.IDENTIFIER then // find special tokens to highlight
       val tt: Int = wordsToHighlight.get(segment, start, end)
-      if tt != -1 then actualTokenType = tt
-    super.addToken(segment, start, end, actualTokenType, startOffset);
+      if tt != -1 then 
+        def firstType: Int = if firstToken != null then firstToken.getType() else TokenTypes.NULL
+
+        import ReqTTokenMaker.*
+        tt match 
+        case EntTokenType     if !hasStrAttr() => actualTokenType = tt
+        case IntAttrTokenType if !hasStrAttr() => actualTokenType = tt
+        case StrAttrTokenType if !hasStrAttr() => actualTokenType = tt
+        case RelTokenType if firstType == EntTokenType && !hasStrAttr() && !hasRelAttr() => 
+          actualTokenType = tt
+        case _ => () // no special token found; do nothing
+
+    super.addToken(segment, start, end, actualTokenType, startOffset)
+  end addToken
 
   /**
    * Returns a list of tokens representing the given text.
