@@ -2,14 +2,14 @@ package reqt
 
 
 object Main:
-  @volatile var win: Option[DesktopGUI] = None
+  @volatile var windowOpt: Option[EditorWindow] = None
+
   def main(args: Array[String]): Unit = 
     println("Starting DesktopGUI")
     SwingPlatform.swingInit()
-    SwingPlatform.runInSwingThread{ 
-      win = Some(new DesktopGUI()) 
-      win.map(w => w.textArea.setText("Feature bla has\n  Spec Blaha"))
-    }
+    SwingPlatform.runInSwingThread: 
+      windowOpt = Some(EditorWindow()) 
+
 
 
 

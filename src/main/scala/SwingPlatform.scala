@@ -103,11 +103,7 @@ object SwingPlatform:
 
   // ---------- A little DSL for declarative specification of menu trees
   
-  def ===> = MenuBranch
-  def ---> = MenuLeaf
-  def ---  = MenuSeparator
-
-  case class AppMenus(menus: MenuBranch*):
+  case class AppMenus(menus: Menu*):
     def installTo(frame: JFrame): Map[String, JComponent]  = 
       val menuBar = JMenuBar()
       frame.setJMenuBar(menuBar)
@@ -115,7 +111,7 @@ object SwingPlatform:
 
   sealed trait MenuTree
 
-  case class MenuLeaf(name: String, shortcut: Int, accelerator: Int, mask: Int)(block: => Unit) extends MenuTree:
+  case class Item(name: String, short: Int, key: Int, mask: Int)(block: => Unit) extends MenuTree:
       def action = new ActionListener:
         override def actionPerformed(e: ActionEvent) = block
 
@@ -127,7 +123,7 @@ object SwingPlatform:
   
   case object MenuSeparator extends MenuTree
 
-  case class MenuBranch(name: String, mnemonic: Int, menus: MenuTree*) extends MenuTree:
+  case class Menu(name: String, mnemonic: Int, menus: MenuTree*) extends MenuTree:
     def addTo(parent: JComponent): Map[String, JComponent] = 
       var menuMap: Map[String, JComponent] = Map()
 
@@ -138,14 +134,14 @@ object SwingPlatform:
 
       def loop(parent: JComponent, menus: Seq[MenuTree]): Unit = menus.foreach: menu => 
         menu match 
-        case m: MenuLeaf =>
-          val jmi = new JMenuItem(m.name, m.shortcut)
+        case m: Item =>
+          val jmi = new JMenuItem(m.name, m.short)
           jmi.addActionListener(m.action)
-          if m.accelerator > 0 then jmi.setAccelerator(KeyStroke.getKeyStroke(m.accelerator, m.mask))
+          if m.key > 0 then jmi.setAccelerator(KeyStroke.getKeyStroke(m.key, m.mask))
           parent.add(jmi)
           addToMenuMap(m.name, jmi)
 
-        case m: MenuBranch =>
+        case m: Menu =>
           val jm = new JMenu(m.name)
           if (m.mnemonic>0) jm.setMnemonic(m.mnemonic)
           parent.add(jm)

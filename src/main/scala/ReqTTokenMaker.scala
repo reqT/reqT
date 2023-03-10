@@ -38,7 +38,22 @@ class ReqTTokenMaker extends AbstractTokenMaker:
       current = current.getNextToken()
     end while
     found
-  
+
+  def firstReqTToken(): Token = 
+    var current: Token = firstToken
+    
+    def isReqTTokenType: Boolean = 
+      val t = current.getType()
+      t == ReqTTokenMaker.EntTokenType ||
+      t == ReqTTokenMaker.IntAttrTokenType ||
+      t == ReqTTokenMaker.StrAttrTokenType ||
+      t == ReqTTokenMaker.RelTokenType
+
+    while current != null && current.getType() != TokenTypes.NULL && !isReqTTokenType do
+      current = current.getNextToken()
+    end while
+    current
+
   def hasStrAttr() = exists(_.getType == ReqTTokenMaker.StrAttrTokenType)
   def hasRelAttr() = exists(_.getType == ReqTTokenMaker.RelTokenType)
 
@@ -50,7 +65,8 @@ class ReqTTokenMaker extends AbstractTokenMaker:
     if tokenType == TokenTypes.IDENTIFIER then // find special tokens to highlight
       val tt: Int = wordsToHighlight.get(segment, start, end)
       if tt != -1 then 
-        def firstType: Int = if firstToken != null then firstToken.getType() else TokenTypes.NULL
+        def firstType: Int = 
+          if firstToken != null then firstReqTToken().getType() else TokenTypes.NULL
 
         import ReqTTokenMaker.*
         tt match 

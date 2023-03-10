@@ -30,7 +30,7 @@ object Sys:
     val path = java.io.File(resolveFileName(dir))
     Option(path.listFiles).map(_.toSeq)
 
-  def saveString(s:String, fileName:String) = 
+  extension (s: String) def saveTo(fileName: String) = 
     val fn = resolveFileName(fileName)
     val outFile = new java.io.File(fn)
     val outStream = new java.io.PrintWriter(outFile,"UTF-8")

@@ -2,6 +2,8 @@ package reqt
 
 import reqt.SwingPlatform.*
 import reqt.Sys.newFileType
+import reqt.Sys.saveTo
+import reqt.Sys.loadLines
 
 import java.awt.event.KeyEvent.*
 import java.awt.event.ActionEvent.{CTRL_MASK => CTRL, ALT_MASK => ALT, SHIFT_MASK => SHIFT}
@@ -20,13 +22,32 @@ import javax.swing.JSplitPane
 import javax.swing.JMenuBar
 import javax.swing.JMenu
 import javax.swing.JMenuItem
+import javax.swing.Action
+import javax.swing.event.DocumentListener
+import javax.swing.event.DocumentEvent
+import javax.swing.text.DefaultCaret
 
-object DesktopGUI:
+object EditorWindow:
   val x = 42
+  @volatile private var n = 0
+  def initFileName = s"untitled-$n.reqt"
 
-class DesktopGUI extends JFrame:
+  val initMessage = 
+    s"""|WELCOME to the reqT requirements model editor! https//reqt.github.io/
+        |Press CTRL+SPACE for completion. Completion is not case-sensitive.
+        |Entities are blue and bold. 
+        |Attributes are bold + italic. String Attributes are orange. Int Attributes are green.
+        |Relations are red and bold + underlined.
+        |""".stripMargin
+
+class EditorWindow() extends JFrame:
+  EditorWindow.n += 1
+  @volatile private var isSaved = true
+  def saveNeeded(): Unit = {isSaved = false; updateTitle() }
+  def didSave(): Unit = {isSaved = true; updateTitle() }
+
   val initModel: Model = Model()
-  val windowType = "reqT Model Editor"
+  val windowType = "reqT Editor"
   val frame = this
 
   val initEditorWidth = 80
@@ -36,18 +57,37 @@ class DesktopGUI extends JFrame:
   val mediumFontSize = 18
   val minFontSize = 6
   
-  private var _fileName = "untitled.reqt"
+  private var _fileName = Sys.workDir + "/" + EditorWindow.initFileName
   def fileName = _fileName 
+  
   def windowTitle = fileName + "  -  " + windowType
-  def updateTitle() = frame.setTitle(windowTitle) 
+
+  def updateTitle() = frame.setTitle(windowTitle + (if isSaved then "" else " * unsaved"))
+  
   def updateFileName(fn: String) = { _fileName = fn; updateTitle() }
+
+  def doFileNew(): Unit = new EditorWindow()
+  
+  def doOpen(): Unit = 
+    for f <- chooseFile() do 
+      val t = loadLines(f).mkString("\n")
+      textArea.setText(t)
+      updateFileName(f)
+      didSave()
+  
+  def doSave(): Unit = 
+    textArea.getText().saveTo(fileName)
+    didSave()
+    
 
   val initMenus =
     AppMenus(
-      MenuBranch("File", mnemonic = VK_F,
-        MenuLeaf("New Window", shortcut = VK_N, accelerator = VK_N, mask = CTRL){ doMsg("new window") }
+      Menu("File", mnemonic = VK_F,
+        Item("New Window", VK_N, VK_N, CTRL){ doFileNew() },
+        Item("Open File ...", VK_O, VK_O, CTRL){ doOpen() },
+        Item("Save", VK_S, VK_S, CTRL){ doSave() },
       ),
-      MenuBranch("Edit", mnemonic = VK_E, Seq()*)
+      Menu("Edit", mnemonic = VK_E, Seq()*)
     )
 
   val menuMap: Map[String, JComponent] = initMenus.installTo(frame)
@@ -172,13 +212,13 @@ class DesktopGUI extends JFrame:
 
   val editMenu: JMenu = menuMap("Edit").asInstanceOf[JMenu]
 
-  def createEditMenuItem(action: javax.swing.Action): JMenuItem = 
-    val item = new javax.swing.JMenuItem(action)
+  def createEditMenuItem(action: Action): JMenuItem = 
+    val item = new JMenuItem(action)
     item.setToolTipText(null) // Swing annoyingly adds tool tip text to the menu item
     item 
 
-  def addEditMenuAction(actionConsts: Int*): Unit = 
-    actionConsts.foreach(a => editMenu.add(createEditMenuItem(RTextArea.getAction(a))))
+  def addEditMenuAction(actions: Int*): Unit = 
+    actions.foreach(a => editMenu.add(createEditMenuItem(RTextArea.getAction(a))))
 
   def createEditMeny(): Unit =
     import RTextArea.{UNDO_ACTION, REDO_ACTION, CUT_ACTION, COPY_ACTION, PASTE_ACTION, DELETE_ACTION, SELECT_ALL_ACTION} 
@@ -192,15 +232,43 @@ class DesktopGUI extends JFrame:
   
 
   //--- end rsyntaxtextarea stuff  TODO
+  val messageArea = new javax.swing.JTextArea(10, initEditorWidth)
+  messageArea.setEditable(false);
+  messageArea.setFont(new Font("Monospace", Font.PLAIN, 18))
+  val caret = textArea.getCaret().asInstanceOf[javax.swing.text.DefaultCaret]
+  caret.setUpdatePolicy(javax.swing.text.DefaultCaret.ALWAYS_UPDATE)
+  messageArea.setLineWrap(true)
+  messageArea.append(EditorWindow.initMessage)
+  val messagePane = new javax.swing.JScrollPane(messageArea)
 
-  panel.add(textPane)
+  val splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT)
+  splitPane.setTopComponent(textPane)
+  splitPane.setBottomComponent(messagePane)
+  val (startHeight, startWidth) = (768, 1024)
+  val smallestDim = new Dimension(100, 1)
+  val prefferedDim = new Dimension(startWidth, startHeight)
+  textPane.setMinimumSize(smallestDim)
+  messagePane.setMinimumSize(smallestDim)
+  splitPane.setPreferredSize(prefferedDim)
+  
+
+  panel.add(splitPane)
   setContentPane(panel)
+
   setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)  //EXIT_ON_CLOSE
+
+  textArea.getDocument().addDocumentListener( 
+    new DocumentListener:
+      override def changedUpdate(e: DocumentEvent): Unit = saveNeeded()
+      override def insertUpdate(e: DocumentEvent): Unit = saveNeeded()
+      override def removeUpdate(e: DocumentEvent): Unit = saveNeeded()
+  )
 
   textPane.updateUI
   pack()
   setLocationRelativeTo(null)
   setVisible(true)
+  splitPane.setDividerLocation(0.8)
   updateTitle()
 
   // ---- Body of DesktopGUI
@@ -240,4 +308,4 @@ class DesktopGUI extends JFrame:
   //frame.setVisible(true)
   //splitPane.setDividerLocation(0.5)  //(startWidth / 2)
   //updateEditor()
-end DesktopGUI
+end EditorWindow
