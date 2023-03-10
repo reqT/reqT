@@ -88,7 +88,7 @@ class DesktopGUI extends JFrame:
   import org.fife.ui.rtextarea.*
   import org.fife.ui.rsyntaxtextarea.*
 
-  def setEditorFont(fontSize: Int, fontFamily: String = "") = //runInSwingThread:
+  def setEditorFont(fontSize: Int, fontFamily: String = "") = runInSwingThread:
     val fn = if (fontFamily == "") textArea.getFont.getFamily else {
       val available = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment.getAvailableFontFamilyNames
       val possible = (fontFamily :: Settings.gui.editorFonts).filter(available.contains(_))
@@ -96,16 +96,24 @@ class DesktopGUI extends JFrame:
     }
     val fPlain = new Font(fn, Font.PLAIN, fontSize)
     val fBold = new Font(fn, Font.BOLD, fontSize)
-    
+
+    import java.awt.font.TextAttribute
+    val ta: java.util.Map[TextAttribute, Object] = new java.util.HashMap()
+    ta.put(TextAttribute.FONT, fBold)
+    ta.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON)
+    val fBoldUL = Font.getFont(ta)
+
+    val fBoldItalic = new Font(fn, Font.BOLD | Font.ITALIC, fontSize)
+
     textArea.setFont(fPlain)
     
     textArea.getSyntaxScheme.setStyle(ReqTTokenMaker.EntTokenType, new Style(Settings.gui.entityColor, Style.DEFAULT_BACKGROUND, fBold))
     
-    textArea.getSyntaxScheme.setStyle(ReqTTokenMaker.StrAttrTokenType,   new Style(Settings.gui.strAttributeColor, Style.DEFAULT_BACKGROUND, fBold))
+    textArea.getSyntaxScheme.setStyle(ReqTTokenMaker.StrAttrTokenType,   new Style(Settings.gui.strAttributeColor, Style.DEFAULT_BACKGROUND, fBoldItalic))
     
-    textArea.getSyntaxScheme.setStyle(ReqTTokenMaker.IntAttrTokenType,   new Style(Settings.gui.intAttributeColor, Style.DEFAULT_BACKGROUND, fBold))
+    textArea.getSyntaxScheme.setStyle(ReqTTokenMaker.IntAttrTokenType,   new Style(Settings.gui.intAttributeColor, Style.DEFAULT_BACKGROUND, fBoldItalic))
 
-    textArea.getSyntaxScheme.setStyle(ReqTTokenMaker.RelTokenType,    new Style(Settings.gui.relationColor, Style.DEFAULT_BACKGROUND, fBold))
+    textArea.getSyntaxScheme.setStyle(ReqTTokenMaker.RelTokenType,    new Style(Settings.gui.relationColor, Style.DEFAULT_BACKGROUND, fBoldUL))
     
     // textArea.getSyntaxScheme.setStyle(TokenTypes.LITERAL_STRING_DOUBLE_QUOTE, new Style(Settings.gui.stringColor))
     
@@ -140,23 +148,35 @@ class DesktopGUI extends JFrame:
   textArea.setMatchedBracketBGColor(new java.awt.Color(247, 247, 247))
   textArea.setMatchedBracketBorderColor(new java.awt.Color(192, 192, 192))
   textArea.setAnimateBracketMatching(true)
-  //textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 20))
-
-  val textPane = new org.fife.ui.rtextarea.RTextScrollPane(textArea) with AntiAliasing
+  
   setEditorFont(mediumFontSize, Settings.gui.defaultEditorFont)
+  val textPane = new org.fife.ui.rtextarea.RTextScrollPane(textArea) with AntiAliasing
+  
+  import org.fife.ui.autocomplete.*
+  val provider = new DefaultCompletionProvider()
+  meta.entityNames.foreach: t =>
+    provider.addCompletion( new BasicCompletion(provider, t.toString, "EntType"))
+  meta.strAttrNames.foreach: t =>
+      provider.addCompletion( new BasicCompletion(provider, t.toString, "StrAttrType"))
+  meta.intAttrNames.foreach: t =>
+      provider.addCompletion( new BasicCompletion(provider, t.toString, "IntAttrType"))
+  meta.relationNames.foreach: t =>
+      provider.addCompletion( new BasicCompletion(provider, t.toString, "RelType"))
+
+  val ac = new AutoCompletion(provider)
+  ac.install(textArea)
+
+  //--- end rsyntaxtextarea stuff  TODO
 
   panel.add(textPane)
   setContentPane(panel)
-  setTitle("TITLE TODO")
   setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)  //EXIT_ON_CLOSE
-  
+
   textPane.updateUI
   pack()
   setLocationRelativeTo(null)
   setVisible(true)
   updateTitle()
-
-  //--- end rsyntaxtextarea stuff  TODO
 
   // ---- Body of DesktopGUI
 

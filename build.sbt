@@ -3,6 +3,7 @@ lazy val reqTJarName = "reqT.jar"
 lazy val reqtLangVer = "4.0.0-M2"
 lazy val scalaVer    = "3.3.0-RC3"
 lazy val RSTAVer     = "3.3.2"
+lazy val AutoCompVer = "3.3.1"
 
 ThisBuild / version       := reqTVer
 ThisBuild / scalaVersion  := scalaVer
@@ -27,4 +28,5 @@ lazy val `reqT` = (project in file("."))
       s"https://github.com/reqT/reqT-lang/releases/download/$reqtLangVer/reqt-lang_3-$reqtLangVer.jar",
 
     libraryDependencies += "com.fifesoft" % "rsyntaxtextarea" % RSTAVer,
+    libraryDependencies += "com.fifesoft" % "autocomplete" % AutoCompVer,
   )
