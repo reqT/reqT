@@ -1,6 +1,6 @@
 lazy val reqTVer     = "4.0.0-M1"
 lazy val reqTJarName = "reqT.jar"
-lazy val reqtLangVer = "4.0.0-M2"
+lazy val reqtLangVer = "4.0.0-M3"
 lazy val scalaVer    = "3.3.0-RC3"
 lazy val RSTAVer     = "3.3.2"
 lazy val AutoCompVer = "3.3.1"
