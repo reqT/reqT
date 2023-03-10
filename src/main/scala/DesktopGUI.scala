@@ -173,13 +173,13 @@ class DesktopGUI extends JFrame:
   val editMenu: JMenu = menuMap("Edit").asInstanceOf[JMenu]
 
   def createEditMenuItem(action: javax.swing.Action): JMenuItem = 
-          val item = new javax.swing.JMenuItem(action)
-          item.setToolTipText(null) // Swing annoyingly adds tool tip text to the menu item
-          item 
+    val item = new javax.swing.JMenuItem(action)
+    item.setToolTipText(null) // Swing annoyingly adds tool tip text to the menu item
+    item 
 
   def addEditMenuAction(actionConsts: Int*): Unit = 
     actionConsts.foreach(a => editMenu.add(createEditMenuItem(RTextArea.getAction(a))))
-    
+
   def createEditMeny(): Unit =
     import RTextArea.{UNDO_ACTION, REDO_ACTION, CUT_ACTION, COPY_ACTION, PASTE_ACTION, DELETE_ACTION, SELECT_ALL_ACTION} 
     addEditMenuAction(UNDO_ACTION, REDO_ACTION)
