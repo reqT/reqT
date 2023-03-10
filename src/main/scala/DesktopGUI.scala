@@ -17,6 +17,9 @@ import javax.swing.JScrollPane
 import java.awt.Dimension
 import javax.swing.WindowConstants
 import javax.swing.JSplitPane
+import javax.swing.JMenuBar
+import javax.swing.JMenu
+import javax.swing.JMenuItem
 
 object DesktopGUI:
   val x = 42
@@ -43,7 +46,8 @@ class DesktopGUI extends JFrame:
     AppMenus(
       MenuBranch("File", mnemonic = VK_F,
         MenuLeaf("New Window", shortcut = VK_N, accelerator = VK_N, mask = CTRL){ doMsg("new window") }
-      )
+      ),
+      MenuBranch("Edit", mnemonic = VK_E, Seq()*)
     )
 
   val menuMap: Map[String, JComponent] = initMenus.installTo(frame)
@@ -155,16 +159,37 @@ class DesktopGUI extends JFrame:
   import org.fife.ui.autocomplete.*
   val provider = new DefaultCompletionProvider()
   meta.entityNames.foreach: t =>
-    provider.addCompletion( new BasicCompletion(provider, t.toString, "EntType"))
+    provider.addCompletion( new BasicCompletion(provider, t.toString, "Entity"))
   meta.strAttrNames.foreach: t =>
-      provider.addCompletion( new BasicCompletion(provider, t.toString, "StrAttrType"))
+      provider.addCompletion( new BasicCompletion(provider, t.toString, "String Attribute"))
   meta.intAttrNames.foreach: t =>
-      provider.addCompletion( new BasicCompletion(provider, t.toString, "IntAttrType"))
+      provider.addCompletion( new BasicCompletion(provider, t.toString, "Integer Attribute"))
   meta.relationNames.foreach: t =>
-      provider.addCompletion( new BasicCompletion(provider, t.toString, "RelType"))
+      provider.addCompletion( new BasicCompletion(provider, t.toString, "Relation"))
 
   val ac = new AutoCompletion(provider)
   ac.install(textArea)
+
+  val editMenu: JMenu = menuMap("Edit").asInstanceOf[JMenu]
+
+  def createEditMenuItem(action: javax.swing.Action): JMenuItem = 
+          val item = new javax.swing.JMenuItem(action)
+          item.setToolTipText(null) // Swing annoyingly adds tool tip text to the menu item
+          item 
+
+  def addEditMenuAction(actionConsts: Int*): Unit = 
+    actionConsts.foreach(a => editMenu.add(createEditMenuItem(RTextArea.getAction(a))))
+    
+  def createEditMeny(): Unit =
+    import RTextArea.{UNDO_ACTION, REDO_ACTION, CUT_ACTION, COPY_ACTION, PASTE_ACTION, DELETE_ACTION, SELECT_ALL_ACTION} 
+    addEditMenuAction(UNDO_ACTION, REDO_ACTION)
+    editMenu.addSeparator()
+    addEditMenuAction(CUT_ACTION, COPY_ACTION, PASTE_ACTION, DELETE_ACTION)
+    editMenu.addSeparator()
+    addEditMenuAction(SELECT_ALL_ACTION)
+  
+  createEditMeny()
+  
 
   //--- end rsyntaxtextarea stuff  TODO
 
