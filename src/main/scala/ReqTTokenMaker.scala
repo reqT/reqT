@@ -39,7 +39,7 @@ class ReqTTokenMaker extends AbstractTokenMaker:
     end while
     found
 
-  def firstReqTToken(): Token = 
+  def firstReqTToken(): Option[Token] = 
     var current: Token = firstToken
     
     def isReqTTokenType: Boolean = 
@@ -52,7 +52,7 @@ class ReqTTokenMaker extends AbstractTokenMaker:
     while current != null && current.getType() != TokenTypes.NULL && !isReqTTokenType do
       current = current.getNextToken()
     end while
-    current
+    Option(current)
 
   def hasStrAttr() = exists(_.getType == ReqTTokenMaker.StrAttrTokenType)
   def hasRelAttr() = exists(_.getType == ReqTTokenMaker.RelTokenType)
@@ -66,7 +66,8 @@ class ReqTTokenMaker extends AbstractTokenMaker:
       val tt: Int = wordsToHighlight.get(segment, start, end)
       if tt != -1 then 
         def firstType: Int = 
-          if firstToken != null then firstReqTToken().getType() else TokenTypes.NULL
+          if firstReqTToken().isDefined then firstReqTToken().get.getType() 
+          else TokenTypes.NULL
 
         import ReqTTokenMaker.*
         tt match 
