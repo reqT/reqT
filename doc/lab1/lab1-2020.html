@@ -1,38 +1,73 @@
-<h1 id="context-features-and-priorities">Context, Features and Priorities</h1>
-<p>This document provides instructions for a mandatory computer lab session in the course ETSN15 &quot;Requirements Engineering&quot; given at Lund University. The source code of this page in markdown is available <a href="https://github.com/reqT/reqT/blob/3.0.x/doc/lab1/lab1-2019.md">here</a>.</p>
+<h1 id="context-features-and-priorities">Context, Features and
+Priorities</h1>
+<p>This document provides instructions for a mandatory computer lab
+session in the course ETSN15 “Requirements Engineering” given at Lund
+University. The source code of this page in markdown is available <a
+href="https://github.com/reqT/reqT/blob/3.0.x/doc/lab1/lab1-2019.md">here</a>.</p>
 <h2 id="goals">Goals</h2>
-<p>To complete this lab you should develop a requirements model using <a href="http://reqt.org/download.html">reqT</a>. Your requirements model should be based on your course project and it should include the following sections:</p>
+<p>To complete this lab you should develop a requirements model using <a
+href="http://reqt.org/download.html">reqT</a>. Your requirements model
+should be based on your course project and it should include the
+following sections:</p>
 <ul>
-<li><p>A <strong>context</strong> section including a draft product context of your course project with some relevant interfaces to some relevant actors. The model does not have to be complete.</p></li>
-<li><p>A <strong>features</strong> section with at least 5 high-level features from your course project, each with a descriptive id. Each feature should also have a Gist attribute with a short description of the feature.</p></li>
-<li><p>A <strong>priorities</strong> section with priorities for each feature based on the criteria: <em>which feature is most important to spend more elicitation effort on</em>.</p></li>
+<li><p>A <strong>context</strong> section including a draft product
+context of your course project with some relevant interfaces to some
+relevant actors. The model does not have to be complete.</p></li>
+<li><p>A <strong>features</strong> section with at least 5 high-level
+features from your course project, each with a descriptive id. Each
+feature should also have a Gist attribute with a short description of
+the feature.</p></li>
+<li><p>A <strong>priorities</strong> section with priorities for each
+feature based on the criteria: <em>which feature is most important to
+spend more elicitation effort on</em>.</p></li>
 </ul>
-<h2 id="task-0-mandatory-preparations">Task 0: Mandatory Preparations</h2>
+<h2 id="task-0-mandatory-preparations">Task 0: Mandatory
+Preparations</h2>
 <ul>
-<li><p>Draw an initial version of a context diagram for your project using some drawing tool, e.g. <em>LibreOffice Draw</em>, or take a photo of a hand drawing, and save it as <code>.png</code> or <code>.jpg</code> or <code>.svg</code></p></li>
-<li><p>Select around 5 to 10 high-level features from your project and for each feature create a short description of one line of text.</p></li>
+<li><p>Draw an initial version of a context diagram for your project
+using some drawing tool, e.g. <em>LibreOffice Draw</em>, or take a photo
+of a hand drawing, and save it as <code>.png</code> or <code>.jpg</code>
+or <code>.svg</code></p></li>
+<li><p>Select around 5 to 10 high-level features from your project and
+for each feature create a short description of one line of
+text.</p></li>
 <li><p>Name at least 2 stakeholders from your project.</p></li>
-<li><p>Make sure you can run reqT in terminal and launch the swing desktop gui using the <code>edit</code> command.</p>
+<li><p>Make sure you can run reqT in terminal and launch the swing
+desktop gui using the <code>edit</code> command.</p>
 <ul>
-<li><p>How to start reqT on the student Linux computers in the E building at LTH: <a href="http://cs.lth.se/krav/reqt" class="uri">http://cs.lth.se/krav/reqt</a></p></li>
-<li><p>How to download and run reqT on your own machine: <a href="http://reqt.org/download.html" class="uri">http://reqt.org/download.html</a></p></li>
+<li><p>How to start reqT on the student Linux computers in the E
+building at LTH: <a
+href="http://cs.lth.se/krav/reqt">http://cs.lth.se/krav/reqt</a></p></li>
+<li><p>How to download and run reqT on your own machine: <a
+href="http://reqt.org/download.html">http://reqt.org/download.html</a></p></li>
 </ul></li>
-<li><p>Study the slides of lectures <a href="http://cs.lth.se/krav/lectures/">L1-L4</a>, and the <a href="http://fileadmin.cs.lth.se/krav/reqT-tutorial.pdf">reqT tutorial</a>.</p></li>
-<li><p>Study the <a href="https://github.com/reqT/reqT/blob/3.1.x/doc/cheat-sheet/reqT-cheat-sheet.pdf">reqT cheat sheet</a></p></li>
+<li><p>Study the slides of lectures <a
+href="http://cs.lth.se/krav/lectures/">L1-L4</a>, and the <a
+href="http://fileadmin.cs.lth.se/krav/reqT-tutorial.pdf">reqT
+tutorial</a>.</p></li>
+<li><p>Study the <a
+href="https://github.com/reqT/reqT/blob/3.1.x/doc/cheat-sheet/reqT-cheat-sheet.pdf">reqT
+cheat sheet</a></p></li>
 <li><p>At the beginning of the lab session be prepared to:</p>
 <ul>
-<li><p>Show your context diagram and a list of your feature with one-line descriptions and stakeholders.</p></li>
+<li><p>Show your context diagram and a list of your feature with
+one-line descriptions and stakeholders.</p></li>
 <li><p>Answer these questions:</p>
 <ul>
-<li><p>What are the differences between an entity and an attribute?</p></li>
+<li><p>What are the differences between an entity and an
+attribute?</p></li>
 <li><p>What can be connected with a relation?</p></li>
 </ul></li>
 </ul></li>
 </ul>
-<h2 id="task-1-create-a-context-section">Task 1: Create a <code>context</code> section</h2>
+<h2 id="task-1-create-a-context-section">Task 1: Create a
+<code>context</code> section</h2>
 <ul>
-<li><p>Launch reqT and open the swing desktop gui editor with the <code>edit</code> command in terminal.</p></li>
-<li><p>Create a textual model of your project context diagram from your lab preparations in Task 0 above, using reqT. Use entities in a similar way as in the example below.</p></li>
+<li><p>Launch reqT and open the swing desktop gui editor with the
+<code>edit</code> command in terminal.</p></li>
+<li><p>Create a textual model of your project context diagram from your
+lab preparations in Task 0 above, using reqT. Use entities in a similar
+way as in the example below.</p></li>
 </ul>
 <pre><code>Section context
   Product hotelApp interactsWith
@@ -43,12 +78,25 @@
 <ul>
 <li><p>Save your reqT model.</p></li>
 <li><p>Export your reqT model as html.</p></li>
-<li><p>(Optional.) If you are on a machine with Graphviz installed (LTH computers in the E building has Graphviz installed), then generate a GraphViz diagram by choosing <em>&quot;To Graphviz .dot nested&quot;</em> in the <strong>Export</strong> menu. Or else you can draw your context diagram by hand in a drawing program of your choice.</p></li>
-<li><p>(Optional.) Study the template <em>&quot;Context diagram with interfaces&quot;</em> in the <strong>Templates</strong> menu and make a more detailed context diagram of your project including a model of interfaces with input/output data.</p></li>
+<li><p>(Optional.) If you are on a machine with Graphviz installed (LTH
+computers in the E building has Graphviz installed), then generate a
+GraphViz diagram by choosing <em>“To Graphviz .dot nested”</em> in the
+<strong>Export</strong> menu. Or else you can draw your context diagram
+by hand in a drawing program of your choice.</p></li>
+<li><p>(Optional.) Study the template <em>“Context diagram with
+interfaces”</em> in the <strong>Templates</strong> menu and make a more
+detailed context diagram of your project including a model of interfaces
+with input/output data.</p></li>
 </ul>
-<h2 id="task-2-create-a-features-section">Task 2: Create a <code>features</code> section</h2>
+<h2 id="task-2-create-a-features-section">Task 2: Create a
+<code>features</code> section</h2>
 <ul>
-<li>Add a <code>Section(&quot;features&quot;)</code> to your model and include your feature according to the following example. Each feature should have a short identifier (id) that use camel case capitalization. Place your feature description in a <code>Gist</code> attribute. If you type <code>Gist ?</code> in the reqT terminal you can see an explanation/definition of what a <code>Gist</code> attribute is.</li>
+<li>Add a <code>Section("features")</code> to your model and include
+your feature according to the following example. Each feature should
+have a short identifier (id) that use camel case capitalization. Place
+your feature description in a <code>Gist</code> attribute. If you type
+<code>Gist ?</code> in the reqT terminal you can see an
+explanation/definition of what a <code>Gist</code> attribute is.</li>
 </ul>
 <pre><code>Section features
   Feature checkIn
@@ -61,45 +109,104 @@
     Gist Receptionists can find available rooms based on search criteria.
   Feature webBooking
     Gist A guest can book a future stay via a web interface.</code></pre>
-<h2 id="task-3-prioritize-your-features">Task 3: Prioritize your features</h2>
+<h2 id="task-3-prioritize-your-features">Task 3: Prioritize your
+features</h2>
 <ul>
 <li><p>Ordinal-scale prioritization: par-wise comparison</p>
 <ul>
-<li><p>Select your features section in the Tree pane and choose <em>Prioritize: compare entities</em> in the <strong>Tools</strong> menu. You should get a list of id pairs for all combinations of sub-entities of the features section loaded into the editor.</p></li>
-<li><p>Change all diamonds <code>&lt;&gt;</code> to either <code>&lt;</code> or <code>&gt;</code> depending on your prioritization of the features according to this criteria for each pair of features A and B:</p>
+<li><p>Select your features section in the Tree pane and choose
+<em>Prioritize: compare entities</em> in the <strong>Tools</strong>
+menu. You should get a list of id pairs for all combinations of
+sub-entities of the features section loaded into the editor.</p></li>
+<li><p>Change all diamonds <code>&lt;&gt;</code> to either
+<code>&lt;</code> or <code>&gt;</code> depending on your prioritization
+of the features according to this criteria for each pair of features A
+and B:</p>
 <ul>
-<li><em>A is more/less important to spend more elicitation effort on than B</em>.</li>
+<li><em>A is more/less important to spend more elicitation effort on
+than B</em>.</li>
 </ul></li>
-<li><p>Choose <em>&quot;Prioritize: analyse comparisons&quot;</em> in the <strong>Tools</strong> menu. You should get a model with priorities calculated as a solution to a constraint problem based on your comparisons. A higher priority value means <em>more important</em>. Write down reflections on the result:</p>
+<li><p>Choose <em>“Prioritize: analyse comparisons”</em> in the
+<strong>Tools</strong> menu. You should get a model with priorities
+calculated as a solution to a constraint problem based on your
+comparisons. A higher priority value means <em>more important</em>.
+Write down reflections on the result:</p>
 <ul>
-<li><p>Are the priorities reflecting your gut feeling of &quot;importance&quot; according to the prioritization criteria?</p></li>
-<li><p>Were there any circular contradictions among your comparisons? This is shown as a warning in the reqT terminal.</p></li>
-<li><p>Circular contradictions make the constraint problem inconsistent and thus unsolvable, but the constraint solver in reqT does not give up! Instead a <em>relaxed deviation</em> <code>d</code> is allowed starting with <code>d = 1</code> and then retrying with <code>d += 1</code> until a solution can be found. This means that each priority rank <code>r</code> is representing any value within an error margin <code>[r - d, r + d]</code>.</p></li>
-<li><p>If you had no inconsistencies when solving the constraint problem, then introduce some circular consistency among 3 features just to test what happens.</p></li>
-<li><p>Given the minimum relaxed deviation needed for a solution to exist with your contradictory comparisons: find some features in your resulting priority rank order that could have be swapped and still fulfill the constraints if the deviation <code>d</code> is allowed.</p></li>
-<li><p>Is it easy to be consistent? Discuss the difficulty of making consistent pairwise comparisons as the number of compared objects increase. Discuss if or how the risk of being consistent might depend on the prioritization criteria. Could/should the level of deviation be used as an indicator of the quality of the human judgment?</p></li>
+<li><p>Are the priorities reflecting your gut feeling of “importance”
+according to the prioritization criteria?</p></li>
+<li><p>Were there any circular contradictions among your comparisons?
+This is shown as a warning in the reqT terminal.</p></li>
+<li><p>Circular contradictions make the constraint problem inconsistent
+and thus unsolvable, but the constraint solver in reqT does not give up!
+Instead a <em>relaxed deviation</em> <code>d</code> is allowed starting
+with <code>d = 1</code> and then retrying with <code>d += 1</code> until
+a solution can be found. This means that each priority rank
+<code>r</code> is representing any value within an error margin
+<code>[r - d, r + d]</code>.</p></li>
+<li><p>If you had no inconsistencies when solving the constraint
+problem, then introduce some circular consistency among 3 features just
+to test what happens.</p></li>
+<li><p>Given the minimum relaxed deviation needed for a solution to
+exist with your contradictory comparisons: find some features in your
+resulting priority rank order that could have be swapped and still
+fulfill the constraints if the deviation <code>d</code> is
+allowed.</p></li>
+<li><p>Is it easy to be consistent? Discuss the difficulty of making
+consistent pairwise comparisons as the number of compared objects
+increase. Discuss if or how the risk of being consistent might depend on
+the prioritization criteria. Could/should the level of deviation be used
+as an indicator of the quality of the human judgment?</p></li>
 </ul></li>
 </ul></li>
 <li><p>Ratio-scale prioritization: the 100-dollar method</p>
 <ul>
-<li><p>Choose the template <em>&quot;Prioritization 100$ method&quot;</em> from the <strong>Templates</strong> menu. Study the code and try to figure out what it does. Explain how the benefits values of each stakeholder are weighted together to normalized total benefit values. See what happens when you select the Tree root and press <code>Ctrl+Shift-I</code> or choose <em>&quot;Insert Scala model from Editor after node&quot;</em> from the <strong>Tree</strong> menu.</p></li>
-<li><p>Adapt the script from the previous step to include fake estimations of benefits of features from your project from the viewpoint of two different stakeholders. Then insert a section with weighted benefits into your tree.</p></li>
+<li><p>Choose the template <em>“Prioritization 100$ method”</em> from
+the <strong>Templates</strong> menu. Study the code and try to figure
+out what it does. Explain how the benefits values of each stakeholder
+are weighted together to normalized total benefit values. See what
+happens when you select the Tree root and press
+<code>Ctrl+Shift-I</code> or choose <em>“Insert Scala model from Editor
+after node”</em> from the <strong>Tree</strong> menu.</p></li>
+<li><p>Adapt the script from the previous step to include fake
+estimations of benefits of features from your project from the viewpoint
+of two different stakeholders. Then insert a section with weighted
+benefits into your tree.</p></li>
 </ul></li>
 </ul>
-<h2 id="task-4-optional-create-a-web-page-from-your-model">Task 4 (Optional): Create a web page from your model</h2>
-<p>Do this optional task if you still have time left at the lab session.</p>
+<h2 id="task-4-optional-create-a-web-page-from-your-model">Task 4
+(Optional): Create a web page from your model</h2>
+<p>Do this optional task if you still have time left at the lab
+session.</p>
 <ul>
-<li><p>If a model has an <strong>Image</strong> attribute with a URL to a jpg-file, you can generate a web page of your model with that image included.</p></li>
-<li><p>Save your model as a web page in a file called <code>index.html</code>.</p>
+<li><p>If a model has an <strong>Image</strong> attribute with a URL to
+a jpg-file, you can generate a web page of your model with that image
+included.</p></li>
+<li><p>Save your model as a web page in a file called
+<code>index.html</code>.</p>
 <ul>
-<li><p>You can generate html from your model in the <strong>Tree</strong> pane using the menu <strong>Export</strong> and choosing <em>&quot;To Html&quot;</em>.</p></li>
-<li><p>Or you can generate a web page from your current model in the three editor using this command: <code>currentTree.toHtml.save(&quot;index.html&quot;)</code></p></li>
+<li><p>You can generate html from your model in the
+<strong>Tree</strong> pane using the menu <strong>Export</strong> and
+choosing <em>“To Html”</em>.</p></li>
+<li><p>Or you can generate a web page from your current model in the
+three editor using this command:
+<code>currentTree.toHtml.save("index.html")</code></p></li>
 </ul></li>
-<li><p>Open the <code>index.html</code> file from within your browser using the <code>File -&gt; Open</code> menu.</p></li>
-<li><p>Now include an <code>Image</code> attribute in your reqt model similar to <code>Image(&quot;file:ctx.jpg&quot;)</code> with a link to your context diagram drawing from Task 1, and reqT will then insert that link in your html code when you export to html. <strong>Note:</strong> There should be <em>three</em> slashes after <code>file:</code>. Re-load <code>index.html</code> in your browser and see the image inserted into you model.</p></li>
+<li><p>Open the <code>index.html</code> file from within your browser
+using the <code>File -&gt; Open</code> menu.</p></li>
+<li><p>Now include an <code>Image</code> attribute in your reqt model
+similar to <code>Image("file:ctx.jpg")</code> with a link to your
+context diagram drawing from Task 1, and reqT will then insert that link
+in your html code when you export to html. Re-load
+<code>index.html</code> in your browser and see the image inserted into
+you model.</p></li>
 </ul>
-<h2 id="task-5-optional-dig-deeper-into-reqt">Task 5 (Optional): Dig deeper into reqT</h2>
-<p>Do this optional task if you still have time left at the lab session.</p>
+<h2 id="task-5-optional-dig-deeper-into-reqt">Task 5 (Optional): Dig
+deeper into reqT</h2>
+<p>Do this optional task if you still have time left at the lab
+session.</p>
 <ul>
-<li>Follow the old, more technically focused, lab instructions from 2017 and learn more about how you can manipulate and analyze reqT models using scripts in Scala. The old lab instructions are available here: <a href="https://github.com/reqT/reqT/blob/3.0.x/doc/lab1/lab1.pdf" class="uri">https://github.com/reqT/reqT/blob/3.0.x/doc/lab1/lab1.pdf</a></li>
+<li>Follow the old, more technically focused, lab instructions from 2017
+and learn more about how you can manipulate and analyze reqT models
+using scripts in Scala. The old lab instructions are available here: <a
+href="https://github.com/reqT/reqT/blob/3.0.x/doc/lab1/lab1.pdf">https://github.com/reqT/reqT/blob/3.0.x/doc/lab1/lab1.pdf</a></li>
 </ul>
