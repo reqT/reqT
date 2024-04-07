@@ -28,8 +28,18 @@ import javax.swing.event.DocumentEvent
 import javax.swing.text.DefaultCaret
 
 object EditorWindow:
-  val x = 42
+  SwingPlatform.swingInit()
+
+  private val started = collection.mutable.Buffer.empty[EditorWindow]
+  
   @volatile private var n = 0
+  
+  def nbrWindows: Int = n
+
+  def get(i: Int): Option[EditorWindow] = started.lift(i)
+
+  def newWindow(): Unit = SwingPlatform.runInSwingThread(started.append(EditorWindow()))
+ 
   def initFileName = s"untitled-$n.reqt"
 
   val initMessage = 
@@ -40,7 +50,7 @@ object EditorWindow:
         |Relations are red and bold + underlined.
         |""".stripMargin
 
-class EditorWindow() extends JFrame:
+class EditorWindow private () extends JFrame:
   EditorWindow.n += 1
   @volatile private var isSaved = true
   def saveNeeded(): Unit = {isSaved = false; updateTitle() }

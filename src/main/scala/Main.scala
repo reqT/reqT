@@ -1,14 +1,14 @@
 package reqt
 
-
+def edit: Unit = 
+    EditorWindow.newWindow()
+    SwingPlatform.runInSwingThread:
+      println(s"New window started! EditorWindow.nbrWindows=${EditorWindow.nbrWindows}")
+    
 object Main:
-  @volatile var windowOpt: Option[EditorWindow] = None
-
   def main(args: Array[String]): Unit = 
-    println("Starting DesktopGUI")
-    SwingPlatform.swingInit()
-    SwingPlatform.runInSwingThread: 
-      windowOpt = Some(EditorWindow()) 
+    if args.isEmpty then edit 
+    else println(s"TODO: parse unknown args: ${args.mkString(",")}")
 
 
 
