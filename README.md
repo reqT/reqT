@@ -25,16 +25,26 @@
       curl -LO https://github.com/reqT/reqT/releases/download/4.0.0-M2/reqT.jar
 
 
-### Run
+### Run app
 
 * Run reqT with: 
     
       java -jar reqT.jar
 
-* If java is missing on your system then install Java JDK LTS from here: https://adoptium.net 
+* If `java` is missing on your system then install Java JDK LTS from here: https://adoptium.net 
   * Java JDK version 17 is recommended.
  
   * The reqT jar-file is built with Java 17 but later LTS versions may also work. If you experience problems then revert to Java JDK version 17.
+
+### Run shell
+
+* Run reqT in the Scala repl with:
+    
+      scala-cli repl --jar reqT.jar
+
+* When the `scala>` prompt is shown type: `import reqt.*` and you are [good to go scripting](https://reqt.github.io/).
+
+* If `scala-cli` is missing on your system then install it from here: https://scala-cli.virtuslab.org/
 
 ### Install 
 
