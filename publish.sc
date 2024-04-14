@@ -1,9 +1,9 @@
-// run with scala-cli run publish.sc
+// run with `scala-cli run publish.sc`
 
 //> using scala 3.4
 //> using toolkit default
 
-println("*** Publish the reqT jar to github using gh ***\n")
+println("*** Publish the reqT jar to github using sbt and gh ***\n")
 
 val wd = os.pwd
 

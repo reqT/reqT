@@ -1,4 +1,4 @@
-lazy val reqTVer      = "4.0.0-M2"
+lazy val reqTVer      = "4.0.0-M3"
 lazy val reqTJarName  = s"reqT-$reqTVer.jar"
 lazy val reqTLangVer  = "4.2.0"
 lazy val reqTJacopVer = "1.1.0" 
@@ -6,6 +6,7 @@ lazy val jacopVer     = "4.10.0"
 lazy val scalaVer     = "3.3.3"  // use LTS only
 lazy val RSTAVer      = "3.3.2"
 lazy val AutoCompVer  = "3.3.1"
+lazy val OSLibVer     = "0.9.3"
 
 ThisBuild / version       := reqTVer
 ThisBuild / scalaVersion  := scalaVer
@@ -40,4 +41,6 @@ lazy val `reqT` = (project in file("."))
     libraryDependencies += "com.fifesoft" % "rsyntaxtextarea" % RSTAVer,
     
     libraryDependencies += "com.fifesoft" % "autocomplete" % AutoCompVer,
+
+    libraryDependencies += "com.lihaoyi" %% "os-lib" % OSLibVer,
   )

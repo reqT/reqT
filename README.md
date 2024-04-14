@@ -85,6 +85,7 @@ This repo uses the following open source projects (with their own licenses):
 * [**Autocomplete**](http://fifesoft.com/autocomplete/) used for autocompletion in the reqT swing editor
 * [**Scala**](http://www.scala-lang.org/) the lean and powerful programming language
 * [**sbt**](https://www.scala-sbt.org/) the scala build tool
+* [**os-lib**](https://github.com/com-lihaoyi/os-lib) for using files and processes
 
 ## Build
 
