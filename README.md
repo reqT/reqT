@@ -41,27 +41,27 @@
 It is optional but convenient to install the `reqt` command on your path like so:
 
   * Linux/MacOS: 
-    * Create a dir called `reqT` in your home directory and put the `reqT.jar` (see Download above) there.
-    * put a file named `reqt` in `~/bin` with the contents below and do `chmod +x ~/bin/reqt`
+    * Create a dir called `reqT` in your home directory and put the [`reqT.jar`](https://github.com/reqT/reqT/releases) there.
+    * Create a file named `reqt` (name in lower case) in `~/bin` with the contents below:
       ```bash
       #!/bin/bash
       java -jar ~/reqT/reqT.jar $@
       ```
-    * Change the path to the reqT.jar to where you put it. 
+    * Do `chmod +x ~/bin/reqt` to make it executable. 
     * Make `reqt` executable by `chmod +x ~/bin/reqt`
     * This requires that `~/bin` is on your `$PATH` which normally is the case in e.g. Ubuntu
 
   * Windows:
     * Create a dir called `reqT` in your home directory and put the `reqT.jar` (see Download above) in that dir.
-    * Create a file in the `reqT` dir that is called `reqt.cmd` with the following contents:
+    * Create a file named `reqt.cmd` (name in lower case) in the `reqT` dir with the contents below:
       ```cmd
       @echo OFF
       set _jarfile=%HOMEDRIVE%%HOMEPATH%\reqT\reqT.jar
       call java %_jarfile% %*
       ```
-    * Add the `reqT` dir is to your Windows Path e.g. by [following these instrictions](https://stackoverflow.com/questions/44272416).
+    * Add the `reqT` dir to your Windows Path e.g. by [following these instructions](https://stackoverflow.com/questions/44272416).
 
-Now you should be able to run reqT by typing `reqt` in terminal in any working dir. 
+After a log out and log in you should be able to run reqT by typing `reqt` in terminal in any working dir. 
 
 ## Dependencies 
 
