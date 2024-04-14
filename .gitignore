@@ -17,3 +17,9 @@ reqT*.jar
 **/.dotty*
 **/metals.sbt
 .project
+**/.bsp
+**/.metals
+**/.vscode
+**/.settings 
+**/.bloop
+**/.scala-build
