@@ -41,7 +41,7 @@
 It is optional but convenient to install the `reqt` command on your path like so:
 
   * Linux/MacOS: 
-    * Create a dir called `reqT` in your home directory and put the `reqT.jar` (see Download above) in that dir.
+    * Create a dir called `reqT` in your home directory and put the `reqT.jar` (see Download above) there.
     * put a file named `reqt` in `~/bin` with the contents below and do `chmod +x ~/bin/reqt`
       ```bash
       #!/bin/bash
