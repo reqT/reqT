@@ -1,9 +1,11 @@
-lazy val reqTVer     = "4.0.0-M2"
-lazy val reqTJarName = "reqT.jar"
-lazy val reqtLangVer = "4.2.0"
-lazy val scalaVer    = "3.3.1"
-lazy val RSTAVer     = "3.3.2"
-lazy val AutoCompVer = "3.3.1"
+lazy val reqTVer      = "4.0.0-M2"
+lazy val reqTJarName  = s"reqT-$reqTVer.jar"
+lazy val reqTLangVer  = "4.2.0"
+lazy val reqTJacopVer = "1.1.0" 
+lazy val jacopVer     = "4.10.0"
+lazy val scalaVer     = "3.3.3"  // use LTS only
+lazy val RSTAVer      = "3.3.2"
+lazy val AutoCompVer  = "3.3.1"
 
 ThisBuild / version       := reqTVer
 ThisBuild / scalaVersion  := scalaVer
@@ -17,6 +19,11 @@ outputStrategy := Some(StdoutOutput)
 run / javaOptions += "-Xmx8G"
 run / connectInput := true
 
+def githubDep(lib: String, org: String, repo: String, ver: String) = {
+  lib % lib % ver from 
+      s"https://github.com/$org/$repo/releases/download/v$ver/${lib}_3-$ver.jar"
+}
+
 lazy val `reqT` = (project in file("."))
   .settings(
     name := "reqT",
@@ -24,10 +31,13 @@ lazy val `reqT` = (project in file("."))
     assembly / assemblyJarName := reqTJarName,
     assembly / mainClass := Some("reqt.Main"),
 
-    libraryDependencies += "reqt-lang" % "reqt-lang" % reqtLangVer from 
-      s"https://github.com/reqT/reqT-lang/releases/download/v$reqtLangVer/reqt-lang_3-$reqtLangVer.jar",
-      //https://github.com/reqT/reqT-lang/releases/download/v4.2.0/reqt-lang_3-4.2.0.jar
+    libraryDependencies += githubDep("reqt-lang", "reqT", "reqT-lang", reqTLangVer),
+
+    libraryDependencies += githubDep("reqt-jacop", "reqT", "reqT-jacop", reqTJacopVer),
+
+    libraryDependencies += "org.jacop" % "jacop" % jacopVer,
 
     libraryDependencies += "com.fifesoft" % "rsyntaxtextarea" % RSTAVer,
+    
     libraryDependencies += "com.fifesoft" % "autocomplete" % AutoCompVer,
   )
