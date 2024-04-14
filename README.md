@@ -20,7 +20,7 @@
 
 ### Download
 
-* Download the latest version from here: [reqT.jar](https://github.com/reqT/reqT/releases) or use curl in terminal like so:
+* Download the latest `reqT.jar` from https://github.com/reqT/reqT/releases or use curl in terminal like so:
     
       curl -LO https://github.com/reqT/reqT/releases/download/4.0.0-M2/reqT.jar
 
@@ -38,31 +38,30 @@
 
 ### Install 
 
-It is optional but convenient to install the `reqt` command like so:
+It is optional but convenient to install the `reqt` command on your path like so:
 
-* To install the `reqt` command on your path:
-    * Linux/MacOS: 
-      * Create a dir called `reqT` in your home directory and put the `reqT.jar` (see Download above) in that dir.
-      * put a file named `reqt` in `~/bin` with the contents below and do `chmod +x ~/bin/reqt`
-        ```bash
-        #!/bin/bash
-        java -jar ~/reqT/reqT.jar $@
-        ```
-      * Change the path to the reqT.jar to where you put it. 
-      * Make `reqt` executable by `chmod +x ~/bin/reqt`
-      * This requires that `~/bin` is on your `$PATH` which normally is the case in e.g. Ubuntu
+  * Linux/MacOS: 
+    * Create a dir called `reqT` in your home directory and put the `reqT.jar` (see Download above) in that dir.
+    * put a file named `reqt` in `~/bin` with the contents below and do `chmod +x ~/bin/reqt`
+      ```bash
+      #!/bin/bash
+      java -jar ~/reqT/reqT.jar $@
+      ```
+    * Change the path to the reqT.jar to where you put it. 
+    * Make `reqt` executable by `chmod +x ~/bin/reqt`
+    * This requires that `~/bin` is on your `$PATH` which normally is the case in e.g. Ubuntu
 
-    * Windows:
-      * Create a dir called `reqT` in your home directory and put the `reqT.jar` (see Download above) in that dir.
-      * Create a file in the `reqT` dir that is called `reqt.cmd` with the following contents:
-        ```cmd
-        @echo OFF
-        set _jarfile=%HOMEDRIVE%%HOMEPATH%\reqT\reqT.jar
-        call java %_jarfile% %*
-        ```
-      * Add the `reqT` dir is to your Windows Path e.g. by [following these instrictions](https://stackoverflow.com/questions/44272416).
+  * Windows:
+    * Create a dir called `reqT` in your home directory and put the `reqT.jar` (see Download above) in that dir.
+    * Create a file in the `reqT` dir that is called `reqt.cmd` with the following contents:
+      ```cmd
+      @echo OFF
+      set _jarfile=%HOMEDRIVE%%HOMEPATH%\reqT\reqT.jar
+      call java %_jarfile% %*
+      ```
+    * Add the `reqT` dir is to your Windows Path e.g. by [following these instrictions](https://stackoverflow.com/questions/44272416).
 
-  * Now you should be able to run reqT by typing `reqt` in terminal. 
+Now you should be able to run reqT by typing `reqt` in terminal in any working dir. 
 
 ## Dependencies 
 
