@@ -2,7 +2,7 @@
 
 # `reqT` is a requirements engineering tool
 
-* reqT is an open source requirements modelling tool for software developers. 
+* reqT is an open source requirements engineering tool for software developers. 
 
 * With reqT you can: 
   * model, analyse, visualize and prioritize requirements
