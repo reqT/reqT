@@ -49,7 +49,7 @@ It is optional but convenient to install the `reqt` command on your path like so
       ```
     * Do `chmod +x ~/bin/reqt` to make it executable. 
     * Make `reqt` executable by `chmod +x ~/bin/reqt`
-    * This requires that `~/bin` is on your `$PATH` which normally is the case in e.g. Ubuntu
+    * This requires that `~/bin` is on your `$PATH` which normally is the case in e.g. Ubuntu.
 
   * Windows:
     * Create a dir called `reqT` in your home directory and put the `reqT.jar` (see Download above) in that dir.
