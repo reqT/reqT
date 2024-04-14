@@ -4,6 +4,7 @@ old*/
 .bsp
 .bloop
 .metals
+**/metals.sbt
 .scala-build
 **/bin/
 **/target
