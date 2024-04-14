@@ -7,15 +7,24 @@ reqT 3.1.x: A requirements modelling tool
 
 reqT is a free requirements modelling tool for software developers. With reqT you can model, analyse and visualize your system requirements and test specifications using a powerful DSL embedded in Scala.
 
-For more information see http://reqT.org 
+For more information see https://reqt.github.io/ 
 
-How to run reqT
----------------
-* Download [reqT-v3.1.7.jar](https://github.com/reqT/reqT/releases/download/v3.1.7/reqT-v3.1.7.jar) 
+How to run reqT 
+---------------------
+* Run new reqT 4.x  **WORK IN PROGRESS**
+  * Download [reqT-v4.0.0-M1.jar](https://github.com/reqT/reqT/releases/download/v4.0.0/reqT-v4.0.0-M1.jar) 
 
-* Launch reqT with this command: 
+  * Launch reqT with this command: 
+    
+        java -jar reqT-v4.0.0-M1.jar
+
+* Run old reqT 3.1.x: 
+  * Download [reqT-v3.1.7.jar](https://github.com/reqT/reqT/releases/download/v3.1.7/reqT-v3.1.7.jar) 
+
+  * Launch reqT with this command: 
     
         java -jar reqT-v3.1.7.jar
+
 
  
 How to build reqT from code
