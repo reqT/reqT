@@ -6,20 +6,23 @@ reqT: Requirements => Code
 * With reqT you can model, analyze and visualize your system requirements using both readable natural language and a powerful DSL embedded in Scala.
 * For more information on **how to use reqT** see docs at https://reqt.github.io/ 
 
-How to run reqT in terminal
----------------------------
+How to run reqT
+---------------
 
-* Install Java 17 from here: https://adoptium.net 
-
-* Download the latest stable [reqT.jar](https://github.com/reqT/reqT/releases) 
+* Download the latest [reqT.jar](https://github.com/reqT/reqT/releases) 
 
 * Launch reqT with this command: 
     
         java -jar reqT.jar
 
+* If java is missing on your system then install Java JDK LTS from here: https://adoptium.net 
+  * Java JDK version 17 is recommended.
  
-How to build the latest reqT from code
---------------------------------------
+  * The reqT jar-file is built with Java 17 but later LTS versions may also work. If you experience problems then revert to Java JDK version 17.
+
+ 
+How to build the latest reqT from source
+----------------------------------------
 
 1. Clone this repo locally. You may want to use `git clone --depth 1` (to avoid the history with some old binaries).
 2. Install java, scala, sbt
@@ -30,11 +33,15 @@ How to build the latest reqT from code
 Dependencies 
 -------------
 
-This repo depends on [reqT-lang](https://github.com/reqT/reqT-lang/) library containing the underlying language and api.
+The reqT app primarily depends on [**reqT-lang**](https://github.com/reqT/reqT-lang/), a zero-dependency, cross-platform, permissive-licensed library containing the underlying reqT language and api.
 
-This repo builds on the following open source projects (with their own licenses):
-* [Scala](http://www.scala-lang.org/) used for embedded DSL construction and more
-* [JaCoP](https://github.com/radsz/jacop) used for constraint solving
-* [RSyntaxTextArea](http://fifesoft.com/rsyntaxtextarea/) used for syntax coloring
-* [Autocomplete](http://fifesoft.com/autocomplete/) used for autocompletion
+This repo uses the following open source projects (with their own licenses):
+* [**reqT-lang**](https://github.com/reqT/reqT-lang) the reqT language as a platform-independent, zero-dependency scala library with a permissive license 
+* [**reqT-jacop**](https://github.com/reqT/reqT-jacop) an interface to the JaCoP constraint solver
+* [**JaCoP**](https://github.com/radsz/jacop) used for constraint solving
+* [**RSyntaxTextArea**](http://fifesoft.com/rsyntaxtextarea/) used for syntax coloring in the reqT swing editor
+* [**Autocomplete**](http://fifesoft.com/autocomplete/) used for autocompletion in the reqT swing editor
+* [**Scala**](http://www.scala-lang.org/) the lean and powerful programming language
+* [**sbt**](https://www.scala-sbt.org/) the scala build tool
+
 
