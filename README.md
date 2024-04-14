@@ -1,18 +1,21 @@
 <img src="http://reqt.org/reqT.jpg" width="100"> 
 
-reqT: Requirements => Code
-==========================
+reqT 3.1.x: A requirements modelling tool
+=========================================
+
+**NOTE:** This is the *old* 3.1.x branch that is stuck on Scala 2.12.17. The *new* reqT 4.x is based on Scala 3 and can be found in the [4.x branch.](https://github.com/reqT/reqT/tree/4.x).
+
 reqT is a free requirements modelling tool for software developers. With reqT you can model, analyse and visualize your system requirements and test specifications using a powerful DSL embedded in Scala.
 
 For more information see http://reqT.org 
 
 How to run reqT
 ---------------
-* Download [reqT.jar](http://reqT.org/reqT.jar) 
+* Download [reqT-v3.1.7.jar](https://github.com/reqT/reqT/releases/download/v3.1.7/reqT-v3.1.7.jar) 
 
 * Launch reqT with this command: 
     
-        java -jar reqT.jar
+        java -jar reqT-v3.1.7.jar
 
  
 How to build reqT from code
@@ -25,7 +28,7 @@ The reqT build is only supported for Linux but it may work on other systems.
 3. Run the `./build.sh` script among the extracted files
 4. Run the generated jar with `java -jar reqT.jar`
 
-The reqT v3 branch is unfortunately stuck on old Scala 2.12.17 because of its tight integration with the repl and the standard library.
+This reqT v3.1.x branch is unfortunately stuck on old Scala 2.12.17 because of its tight integration with the 2.12 repl and the 2.12 standard library. The *new* reqT 4.x is based on Scala 3 and can be found in the [4.x branch.](https://github.com/reqT/reqT/tree/4.x).
 
 How to change the reqT metamodel
 --------------------------------
