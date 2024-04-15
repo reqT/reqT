@@ -2,6 +2,8 @@ package reqt
 
 import os.exists
 
+val scalaVersion = "3.4.1"
+
 def edit(args: Array[String]): Unit = 
     EditorWindow.newWindow()
     SwingPlatform.runInSwingThread:
@@ -17,12 +19,12 @@ def repl(args: Array[String]): Unit =
       println(s"You need download reqT.jar from $url and place it in ${os.home/"reqT"}")
       sys.exit(1)
 
-    println(s"scala-cli repl --jar $jar")
-    os.proc("scala-cli", "repl", "--jar", jar)
-      .call(stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit)
+    val cmd = Seq[String]("scala-cli", "repl", "-S", scalaVersion, "--jar", jar.toString)
+    println(s"Running command: ${cmd.mkString(" ")}")
+    os.proc(cmd).call(stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit)
   }
   if result.isFailure then 
-    println("$result")
+    println(s"$result")
     sys.exit(1)
 
 object Main:
