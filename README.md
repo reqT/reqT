@@ -23,15 +23,15 @@
 * Download the latest `reqT.jar` from https://github.com/reqT/reqT/releases like so:
   * Linux:
     ```
-    wget https://github.com/reqT/reqT/releases/download/4.0.0-M2/reqT.jar
+    wget https://github.com/reqT/reqT/releases/download/4.0.0-M3/reqT.jar
     ```
   * Windows:
     ```
-    curl -Uri "https://github.com/reqT/reqT/releases/download/4.0.0-M2/reqT.jar" -OutFile reqT.jar
+    curl -Uri "https://github.com/reqT/reqT/releases/download/4.0.0-M3/reqT.jar" -OutFile reqT.jar
     ```
   * MacOS:
     ```
-    curl -O https://github.com/reqT/reqT/releases/download/4.0.0-M2/reqT.jar
+    curl -O https://github.com/reqT/reqT/releases/download/4.0.0-M3/reqT.jar
     ```
 ### Run app
 
