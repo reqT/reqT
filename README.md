@@ -50,9 +50,9 @@
     
       scala-cli repl --jar reqT.jar
 
-* When the `scala>` prompt is shown type: `import reqt.*` and you are [good to go scripting](https://reqt.github.io/).
-
 * If `scala-cli` is missing on your system then install it from here: https://scala-cli.virtuslab.org/
+
+* When the `scala>` prompt is shown type: `import reqt.*` and you are good to go coding.
 
 ### Install 
 
@@ -76,7 +76,7 @@ It is optional but convenient to install the `reqt` command on your path like so
       set _jarfile=%HOMEDRIVE%%HOMEPATH%\reqT\reqT.jar
       call java -jar %_jarfile% %*
       ```
-    * Add the `reqT` dir to your Windows Path e.g. by [following these instructions](https://stackoverflow.com/questions/44272416).
+    * Add the `reqT` dir to your Windows Path by [following these instructions](https://stackoverflow.com/questions/44272416).
 
 After a restart of your terminal you should be able to run reqT by typing `reqt` in any work dir. 
 
