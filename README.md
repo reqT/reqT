@@ -20,7 +20,7 @@
 
 ### Download
 
-* Download the latest `reqT.jar` from https://github.com/reqT/reqT/releases or use curl in terminal like so:
+* Download the latest `reqT.jar` from https://github.com/reqT/reqT/releases like so:
   * Linux:
     ```
     wget https://github.com/reqT/reqT/releases/download/4.0.0-M2/reqT.jar
@@ -65,9 +65,8 @@ It is optional but convenient to install the `reqt` command on your path like so
       #!/bin/bash
       java -jar ~/reqT/reqT.jar $@
       ```
-    * Do `chmod +x ~/bin/reqt` to make it executable. 
     * Make `reqt` executable by `chmod +x ~/bin/reqt`
-    * This requires that `~/bin` is on your `$PATH` which normally is the case in e.g. Ubuntu.
+    * This requires that `~/bin` is on your `$PATH` which is [the default in e.g. Ubuntu](https://askubuntu.com/a/402410). On MacOS you need to `sudo nano /etc/paths` and add `/Users/YOURUSERNAME/bin` at the bottom of the file.
 
   * Windows:
     * Create a dir called `reqT` in your home directory and put the `reqT.jar` (see Download above) in that dir.
@@ -79,7 +78,7 @@ It is optional but convenient to install the `reqt` command on your path like so
       ```
     * Add the `reqT` dir to your Windows Path e.g. by [following these instructions](https://stackoverflow.com/questions/44272416).
 
-After a log out and log in you should be able to run reqT by typing `reqt` in terminal in any working dir. 
+After a restart of your terminal you should be able to run reqT by typing `reqt` in any work dir. 
 
 ## Dependencies 
 
