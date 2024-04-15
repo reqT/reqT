@@ -25,7 +25,7 @@
     ```
     wget https://github.com/reqT/reqT/releases/download/4.0.0-M3/reqT.jar
     ```
-  * Windows:
+  * Windows Powershell:
     ```
     curl -Uri "https://github.com/reqT/reqT/releases/download/4.0.0-M3/reqT.jar" -OutFile reqT.jar
     ```
