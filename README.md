@@ -21,10 +21,18 @@
 ### Download
 
 * Download the latest `reqT.jar` from https://github.com/reqT/reqT/releases or use curl in terminal like so:
-    
-      curl -LO https://github.com/reqT/reqT/releases/download/4.0.0-M2/reqT.jar
-
-
+  * Linux:
+    ```
+    wget https://github.com/reqT/reqT/releases/download/4.0.0-M2/reqT.jar
+    ```
+  * Windows:
+    ```
+    curl -Uri "https://github.com/reqT/reqT/releases/download/4.0.0-M2/reqT.jar" -OutFile reqT.jar
+    ```
+  * MacOS:
+    ```
+    curl -O https://github.com/reqT/reqT/releases/download/4.0.0-M2/reqT.jar
+    ```
 ### Run app
 
 * Run reqT with: 
