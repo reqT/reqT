@@ -75,7 +75,7 @@ It is optional but convenient to install the `reqt` command on your path like so
       ```cmd
       @echo OFF
       set _jarfile=%HOMEDRIVE%%HOMEPATH%\reqT\reqT.jar
-      call java %_jarfile% %*
+      call java -jar %_jarfile% %*
       ```
     * Add the `reqT` dir to your Windows Path e.g. by [following these instructions](https://stackoverflow.com/questions/44272416).
 
