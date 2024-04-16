@@ -1,6 +1,5 @@
 package reqt
 
-import reqt.SwingPlatform.*
 import reqt.Sys.newFileType
 import reqt.Sys.saveTo
 import reqt.Sys.loadLines
@@ -26,6 +25,8 @@ import javax.swing.Action
 import javax.swing.event.DocumentListener
 import javax.swing.event.DocumentEvent
 import javax.swing.text.DefaultCaret
+import java.awt.event.WindowEvent
+import reqt.SwingPlatform.runInSwingThread
 
 object EditorWindow:
   SwingPlatform.swingInit()
@@ -38,8 +39,8 @@ object EditorWindow:
 
   def get(i: Int): Option[EditorWindow] = started.lift(i)
 
-  def newWindow(): Unit = SwingPlatform.runInSwingThread(started.append(EditorWindow()))
- 
+  def newWindow(): Unit = runInSwingThread(started.append(EditorWindow())) 
+
   def initFileName = s"untitled-$n.reqt"
 
   val initMessage = 
@@ -77,9 +78,9 @@ class EditorWindow private () extends JFrame:
   def updateFileName(fn: String) = { _fileName = fn; updateTitle() }
 
   def doFileNew(): Unit = new EditorWindow()
-  
+
   def doOpen(): Unit = 
-    for f <- chooseFile() do 
+    for f <- SwingPlatform.chooseFile() do 
       val t = loadLines(f).mkString("\n")
       textArea.setText(t)
       updateFileName(f)
@@ -88,21 +89,47 @@ class EditorWindow private () extends JFrame:
   def doSave(): Unit = 
     textArea.getText().saveTo(fileName)
     didSave()
-    
+
+  def askKeepEditing(): Boolean = 
+    SwingPlatform.isOK(s"""WARNING! You have unsaved changes! 
+                          |Do you want to continue editing?
+                          |Yes = Continue editing.
+                          |No  = Loose unsaved changes!""".stripMargin
+                          , Some(this))
+
+  def doClose(): Unit = runInSwingThread:
+    if isSaved || !isSaved && !askKeepEditing() then  
+      dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING))
+    else ()
+  
+  def doQuit(): Unit = runInSwingThread:
+    val isAllSaved = EditorWindow.started.forall(_.isSaved)
+    if isAllSaved || !isAllSaved && !askKeepEditing() then 
+      scala.sys.exit(0) // This is a brutal quit
+    else ()
+
 
   val initMenus =
+    import SwingPlatform.{AppMenus,Menu,Item,MenuSeparator}
     AppMenus(
       Menu("File", mnemonic = VK_F,
         Item("New Window", VK_N, VK_N, CTRL){ doFileNew() },
         Item("Open File ...", VK_O, VK_O, CTRL){ doOpen() },
         Item("Save", VK_S, VK_S, CTRL){ doSave() },
+        MenuSeparator,
+        Item("Close Window", VK_W, VK_W, CTRL){ doClose() },
+        Item("Quit",VK_Q, VK_Q, CTRL){doQuit()},
       ),
-      Menu("Edit", mnemonic = VK_E, Seq()*)
+      Menu("Edit", mnemonic = VK_E, Seq()*),
+      Menu("View", mnemonic = VK_V,
+        Item("Toggle Fullscreen", VK_F, VK_F11, 0) { SwingPlatform.fullScreen.toggleFullScreen(this) },
+        Item("Toggle Post-It", VK_P, VK_F12, 0) { SwingPlatform.fullScreen.toggleDecorations(this) },
+      )
     )
 
   val menuMap: Map[String, JComponent] = initMenus.installTo(frame)
 
-  def doMsg(msg: String): Unit = msgInfo(msg, parent = Some(frame))
+  def doMsg(msg: String): Unit = SwingPlatform.msgInfo(msg, parent = Some(frame))
   
   val defaultGlobalFontSize = 12 + fontDeltaByScreenHeight
 
@@ -114,7 +141,7 @@ class EditorWindow private () extends JFrame:
       case n if n <= 1024 => 6
       case n if n <= 1080 => 7
       case n if n <= 1440 => 8
-      case _         => 10
+      case _         => 12
     }
 
   def setGlobalSwingFontSize(size: Int): Unit = {
@@ -142,7 +169,7 @@ class EditorWindow private () extends JFrame:
   import org.fife.ui.rtextarea.*
   import org.fife.ui.rsyntaxtextarea.*
 
-  def setEditorFont(fontSize: Int, fontFamily: String = "") = runInSwingThread:
+  def setEditorFont(fontSize: Int, fontFamily: String = "") = SwingPlatform.runInSwingThread:
     val fn = if (fontFamily == "") textArea.getFont.getFamily else {
       val available = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment.getAvailableFontFamilyNames
       val possible = (fontFamily :: Settings.gui.editorFonts).filter(available.contains(_))
@@ -204,7 +231,7 @@ class EditorWindow private () extends JFrame:
   textArea.setAnimateBracketMatching(true)
   
   setEditorFont(mediumFontSize, Settings.gui.defaultEditorFont)
-  val textPane = new org.fife.ui.rtextarea.RTextScrollPane(textArea) with AntiAliasing
+  val textPane = new org.fife.ui.rtextarea.RTextScrollPane(textArea) with SwingPlatform.AntiAliasing
   
   import org.fife.ui.autocomplete.*
   val provider = new DefaultCompletionProvider()
@@ -276,7 +303,7 @@ class EditorWindow private () extends JFrame:
 
   textPane.updateUI
   pack()
-  setLocationRelativeTo(null)
+  setLocationByPlatform(true)
   setVisible(true)
   splitPane.setDividerLocation(0.8)
   updateTitle()
