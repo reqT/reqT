@@ -150,7 +150,7 @@ class ReqTTokenMaker extends AbstractTokenMaker:
       case TokenTypes.IDENTIFIER =>
 
         c match 
-        case ' ' | '\t' =>
+        case ' ' | '\t' | ':' =>
           addToken(text, currentTokenStart,i-1, TokenTypes.IDENTIFIER, newStartOffset+currentTokenStart)
           currentTokenStart = i
           currentTokenType = TokenTypes.WHITESPACE

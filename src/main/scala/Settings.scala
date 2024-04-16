@@ -30,5 +30,6 @@ object Settings {
     val defaultEditorFont = "DejaVu Sans Mono"
     var editorFonts    = List("Source Code Pro Medium" , "Fira Code Medium", "DejaVu Sans Mono", "JetBrains Mono Medium" , "Consolas", "Liberation Mono", "Monospace")
     var fontSize       = 14
+    var isPlatformSpecificLookAndFeel = true
   }
 }

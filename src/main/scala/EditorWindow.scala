@@ -27,9 +27,15 @@ import javax.swing.event.DocumentEvent
 import javax.swing.text.DefaultCaret
 import java.awt.event.WindowEvent
 import reqt.SwingPlatform.runInSwingThread
+import java.awt.event.WindowListener
+import java.awt.event.WindowAdapter
+import javax.swing.LookAndFeel
+import reqt.EditorWindow.initLookAndFell
+import reqt.SwingPlatform.mkMenuItem
 
 object EditorWindow:
-  SwingPlatform.swingInit()
+  val initLookAndFell = javax.swing.UIManager.getLookAndFeel()
+  SwingPlatform.swingInit(isPlatformSpecific = Settings.gui.isPlatformSpecificLookAndFeel)
 
   private val started = collection.mutable.Buffer.empty[EditorWindow]
   
@@ -44,11 +50,26 @@ object EditorWindow:
   def initFileName = s"untitled-$n.reqt"
 
   val initMessage = 
-    s"""|WELCOME to the reqT requirements model editor! https//reqt.github.io/
-        |Press CTRL+SPACE for completion. Completion is not case-sensitive.
+    s"""|WELCOME to the reqT requirements editor! 
+        |Documentation: https//reqt.github.io/
+        |F1 for help text to Log.
+        |F9 to toggle Log position.
+        |F10 and arrows to discover short-cuts.
+        |F11 to toggle full screen.
+        |CTRL+SPACE for completion in editor.
+        |
         |Entities are blue and bold. 
-        |Attributes are bold + italic. String Attributes are orange. Int Attributes are green.
+        |Attributes are bold + italic. 
+        |  String Attributes are orange. 
+        |  Int Attributes are green.
         |Relations are red and bold + underlined.
+        |
+        |Syntax is based om Markdown-bullet lists.
+        |Example:
+        |* System: reqT has
+        |  * Gist: hello requirements
+        |  * Feature: conceptHelp has
+        |    * Spec: Press Alt+C to see all concepts.
         |""".stripMargin
 
 class EditorWindow private () extends JFrame:
@@ -58,7 +79,7 @@ class EditorWindow private () extends JFrame:
   def didSave(): Unit = {isSaved = true; updateTitle() }
 
   val initModel: Model = Model()
-  val windowType = "reqT Editor"
+  val windowType = s"reqT Editor v${Main.reqTVersion}"
   val frame = this
 
   val initEditorWidth = 80
@@ -98,16 +119,99 @@ class EditorWindow private () extends JFrame:
                           , Some(this))
 
   def doClose(): Unit = runInSwingThread:
-    if isSaved || !isSaved && !askKeepEditing() then  
       dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING))
-    else ()
   
   def doQuit(): Unit = runInSwingThread:
     val isAllSaved = EditorWindow.started.forall(_.isSaved)
     if isAllSaved || !isAllSaved && !askKeepEditing() then 
       scala.sys.exit(0) // This is a brutal quit
-    else ()
+    else () 
+  
+  private var currentVerticalDivide   = 0.75
+  private var currentHorizontalDivide = 0.6  
 
+  def middle = splitPane.getDividerLocation + splitPane.getDividerSize / 2.0
+
+  def doToggleOrientation() = runInSwingThread: 
+      splitPane.getOrientation match 
+        case JSplitPane.VERTICAL_SPLIT =>
+          currentVerticalDivide = middle / splitPane.getHeight.toDouble
+          splitPane.setOrientation(JSplitPane.HORIZONTAL_SPLIT)
+          splitPane.setDividerLocation(currentHorizontalDivide)
+        case _ => 
+          currentHorizontalDivide = middle / splitPane.getWidth.toDouble
+          splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT)
+          splitPane.setDividerLocation(currentVerticalDivide)
+
+  def doToggleFullScreen() = runInSwingThread:
+    splitPane.getOrientation match 
+      case JSplitPane.VERTICAL_SPLIT =>
+        currentVerticalDivide = middle / splitPane.getHeight.toDouble
+        SwingPlatform.fullScreen.toggleFullScreen(this)
+        splitPane.setDividerLocation(currentVerticalDivide)
+      case _ =>
+        currentHorizontalDivide = middle / splitPane.getWidth.toDouble
+        SwingPlatform.fullScreen.toggleFullScreen(this)
+        splitPane.setDividerLocation(currentHorizontalDivide)
+  
+  def doExitFullScreen() = runInSwingThread:
+    splitPane.getOrientation match 
+      case JSplitPane.VERTICAL_SPLIT =>
+        currentVerticalDivide = middle / splitPane.getHeight.toDouble
+        SwingPlatform.fullScreen.exitFullScreen(this)
+        splitPane.setDividerLocation(currentVerticalDivide)
+      case _ =>
+        currentHorizontalDivide = middle / splitPane.getWidth.toDouble
+        SwingPlatform.fullScreen.exitFullScreen(this)
+        splitPane.setDividerLocation(currentHorizontalDivide)
+
+  def doTogglePostIt() = runInSwingThread:
+    SwingPlatform.fullScreen.toggleDecorations(this)
+
+  def doIncrGlobalFontSize() = runInSwingThread:
+      val s = frame.getFont.getSize
+      if s < maxFontSize then setGlobalSwingFontSize(s + 1) 
+
+  def doDecrGlobalFontSize() = runInSwingThread: 
+    val s = frame.getFont.getSize
+    if s > minFontSize then setGlobalSwingFontSize(s - 1)
+
+  def doIncrEditorFontSize() = runInSwingThread:
+    def incr(i: Int) = i match 
+      case _ if i >= maxFontSize => maxFontSize
+      case _ if i >= mediumFontSize => (i * 1.2).toInt
+      case _ if i >= minFontSize => i + 1
+      case _  => minFontSize
+    setEditorFont(incr(textArea.getFont.getSize))
+
+  def doDecrEditorFontSize() = runInSwingThread:
+    def decr(i: Int) = i match 
+      case _ if i > mediumFontSize => (i * 0.8).toInt
+      case _ if i > minFontSize => i - 1
+      case _  => i
+    setEditorFont(decr(textArea.getFont.getSize))
+  
+  def doClearMsg() = runInSwingThread(clearMessage())
+  def doScrollMsgToEnd() = runInSwingThread(scrollMsgToEnd())
+  def doHelpToLog() = runInSwingThread(addMessage(EditorWindow.initMessage))
+  def doConceptsToLog() = runInSwingThread(addMessage(meta.csv("\t")))
+
+  def doFormatAll() = runInSwingThread:
+    val txt = textArea.getText()
+    val formatted = txt.toModel.toMarkdown 
+    textArea.setText(formatted)
+
+  def doFormatSelection() = runInSwingThread:
+    // TODO: this needs more work 
+    //      to expand selection to rows
+    //      to analyze indentation and keep it good etc
+    val txt = textArea.getSelectedText()
+    val formatted = txt.toModel.toMarkdown 
+    textArea.replaceSelection(formatted)
+
+  def doModelRawToLog() = runInSwingThread:
+    val txt = textArea.getText()
+    addMessage(txt.toModel.toString)
 
   val initMenus =
     import SwingPlatform.{AppMenus,Menu,Item,MenuSeparator}
@@ -122,9 +226,37 @@ class EditorWindow private () extends JFrame:
       ),
       Menu("Edit", mnemonic = VK_E, Seq()*),
       Menu("View", mnemonic = VK_V,
-        Item("Toggle Fullscreen", VK_F, VK_F11, 0) { SwingPlatform.fullScreen.toggleFullScreen(this) },
-        Item("Toggle Post-It", VK_P, VK_F12, 0) { SwingPlatform.fullScreen.toggleDecorations(this) },
-      )
+        Item("Toggle Orientation", VK_O, VK_F9, 0) { doToggleOrientation() },
+        Item("Toggle Full Screen", VK_F, VK_F11, 0) { doToggleFullScreen()},
+        Item("Toggle Post-It", VK_P, VK_F12, 0) { doTogglePostIt() },
+        Item("Exit Full Screen & Post-It", VK_E, VK_ESCAPE, 0) { doExitFullScreen() },
+        MenuSeparator,
+        Item("Increase Menu Size", VK_I, VK_PLUS, ALT+SHIFT) { doIncrGlobalFontSize() },
+        Item("Decrease Menu Size", VK_D, VK_MINUS, ALT+SHIFT) { doDecrGlobalFontSize() },
+        MenuSeparator,
+        Item("Increase Font Size", VK_T, VK_PLUS, CTRL)  { doIncrEditorFontSize() },
+        Item("Decrease Font Size", VK_S, VK_MINUS, CTRL) { doDecrEditorFontSize() },
+      ),
+      Menu("Model", mnemonic = VK_M,
+        Item("Example1", VK_1, VK_1, CTRL) { println("TODO EXAMPLE")},
+        Item("Example2", VK_2, VK_2, CTRL) { println("TODO EXAMPLE")},
+        Item("Example3", VK_3, VK_3, CTRL) { println("TODO EXAMPLE")},
+        Item("Example4", VK_4, VK_4, CTRL) { println("TODO EXAMPLE")},
+      ),
+      Menu("Tools", mnemonic = VK_T,
+        Item("Parse to Log", VK_1, VK_1, CTRL+SHIFT) { doModelRawToLog() },
+        Item("Tool2", VK_2, VK_2, CTRL+SHIFT) { println("TODO EXAMPLE")},
+        Item("Tool3", VK_3, VK_3, CTRL+SHIFT) { println("TODO EXAMPLE")},
+        Item("Tool4", VK_4, VK_4, CTRL+SHIFT) { println("TODO EXAMPLE")},
+      ),
+      Menu("Log", mnemonic = VK_L,
+        Item("Clear Log", VK_C, VK_ENTER, CTRL+SHIFT) { doClearMsg() },
+        Item("Scroll Log to End", VK_S, VK_L, CTRL) { doScrollMsgToEnd()},
+      ),
+      Menu("Help", mnemonic = VK_H,
+        Item("Help Text to Log", VK_H, VK_F1, 0) { doHelpToLog() },
+        Item("Concepts to Log", VK_C, VK_C, ALT) { doConceptsToLog()},
+      ),
     )
 
   val menuMap: Map[String, JComponent] = initMenus.installTo(frame)
@@ -264,21 +396,36 @@ class EditorWindow private () extends JFrame:
     addEditMenuAction(CUT_ACTION, COPY_ACTION, PASTE_ACTION, DELETE_ACTION)
     editMenu.addSeparator()
     addEditMenuAction(SELECT_ALL_ACTION)
+    editMenu.addSeparator()
+    mkMenuItem("Format All", editMenu, (VK_F, VK_F, CTRL)) { doFormatAll() }
   
   createEditMeny()
-  
 
-  //--- end rsyntaxtextarea stuff  TODO
+  //--- end rsyntaxtextarea stuff  
+  
   val messageArea = new javax.swing.JTextArea(10, initEditorWidth)
   messageArea.setEditable(false);
   messageArea.setFont(new Font("Monospace", Font.PLAIN, 18))
   val caret = textArea.getCaret().asInstanceOf[javax.swing.text.DefaultCaret]
   caret.setUpdatePolicy(javax.swing.text.DefaultCaret.ALWAYS_UPDATE)
-  messageArea.setLineWrap(true)
-  messageArea.append(EditorWindow.initMessage)
+  //messageArea.setLineWrap(true)
+
   val messagePane = new javax.swing.JScrollPane(messageArea)
 
-  val splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT)
+  def scrollMsgToEnd(): Unit = 
+    val sb = messagePane.getVerticalScrollBar()
+    sb.setValue(sb.getMaximum())
+
+  def addMessage(msg: String): Unit =
+    messageArea.append(msg)
+    scrollMsgToEnd()
+
+  def clearMessage(): Unit = messageArea.setText("")
+
+  addMessage(EditorWindow.initMessage)
+
+
+  val splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) // see also setDividerLocation below
   splitPane.setTopComponent(textPane)
   splitPane.setBottomComponent(messagePane)
   val (startHeight, startWidth) = (768, 1024)
@@ -292,8 +439,17 @@ class EditorWindow private () extends JFrame:
   panel.add(splitPane)
   setContentPane(panel)
 
-  setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)  //EXIT_ON_CLOSE
+  //setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)  //EXIT_ON_CLOSE
+  setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)  
 
+  addWindowListener:
+    new WindowAdapter:
+      override def windowClosing(e: WindowEvent): Unit = 
+        println("Want close!!")
+        if isSaved || !isSaved && !askKeepEditing() 
+        then frame.dispose()
+        else ()
+  
   textArea.getDocument().addDocumentListener( 
     new DocumentListener:
       override def changedUpdate(e: DocumentEvent): Unit = saveNeeded()
@@ -305,8 +461,9 @@ class EditorWindow private () extends JFrame:
   pack()
   setLocationByPlatform(true)
   setVisible(true)
-  splitPane.setDividerLocation(0.8)
+  splitPane.setDividerLocation(currentHorizontalDivide) // must be after setVisible(true) ???
   updateTitle()
+  setGlobalSwingFontSize(defaultGlobalFontSize)
 
   // ---- Body of DesktopGUI
 

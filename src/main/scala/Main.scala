@@ -34,6 +34,7 @@ def repl(args: String*): Unit =
 
 object Main:
   val scalaVersion = "3.4.1"
+  val reqTVersion  = "4.0.0-M3"
 
   def main(args: Array[String]): Unit = 
     if args.isEmpty || args(0) == "edit" then edit(args.toSeq.drop(1)*) 
