@@ -1,5 +1,6 @@
 package reqt
 
+/** Settings for reqT **/
 @volatile
 object Settings {
   var indentSpacing = 2

@@ -14,6 +14,7 @@ ThisBuild / organization  := "io.github.reqt"
 
 console / initialCommands := """import reqt.*"""
 Global / onChangedBuildSource := ReloadOnSourceChanges
+Compile / doc / scalacOptions ++= Seq("-siteroot", "docs")
 
 fork := true
 outputStrategy := Some(StdoutOutput)
@@ -28,7 +29,7 @@ def githubDep(lib: String, org: String, repo: String, ver: String) = {
 lazy val `reqT` = (project in file("."))
   .settings(
     name := "reqT",
-    scalacOptions := List("-encoding", "utf8", "-Werror", "-deprecation", "-unchecked"),
+    scalacOptions := Seq("-encoding", "utf8", "-deprecation", "-unchecked", "-Werror"),
     assembly / assemblyJarName := reqTJarName,
     assembly / mainClass := Some("reqt.Main"),
 

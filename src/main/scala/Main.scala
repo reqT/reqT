@@ -1,5 +1,6 @@
 package reqt
 
+/** start a new editor window */
 def edit: Unit = edit()
 
 def edit(args: String*): Unit = 
@@ -36,6 +37,7 @@ object Main:
   val scalaVersion = "3.4.1"
   val reqTVersion  = "4.0.0-M3"
 
+  /** Main program */
   def main(args: Array[String]): Unit = 
     if args.isEmpty || args(0) == "edit" then edit(args.toSeq.drop(1)*) 
     else if args.lift(0) == Some("repl") then repl(args.toSeq.drop(1)*)
