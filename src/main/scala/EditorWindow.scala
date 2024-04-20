@@ -1,37 +1,36 @@
 package reqt
 
-import reqt.Sys.newFileType
 import reqt.Sys.saveTo
 import reqt.Sys.loadLines
 
-import java.awt.event.KeyEvent.*
+import reqt.SwingPlatform.mkMenuItem
+import reqt.SwingPlatform.runInSwingThread
+
+import java.awt.Dimension
+import java.awt.Font
 import java.awt.event.ActionEvent.{CTRL_MASK => CTRL, ALT_MASK => ALT, SHIFT_MASK => SHIFT}
+import java.awt.event.KeyEvent.*
+import java.awt.event.WindowEvent
+import java.awt.event.WindowListener
+import java.awt.event.WindowAdapter
 
 import javax.swing.JPanel
 import javax.swing.JFrame
 import javax.swing.JComponent
-import javax.swing.UIManager
-import javax.swing.plaf.FontUIResource
-import java.awt.Font
 import javax.swing.JEditorPane
 import javax.swing.JScrollPane
-import java.awt.Dimension
-import javax.swing.WindowConstants
 import javax.swing.JSplitPane
 import javax.swing.JMenuBar
 import javax.swing.JMenu
 import javax.swing.JMenuItem
 import javax.swing.Action
+import javax.swing.LookAndFeel
+import javax.swing.UIManager
+import javax.swing.WindowConstants
 import javax.swing.event.DocumentListener
 import javax.swing.event.DocumentEvent
 import javax.swing.text.DefaultCaret
-import java.awt.event.WindowEvent
-import reqt.SwingPlatform.runInSwingThread
-import java.awt.event.WindowListener
-import java.awt.event.WindowAdapter
-import javax.swing.LookAndFeel
-import reqt.EditorWindow.initLookAndFell
-import reqt.SwingPlatform.mkMenuItem
+import javax.swing.plaf.FontUIResource
 
 object EditorWindow:
   val initLookAndFell = javax.swing.UIManager.getLookAndFeel()
