@@ -67,6 +67,9 @@ object EditorWindow:
         |F9 to Toggle Orientation.
         |F10 and arrows to discover all short-cuts.
         |F11 to toggle full screen.
+        |CTRL+TAB toggle pane focus: editor or log.
+        |CTRL+A Select all in focused pane.
+        |PAGE UP/DOWN Scroll focused pane.
         |
         |The syntax is based om bullet lists,
         |with asterisk followed by entity or attribute.
@@ -197,9 +200,13 @@ class EditorWindow private () extends JFrame:
       case _ if i > minFontSize => i - 1
       case _  => i
     setTextAreaFont(ta,decr(ta.getFont.getSize))
-  
+
+  def doLineWrap(ta: JTextArea, isOn: Boolean) = runInSwingThread:
+    ta.setLineWrap(isOn)
+
   def doClearMsg() = runInSwingThread(clearMessage())
   def doScrollMsgToEnd() = runInSwingThread(scrollMsgToEnd())
+  def doScrollMsgToTop() = runInSwingThread(scrollMsgToTop())
   def doHelpToLog() = runInSwingThread(addMessage(EditorWindow.initMessage))
   def doConceptsToLog() = runInSwingThread(addMessage(meta.csv("\t")))
 
@@ -211,7 +218,7 @@ class EditorWindow private () extends JFrame:
   def doFormatSelection() = runInSwingThread:
     // TODO: this needs more work 
     //      to expand selection to rows
-    //      to analyze indentation and keep it good etc
+    //      to analyze indentation and keep it good etc 
     val txt = textArea.getSelectedText()
     val formatted = txt.toModel.toMarkdown 
     textArea.replaceSelection(formatted)
@@ -221,7 +228,7 @@ class EditorWindow private () extends JFrame:
     addMessage(txt.toModel.toString)
 
   val initMenus =
-    import SwingPlatform.{AppMenus,Menu,Item,MenuSeparator}
+    import SwingPlatform.{AppMenus,Menu,Item,MenuSeparator,MenuRadioGroup}
     AppMenus(
       Menu("File", mnemonic = VK_F,
         Item("New Window", VK_N, VK_N, CTRL){ doFileNew() },
@@ -238,14 +245,22 @@ class EditorWindow private () extends JFrame:
         Item("Toggle Post-It", VK_P, VK_F12, 0) { doTogglePostIt() },
         Item("Exit Full Screen & Post-It", VK_E, VK_ESCAPE, 0) { doExitFullScreen() },
         MenuSeparator,
+        MenuRadioGroup("editorWrapToggle", Map[String, () => Unit](
+          "Editor Line Wrap On" -> ( () => { doLineWrap(textArea, isOn = true)} ),
+          "Editor Line Wrap Off"  -> ( () => { doLineWrap(textArea, isOn = false)} )
+        ), default = "Editor Line Wrap Off"),
         Item("Increase Editor Font Size", VK_T, VK_PLUS, CTRL)  { doIncrFontSize(textArea) },
         Item("Decrease Editor Font Size", VK_S, VK_MINUS, CTRL) { doDecrFontSize(textArea) },
         MenuSeparator,
-        Item("Increase Menu Size", VK_I, VK_PLUS, ALT+SHIFT) { doIncrGlobalFontSize() },
-        Item("Decrease Menu Size", VK_D, VK_MINUS, ALT+SHIFT) { doDecrGlobalFontSize() },
-        MenuSeparator,
+        MenuRadioGroup("logWrapToggle", Map[String, () => Unit](
+          "Log Line Wrap On" -> ( () => { doLineWrap(messageArea, isOn = true) } ),
+          "Log Line Wrap Off"  -> ( () => { doLineWrap(messageArea, isOn = false) } )
+        ), default = "Log Line Wrap Off"),
         Item("Increase Log Font Size", VK_L, VK_PLUS, CTRL+SHIFT)  { doIncrFontSize(messageArea) },
         Item("Decrease Log Font Size", VK_O, VK_MINUS, CTRL+SHIFT) { doDecrFontSize(messageArea) },
+        MenuSeparator,
+        Item("Increase Menu Size", VK_I, VK_PLUS, ALT+SHIFT) { doIncrGlobalFontSize() },
+        Item("Decrease Menu Size", VK_D, VK_MINUS, ALT+SHIFT) { doDecrGlobalFontSize() },
       ),
       Menu("Model", mnemonic = VK_M,
         Item("Example1", VK_1, VK_1, CTRL) { println("TODO EXAMPLE")},
@@ -260,8 +275,9 @@ class EditorWindow private () extends JFrame:
         Item("Tool4", VK_4, VK_4, CTRL+SHIFT) { println("TODO EXAMPLE")},
       ),
       Menu("Log", mnemonic = VK_L,
-        Item("Clear Log", VK_C, VK_ENTER, CTRL+SHIFT) { doClearMsg() },
-        Item("Scroll Log to End", VK_S, VK_L, CTRL) { doScrollMsgToEnd()},
+        Item("Clear Log", VK_C, VK_DELETE, ALT) { doClearMsg() },
+        Item("Scroll Log to Top", VK_S, VK_HOME, ALT) { doScrollMsgToTop()},
+        Item("Scroll Log to End", VK_S, VK_END, ALT) { doScrollMsgToEnd()},
       ),
       Menu("Help", mnemonic = VK_H,
         Item("Help Text to Log", VK_H, VK_F1, 0) { doHelpToLog() },
@@ -369,7 +385,7 @@ class EditorWindow private () extends JFrame:
   textArea.setAutoIndentEnabled(true)
 
   textArea.setBracketMatchingEnabled(true)
-  textArea.setLineWrap(true)
+  textArea.setLineWrap(false)
   textArea.setWrapStyleWord(true)
   textArea.setTabSize(2)
   textArea.setTabsEmulated(true)
@@ -421,7 +437,6 @@ class EditorWindow private () extends JFrame:
   
   val messageArea = new javax.swing.JTextArea(10, initEditorWidth)
   messageArea.setEditable(false);
-  //messageArea.setFont(new Font("Monospace", Font.PLAIN, 18))
   setTextAreaFont(messageArea, mediumFontSize, Settings.gui.defaultEditorFont)
 
   val caret = textArea.getCaret().asInstanceOf[javax.swing.text.DefaultCaret]
@@ -433,6 +448,10 @@ class EditorWindow private () extends JFrame:
   def scrollMsgToEnd(): Unit = 
     val sb = messagePane.getVerticalScrollBar()
     sb.setValue(sb.getMaximum())
+
+  def scrollMsgToTop(): Unit = 
+    val sb = messagePane.getVerticalScrollBar()
+    sb.setValue(sb.getMinimum())
 
   def addMessage(msg: String): Unit =
     messageArea.append(msg)
