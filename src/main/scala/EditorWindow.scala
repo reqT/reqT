@@ -55,7 +55,7 @@ object EditorWindow:
         |  * Feature: showConcepts has
         |    * Spec: Show all concept definitions.
         |    * Design: showConceptUI has
-        |      * Spec: Show in Log pane. Shortcut: Alt+C.
+        |      * Spec: Show concepts in Log pane. Shortcut: Alt+C.
         |""".stripMargin.toModel.toMarkdown
 
   val initMessage = 
@@ -70,6 +70,7 @@ object EditorWindow:
         |CTRL+TAB toggle pane focus: editor or log.
         |CTRL+A Select all in focused pane.
         |PAGE UP/DOWN Scroll focused pane.
+        |CTRL+PAGE UP/DOWN Scroll focused pane top/bottom.
         |
         |The syntax is based om bullet lists,
         |with asterisk followed by entity or attribute.
@@ -205,8 +206,6 @@ class EditorWindow private () extends JFrame:
     ta.setLineWrap(isOn)
 
   def doClearMsg() = runInSwingThread(clearMessage())
-  def doScrollMsgToEnd() = runInSwingThread(scrollMsgToEnd())
-  def doScrollMsgToTop() = runInSwingThread(scrollMsgToTop())
   def doHelpToLog() = runInSwingThread(addMessage(EditorWindow.initMessage))
   def doConceptsToLog() = runInSwingThread(addMessage(meta.csv("\t")))
 
@@ -276,8 +275,6 @@ class EditorWindow private () extends JFrame:
       ),
       Menu("Log", mnemonic = VK_L,
         Item("Clear Log", VK_C, VK_DELETE, ALT) { doClearMsg() },
-        Item("Scroll Log to Top", VK_S, VK_HOME, ALT) { doScrollMsgToTop()},
-        Item("Scroll Log to End", VK_S, VK_END, ALT) { doScrollMsgToEnd()},
       ),
       Menu("Help", mnemonic = VK_H,
         Item("Help Text to Log", VK_H, VK_F1, 0) { doHelpToLog() },
