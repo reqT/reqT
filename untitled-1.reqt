@@ -1,0 +1,7 @@
+* System: reqT has
+  * Gist: reqT is a requirements tool.
+  * Feature: showConcepts has
+    * Spec: Show all concept definitions.
+    * Design: showConceptUI has
+      * Spec: Show in Log pane. Shortcut: Alt+C.
+

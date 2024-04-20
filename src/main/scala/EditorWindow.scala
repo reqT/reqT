@@ -31,6 +31,7 @@ import javax.swing.event.DocumentListener
 import javax.swing.event.DocumentEvent
 import javax.swing.text.DefaultCaret
 import javax.swing.plaf.FontUIResource
+import javax.swing.JTextArea
 
 object EditorWindow:
   val initLookAndFell = javax.swing.UIManager.getLookAndFeel()
@@ -48,27 +49,34 @@ object EditorWindow:
 
   def initFileName = s"untitled-$n.reqt"
 
+  val reqTGist = 
+    s"""|* System: reqT has
+        |  * Gist: reqT is a requirements tool.
+        |  * Feature: showConcepts has
+        |    * Spec: Show all concept definitions.
+        |    * Design: showConceptUI has
+        |      * Spec: Show in Log pane. Shortcut: Alt+C.
+        |""".stripMargin.toModel.toMarkdown
+
   val initMessage = 
-    s"""|WELCOME to the reqT requirements editor! 
-        |Documentation: https//reqt.github.io/
+    s"""|WELCOME to the reqT requirements tool! 
+        |
+        |Documentation: https//github.com/reqT/reqT
+        |
         |F1 for help text to Log.
-        |F9 to toggle Log position.
-        |F10 and arrows to discover short-cuts.
+        |F9 to Toggle Orientation.
+        |F10 and arrows to discover all short-cuts.
         |F11 to toggle full screen.
-        |CTRL+SPACE for completion in editor.
         |
-        |Entities are blue and bold. 
-        |Attributes are bold + italic. 
-        |  String Attributes are orange. 
-        |  Int Attributes are green.
-        |Relations are red and bold + underlined.
+        |The syntax is based om bullet lists,
+        |with asterisk followed by entity or attribute.
+        |Indent when relations connect sub-elements.
+        |Colons are optional.
         |
-        |Syntax is based om Markdown-bullet lists.
         |Example:
-        |* System: reqT has
-        |  * Gist: hello requirements
-        |  * Feature: conceptHelp has
-        |    * Spec: Press Alt+C to see all concepts.
+        |
+        |$reqTGist
+        |Use CTRL+SPACE for completion in editor.
         |""".stripMargin
 
 class EditorWindow private () extends JFrame:
@@ -85,7 +93,7 @@ class EditorWindow private () extends JFrame:
   val initEditorHeight = 30
   val maxFontSize = 80
   val bigFontSize = 48
-  val mediumFontSize = 18
+  val mediumFontSize = Settings.gui.fontSize
   val minFontSize = 6
   
   private var _fileName = Sys.workDir + "/" + EditorWindow.initFileName
@@ -127,7 +135,7 @@ class EditorWindow private () extends JFrame:
     else () 
   
   private var currentVerticalDivide   = 0.75
-  private var currentHorizontalDivide = 0.6  
+  private var currentHorizontalDivide = 0.52  
 
   def middle = splitPane.getDividerLocation + splitPane.getDividerSize / 2.0
 
@@ -175,20 +183,20 @@ class EditorWindow private () extends JFrame:
     val s = frame.getFont.getSize
     if s > minFontSize then setGlobalSwingFontSize(s - 1)
 
-  def doIncrEditorFontSize() = runInSwingThread:
+  def doIncrFontSize(ta: JTextArea) = runInSwingThread:
     def incr(i: Int) = i match 
       case _ if i >= maxFontSize => maxFontSize
       case _ if i >= mediumFontSize => (i * 1.2).toInt
       case _ if i >= minFontSize => i + 1
       case _  => minFontSize
-    setEditorFont(incr(textArea.getFont.getSize))
+    setTextAreaFont(ta,incr(ta.getFont.getSize))
 
-  def doDecrEditorFontSize() = runInSwingThread:
+  def doDecrFontSize(ta: JTextArea) = runInSwingThread:
     def decr(i: Int) = i match 
       case _ if i > mediumFontSize => (i * 0.8).toInt
       case _ if i > minFontSize => i - 1
       case _  => i
-    setEditorFont(decr(textArea.getFont.getSize))
+    setTextAreaFont(ta,decr(ta.getFont.getSize))
   
   def doClearMsg() = runInSwingThread(clearMessage())
   def doScrollMsgToEnd() = runInSwingThread(scrollMsgToEnd())
@@ -230,11 +238,14 @@ class EditorWindow private () extends JFrame:
         Item("Toggle Post-It", VK_P, VK_F12, 0) { doTogglePostIt() },
         Item("Exit Full Screen & Post-It", VK_E, VK_ESCAPE, 0) { doExitFullScreen() },
         MenuSeparator,
+        Item("Increase Editor Font Size", VK_T, VK_PLUS, CTRL)  { doIncrFontSize(textArea) },
+        Item("Decrease Editor Font Size", VK_S, VK_MINUS, CTRL) { doDecrFontSize(textArea) },
+        MenuSeparator,
         Item("Increase Menu Size", VK_I, VK_PLUS, ALT+SHIFT) { doIncrGlobalFontSize() },
         Item("Decrease Menu Size", VK_D, VK_MINUS, ALT+SHIFT) { doDecrGlobalFontSize() },
         MenuSeparator,
-        Item("Increase Font Size", VK_T, VK_PLUS, CTRL)  { doIncrEditorFontSize() },
-        Item("Decrease Font Size", VK_S, VK_MINUS, CTRL) { doDecrEditorFontSize() },
+        Item("Increase Log Font Size", VK_L, VK_PLUS, CTRL+SHIFT)  { doIncrFontSize(messageArea) },
+        Item("Decrease Log Font Size", VK_O, VK_MINUS, CTRL+SHIFT) { doDecrFontSize(messageArea) },
       ),
       Menu("Model", mnemonic = VK_M,
         Item("Example1", VK_1, VK_1, CTRL) { println("TODO EXAMPLE")},
@@ -290,7 +301,7 @@ class EditorWindow private () extends JFrame:
 
     if ff != null then 
       frame.setFont(new Font(ff.getFamily, ff.getStyle, size))
-      setEditorFont(frame.getFont.getSize) // handle override of editor font size
+      setTextAreaFont(textArea, frame.getFont.getSize) // handle override of editor font size
 
     javax.swing.SwingUtilities.updateComponentTreeUI(frame)
   }
@@ -300,41 +311,47 @@ class EditorWindow private () extends JFrame:
   import org.fife.ui.rtextarea.*
   import org.fife.ui.rsyntaxtextarea.*
 
-  def setEditorFont(fontSize: Int, fontFamily: String = "") = SwingPlatform.runInSwingThread:
-    val fn = if (fontFamily == "") textArea.getFont.getFamily else {
+  def setTextAreaFont(textArea: JTextArea, fontSize: Int, fontFamily: String = "") = SwingPlatform.runInSwingThread:
+    val fn = if fontFamily == "" then textArea.getFont.getFamily else 
       val available = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment.getAvailableFontFamilyNames
       val possible = (fontFamily :: Settings.gui.editorFonts).filter(available.contains(_))
       possible.headOption.getOrElse(Font.MONOSPACED)
-    }
+    
     val fPlain = new Font(fn, Font.PLAIN, fontSize)
     val fBold = new Font(fn, Font.BOLD, fontSize)
 
     import java.awt.font.TextAttribute
-    val ta: java.util.Map[TextAttribute, Object] = new java.util.HashMap()
-    ta.put(TextAttribute.FONT, fBold)
-    ta.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON)
-    val fBoldUL = Font.getFont(ta)
+    val textAttr: java.util.Map[TextAttribute, Object] = new java.util.HashMap()
+    textAttr.put(TextAttribute.FONT, fBold)
+    textAttr.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON)
+    val fBoldUL = Font.getFont(textAttr)
 
     val fBoldItalic = new Font(fn, Font.BOLD | Font.ITALIC, fontSize)
 
     textArea.setFont(fPlain)
     
-    textArea.getSyntaxScheme.setStyle(ReqTTokenMaker.EntTokenType, new Style(Settings.gui.entityColor, Style.DEFAULT_BACKGROUND, fBold))
-    
-    textArea.getSyntaxScheme.setStyle(ReqTTokenMaker.StrAttrTokenType,   new Style(Settings.gui.strAttributeColor, Style.DEFAULT_BACKGROUND, fBoldItalic))
-    
-    textArea.getSyntaxScheme.setStyle(ReqTTokenMaker.IntAttrTokenType,   new Style(Settings.gui.intAttributeColor, Style.DEFAULT_BACKGROUND, fBoldItalic))
+    textArea match 
+      case ta: RSyntaxTextArea => 
+        ta.getSyntaxScheme.setStyle(ReqTTokenMaker.EntTokenType, 
+          new Style(Settings.gui.entityColor, Style.DEFAULT_BACKGROUND, fBold))
 
-    textArea.getSyntaxScheme.setStyle(ReqTTokenMaker.RelTokenType,    new Style(Settings.gui.relationColor, Style.DEFAULT_BACKGROUND, fBoldUL))
+        ta.getSyntaxScheme.setStyle(ReqTTokenMaker.StrAttrTokenType,   
+          new Style(Settings.gui.strAttributeColor, Style.DEFAULT_BACKGROUND, fBoldItalic))
+
+        ta.getSyntaxScheme.setStyle(ReqTTokenMaker.IntAttrTokenType,   
+          new Style(Settings.gui.intAttributeColor, Style.DEFAULT_BACKGROUND, fBoldItalic))
+
+        ta.getSyntaxScheme.setStyle(ReqTTokenMaker.RelTokenType,    
+          new Style(Settings.gui.relationColor, Style.DEFAULT_BACKGROUND, fBoldUL))
+      case _ => // don't set syntax styles as this is not a syntax aware text area
     
     // textArea.getSyntaxScheme.setStyle(TokenTypes.LITERAL_STRING_DOUBLE_QUOTE, new Style(Settings.gui.stringColor))
-    
     // textArea.getSyntaxScheme.setStyle(TokenTypes.RESERVED_WORD, new Style(Settings.gui.scalaReservedWordColor, Style.DEFAULT_BACKGROUND, fBold)) // more discrete coloring???
 
-    val lnf = textPane.getGutter.getLineNumberFont
-    val lnfNew = new Font(lnf.getFamily, lnf.getStyle, fontSize - 3)
-    textPane.getGutter.setLineNumberFont(lnfNew)
-  end setEditorFont
+        val lnf = textPane.getGutter.getLineNumberFont
+        val lnfNew = new Font(lnf.getFamily, lnf.getStyle, fontSize - 3)
+        textPane.getGutter.setLineNumberFont(lnfNew)
+  end setTextAreaFont
   
   val panel = JPanel(java.awt.BorderLayout())
   val textArea = new RSyntaxTextArea(initEditorHeight, initEditorWidth) 
@@ -361,7 +378,7 @@ class EditorWindow private () extends JFrame:
   textArea.setMatchedBracketBorderColor(new java.awt.Color(192, 192, 192))
   textArea.setAnimateBracketMatching(true)
   
-  setEditorFont(mediumFontSize, Settings.gui.defaultEditorFont)
+  setTextAreaFont(textArea,mediumFontSize, Settings.gui.defaultEditorFont)
   val textPane = new org.fife.ui.rtextarea.RTextScrollPane(textArea) with SwingPlatform.AntiAliasing
   
   import org.fife.ui.autocomplete.*
@@ -404,7 +421,9 @@ class EditorWindow private () extends JFrame:
   
   val messageArea = new javax.swing.JTextArea(10, initEditorWidth)
   messageArea.setEditable(false);
-  messageArea.setFont(new Font("Monospace", Font.PLAIN, 18))
+  //messageArea.setFont(new Font("Monospace", Font.PLAIN, 18))
+  setTextAreaFont(messageArea, mediumFontSize, Settings.gui.defaultEditorFont)
+
   val caret = textArea.getCaret().asInstanceOf[javax.swing.text.DefaultCaret]
   caret.setUpdatePolicy(javax.swing.text.DefaultCaret.ALWAYS_UPDATE)
   //messageArea.setLineWrap(true)
