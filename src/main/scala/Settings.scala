@@ -28,9 +28,9 @@ object Settings {
     val relationColor  = col(relRGB)
     val stringColor    = col(strRGB)
     val scalaReservedWordColor = col((0,0,125))
-    val defaultEditorFont = "DejaVu Sans Mono"
-    var editorFonts    = List("Source Code Pro Medium" , "Fira Code Medium", "DejaVu Sans Mono", "JetBrains Mono Medium" , "Consolas", "Liberation Mono", "Monospace")
-    var fontSize       = 14
+    var editorFonts    = List("Fira Code Medium", "Source Code Pro Medium" , "DejaVu Sans Mono", "JetBrains Mono Medium" , "Consolas", "Liberation Mono", "Monospace")
+    val defaultEditorFont = editorFonts.head
+    var fontSize       = 16
     var isPlatformSpecificLookAndFeel = true
   }
 }
