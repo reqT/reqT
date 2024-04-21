@@ -219,12 +219,19 @@ class EditorWindow private () extends JFrame:
     //      to expand selection to rows
     //      to analyze indentation and keep it good etc 
     val txt = textArea.getSelectedText()
-    val formatted = txt.toModel.toMarkdown 
-    textArea.replaceSelection(formatted)
+    if txt != null then
+      val formatted = txt.toModel.toMarkdown 
+      textArea.replaceSelection(formatted)
 
   def doModelRawToLog() = runInSwingThread:
-    val txt = textArea.getText()
+    val txt = Option(textArea.getText()).getOrElse("")
     addMessage(txt.toModel.toString)
+
+  def doAppendIdPairs() = runInSwingThread:
+    val txt = Option(textArea.getText()).getOrElse("")
+    val ids = txt.toModel.ids
+    val pairs = ids.combinations(2).map(xs => xs(0) + " =!= " + xs(1)).mkString("\n")
+    textArea.append(s"\n* Constraints\n$pairs")
 
   val initMenus =
     import SwingPlatform.{AppMenus,Menu,Item,MenuSeparator,MenuRadioGroup}
@@ -269,7 +276,7 @@ class EditorWindow private () extends JFrame:
       ),
       Menu("Tools", mnemonic = VK_T,
         Item("Parse to Log", VK_1, VK_1, CTRL+SHIFT) { doModelRawToLog() },
-        Item("Tool2", VK_2, VK_2, CTRL+SHIFT) { println("TODO EXAMPLE")},
+        Item("Append id pairs", VK_2, VK_2, CTRL+SHIFT) { doAppendIdPairs() },
         Item("Tool3", VK_3, VK_3, CTRL+SHIFT) { println("TODO EXAMPLE")},
         Item("Tool4", VK_4, VK_4, CTRL+SHIFT) { println("TODO EXAMPLE")},
       ),
@@ -433,7 +440,7 @@ class EditorWindow private () extends JFrame:
   //--- end rsyntaxtextarea stuff  
   
   val messageArea = new javax.swing.JTextArea(10, initEditorWidth)
-  messageArea.setEditable(false);
+  messageArea.setEditable(false)
   setTextAreaFont(messageArea, mediumFontSize, Settings.gui.defaultEditorFont)
 
   val caret = textArea.getCaret().asInstanceOf[javax.swing.text.DefaultCaret]
@@ -451,7 +458,7 @@ class EditorWindow private () extends JFrame:
     sb.setValue(sb.getMinimum())
 
   def addMessage(msg: String): Unit =
-    messageArea.append(msg)
+    messageArea.append(msg + "\n")
     scrollMsgToEnd()
 
   def clearMessage(): Unit = messageArea.setText("")
