@@ -172,11 +172,11 @@ class EditorWindow private () extends JFrame:
     textArea.getText().saveTo(fileName)
     didSave()
 
-  def askKeepEditing(): Boolean = 
+  def askKeepEditing(action: String): Boolean = 
     SwingPlatform.isOK(s"""WARNING! You have unsaved changes! 
                           |Do you want to continue editing?
-                          |Yes = Continue editing.
-                          |No  = Loose unsaved changes!""".stripMargin
+                          |Yes: Continue editing.
+                          |No: $action without saving!""".stripMargin
                           , Some(this))
 
   def doClose(): Unit = runInSwingThread:
@@ -184,7 +184,7 @@ class EditorWindow private () extends JFrame:
   
   def doQuit(): Unit = runInSwingThread:
     val isAllSaved = EditorWindow.started.forall(_.isSaved)
-    if isAllSaved || !isAllSaved && !askKeepEditing() then 
+    if isAllSaved || !isAllSaved && !askKeepEditing("Quit") then 
       scala.sys.exit(0) // This is a brutal quit
     else ()
 
@@ -519,7 +519,7 @@ class EditorWindow private () extends JFrame:
   addWindowListener:
     new WindowAdapter:
       override def windowClosing(e: WindowEvent): Unit = 
-        if isSaved || !isSaved && !askKeepEditing() 
+        if isSaved || !isSaved && !askKeepEditing("Close") 
         then frame.dispose()
         else ()
   
