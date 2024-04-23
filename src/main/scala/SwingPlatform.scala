@@ -192,9 +192,9 @@ object SwingPlatform:
     
     def isFullScreen = device.getFullScreenWindow != null
     
-    private def exitFS = device.setFullScreenWindow(null)
-    
-    def exitFullScreen(w: java.awt.Window): Unit = { exitFS; setUndecorated(w, false) }
+    def exitFullScreen(w: java.awt.Window): Unit = 
+      device.setFullScreenWindow(null)
+      setUndecorated(w, false)
     
     def toggleFullScreen(w: java.awt.Window): Unit = 
       if isFullScreen then exitFullScreen(w) 
@@ -204,7 +204,7 @@ object SwingPlatform:
         
     private def setUndecorated(w: java.awt.Window, state: Boolean): Unit =  w match 
       case f: JFrame =>
-        f.dispose(); f.setUndecorated(state);  f.pack(); f.setVisible(true)
+        f.dispose(); f.setUndecorated(state); /* f.pack();*/ f.setVisible(true)
       case _ => ()
     
     def toggleDecorations(w: java.awt.Window): Unit = w match 

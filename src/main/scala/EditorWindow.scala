@@ -71,6 +71,7 @@ object EditorWindow:
         |CTRL+A Select all in focused pane.
         |PAGE UP/DOWN Scroll focused pane.
         |CTRL+PAGE UP/DOWN Scroll focused pane top/bottom.
+        |CTRL+DEL Delete from cursor to end of line.
         |
         |The syntax is based om bullet lists,
         |with asterisk followed by entity or attribute.
@@ -109,6 +110,52 @@ class EditorWindow private () extends JFrame:
   
   def updateFileName(fn: String) = { _fileName = fn; updateTitle() }
 
+  object SplitPaneState:
+    val initialSplit = JSplitPane.HORIZONTAL_SPLIT
+
+    val savedSplitLocation = collection.mutable.Map[State, Double](
+      State.FullV -> 0.75, State.FullH -> 0.52, State.NormV -> 0.75, State.NormH -> 0.52
+    )  
+
+    var savedWH = (getWidth(), getHeight())
+
+    def isFull     = SwingPlatform.fullScreen.isFullScreen
+    def isVertical = splitPane.getOrientation == JSplitPane.VERTICAL_SPLIT
+    def location   = splitPane.getDividerLocation
+    def splitWidth = splitPane.getDividerSize
+    def fraction: Double = math.round(location * 100 / length.toDouble) / 100.0
+    def length = if isVertical then splitPane.getHeight() else splitPane.getWidth()
+
+    def debug(msg: String): Unit = 
+      println(s"DEBUG: =========== SplitPaneState")
+      println(msg)
+      println(s"isVertical = $isVertical")
+      println(s"location = $location")
+      println(s"length = $length")
+      println(s"splitWidth = $splitWidth")
+      println(s"fraction = $fraction")
+
+    def init(location: Double = 0.5): Unit = // must be done after setVisible(true) see further below
+      splitPane.setDividerLocation(savedSplitLocation(currentState))
+
+    def toggle(): Unit = 
+      if isVertical 
+      then splitPane.setOrientation(JSplitPane.HORIZONTAL_SPLIT)
+      else splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT)
+
+    def save(): Unit = savedSplitLocation(currentState) = fraction
+
+    def restore(): Unit = splitPane.setDividerLocation(savedSplitLocation(currentState))
+    
+    enum State { case FullV, FullH, NormV, NormH}
+    
+    def currentState: State = isFull match
+      case true  => if isVertical then State.FullV else State.FullH
+      case false => if isVertical then State.NormV else State.NormH
+
+
+  end SplitPaneState
+
   def doFileNew(): Unit = new EditorWindow()
 
   def doOpen(): Unit = 
@@ -136,48 +183,33 @@ class EditorWindow private () extends JFrame:
     val isAllSaved = EditorWindow.started.forall(_.isSaved)
     if isAllSaved || !isAllSaved && !askKeepEditing() then 
       scala.sys.exit(0) // This is a brutal quit
-    else () 
-  
-  private var currentVerticalDivide   = 0.75
-  private var currentHorizontalDivide = 0.52  
+    else ()
 
-  def middle = splitPane.getDividerLocation + splitPane.getDividerSize / 2.0
-
-  def doToggleOrientation() = runInSwingThread: 
-      splitPane.getOrientation match 
-        case JSplitPane.VERTICAL_SPLIT =>
-          currentVerticalDivide = middle / splitPane.getHeight.toDouble
-          splitPane.setOrientation(JSplitPane.HORIZONTAL_SPLIT)
-          splitPane.setDividerLocation(currentHorizontalDivide)
-        case _ => 
-          currentHorizontalDivide = middle / splitPane.getWidth.toDouble
-          splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT)
-          splitPane.setDividerLocation(currentVerticalDivide)
+  def doToggleOrientation() = runInSwingThread:
+    SplitPaneState.debug("inside doToggleOrientation before save")
+    SplitPaneState.save()
+    println("TOGGLE ORIENTATION")
+    SplitPaneState.toggle()
+    SplitPaneState.restore()
 
   def doToggleFullScreen() = runInSwingThread:
-    splitPane.getOrientation match 
-      case JSplitPane.VERTICAL_SPLIT =>
-        currentVerticalDivide = middle / splitPane.getHeight.toDouble
-        SwingPlatform.fullScreen.toggleFullScreen(this)
-        splitPane.setDividerLocation(currentVerticalDivide)
-      case _ =>
-        currentHorizontalDivide = middle / splitPane.getWidth.toDouble
-        SwingPlatform.fullScreen.toggleFullScreen(this)
-        splitPane.setDividerLocation(currentHorizontalDivide)
+    SplitPaneState.save()
+    if !SplitPaneState.isFull then SplitPaneState.savedWH = (getWidth, getHeight())
+    SwingPlatform.fullScreen.toggleFullScreen(this)
+    if !SplitPaneState.isFull then setSize(SplitPaneState.savedWH._1, SplitPaneState.savedWH._2)
+    SplitPaneState.restore()
   
-  def doExitFullScreen() = runInSwingThread:
-    splitPane.getOrientation match 
-      case JSplitPane.VERTICAL_SPLIT =>
-        currentVerticalDivide = middle / splitPane.getHeight.toDouble
-        SwingPlatform.fullScreen.exitFullScreen(this)
-        splitPane.setDividerLocation(currentVerticalDivide)
-      case _ =>
-        currentHorizontalDivide = middle / splitPane.getWidth.toDouble
-        SwingPlatform.fullScreen.exitFullScreen(this)
-        splitPane.setDividerLocation(currentHorizontalDivide)
+  def doExitFullScreen() = runInSwingThread: 
+    if SplitPaneState.isFull then 
+      SplitPaneState.save()
+      SwingPlatform.fullScreen.exitFullScreen(this)
+      setSize(SplitPaneState.savedWH._1, SplitPaneState.savedWH._2)
+      SplitPaneState.restore()
 
-  def doTogglePostIt() = runInSwingThread:
+  def doTogglePostIt() = runInSwingThread: 
+    SplitPaneState.save()
     SwingPlatform.fullScreen.toggleDecorations(this)
+    SplitPaneState.restore()
 
   def doIncrGlobalFontSize() = runInSwingThread:
       val s = frame.getFont.getSize
@@ -249,7 +281,7 @@ class EditorWindow private () extends JFrame:
         Item("Toggle Orientation", VK_O, VK_F9, 0) { doToggleOrientation() },
         Item("Toggle Full Screen", VK_F, VK_F11, 0) { doToggleFullScreen()},
         Item("Toggle Post-It", VK_P, VK_F12, 0) { doTogglePostIt() },
-        Item("Exit Full Screen & Post-It", VK_E, VK_ESCAPE, 0) { doExitFullScreen() },
+        Item("Exit Full Screen", VK_E, VK_ESCAPE, 0) { doExitFullScreen() },
         MenuSeparator,
         MenuRadioGroup("editorWrapToggle", Map[String, () => Unit](
           "Editor Line Wrap On" -> ( () => { doLineWrap(textArea, isOn = true)} ),
@@ -466,7 +498,7 @@ class EditorWindow private () extends JFrame:
   addMessage(EditorWindow.initMessage)
 
 
-  val splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) // see also setDividerLocation below
+  val splitPane = new JSplitPane(SplitPaneState.initialSplit)  // (JSplitPane.HORIZONTAL_SPLIT) // see also below after setVisible(true)
   splitPane.setTopComponent(textPane)
   splitPane.setBottomComponent(messagePane)
   val (startHeight, startWidth) = (768, 1024)
@@ -486,7 +518,6 @@ class EditorWindow private () extends JFrame:
   addWindowListener:
     new WindowAdapter:
       override def windowClosing(e: WindowEvent): Unit = 
-        println("Want close!!")
         if isSaved || !isSaved && !askKeepEditing() 
         then frame.dispose()
         else ()
@@ -502,7 +533,9 @@ class EditorWindow private () extends JFrame:
   pack()
   setLocationByPlatform(true)
   setVisible(true)
-  splitPane.setDividerLocation(currentHorizontalDivide) // must be after setVisible(true) ???
+  SplitPaneState.init() // splitPane.setDividerLocation must be done after setVisible(true) !!!
+  //SplitPaneState.debug()
+  //splitPane.setDividerLocation(currentHorizontalDivide) 
   updateTitle()
   setGlobalSwingFontSize(defaultGlobalFontSize)
 
