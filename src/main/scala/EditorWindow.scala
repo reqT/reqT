@@ -111,6 +111,9 @@ class EditorWindow private () extends JFrame:
   def updateFileName(fn: String) = { _fileName = fn; updateTitle() }
 
   object SplitPaneState:
+    // all this state mirroring is needed as split pane is set by fraction and not absolute
+    // because of missing methods in swing api and we want to remember the pane state 
+    // before full screen not to scramble the split location when F11 toggle
     val initialSplit = JSplitPane.HORIZONTAL_SPLIT
 
     val savedSplitLocation = collection.mutable.Map[State, Double](
@@ -186,9 +189,7 @@ class EditorWindow private () extends JFrame:
     else ()
 
   def doToggleOrientation() = runInSwingThread:
-    SplitPaneState.debug("inside doToggleOrientation before save")
     SplitPaneState.save()
-    println("TOGGLE ORIENTATION")
     SplitPaneState.toggle()
     SplitPaneState.restore()
 
