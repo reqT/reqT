@@ -22,8 +22,8 @@ run / javaOptions += "-Xmx8G"
 run / connectInput := true
 
 def githubDep(lib: String, org: String, repo: String, ver: String) = {
-  lib % lib % ver from 
-      s"https://github.com/$org/$repo/releases/download/v$ver/${lib}_3-$ver.jar"
+  val s = s"https://github.com/$org/$repo/releases/download/v$ver/${lib}_3-$ver.jar"
+  lib % lib % ver from s 
 }
 
 lazy val `reqT` = (project in file("."))
