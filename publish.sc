@@ -17,7 +17,7 @@ def getFromBuild(key: String): Option[String] = util.Try{
     value.stripPrefix("\"").stripSuffix("\"")
   }.toOption
 
-extension (s: Seq[String]) def showCmdSeq = s.mkString(" ")
+extension (s: Seq[String]) def showSeq = s.mkString(" ")
 
 val scalaVer = getFromBuild("scalaVer").getOrElse("")
 val reqTVer = getFromBuild("reqTVer").getOrElse("")
@@ -38,7 +38,7 @@ val dir = s"${os.pwd}/target/scala-$scalaVer"
 val file1 = s"$dir/reqT-$reqTVer.jar"
 val file2 = s"$dir/reqT.jar"
 val copyCmd = Seq("cp", file1, file2)
-println(copyCmd.showCmdSeq)
+println(copyCmd.showSeq)
 if yes("Do you want to run above cp? (Y/n) ") then
   os.proc(copyCmd).call(cwd = wd)
 
@@ -63,9 +63,9 @@ else
     println("Install from here: https://github.com/cli/cli/")
 
   println("\nRun these commands in terminal:\n")
-  println(createCmd .showCmdSeq)
-  println(uploadCmd1.showCmdSeq)
-  println(uploadCmd2.showCmdSeq)
+  println(createCmd .showSeq)
+  println(uploadCmd1.showSeq)
+  println(uploadCmd2.showSeq)
 
 //# if ! command -v ghg &> /dev/null
 //# then
