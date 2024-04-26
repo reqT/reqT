@@ -1,6 +1,5 @@
 // run with `scala-cli run publish.sc`
-
-//> using scala 3.4
+//> using scala 3.3.3
 //> using toolkit default
 
 println("*** Publish the reqT jar to github using sbt and gh ***\n")
@@ -17,7 +16,7 @@ def getFromBuild(key: String): Option[String] = util.Try{
     value.stripPrefix("\"").stripSuffix("\"")
   }.toOption
 
-extension (s: Seq[String]) def showSeq = s.mkString(" ")
+def printSeq(s: Seq[String]) = println(s.mkString(" "))
 
 val scalaVer = getFromBuild("scalaVer").getOrElse("")
 val reqTVer = getFromBuild("reqTVer").getOrElse("")
@@ -28,17 +27,16 @@ println(s"""val scalaVer = "$scalaVer"""")
 
 println("\n*** Step 1: sbt clean; assembly")
 
-if yes("Do you want a clean build (Y/n)? ") then
-  os.proc("sbt", "package", "clean;assembly").call(cwd = wd, stdout = os.Inherit)
+if yes("Do you want a clean build (Y/n)? ") then 
+  os.proc("sbt", "clean;assembly").call(cwd = wd, stdout = os.Inherit)
 
 println("\n*** Step 2: copy jar")
-
 
 val dir = s"${os.pwd}/target/scala-$scalaVer"
 val file1 = s"$dir/reqT-$reqTVer.jar"
 val file2 = s"$dir/reqT.jar"
 val copyCmd = Seq("cp", file1, file2)
-println(copyCmd.showSeq)
+printSeq(copyCmd)
 if yes("Do you want to run above cp? (Y/n) ") then
   os.proc(copyCmd).call(cwd = wd)
 
@@ -46,14 +44,19 @@ println("\n*** Step 3: publish to github using gh")
 if reqTVer.isEmpty then 
     println("val reqTVer not found in build.sbt")
     sys.exit(1)
+else if !os.exists(os.Path(file1)) then 
+  println(s"Error: Missing jar-file; $file1")
+  System.exit(1)
+else if !os.exists(os.Path(file2)) then 
+  println(s"Error: Missing jar-file; $file2")
+  System.exit(1)
 else 
   val preRel = 
     if reqTVer.contains("-M") || reqTVer.contains("_RC") then Seq("--prerelease") else Seq()
   val assemblyCmd = Seq()
-  val createCmd = Seq("gh", "release", "create", reqTVer, "--generate-notes") ++ preRel
-
-  val uploadCmd1 = Seq("gh", "release", "upload", reqTVer, file1)
-  val uploadCmd2 = Seq("gh", "release", "upload", reqTVer, file2)
+  val createCmd = Seq("gh", "release", "create", "v" + reqTVer, "--generate-notes") ++ preRel
+  val uploadCmd1 = Seq("gh", "release", "upload", "v" + reqTVer, file1)
+  val uploadCmd2 = Seq("gh", "release", "upload", "v" + reqTVer, file2)
   
 
   val ghOpt = util.Try{os.proc("which", "gh").call(cwd = wd)}.toOption
@@ -63,7 +66,7 @@ else
     println("Install from here: https://github.com/cli/cli/")
 
   println("\nRun these commands in terminal:\n")
-  println(createCmd .showSeq)
-  println(uploadCmd1.showSeq)
-  println(uploadCmd2.showSeq)
+  printSeq(createCmd)
+  printSeq(uploadCmd1)
+  printSeq(uploadCmd2)
 
