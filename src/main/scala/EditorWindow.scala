@@ -263,8 +263,23 @@ class EditorWindow private () extends JFrame:
   def doAppendIdPairs() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")
     val ids = txt.toModel.ids
-    val pairs = ids.combinations(2).map(xs => xs(0) + " =!= " + xs(1)).mkString("\n")
-    textArea.append(s"\n* Constraints\n$pairs")
+    val pairs = ids.combinations(2).map(xs => xs(0) + " > " + xs(1)).mkString("\n")
+    if !txt.endsWith("\n") then textArea.append("\n")
+    textArea.append(s"* Constraints:\n${pairs.trimIndent(2)}")
+
+  var isEditorAppend = true
+
+  def doModelToEditor(exampleKey: String) = runInSwingThread:
+    val md = examples.menu(exampleKey).toMarkdown
+    if isEditorAppend then 
+      val txt = Option(textArea.getText()).getOrElse("")
+      if !txt.endsWith("\n") then textArea.append("\n")
+      textArea.append(md) 
+    else textArea.replaceSelection(md)
+
+  val exampleMenuItems: Seq[SwingPlatform.Item] = 
+    val keys = examples.menu.keySet.toSeq.sorted
+    for key <- keys yield SwingPlatform.Item(key, 0, 0, 0) { doModelToEditor(key) }
 
   val initMenus =
     import SwingPlatform.{AppMenus,Menu,Item,MenuSeparator,MenuRadioGroup}
@@ -301,17 +316,18 @@ class EditorWindow private () extends JFrame:
         Item("Increase Menu Size", VK_I, VK_PLUS, ALT+SHIFT) { doIncrGlobalFontSize() },
         Item("Decrease Menu Size", VK_D, VK_MINUS, ALT+SHIFT) { doDecrGlobalFontSize() },
       ),
-      Menu("Model", mnemonic = VK_M,
-        Item("Example1", VK_1, VK_1, CTRL) { println("TODO EXAMPLE")},
-        Item("Example2", VK_2, VK_2, CTRL) { println("TODO EXAMPLE")},
-        Item("Example3", VK_3, VK_3, CTRL) { println("TODO EXAMPLE")},
-        Item("Example4", VK_4, VK_4, CTRL) { println("TODO EXAMPLE")},
-      ),
+      Menu("Model", mnemonic = VK_M, (Seq(
+        MenuRadioGroup("modelToEditorToggle", Map[String, () => Unit](
+          "Append" -> ( () => { isEditorAppend = true } ),
+          "Insert"  -> ( () => { isEditorAppend = false } ),
+        ), default = "Append"),
+        MenuSeparator,
+      ) ++ exampleMenuItems)*),
       Menu("Tools", mnemonic = VK_T,
         Item("Parse to Log", VK_1, VK_1, CTRL+SHIFT) { doModelRawToLog() },
         Item("Append id pairs", VK_2, VK_2, CTRL+SHIFT) { doAppendIdPairs() },
-        Item("Tool3", VK_3, VK_3, CTRL+SHIFT) { println("TODO EXAMPLE")},
-        Item("Tool4", VK_4, VK_4, CTRL+SHIFT) { println("TODO EXAMPLE")},
+        Item("Tool3", VK_3, VK_3, CTRL+SHIFT) { println("TODO TOOL 3")},
+        Item("Tool4", VK_4, VK_4, CTRL+SHIFT) { println("TODO TOOL 4")},
       ),
       Menu("Log", mnemonic = VK_L,
         Item("Clear Log", VK_C, VK_DELETE, ALT) { doClearMsg() },
@@ -435,13 +451,17 @@ class EditorWindow private () extends JFrame:
   val textPane = new org.fife.ui.rtextarea.RTextScrollPane(textArea) with SwingPlatform.AntiAliasing
   
   import org.fife.ui.autocomplete.*
+
   val provider = new DefaultCompletionProvider()
   meta.entityNames.foreach: t =>
     provider.addCompletion( new BasicCompletion(provider, t.toString, "Entity"))
+
   meta.strAttrNames.foreach: t =>
       provider.addCompletion( new BasicCompletion(provider, t.toString, "String Attribute"))
+
   meta.intAttrNames.foreach: t =>
       provider.addCompletion( new BasicCompletion(provider, t.toString, "Integer Attribute"))
+
   meta.relationNames.foreach: t =>
       provider.addCompletion( new BasicCompletion(provider, t.toString, "Relation"))
 
@@ -536,45 +556,7 @@ class EditorWindow private () extends JFrame:
   setVisible(true)
   SplitPaneState.init() // splitPane.setDividerLocation must be done after setVisible(true) !!!
   //SplitPaneState.debug()
-  //splitPane.setDividerLocation(currentHorizontalDivide) 
   updateTitle()
   setGlobalSwingFontSize(defaultGlobalFontSize)
 
-  // ---- Body of DesktopGUI
-
-  // //--- begin instead of rsyntaxtextarea
-  // val editor = new JEditorPane();
-  // editor.setEditable(true);
-  // editor.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 20));
-  // editor.setContentType("text/html");
-  // val editorView = new JScrollPane(editor)
-  // def updateEditor() = editorView.updateUI
-  
-  // // --- end instead of rsyntaxtextarea
-
-  //val splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT)
-
-  //val splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT)
-  //splitPane.setTopComponent(treeView)
-  //splitPane.setTopComponent(editorView)
-  //splitPane.setBottomComponent(editorView)
-  //val (startHeight, startWidth) = (768, 1024)
-  //val smallestDim = new Dimension(100, 100)
-  //val prefferedDim = new Dimension(startWidth, startHeight)
-  //editorView.setMinimumSize(smallestDim)
-  //editorView.setPreferredSize(prefferedDim)
-  //  //treeView.setMinimumSize(smallestDim)
-  //splitPane.setPreferredSize(prefferedDim)
-  //add(splitPane)
-  //add(editorView)
-
-  //frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
-  //frame.add(this)
-  //frame.pack()
-  //setGlobalSwingFontSize(defaultGlobalFontSize)
-  //setEditorFont(Settings.gui.fontSize + fontDeltaByScreenHeight,
-  //  Settings.gui.editorFonts.headOption.getOrElse(Font.MONOSPACED))
-  //frame.setVisible(true)
-  //splitPane.setDividerLocation(0.5)  //(startWidth / 2)
-  //updateEditor()
 end EditorWindow

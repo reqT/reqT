@@ -21,7 +21,7 @@ outputStrategy := Some(StdoutOutput)
 run / javaOptions += "-Xmx8G"
 run / connectInput := true
 
-def githubDep(lib: String, org: String, repo: String, ver: String) = {
+def githubDep(lib: String, org: String, repo: String, ver: String): ModuleID = {
   val s = s"https://github.com/$org/$repo/releases/download/v$ver/${lib}_3-$ver.jar"
   lib % lib % ver from s 
 }
@@ -30,18 +30,15 @@ lazy val `reqT` = (project in file("."))
   .settings(
     name := "reqT",
     scalacOptions := Seq("-encoding", "utf8", "-deprecation", "-unchecked", "-Werror"),
+
     assembly / assemblyJarName := reqTJarName,
     assembly / mainClass := Some("reqt.Main"),
 
     libraryDependencies += githubDep("reqt-lang", "reqT", "reqT-lang", reqTLangVer),
-
     libraryDependencies += githubDep("reqt-jacop", "reqT", "reqT-jacop", reqTJacopVer),
 
-    libraryDependencies += "org.jacop" % "jacop" % jacopVer,
-
+    libraryDependencies += "org.jacop"    % "jacop"           % jacopVer,
     libraryDependencies += "com.fifesoft" % "rsyntaxtextarea" % RSTAVer,
-    
-    libraryDependencies += "com.fifesoft" % "autocomplete" % AutoCompVer,
-
-    libraryDependencies += "com.lihaoyi" %% "os-lib" % OSLibVer,
+    libraryDependencies += "com.fifesoft" % "autocomplete"    % AutoCompVer,
+    libraryDependencies += "com.lihaoyi" %% "os-lib"          % OSLibVer,
   )
