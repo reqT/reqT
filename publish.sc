@@ -67,9 +67,3 @@ else
   println(uploadCmd1.showSeq)
   println(uploadCmd2.showSeq)
 
-//# if ! command -v ghg &> /dev/null
-//# then
-//#     echo "To run this script you need the github CLI with the 'gh' command installed"
-//#     echo "Install from here: https://github.com/cli/cli/blob/trunk/docs/install_linux.md"
-//# fi
-
