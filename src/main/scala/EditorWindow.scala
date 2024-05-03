@@ -342,17 +342,17 @@ class EditorWindow private () extends JFrame:
 
   def doMsg(msg: String): Unit = SwingPlatform.msgInfo(msg, parent = Some(frame))
   
-  val defaultGlobalFontSize = 12 + fontDeltaByScreenHeight
+  val defaultGlobalFontSize = Settings.gui.fontSize + fontDeltaByScreenHeight
 
   def fontDeltaByScreenHeight =
     java.awt.Toolkit.getDefaultToolkit.getScreenSize.getHeight match {
       case n if n <= 600 => 0
       case n if n <= 720 => 1
-      case n if n <= 800 => 2
-      case n if n <= 1024 => 6
-      case n if n <= 1080 => 7
-      case n if n <= 1440 => 8
-      case _         => 12
+      case n if n <= 800 => 1
+      case n if n <= 1024 => 2
+      case n if n <= 1080 => 2
+      case n if n <= 1440 => 3
+      case _         => 2
     }
 
   def setGlobalSwingFontSize(size: Int): Unit = {
@@ -418,7 +418,7 @@ class EditorWindow private () extends JFrame:
     // textArea.getSyntaxScheme.setStyle(TokenTypes.RESERVED_WORD, new Style(Settings.gui.scalaReservedWordColor, Style.DEFAULT_BACKGROUND, fBold)) // more discrete coloring???
 
         val lnf = textPane.getGutter.getLineNumberFont
-        val lnfNew = new Font(lnf.getFamily, lnf.getStyle, fontSize - 3)
+        val lnfNew = new Font(lnf.getFamily, lnf.getStyle, fontSize)
         textPane.getGutter.setLineNumberFont(lnfNew)
   end setTextAreaFont
   
@@ -447,7 +447,7 @@ class EditorWindow private () extends JFrame:
   textArea.setMatchedBracketBorderColor(new java.awt.Color(192, 192, 192))
   textArea.setAnimateBracketMatching(true)
   
-  setTextAreaFont(textArea,mediumFontSize, Settings.gui.defaultEditorFont)
+  setTextAreaFont(textArea,defaultGlobalFontSize, Settings.gui.defaultEditorFont)
   val textPane = new org.fife.ui.rtextarea.RTextScrollPane(textArea) with SwingPlatform.AntiAliasing
   
   import org.fife.ui.autocomplete.*
@@ -494,7 +494,7 @@ class EditorWindow private () extends JFrame:
   
   val messageArea = new javax.swing.JTextArea(10, initEditorWidth)
   messageArea.setEditable(false)
-  setTextAreaFont(messageArea, mediumFontSize, Settings.gui.defaultEditorFont)
+  setTextAreaFont(messageArea, defaultGlobalFontSize, Settings.gui.defaultEditorFont)
 
   val caret = textArea.getCaret().asInstanceOf[javax.swing.text.DefaultCaret]
   caret.setUpdatePolicy(javax.swing.text.DefaultCaret.ALWAYS_UPDATE)
@@ -559,5 +559,5 @@ class EditorWindow private () extends JFrame:
   updateTitle()
   SwingPlatform.setAppIcon(this)
   setGlobalSwingFontSize(defaultGlobalFontSize)
-
+  setTextAreaFont(textArea, defaultGlobalFontSize)
 end EditorWindow
