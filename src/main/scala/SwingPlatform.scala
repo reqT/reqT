@@ -225,6 +225,12 @@ object SwingPlatform:
           java.awt.RenderingHints.VALUE_RENDER_QUALITY)
         super.paintComponent(g2)
   end AntiAliasing
+
+  def setAppIcon(frame: JFrame): Unit =
+    val kit = java.awt.Toolkit.getDefaultToolkit()
+    val url = getClass().getResource("/camera.png")
+    val img = kit.createImage(url)
+    frame.setIconImage(img)
   
   
 

@@ -370,7 +370,7 @@ class EditorWindow private () extends JFrame:
 
     if ff != null then 
       frame.setFont(new Font(ff.getFamily, ff.getStyle, size))
-      setTextAreaFont(textArea, frame.getFont.getSize) // handle override of editor font size
+      setTextAreaFont(textArea, textArea.getFont.getSize) // handle override of editor font size
 
     javax.swing.SwingUtilities.updateComponentTreeUI(frame)
   }
@@ -557,6 +557,7 @@ class EditorWindow private () extends JFrame:
   SplitPaneState.init() // splitPane.setDividerLocation must be done after setVisible(true) !!!
   //SplitPaneState.debug()
   updateTitle()
+  SwingPlatform.setAppIcon(this)
   setGlobalSwingFontSize(defaultGlobalFontSize)
 
 end EditorWindow
