@@ -38,6 +38,9 @@ import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.JTree
 import javax.swing.tree.TreeSelectionModel
 import javax.swing.tree.TreePath
+import javax.swing.tree.DefaultTreeModel
+import javax.swing.DropMode
+import javax.swing.tree.TreeNode
 
 object EditorWindow:
   val initLookAndFell = javax.swing.UIManager.getLookAndFeel()
@@ -94,7 +97,9 @@ object EditorWindow:
 
   trait ModelTreeSelectionListener extends TreeSelectionListener:
     override def valueChanged(e: TreeSelectionEvent): Unit = 
-      println(s"ModelTreeSelectionListener event valueChanged: $e")
+      //println(s"ModelTreeSelectionListener event valueChanged: $e")
+      //println("TODO: push to Undo-stack for Tree")
+      ()
 
 class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectionListener:
   EditorWindow.n += 1
@@ -128,7 +133,15 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
   
   def windowTitle = filePath + "  -  " + windowType
 
-  def updateTitle() = frame.setTitle(windowTitle + (if isSavedTree && isSavedEditor then "" else " * unsaved"))
+  def updateTitle() = 
+    var unsaved = Set.empty[String]
+    def isUnsaved = !isSavedTree || !isSavedEditor 
+    if !isSavedTree then unsaved += " Tree"
+    if !isSavedEditor then unsaved += " Editor"
+    val unsavedText = 
+      if unsaved.isEmpty then "" 
+      else unsaved.toSeq.sorted.reverse.mkString(" unsaved:", ", ", "")
+    frame.setTitle(windowTitle + unsavedText)
   
   def updateFileName(fn: String) = { _fileName = fn; updateTitle() }
 
@@ -185,7 +198,9 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
 
   def doOpen(): Unit = runInSwingThread:
     for f <- SwingPlatform.chooseFile() do
-      log(s"Todo Open new Tree from $f...")
+      log(s"Open new Tree from $f")
+      val t = loadLines(f).mkString("\n")
+      setTopTo(t.toModel)
       didSaveTree()
 
   def doLoadToEditor(): Unit = runInSwingThread:
@@ -224,6 +239,20 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
     if isAllSaved || !isAllSaved && !askKeepEditing("Quit") then 
       scala.sys.exit(0) // This is a brutal quit
     else ()
+
+  def doEditNode() = runInSwingThread: 
+    fromTreeToEditor()
+    saveEditorNeeded()
+
+  def doReplaceNode() = runInSwingThread:
+    val m = textArea.getText().toModel
+    updateSelection(m, isReplace = true)
+    saveTreeNeeded()
+  
+  def doInsertNode() = runInSwingThread:
+    val m = textArea.getText().toModel
+    updateSelection(m, isReplace = false)
+    saveTreeNeeded()
 
   def doToggleOrientation() = runInSwingThread:
     SplitPaneState.save()
@@ -307,7 +336,7 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
 
   var isEditorAppend = true
 
-  def doModelToEditor(exampleKey: String) = runInSwingThread:
+  def doTemplateToEditor(exampleKey: String) = runInSwingThread:
     val md = examples.menu(exampleKey).toMarkdown
     val txt = Option(textArea.getText()).getOrElse("")
     if isEditorAppend then 
@@ -322,7 +351,7 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
 
   val exampleMenuItems: Seq[SwingPlatform.Item] = 
     val keys = examples.menu.keySet.toSeq.sorted
-    for key <- keys yield SwingPlatform.Item(key, 0, 0, 0) { doModelToEditor(key) }
+    for key <- keys yield SwingPlatform.Item(key, 0, 0, 0) { doTemplateToEditor(key) }
 
   val initMenus =
     import SwingPlatform.{AppMenus,Menu,Item,MenuSeparator,MenuRadioGroup}
@@ -339,12 +368,12 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
         Item("Quit",VK_Q, VK_Q, CTRL){doQuit()},
       ),
       Menu("Tree", mnemonic = VK_T, 
-        Item("Edit node in editor", VK_E, VK_E, CTRL){ log("TODO edit node")},
-        Item("Replace node from editor", VK_R, VK_R, CTRL){ log("TODO replace node")},
-        Item("Insert after node from editor", VK_I, VK_I, CTRL){ log("TODO insert node")},
+        Item("Edit node in editor", VK_E, VK_E, CTRL){ doEditNode()},
+        Item("Replace node from editor", VK_R, VK_R, CTRL){ doReplaceNode()},
+        Item("Insert after node from editor", VK_I, VK_I, CTRL){ doInsertNode()},
         MenuSeparator,
-        Item("Collapse All", VK_C, VK_LEFT, ALT){ log("TODO insert node")},
-        Item("Expand All", VK_C, VK_RIGHT, ALT){ log("TODO insert node")},
+        Item("Collapse All", VK_C, VK_LEFT, ALT){ log("TODO collapse all")},
+        Item("Expand All", VK_C, VK_RIGHT, ALT){ log("TODO expand all")},
         MenuSeparator,
         Item("Delete selected node", VK_D, VK_DELETE, 0){ log("TODO delete node")},
         Item("Revert to Initial Tree Model...", VK_V, 0, 0){ log("TODO revert")},
@@ -548,14 +577,18 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
   
   createEditMeny()
 
+  val caret = textArea.getCaret().asInstanceOf[javax.swing.text.DefaultCaret]
+  caret.setUpdatePolicy(javax.swing.text.DefaultCaret.ALWAYS_UPDATE)
+
   //--- end rsyntaxtextarea stuff  
   
   val messageArea = new javax.swing.JTextArea(10, initEditorWidth)
   messageArea.setEditable(false)
   setTextAreaFont(messageArea, defaultGlobalFontSize, Settings.gui.defaultEditorFont)
 
-  val caret = textArea.getCaret().asInstanceOf[javax.swing.text.DefaultCaret]
-  caret.setUpdatePolicy(javax.swing.text.DefaultCaret.ALWAYS_UPDATE)
+  messageArea.setBackground(Settings.gui.logBackground)
+  messageArea.setForeground(Settings.gui.logForeground)
+
   //messageArea.setLineWrap(true)
 
   val messagePane = new javax.swing.JScrollPane(messageArea)
@@ -589,23 +622,231 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
   messagePane.setMinimumSize(smallestDim)
   splitPane.setPreferredSize(prefferedDim)
 
-  case object TreeRoot:
+  // --- tree stuff
+  
+  /** A handle to the root node of the tree pane */
+  case object TreeRoot: 
     override def toString = s"Tree $fileName"
 
   val top = new DefaultMutableTreeNode(TreeRoot)
   val tree = new JTree(top)
+  val topPath = new TreePath(top)
+  def treeModel: DefaultTreeModel = tree.getModel().asInstanceOf[DefaultTreeModel]
+  def rootPath: TreePath = new TreePath(top)
+  def mkNode(n: Any) = new DefaultMutableTreeNode(n)
+
+  def mkTreeFromModelAtNode(m: Model, node: DefaultMutableTreeNode): Unit = m.elems.foreach: 
+    case a: Attr[_] => node.add(mkNode(a))
+    case e: Ent => node.add(mkNode(e))
+    case Rel(e,l,t) =>
+      val link = mkNode(Link(e,l))
+      mkTreeFromModelAtNode(t, link)
+      node.add(link)
+  
+  def setTopTo(m: Model): Unit = 
+    top.removeAllChildren
+    treeModel.nodeStructureChanged(top)
+    mkTreeFromModelAtNode(m, top)
+    treeModel.nodeStructureChanged(top)
+    tree.setSelectionPath(topPath)
+    tree.requestFocus
+
+  def currentSelectionPath: TreePath = tree.getSelectionPath()
+
+  def selectedOpt: Option[DefaultMutableTreeNode] = 
+    if currentSelectionPath == null then None 
+    else currentSelectionPath.getLastPathComponent match
+      case n: DefaultMutableTreeNode => Some(n)
+      case any => 
+        println("DEBUG: STRANGE THING:" + any)
+        println("selectedOpt current: " + currentSelectionPath.getPath.toVector) 
+        None 
+
+  def createModelFromTreeNode(fromNode: DefaultMutableTreeNode): Model = 
+    def recur(node: DefaultMutableTreeNode): Model = 
+      var elems: Vector[Elem] = Vector()
+      val n = treeModel.getChildCount(node)
+      for ( i <- 0 until n) {
+        val child = treeModel.getChild(node, i).asInstanceOf[DefaultMutableTreeNode]
+        child.getUserObject match {
+          case e: Node => elems = elems :+ e
+          case l: Link => elems = elems :+ Rel(l.e, l.t, recur(child))
+          case any => throw new Error("match failed in iter in createModelFromTreeNode: " + any)
+        }
+      }
+      elems.toModel
+    end recur 
+
+    def sub = if (!fromNode.isLeaf) recur(fromNode) else Model()
+
+    fromNode.getUserObject match 
+      case e: Node => Model(e)
+      case l: Link => Model(Rel(l.e, l.t, sub))
+      case TreeRoot => recur(fromNode)
+      case any =>
+        throw new Error("match failed in createModelFromTreeNode: " + any)
+
+  end createModelFromTreeNode
+
+  def fromTreeToEditor(): Unit = {
+    val currentSelection: TreePath = tree.getSelectionPath()
+    if (currentSelection != null) {
+      val currentNode =
+        currentSelection.getLastPathComponent().asInstanceOf[DefaultMutableTreeNode]
+      //println("currentNode = " + currentNode)
+      val t = createModelFromTreeNode(currentNode).toMarkdown
+      textArea.setText(t)
+      textArea.requestFocus
+    } else 
+      val t = createModelFromTreeNode(top).toMarkdown
+      textArea.setText(t)
+      textArea.requestFocus
+  }
+
+  def setFoldingAll(parent: TreePath, isExpand: Boolean): Unit = {
+    val node = parent.getLastPathComponent().asInstanceOf[TreeNode];
+    if (node.getChildCount() >= 0) {
+      import scala.jdk.CollectionConverters.* 
+      for (e <- node.children.asScala) {
+        val n = e.asInstanceOf[TreeNode]
+        val path = parent.pathByAddingChild(n).asInstanceOf[TreePath]
+        setFoldingAll(path, isExpand);
+      }
+    }
+    if (isExpand) tree.expandPath(parent)
+    else {
+      tree.collapsePath(parent)
+      treeModel.reload
+    }
+  }
+
+  def toTreePath(node: DefaultMutableTreeNode): TreePath = {
+    val pathArray = treeModel.getPathToRoot(node)
+    var treePath = new TreePath(pathArray(0))
+    for (i <- 1 until pathArray.size) {
+      treePath = treePath.pathByAddingChild(pathArray(i))
+    }
+    treePath
+  }
+
+  def removeCurrentNode(): Unit = {
+    if (currentSelectionPath == null) () else {
+      val currentNode =
+        currentSelectionPath.getLastPathComponent().asInstanceOf[DefaultMutableTreeNode]
+      val parent = currentNode.getParent().asInstanceOf[DefaultMutableTreeNode]
+      if (parent != null) {
+        treeModel.removeNodeFromParent(currentNode)
+        treeModel.nodeStructureChanged(parent)
+        tree.setSelectionPath(toTreePath(parent))
+      } else {
+        top.removeAllChildren
+        treeModel.nodeStructureChanged(top)
+        tree.setSelectionPath(topPath)
+      }
+      // _currentModel = createModelFromTreeNode(top) // why??
+      tree.requestFocus
+    }
+  }
+
+  def expandSelectFocus(path: TreePath) = {
+    tree.expandPath(path)
+    tree.setSelectionPath(path)
+    tree.requestFocus
+  }
+
+  def updateSelection(newModel: Model, isReplace: Boolean = true) = {
+    selectedOpt match {
+      case None => // nothing selected
+        if (isReplace) setTopTo(newModel)
+        else if (newModel.elems.nonEmpty) setTopTo(newModel ++ createModelFromTreeNode(top))
+        setFoldingAll(rootPath, true)
+
+      case Some(currentNode) if currentNode == top =>  //top selected
+        if (isReplace) setTopTo(newModel)
+        else if (newModel.elems.nonEmpty) setTopTo(newModel ++ createModelFromTreeNode(top))
+        setFoldingAll(rootPath, true)
+
+      case Some(currentNode) => //a node inside the tree was selected
+        iter(newModel.elems, isReplace, currentNode)  //new try; was: iter(newModel.toVector.reverse, isReplace, currentNode)
+    }
+    //recursive replace/insert
+    def iter(elems: Vector[Elem], isReplace: Boolean, currentNode: DefaultMutableTreeNode): Unit = {
+      elems.headOption match {
+        case None => //empty elems
+          if (isReplace) removeCurrentNode()
+          else () //do nothing; inserting empty model yields no change
+        case Some(elem) =>
+
+          def update(node: DefaultMutableTreeNode) = {
+            treeModel.nodeChanged(node)
+            treeModel.nodeStructureChanged(node)
+          }
+
+          val parent = currentNode.getParent().asInstanceOf[DefaultMutableTreeNode]
+          val parentPath = toTreePath(parent)
+          val currentPath = currentSelectionPath
+          if (isReplace) { //replace currentNode with elem
+            currentNode.removeAllChildren
+            update(currentNode)
+            elem match {
+              case Rel(e,t,submodel) =>
+                currentNode.setUserObject(Link(e,t))
+                update(currentNode)
+                mkTreeFromModelAtNode(submodel, currentNode)
+                update(currentNode)
+              case _ =>
+                currentNode.setUserObject(elem)
+                update(currentNode)
+            }
+            expandSelectFocus(currentPath)
+            if (elems.size > 1) //recursive call: insert rest of model
+              iter(elems.tail, false, currentNode)
+          } else { //insert elem after currentNode
+            var ix = parent.getIndex(currentNode)
+            val newNode = elem match {
+              case Rel(e,t,submodel) =>
+                val n = new DefaultMutableTreeNode(Link(e,t))
+                mkTreeFromModelAtNode(submodel, n)
+                n
+              case _ => new DefaultMutableTreeNode(elem)
+            }
+            parent.insert(newNode, ix+1)   ///new try; was: parent.insert(newNode, ix)
+            update(parent)
+            val newPath = toTreePath(newNode)
+            tree.setSelectionPath(newPath)
+            update(parent)
+            expandSelectFocus(newPath)
+            if (elems.size > 1) //recursive call: insert rest of model
+              iter(elems.tail, false, newNode)
+          }
+      }
+    }
+  }
+
+
+
   //tree.setEditable(true) ??? how much work is it to enable editing directly in the tree???
   tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
   tree.setSelectionPath(new TreePath(top))
   tree.addTreeSelectionListener(this)
+  //tree.setEditable(true)  ???
+  //tree.setDropMode(DropMode.INSERT) ???
+  tree.setScrollsOnExpand(true)
+  tree.setBackground(Settings.gui.treeBackground)
+  tree.setAutoscrolls(true)
+  tree.setDragEnabled(true)
   //tree.addFocusListener(onFocusGained{ gui._lastFocused = Some(this) })  ??? from old reqT gui to allow repl to access current window in focus???
   val treeView = new JScrollPane(tree)
-  
+
+  // --- Create outer JSplitPane
+
   val topSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT)
   topSplitPane.setTopComponent(treeView)
   topSplitPane.setBottomComponent(splitPane)
   topSplitPane.setPreferredSize(new Dimension(1200, 800))
   topSplitPane.setDividerLocation(250)
+
+  // --- Create outer panel
 
   panel.add(topSplitPane)
   setContentPane(panel)
