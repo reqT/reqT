@@ -30,12 +30,12 @@ object Sys:
     val path = java.io.File(resolveFileName(dir))
     Option(path.listFiles).map(_.toSeq)
 
-  extension (s: String) def saveTo(fileName: String) = 
+  extension (s: String) def saveTo(fileName: String, isPrintConfirmation: Boolean = false) = 
     val fn = resolveFileName(fileName)
     val outFile = new java.io.File(fn)
     val outStream = new java.io.PrintWriter(outFile,"UTF-8")
     try outStream.println(s.toString) finally outStream.close
-    println("Saved string to file: "+fn) 
+    if isPrintConfirmation then println("Saved string to file: "+fn) 
   
   def loadLines(fileName:String): List[String] = 
     val fn = resolveFileName(fileName)
