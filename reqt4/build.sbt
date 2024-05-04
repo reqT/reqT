@@ -1,4 +1,4 @@
-scalaVersion := "3.2.1"
+scalaVersion := "3.3.3"
 
 fork                := true // https://stackoverflow.com/questions/18676712
 connectInput        := true // http://www.scala-sbt.org/1.x/docs/Forking.html
