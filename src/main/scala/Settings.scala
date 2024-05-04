@@ -28,6 +28,9 @@ object Settings {
     val relationColor  = col(relRGB)
     val stringColor    = col(strRGB)
     val scalaReservedWordColor = col((0,0,125))
+    val treeBackground = col(230,255,230)
+    val logForeground = col(10,10,50)
+    val logBackground = col(255,230,230)
     var editorFonts    = List("Fira Code Medium", "Source Code Pro Medium" , "DejaVu Sans Mono", "JetBrains Mono Medium" , "Consolas", "Liberation Mono", "Monospace")
     val defaultEditorFont = editorFonts.head
     var fontSize       = 16
