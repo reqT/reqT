@@ -32,6 +32,12 @@ import javax.swing.event.DocumentEvent
 import javax.swing.text.DefaultCaret
 import javax.swing.plaf.FontUIResource
 import javax.swing.JTextArea
+import javax.swing.event.TreeSelectionListener
+import javax.swing.event.TreeSelectionEvent
+import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.JTree
+import javax.swing.tree.TreeSelectionModel
+import javax.swing.tree.TreePath
 
 object EditorWindow:
   val initLookAndFell = javax.swing.UIManager.getLookAndFeel()
@@ -47,7 +53,7 @@ object EditorWindow:
 
   def newWindow(): Unit = runInSwingThread(started.append(EditorWindow())) 
 
-  def initFileName = s"untitled-$n.reqt"
+  def initFileName = s"untitled-$n.md"
 
   val reqTGist = 
     s"""|* System: reqT has
@@ -59,9 +65,11 @@ object EditorWindow:
         |""".stripMargin.toModel.toMarkdown
 
   val initMessage = 
-    s"""|WELCOME to the reqT requirements tool! 
+    s"""|WELCOME to reqT - a requirements modeling tool! 
         |
-        |Documentation: https//github.com/reqT/reqT
+        |Read the docs: https//github.com/reqT/reqT
+        |
+        |Three independent panes: Tree, Editor, Log
         |
         |F1 for help text to Log.
         |F9 to Toggle Orientation.
@@ -84,13 +92,24 @@ object EditorWindow:
         |Use CTRL+SPACE for completion in editor.
         |""".stripMargin
 
-class EditorWindow private () extends JFrame:
-  EditorWindow.n += 1
-  @volatile private var isSaved = true
-  def saveNeeded(): Unit = {isSaved = false; updateTitle() }
-  def didSave(): Unit = {isSaved = true; updateTitle() }
+  trait ModelTreeSelectionListener extends TreeSelectionListener:
+    override def valueChanged(e: TreeSelectionEvent): Unit = 
+      println(s"ModelTreeSelectionListener event valueChanged: $e")
 
-  val initModel: Model = Model()
+class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectionListener:
+  EditorWindow.n += 1
+  @volatile private var isSavedTree = true
+  @volatile private var isSavedEditor = true
+
+  def saveTreeNeeded(): Unit = {isSavedTree = false; updateTitle() }
+  def didSaveTree(): Unit = {isSavedTree = true; updateTitle() }
+
+  def saveEditorNeeded(): Unit = {isSavedEditor = false; updateTitle() }
+  def didSaveEditor(): Unit = {isSavedEditor = true; updateTitle() }
+
+  val initModel: Model = Model()  
+    // TODO: make initModel a class param an implement menu item "revert to initModel"
+  
   val windowType = s"reqT Editor v${Main.reqTVersion}"
   val frame = this
 
@@ -101,12 +120,15 @@ class EditorWindow private () extends JFrame:
   val mediumFontSize = Settings.gui.fontSize
   val minFontSize = 6
   
-  private var _fileName = Sys.workDir + "/" + EditorWindow.initFileName
+  private var _fileName = EditorWindow.initFileName
+  private var _workDir = Sys.workDir
+  def workDir = _workDir
   def fileName = _fileName 
+  def filePath = workDir + "/" + fileName
   
-  def windowTitle = fileName + "  -  " + windowType
+  def windowTitle = filePath + "  -  " + windowType
 
-  def updateTitle() = frame.setTitle(windowTitle + (if isSaved then "" else " * unsaved"))
+  def updateTitle() = frame.setTitle(windowTitle + (if isSavedTree && isSavedEditor then "" else " * unsaved"))
   
   def updateFileName(fn: String) = { _fileName = fn; updateTitle() }
 
@@ -161,16 +183,31 @@ class EditorWindow private () extends JFrame:
 
   def doFileNew(): Unit = new EditorWindow()
 
-  def doOpen(): Unit = 
+  def doOpen(): Unit = runInSwingThread:
+    for f <- SwingPlatform.chooseFile() do
+      log(s"Todo Open new Tree from $f...")
+      didSaveTree()
+
+  def doLoadToEditor(): Unit = runInSwingThread:
     for f <- SwingPlatform.chooseFile() do 
       val t = loadLines(f).mkString("\n")
       textArea.setText(t)
       updateFileName(f)
-      didSave()
+      log(s"Loaded $f to Editor.")
+      didSaveEditor()
   
-  def doSave(): Unit = 
-    textArea.getText().saveTo(fileName)
-    didSave()
+  def doSaveTree(): Unit = runInSwingThread:
+    log(s"TODO: Save tree to $fileName")
+    didSaveTree()
+
+  def doSaveTreeAs(): Unit = runInSwingThread:
+    log(s"TODO: Save tree As...  will update window title etc")
+    didSaveTree()
+
+  def doSaveEditorAs(): Unit = runInSwingThread:
+    log(s"TODO: Save Editor as")
+    didSaveEditor()
+    //textArea.getText().saveTo(???)
 
   def askKeepEditing(action: String): Boolean = 
     SwingPlatform.isOK(s"""WARNING! You have unsaved changes! 
@@ -183,7 +220,7 @@ class EditorWindow private () extends JFrame:
       dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING))
   
   def doQuit(): Unit = runInSwingThread:
-    val isAllSaved = EditorWindow.started.forall(_.isSaved)
+    val isAllSaved = EditorWindow.started.forall(e => e.isSavedTree && e.isSavedEditor)
     if isAllSaved || !isAllSaved && !askKeepEditing("Quit") then 
       scala.sys.exit(0) // This is a brutal quit
     else ()
@@ -241,6 +278,7 @@ class EditorWindow private () extends JFrame:
   def doClearMsg() = runInSwingThread(clearMessage())
   def doHelpToLog() = runInSwingThread(addMessage(EditorWindow.initMessage))
   def doConceptsToLog() = runInSwingThread(addMessage(meta.csv("\t")))
+  def log(msg: String, logLevel: Int = 0) = runInSwingThread(addMessage(msg))
 
   def doFormatAll() = runInSwingThread:
     val txt = textArea.getText()
@@ -271,11 +309,16 @@ class EditorWindow private () extends JFrame:
 
   def doModelToEditor(exampleKey: String) = runInSwingThread:
     val md = examples.menu(exampleKey).toMarkdown
+    val txt = Option(textArea.getText()).getOrElse("")
     if isEditorAppend then 
-      val txt = Option(textArea.getText()).getOrElse("")
-      if !txt.endsWith("\n") then textArea.append("\n")
-      textArea.append(md) 
-    else textArea.replaceSelection(md)
+      if txt.trim == "" then textArea.setText(md)
+      else 
+        if !txt.endsWith("\n") then textArea.append("\n")
+        textArea.append(md) 
+    else 
+      log("TODO: make indentation of insertion match selection/cursor")
+      if txt.trim == "" then textArea.setText(md)
+      else textArea.replaceSelection(md)
 
   val exampleMenuItems: Seq[SwingPlatform.Item] = 
     val keys = examples.menu.keySet.toSeq.sorted
@@ -286,51 +329,70 @@ class EditorWindow private () extends JFrame:
     AppMenus(
       Menu("File", mnemonic = VK_F,
         Item("New Window", VK_N, VK_N, CTRL){ doFileNew() },
-        Item("Open File ...", VK_O, VK_O, CTRL){ doOpen() },
-        Item("Save", VK_S, VK_S, CTRL){ doSave() },
+        Item("Open Model in Tree...", VK_O, VK_O, CTRL){ doOpen() },
+        Item("Load Textfile to Editor...", VK_L, VK_L, CTRL){ doLoadToEditor() },
+        Item("Save Model in Tree", VK_S, VK_S, CTRL){ doSaveTree() },
+        Item("Save Model in Tree As...", VK_S, VK_S, CTRL+SHIFT){ doSaveTreeAs() },
+        Item("Save Editor Text As...", VK_S, VK_S, ALT){ doSaveEditorAs() },
         MenuSeparator,
         Item("Close Window", VK_W, VK_W, CTRL){ doClose() },
         Item("Quit",VK_Q, VK_Q, CTRL){doQuit()},
       ),
-      Menu("Edit", mnemonic = VK_E, Seq()*),
+      Menu("Tree", mnemonic = VK_T, 
+        Item("Edit node in editor", VK_E, VK_E, CTRL){ log("TODO edit node")},
+        Item("Replace node from editor", VK_R, VK_R, CTRL){ log("TODO replace node")},
+        Item("Insert after node from editor", VK_I, VK_I, CTRL){ log("TODO insert node")},
+        MenuSeparator,
+        Item("Collapse All", VK_C, VK_LEFT, ALT){ log("TODO insert node")},
+        Item("Expand All", VK_C, VK_RIGHT, ALT){ log("TODO insert node")},
+        MenuSeparator,
+        Item("Delete selected node", VK_D, VK_DELETE, 0){ log("TODO delete node")},
+        Item("Revert to Initial Tree Model...", VK_V, 0, 0){ log("TODO revert")},
+      ),
+      Menu("Editor", mnemonic = VK_E, 
+        MenuRadioGroup("editorWrapToggle", Map[String, () => Unit](
+          "Editor Line Wrap On" -> ( () => { doLineWrap(textArea, isOn = true)} ),
+          "Editor Line Wrap Off"  -> ( () => { doLineWrap(textArea, isOn = false)} )
+        ), default = "Editor Line Wrap Off"),
+        MenuSeparator,
+        Item("Format All", VK_F, VK_F, CTRL) { doFormatAll() },
+        MenuSeparator,
+        Item("Increase Editor Font Size", VK_T, VK_PLUS, CTRL)  { doIncrFontSize(textArea) },
+        Item("Decrease Editor Font Size", VK_S, VK_MINUS, CTRL) { doDecrFontSize(textArea) },
+        MenuSeparator,
+      ),
+      Menu("Log", mnemonic = VK_L,
+        MenuRadioGroup("logWrapToggle", Map[String, () => Unit](
+          "Log Line Wrap On" -> ( () => { doLineWrap(messageArea, isOn = true) } ),
+          "Log Line Wrap Off"  -> ( () => { doLineWrap(messageArea, isOn = false) } )
+        ), default = "Log Line Wrap Off"),
+        MenuSeparator,
+        Item("Increase Log Font Size", VK_L, VK_PLUS, CTRL+SHIFT)  { doIncrFontSize(messageArea) },
+        Item("Decrease Log Font Size", VK_O, VK_MINUS, CTRL+SHIFT) { doDecrFontSize(messageArea) },
+        MenuSeparator,
+        Item("Clear Log", VK_C, VK_DELETE, ALT) { doClearMsg() },
+      ),
       Menu("View", mnemonic = VK_V,
         Item("Toggle Orientation", VK_O, VK_F9, 0) { doToggleOrientation() },
         Item("Toggle Full Screen", VK_F, VK_F11, 0) { doToggleFullScreen()},
         Item("Toggle Post-It", VK_P, VK_F12, 0) { doTogglePostIt() },
         Item("Exit Full Screen", VK_E, VK_ESCAPE, 0) { doExitFullScreen() },
         MenuSeparator,
-        MenuRadioGroup("editorWrapToggle", Map[String, () => Unit](
-          "Editor Line Wrap On" -> ( () => { doLineWrap(textArea, isOn = true)} ),
-          "Editor Line Wrap Off"  -> ( () => { doLineWrap(textArea, isOn = false)} )
-        ), default = "Editor Line Wrap Off"),
-        Item("Increase Editor Font Size", VK_T, VK_PLUS, CTRL)  { doIncrFontSize(textArea) },
-        Item("Decrease Editor Font Size", VK_S, VK_MINUS, CTRL) { doDecrFontSize(textArea) },
-        MenuSeparator,
-        MenuRadioGroup("logWrapToggle", Map[String, () => Unit](
-          "Log Line Wrap On" -> ( () => { doLineWrap(messageArea, isOn = true) } ),
-          "Log Line Wrap Off"  -> ( () => { doLineWrap(messageArea, isOn = false) } )
-        ), default = "Log Line Wrap Off"),
-        Item("Increase Log Font Size", VK_L, VK_PLUS, CTRL+SHIFT)  { doIncrFontSize(messageArea) },
-        Item("Decrease Log Font Size", VK_O, VK_MINUS, CTRL+SHIFT) { doDecrFontSize(messageArea) },
-        MenuSeparator,
         Item("Increase Menu Size", VK_I, VK_PLUS, ALT+SHIFT) { doIncrGlobalFontSize() },
         Item("Decrease Menu Size", VK_D, VK_MINUS, ALT+SHIFT) { doDecrGlobalFontSize() },
       ),
-      Menu("Model", mnemonic = VK_M, (Seq(
+      Menu("Templates", mnemonic = VK_M, (Seq(
         MenuRadioGroup("modelToEditorToggle", Map[String, () => Unit](
-          "Append" -> ( () => { isEditorAppend = true } ),
-          "Insert"  -> ( () => { isEditorAppend = false } ),
-        ), default = "Append"),
+          "Append to Editor" -> ( () => { isEditorAppend = true } ),
+          "Insert at Editor Cursor"  -> ( () => { isEditorAppend = false } ),
+        ), default = "Append to Editor"),
         MenuSeparator,
       ) ++ exampleMenuItems)*),
-      Menu("Tools", mnemonic = VK_T,
+      Menu("Tools", mnemonic = VK_O,
         Item("Parse to Log", VK_1, VK_1, CTRL+SHIFT) { doModelRawToLog() },
         Item("Append id pairs", VK_2, VK_2, CTRL+SHIFT) { doAppendIdPairs() },
-        Item("Tool3", VK_3, VK_3, CTRL+SHIFT) { println("TODO TOOL 3")},
-        Item("Tool4", VK_4, VK_4, CTRL+SHIFT) { println("TODO TOOL 4")},
-      ),
-      Menu("Log", mnemonic = VK_L,
-        Item("Clear Log", VK_C, VK_DELETE, ALT) { doClearMsg() },
+        Item("Tool3", VK_3, VK_3, CTRL+SHIFT) { log("TODO TOOL 3")},
+        Item("Tool4", VK_4, VK_4, CTRL+SHIFT) { log("TODO TOOL 4")},
       ),
       Menu("Help", mnemonic = VK_H,
         Item("Help Text to Log", VK_H, VK_F1, 0) { doHelpToLog() },
@@ -413,13 +475,11 @@ class EditorWindow private () extends JFrame:
         ta.getSyntaxScheme.setStyle(ReqTTokenMaker.RelTokenType,    
           new Style(Settings.gui.relationColor, Style.DEFAULT_BACKGROUND, fBoldUL))
       case _ => // don't set syntax styles as this is not a syntax aware text area
-    
     // textArea.getSyntaxScheme.setStyle(TokenTypes.LITERAL_STRING_DOUBLE_QUOTE, new Style(Settings.gui.stringColor))
     // textArea.getSyntaxScheme.setStyle(TokenTypes.RESERVED_WORD, new Style(Settings.gui.scalaReservedWordColor, Style.DEFAULT_BACKGROUND, fBold)) // more discrete coloring???
-
-        val lnf = textPane.getGutter.getLineNumberFont
-        val lnfNew = new Font(lnf.getFamily, lnf.getStyle, fontSize)
-        textPane.getGutter.setLineNumberFont(lnfNew)
+    val lnf = textPane.getGutter.getLineNumberFont
+    val lnfNew = new Font(lnf.getFamily, lnf.getStyle, fontSize)
+    textPane.getGutter.setLineNumberFont(lnfNew)
   end setTextAreaFont
   
   val panel = JPanel(java.awt.BorderLayout())
@@ -447,7 +507,7 @@ class EditorWindow private () extends JFrame:
   textArea.setMatchedBracketBorderColor(new java.awt.Color(192, 192, 192))
   textArea.setAnimateBracketMatching(true)
   
-  setTextAreaFont(textArea,defaultGlobalFontSize, Settings.gui.defaultEditorFont)
+  setTextAreaFont(textArea, defaultGlobalFontSize, Settings.gui.defaultEditorFont)
   val textPane = new org.fife.ui.rtextarea.RTextScrollPane(textArea) with SwingPlatform.AntiAliasing
   
   import org.fife.ui.autocomplete.*
@@ -468,7 +528,7 @@ class EditorWindow private () extends JFrame:
   val ac = new AutoCompletion(provider)
   ac.install(textArea)
 
-  val editMenu: JMenu = menuMap("Edit").asInstanceOf[JMenu]
+  val editMenu: JMenu = menuMap("Editor").asInstanceOf[JMenu]
 
   def createEditMenuItem(action: Action): JMenuItem = 
     val item = new JMenuItem(action)
@@ -485,8 +545,6 @@ class EditorWindow private () extends JFrame:
     addEditMenuAction(CUT_ACTION, COPY_ACTION, PASTE_ACTION, DELETE_ACTION)
     editMenu.addSeparator()
     addEditMenuAction(SELECT_ALL_ACTION)
-    editMenu.addSeparator()
-    mkMenuItem("Format All", editMenu, (VK_F, VK_F, CTRL)) { doFormatAll() }
   
   createEditMeny()
 
@@ -518,19 +576,38 @@ class EditorWindow private () extends JFrame:
 
   addMessage(EditorWindow.initMessage)
 
+  //--- panes inside window
+
 
   val splitPane = new JSplitPane(SplitPaneState.initialSplit)  // (JSplitPane.HORIZONTAL_SPLIT) // see also below after setVisible(true)
   splitPane.setTopComponent(textPane)
   splitPane.setBottomComponent(messagePane)
-  val (startHeight, startWidth) = (768, 1024)
+  val (startHeight, startWidth) = (1200-250, 800)  // TODO: this should be saved in settings
   val smallestDim = new Dimension(100, 1)
   val prefferedDim = new Dimension(startWidth, startHeight)
   textPane.setMinimumSize(smallestDim)
   messagePane.setMinimumSize(smallestDim)
   splitPane.setPreferredSize(prefferedDim)
-  
 
-  panel.add(splitPane)
+  case object TreeRoot:
+    override def toString = s"Tree $fileName"
+
+  val top = new DefaultMutableTreeNode(TreeRoot)
+  val tree = new JTree(top)
+  //tree.setEditable(true) ??? how much work is it to enable editing directly in the tree???
+  tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
+  tree.setSelectionPath(new TreePath(top))
+  tree.addTreeSelectionListener(this)
+  //tree.addFocusListener(onFocusGained{ gui._lastFocused = Some(this) })  ??? from old reqT gui to allow repl to access current window in focus???
+  val treeView = new JScrollPane(tree)
+  
+  val topSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT)
+  topSplitPane.setTopComponent(treeView)
+  topSplitPane.setBottomComponent(splitPane)
+  topSplitPane.setPreferredSize(new Dimension(1200, 800))
+  topSplitPane.setDividerLocation(250)
+
+  panel.add(topSplitPane)
   setContentPane(panel)
 
   //setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)  //EXIT_ON_CLOSE
@@ -539,15 +616,15 @@ class EditorWindow private () extends JFrame:
   addWindowListener:
     new WindowAdapter:
       override def windowClosing(e: WindowEvent): Unit = 
-        if isSaved || !isSaved && !askKeepEditing("Close") 
+        if isSavedTree || !isSavedTree && !askKeepEditing("Close") 
         then frame.dispose()
         else ()
   
   textArea.getDocument().addDocumentListener( 
     new DocumentListener:
-      override def changedUpdate(e: DocumentEvent): Unit = saveNeeded()
-      override def insertUpdate(e: DocumentEvent): Unit = saveNeeded()
-      override def removeUpdate(e: DocumentEvent): Unit = saveNeeded()
+      override def changedUpdate(e: DocumentEvent): Unit = saveEditorNeeded()
+      override def insertUpdate(e: DocumentEvent): Unit = saveEditorNeeded()
+      override def removeUpdate(e: DocumentEvent): Unit = saveEditorNeeded()
   )
 
   textPane.updateUI
