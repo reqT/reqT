@@ -79,7 +79,7 @@ object EditorWindow:
         |F10 and arrows to discover all short-cuts.
         |F11 to toggle full screen.
         |CTRL+TAB toggle pane focus: editor or log.
-        |CTRL+A Select all in focused pane.
+        |CTRL+A Select all in focused Editor or Log.
         |PAGE UP/DOWN Scroll focused pane.
         |CTRL+PAGE UP/DOWN Scroll focused pane top/bottom.
         |CTRL+DEL Delete from cursor to end of line.
@@ -101,16 +101,41 @@ object EditorWindow:
       //println("TODO: push to Undo-stack for Tree")
       ()
 
+  /** A handle to the root node of the tree pane */
+  class TreeRoot(val title: String): 
+    override def toString = s"Tree $title"
+
+  enum TreeItemShow { case Markdown, Factory, Structure }
+
+  type TreeItem = Link | Ent | Attr[?]
+  class TreeItemBox(val item: TreeItem, ew: EditorWindow):
+    override def toString: String = 
+        ew.treeItemShow match 
+          case TreeItemShow.Markdown => item match
+              case l: Link    => s"${l.e.t}: ${l.e.id} ${l.t.toString.toLowerCase}"
+              case e: Ent     => s"${e.t}: ${e.id}" 
+              case a: Attr[?] => s"${a.t}: ${a.value}"
+          case TreeItemShow.Factory => item match
+            case l: Link    => l.show
+            case e: Ent     => e.show 
+            case a: Attr[?] => a.show
+          case TreeItemShow.Structure => item match
+              case l: Link    => s"Rel(${l.e},${l.t},..."
+              case e: Ent     => e.toString 
+              case a: Attr[?] => a.toString
+
+  
+
 class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectionListener:
   EditorWindow.n += 1
   @volatile private var isSavedTree = true
   @volatile private var isSavedEditor = true
 
-  def saveTreeNeeded(): Unit = {isSavedTree = false; updateTitle() }
-  def didSaveTree(): Unit = {isSavedTree = true; updateTitle() }
+  def saveTreeNeeded(): Unit = { isSavedTree = false; updateTitle() }
+  def didSaveTree(): Unit = { isSavedTree = true; updateTitle() }
 
-  def saveEditorNeeded(): Unit = {isSavedEditor = false; updateTitle() }
-  def didSaveEditor(): Unit = {isSavedEditor = true; updateTitle() }
+  def saveEditorNeeded(): Unit = { isSavedEditor = false; updateTitle() }
+  def didSaveEditor(): Unit = { isSavedEditor = true; updateTitle() }
 
   val initModel: Model = Model()  
     // TODO: make initModel a class param an implement menu item "revert to initModel"
@@ -247,11 +272,14 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
   def doReplaceNode() = runInSwingThread:
     val m = textArea.getText().toModel
     updateSelection(m, isReplace = true)
+    setFoldingAll(topPath, isExpand = true)
     saveTreeNeeded()
   
   def doInsertNode() = runInSwingThread:
     val m = textArea.getText().toModel
     updateSelection(m, isReplace = false)
+    val s = tree.getSelectionPath().getParentPath()
+    setFoldingAll(s, isExpand = true)
     saveTreeNeeded()
 
   def doToggleOrientation() = runInSwingThread:
@@ -349,6 +377,9 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
       if txt.trim == "" then textArea.setText(md)
       else textArea.replaceSelection(md)
 
+  def doToggleFocus(): Unit = runInSwingThread:
+    if !tree.hasFocus() then tree.requestFocus() else textArea.requestFocus()
+
   val exampleMenuItems: Seq[SwingPlatform.Item] = 
     val keys = examples.menu.keySet.toSeq.sorted
     for key <- keys yield SwingPlatform.Item(key, 0, 0, 0) { doTemplateToEditor(key) }
@@ -368,15 +399,22 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
         Item("Quit",VK_Q, VK_Q, CTRL){doQuit()},
       ),
       Menu("Tree", mnemonic = VK_T, 
-        Item("Edit node in editor", VK_E, VK_E, CTRL){ doEditNode()},
-        Item("Replace node from editor", VK_R, VK_R, CTRL){ doReplaceNode()},
-        Item("Insert after node from editor", VK_I, VK_I, CTRL){ doInsertNode()},
+        Item("Edit Tree Node in Editor", VK_E, VK_E, CTRL){ doEditNode()},
+        Item("Update Tree Node from Editor", VK_U, VK_U, CTRL){ doReplaceNode()},
+        Item("Insert After Node from Editor", VK_I, VK_I, CTRL){ doInsertNode()},
         MenuSeparator,
-        Item("Collapse All", VK_C, VK_LEFT, ALT){ log("TODO collapse all")},
-        Item("Expand All", VK_C, VK_RIGHT, ALT){ log("TODO expand all")},
+        Item("Toggle Focus Tree/Editor", VK_F,VK_T,CTRL) { doToggleFocus() },
+        Item("Collapse All", VK_C, VK_LEFT, ALT){ runInSwingThread(setFoldingAll(topPath, isExpand = false))},
+        Item("Expand All", VK_C, VK_RIGHT, ALT){ runInSwingThread(setFoldingAll(topPath, isExpand = true))},
         MenuSeparator,
         Item("Delete selected node", VK_D, VK_DELETE, 0){ log("TODO delete node")},
-        Item("Revert to Initial Tree Model...", VK_V, 0, 0){ log("TODO revert")},
+        Item("Revert to Initial Tree Model...", VK_V, VK_R, CTRL+SHIFT){ log("TODO revert")},
+        MenuSeparator,
+        MenuRadioGroup("treeNodeShow", Map[String, () => Unit](
+          "Markdown" -> ( () => { runInSwingThread{treeItemShow = EditorWindow.TreeItemShow.Markdown; tree.updateUI()} } ),
+          "Scala DSL"  -> ( () => { runInSwingThread{treeItemShow = EditorWindow.TreeItemShow.Factory; tree.updateUI()} } ),
+          "Metamodel"  -> ( () => { runInSwingThread{treeItemShow = EditorWindow.TreeItemShow.Structure; tree.updateUI()} } ),
+        ), default = "Markdown"),
       ),
       Menu("Editor", mnemonic = VK_E, 
         MenuRadioGroup("editorWrapToggle", Map[String, () => Unit](
@@ -388,7 +426,6 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
         MenuSeparator,
         Item("Increase Editor Font Size", VK_T, VK_PLUS, CTRL)  { doIncrFontSize(textArea) },
         Item("Decrease Editor Font Size", VK_S, VK_MINUS, CTRL) { doDecrFontSize(textArea) },
-        MenuSeparator,
       ),
       Menu("Log", mnemonic = VK_L,
         MenuRadioGroup("logWrapToggle", Map[String, () => Unit](
@@ -623,25 +660,24 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
   splitPane.setPreferredSize(prefferedDim)
 
   // --- tree stuff
-  
-  /** A handle to the root node of the tree pane */
-  case object TreeRoot: 
-    override def toString = s"Tree $fileName"
-
-  val top = new DefaultMutableTreeNode(TreeRoot)
+  import EditorWindow.{TreeItem, TreeItemBox, TreeRoot, TreeItemShow}
+  val ThisTreeRoot = TreeRoot(fileName)
+  var treeItemShow = TreeItemShow.Markdown
+  val top = new DefaultMutableTreeNode(ThisTreeRoot)
   val tree = new JTree(top)
   val topPath = new TreePath(top)
   def treeModel: DefaultTreeModel = tree.getModel().asInstanceOf[DefaultTreeModel]
   def rootPath: TreePath = new TreePath(top)
-  def mkNode(n: Any) = new DefaultMutableTreeNode(n)
+  def mkNode(n: TreeItem) = new DefaultMutableTreeNode(TreeItemBox(n, this))
 
-  def mkTreeFromModelAtNode(m: Model, node: DefaultMutableTreeNode): Unit = m.elems.foreach: 
-    case a: Attr[_] => node.add(mkNode(a))
-    case e: Ent => node.add(mkNode(e))
-    case Rel(e,l,t) =>
-      val link = mkNode(Link(e,l))
-      mkTreeFromModelAtNode(t, link)
-      node.add(link)
+  def mkTreeFromModelAtNode(m: Model, node: DefaultMutableTreeNode): Unit = 
+    m.elems.foreach: 
+      case a: Attr[_] => node.add(mkNode(a))
+      case e: Ent => node.add(mkNode(e))
+      case Rel(e,l,t) =>
+        val link = mkNode(Link(e,l))
+        mkTreeFromModelAtNode(t, link)
+        node.add(link)
   
   def setTopTo(m: Model): Unit = 
     top.removeAllChildren
@@ -650,6 +686,7 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
     treeModel.nodeStructureChanged(top)
     tree.setSelectionPath(topPath)
     tree.requestFocus
+    tree.updateUI()
 
   def currentSelectionPath: TreePath = tree.getSelectionPath()
 
@@ -658,31 +695,35 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
     else currentSelectionPath.getLastPathComponent match
       case n: DefaultMutableTreeNode => Some(n)
       case any => 
-        println("DEBUG: STRANGE THING:" + any)
-        println("selectedOpt current: " + currentSelectionPath.getPath.toVector) 
+        log("ERROR: Unknown TreePath component:" + any)
+        log("in def selectedOpt: path=" + currentSelectionPath.getPath.toVector) 
         None 
 
   def createModelFromTreeNode(fromNode: DefaultMutableTreeNode): Model = 
+
     def recur(node: DefaultMutableTreeNode): Model = 
       var elems: Vector[Elem] = Vector()
       val n = treeModel.getChildCount(node)
-      for ( i <- 0 until n) {
+      for i <- 0 until n do
         val child = treeModel.getChild(node, i).asInstanceOf[DefaultMutableTreeNode]
-        child.getUserObject match {
-          case e: Node => elems = elems :+ e
-          case l: Link => elems = elems :+ Rel(l.e, l.t, recur(child))
-          case any => throw new Error("match failed in iter in createModelFromTreeNode: " + any)
-        }
-      }
+        child.getUserObject match 
+          case tib: TreeItemBox => tib.item match
+            case e: Node => elems = elems :+ e
+            case l: Link => elems = elems :+ Rel(l.e, l.t, recur(child))
+          case ThisTreeRoot => 
+            log("ERROR: ThisTreeRoot found in reucur in createModelFromTreeNode")
+          case any => log("ERROR: match failed on TreeItemBox in createModelFromTreeNode: " + any)
+      end for
       elems.toModel
     end recur 
 
     def sub = if (!fromNode.isLeaf) recur(fromNode) else Model()
 
     fromNode.getUserObject match 
-      case e: Node => Model(e)
-      case l: Link => Model(Rel(l.e, l.t, sub))
-      case TreeRoot => recur(fromNode)
+      case tib: TreeItemBox => tib.item match
+        case e: Node => Model(e)
+        case l: Link => Model(Rel(l.e, l.t, sub))
+      case ThisTreeRoot => recur(fromNode)
       case any =>
         throw new Error("match failed in createModelFromTreeNode: " + any)
 
@@ -757,17 +798,34 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
   def updateSelection(newModel: Model, isReplace: Boolean = true) = {
     selectedOpt match {
       case None => // nothing selected
-        if (isReplace) setTopTo(newModel)
-        else if (newModel.elems.nonEmpty) setTopTo(newModel ++ createModelFromTreeNode(top))
-        setFoldingAll(rootPath, true)
+        if isReplace then setTopTo(newModel)
+        else 
+          if newModel.elems.nonEmpty then setTopTo(createModelFromTreeNode(top) :++ newModel)
+          else () // do nothing if newModel is empty
+        tree.updateUI()
+        //setFoldingAll(rootPath, false)
 
       case Some(currentNode) if currentNode == top =>  //top selected
-        if (isReplace) setTopTo(newModel)
-        else if (newModel.elems.nonEmpty) setTopTo(newModel ++ createModelFromTreeNode(top))
-        setFoldingAll(rootPath, true)
+        //log(s"DEBUG: tree root is selected, isReplace=$isReplace")
+        val s = tree.getSelectionPath()
+        if isReplace then setTopTo(newModel)
+        else if newModel.elems.nonEmpty then 
+          val m = createModelFromTreeNode(top)
+          //log(s"DEBUG: createModelFromTreeNode(top) = $m")
+          //log(s"DEBUG: newModel = $newModel")
+          val combined = newModel :++ m
+          //log(s"DEBUG: combined = $combined")
+          setTopTo(combined)
+          tree.setSelectionPath(s)
+        tree.updateUI()
+        //setFoldingAll(rootPath, false)
 
       case Some(currentNode) => //a node inside the tree was selected
+        //log("DEBUG: selected node inside tree")
+        val s = tree.getSelectionPath()
         iter(newModel.elems, isReplace, currentNode)  //new try; was: iter(newModel.toVector.reverse, isReplace, currentNode)
+        if s != null then tree.setSelectionPath(s)
+        tree.updateUI()
     }
     //recursive replace/insert
     def iter(elems: Vector[Elem], isReplace: Boolean, currentNode: DefaultMutableTreeNode): Unit = {
@@ -785,30 +843,34 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
           val parent = currentNode.getParent().asInstanceOf[DefaultMutableTreeNode]
           val parentPath = toTreePath(parent)
           val currentPath = currentSelectionPath
-          if (isReplace) { //replace currentNode with elem
+          if isReplace then //replace currentNode with elem
             currentNode.removeAllChildren
             update(currentNode)
             elem match {
               case Rel(e,t,submodel) =>
-                currentNode.setUserObject(Link(e,t))
+                currentNode.setUserObject(TreeItemBox(Link(e,t), this))
                 update(currentNode)
                 mkTreeFromModelAtNode(submodel, currentNode)
                 update(currentNode)
-              case _ =>
-                currentNode.setUserObject(elem)
+              case e: Ent =>
+                currentNode.setUserObject(TreeItemBox(e, this))
                 update(currentNode)
+              case a: Attr[?] => 
+                currentNode.setUserObject(TreeItemBox(a, this))
+                update(currentNode)
+
             }
             expandSelectFocus(currentPath)
-            if (elems.size > 1) //recursive call: insert rest of model
-              iter(elems.tail, false, currentNode)
-          } else { //insert elem after currentNode
+            if elems.size > 1 then iter(elems.tail, false, currentNode) //recursively insert rest of model
+          else //insert elem after currentNode
             var ix = parent.getIndex(currentNode)
-            val newNode = elem match {
+            val newNode: DefaultMutableTreeNode = elem match {
               case Rel(e,t,submodel) =>
-                val n = new DefaultMutableTreeNode(Link(e,t))
+                val n = mkNode(Link(e,t))
                 mkTreeFromModelAtNode(submodel, n)
                 n
-              case _ => new DefaultMutableTreeNode(elem)
+              case e: Ent => mkNode(e)
+              case a: Attr[?] => mkNode(a)
             }
             parent.insert(newNode, ix+1)   ///new try; was: parent.insert(newNode, ix)
             update(parent)
@@ -816,9 +878,7 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
             tree.setSelectionPath(newPath)
             update(parent)
             expandSelectFocus(newPath)
-            if (elems.size > 1) //recursive call: insert rest of model
-              iter(elems.tail, false, newNode)
-          }
+            if elems.size > 1 then iter(elems.tail, false, newNode) //recursively insert rest of model
       }
     }
   }
@@ -834,7 +894,12 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
   tree.setScrollsOnExpand(true)
   tree.setBackground(Settings.gui.treeBackground)
   tree.setAutoscrolls(true)
-  tree.setDragEnabled(true)
+  tree.setDragEnabled(true) 
+  tree.setDropMode(DropMode.ON_OR_INSERT)
+  tree.setTransferHandler(new drag.JTreeTransferHandler())
+  tree.getSelectionModel().setSelectionMode(TreeSelectionModel.CONTIGUOUS_TREE_SELECTION)
+
+
   //tree.addFocusListener(onFocusGained{ gui._lastFocused = Some(this) })  ??? from old reqT gui to allow repl to access current window in focus???
   val treeView = new JScrollPane(tree)
 
