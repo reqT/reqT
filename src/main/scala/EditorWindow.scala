@@ -362,20 +362,23 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
     if !txt.endsWith("\n") then textArea.append("\n")
     textArea.append(s"* Constraints:\n${pairs.trimIndent(2)}")
 
-  var isEditorAppend = true
+  enum ToEditorFromTree { case Replace, Append, Insert }
+  var toEditorFromTree = ToEditorFromTree.Replace
 
   def doTemplateToEditor(exampleKey: String) = runInSwingThread:
     val md = examples.menu(exampleKey).toMarkdown
     val txt = Option(textArea.getText()).getOrElse("")
-    if isEditorAppend then 
-      if txt.trim == "" then textArea.setText(md)
-      else 
-        if !txt.endsWith("\n") then textArea.append("\n")
-        textArea.append(md) 
-    else 
-      log("TODO: make indentation of insertion match selection/cursor")
-      if txt.trim == "" then textArea.setText(md)
-      else textArea.replaceSelection(md)
+    toEditorFromTree match
+      case ToEditorFromTree.Replace => textArea.setText(md)
+      case ToEditorFromTree.Append =>
+        if txt.trim == "" then textArea.setText(md)
+        else 
+          if !txt.endsWith("\n") then textArea.append("\n")
+          textArea.append(md) 
+      case ToEditorFromTree.Insert =>
+        log("TODO: make indentation of insertion match selection/cursor")
+        if txt.trim == "" then textArea.setText(md)
+        else textArea.replaceSelection(md)
 
   def doToggleFocus(): Unit = runInSwingThread:
     if !tree.hasFocus() then tree.requestFocus() else textArea.requestFocus()
@@ -449,9 +452,10 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
       ),
       Menu("Templates", mnemonic = VK_M, (Seq(
         MenuRadioGroup("modelToEditorToggle", Map[String, () => Unit](
-          "Append to Editor" -> ( () => { isEditorAppend = true } ),
-          "Insert at Editor Cursor"  -> ( () => { isEditorAppend = false } ),
-        ), default = "Append to Editor"),
+          "Replace in Editor" -> ( () => { toEditorFromTree = ToEditorFromTree.Replace } ),
+          "Append to Editor" -> ( () => { toEditorFromTree = ToEditorFromTree.Append } ),
+          "Insert at Editor Cursor"  -> ( () => { toEditorFromTree = ToEditorFromTree.Insert } ),
+        ), default = "Replace in Editor"),
         MenuSeparator,
       ) ++ exampleMenuItems)*),
       Menu("Tools", mnemonic = VK_O,
