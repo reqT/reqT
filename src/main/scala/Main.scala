@@ -35,7 +35,7 @@ def repl(args: String*): Unit =
 
 object Main:
   val scalaVersion = "3.4.1"
-  val reqTVersion  = "4.0.0-M3"
+  val reqTVersion  = "4.0.0-M5"
 
   /** Main program */
   def main(args: Array[String]): Unit = 

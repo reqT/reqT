@@ -56,7 +56,7 @@ object EditorWindow:
 
   def newWindow(): Unit = runInSwingThread(started.append(EditorWindow())) 
 
-  def initFileName = s"untitled-$n.md"
+  def initFileName = s"untitled$n.md"
 
   val reqTGist = 
     s"""|* System: reqT has
@@ -103,7 +103,7 @@ object EditorWindow:
 
   /** A handle to the root node of the tree pane */
   class TreeRoot(val title: String): 
-    override def toString = s"Tree $title"
+    override def toString = s"Model file: $title"
 
   enum TreeItemShow { case Markdown, Factory, Structure }
 
@@ -358,9 +358,22 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
   def doAppendIdPairs() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")
     val ids = txt.toModel.ids
-    val pairs = ids.combinations(2).map(xs => xs(0) + " > " + xs(1)).mkString("\n")
-    if !txt.endsWith("\n") then textArea.append("\n")
-    textArea.append(s"* Constraints:\n${pairs.trimIndent(2)}")
+    if ids.length == 0 then log("WARNING: No entities in editor. No pairs appended.")
+    else if ids.length == 1 then log("WARNING: Only one entity in editor. No pairs appended.")
+    else
+      val pairs = ids.combinations(2).map(xs => xs(0) + " > " + xs(1)).mkString("\n")
+      if !txt.endsWith("\n") then textArea.append("\n")
+      textArea.append(s"* Constraints:\n${pairs.trimIndent(2)}")
+
+  def doAppendRanking() = runInSwingThread:
+    val txt = Option(textArea.getText()).getOrElse("")
+    val ids = txt.toModel.ids
+    if ids.length == 0 then log("WARNING: No entities in editor. No Ranking appended.")
+    else
+      val rows = ids.mkString("\n")
+      if !txt.endsWith("\n") then textArea.append("\n")
+      textArea.append(s"* Ranking:\n${rows.trimIndent(2)}")
+
 
   enum ToEditorFromTree { case Replace, Append, Insert }
   var toEditorFromTree = ToEditorFromTree.Replace
@@ -450,6 +463,16 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
         Item("Increase Menu Size", VK_I, VK_PLUS, ALT+SHIFT) { doIncrGlobalFontSize() },
         Item("Decrease Menu Size", VK_D, VK_MINUS, ALT+SHIFT) { doDecrGlobalFontSize() },
       ),
+      Menu("Tools", mnemonic = VK_O,
+        Item("Parse Editor to Log", VK_1, VK_1, CTRL) { doModelRawToLog() },
+        Item("Append id pairs in Constraints", VK_2, VK_2, CTRL) { doAppendIdPairs() },
+        Item("Append ids in Ranking", VK_3, VK_3, CTRL) { doAppendRanking() },
+        Item("Tool4", VK_4, VK_4, CTRL+SHIFT) { log("TODO TOOL 4") },
+        Item("Tool5", VK_5, VK_5, CTRL+SHIFT) { log("TODO TOOL 5") },
+        Item("Tool6", VK_5, VK_5, CTRL+SHIFT) { log("TODO TOOL 6") },
+        Item("Tool7", VK_5, VK_5, CTRL+SHIFT) { log("TODO TOOL 7") },
+        Item("Tool8", VK_5, VK_5, CTRL+SHIFT) { log("TODO TOOL 8") },
+      ),
       Menu("Templates", mnemonic = VK_M, (Seq(
         MenuRadioGroup("modelToEditorToggle", Map[String, () => Unit](
           "Replace in Editor" -> ( () => { toEditorFromTree = ToEditorFromTree.Replace } ),
@@ -458,12 +481,6 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
         ), default = "Replace in Editor"),
         MenuSeparator,
       ) ++ exampleMenuItems)*),
-      Menu("Tools", mnemonic = VK_O,
-        Item("Parse to Log", VK_1, VK_1, CTRL+SHIFT) { doModelRawToLog() },
-        Item("Append id pairs", VK_2, VK_2, CTRL+SHIFT) { doAppendIdPairs() },
-        Item("Tool3", VK_3, VK_3, CTRL+SHIFT) { log("TODO TOOL 3")},
-        Item("Tool4", VK_4, VK_4, CTRL+SHIFT) { log("TODO TOOL 4")},
-      ),
       Menu("Help", mnemonic = VK_H,
         Item("Help Text to Log", VK_H, VK_F1, 0) { doHelpToLog() },
         Item("Concepts to Log", VK_C, VK_C, ALT) { doConceptsToLog()},
