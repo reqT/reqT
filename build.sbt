@@ -1,5 +1,5 @@
 lazy val reqTLangVer  = "4.2.1-M2"
-lazy val reqTVer      = "4.0.0-M4"  // should be in sync with reqTLangVer from 4.2.1
+lazy val reqTVer      = "4.0.0-M5"  // should be in sync with reqTLangVer from 4.2.1
 lazy val reqTJarName  = s"reqT-$reqTVer.jar"
 lazy val reqTJacopVer = "1.1.0" 
 lazy val jacopVer     = "4.10.0"

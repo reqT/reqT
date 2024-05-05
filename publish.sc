@@ -25,6 +25,8 @@ println("from build.sbt:")
 println(s"""val reqTVer  = "$reqTVer"""")
 println(s"""val scalaVer = "$scalaVer"""")
 
+println("TODO: Bump versions in Main.scala")
+
 println("\n*** Step 1: sbt clean; assembly")
 
 if yes("Do you want a clean build (Y/n)? ") then 
