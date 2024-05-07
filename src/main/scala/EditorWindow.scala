@@ -41,6 +41,8 @@ import javax.swing.tree.TreePath
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.DropMode
 import javax.swing.tree.TreeNode
+import javax.swing.tree.DefaultTreeCellRenderer
+import java.awt
 
 object EditorWindow:
   val initLookAndFell = javax.swing.UIManager.getLookAndFeel()
@@ -101,9 +103,22 @@ object EditorWindow:
       //println("TODO: push to Undo-stack for Tree")
       ()
 
+  extension (c: java.awt.Color) def toHex = "#" + Integer.toHexString(c.getRGB).substring(2)
+
+  extension (s: String) 
+    def html = s"<html>$s</html>"
+    def bold = s"<b>$s</b>"
+    def italic = s"<i>$s</i>"
+    def mono = s"<tt>$s</tt>"
+    def under = s"<u>$s</u>"
+    def entTag = s"<font color=${Settings.gui.entityColor.toHex}>$s</font>"
+    def relTag = s"<font color=${Settings.gui.relationColor.toHex}>$s</font>"
+    def strTag = s"<font color=${Settings.gui.strAttributeColor.toHex}>$s</font>"
+    def intTag = s"<font color=${Settings.gui.intAttributeColor.toHex}>$s</font>"
+
   /** A handle to the root node of the tree pane */
   class TreeRoot(val title: String): 
-    override def toString = s"Model file: $title"
+    override def toString = s"<b>Model</b> ${title.italic}".html
 
   enum TreeItemShow { case Markdown, Factory, Structure }
 
@@ -112,19 +127,41 @@ object EditorWindow:
     override def toString: String = 
         ew.treeItemShow match 
           case TreeItemShow.Markdown => item match
-              case l: Link    => s"${l.e.t}: ${l.e.id} ${l.t.toString.toLowerCase}"
-              case e: Ent     => s"${e.t}: ${e.id}" 
-              case a: Attr[?] => s"${a.t}: ${a.value}"
+            case l: Link    => s"${l.e.t.toString.entTag.bold}: ${l.e.id} ${l.t.toString.toLowerCase.relTag.bold.under}".html
+            case e: Ent     => s"${e.t.toString.entTag.bold}: ${e.id}".html 
+            case a: StrAttr => s"${a.t.toString.strTag.bold.italic}: ${a.value}".html
+            case a: IntAttr => s"${a.t.toString.intTag.bold.italic}: ${a.value}".html
+            case a: Undefined[?] => s"${a.t.toString.intTag.bold.italic}".html
           case TreeItemShow.Factory => item match
-            case l: Link    => l.show
-            case e: Ent     => e.show 
-            case a: Attr[?] => a.show
+            case l: Link    => s"${l.e.t.toString.entTag.bold}(\"${l.e.id}\").${l.t.toString.toLowerCase.relTag.bold.under}".html
+            case e: Ent     => s"${e.t.toString.entTag.bold}(\"${e.id}\")".html 
+            case a: StrAttr => s"${a.t.toString.strTag.bold.italic}(\"${a.value}\")".html
+            case a: IntAttr => s"${a.t.toString.intTag.bold.italic}(${a.value})".html
+            case a: Undefined[?] => s"Undefined(${a.t.toString.intTag.bold.italic})".html
           case TreeItemShow.Structure => item match
-              case l: Link    => s"Rel(${l.e},${l.t},..."
-              case e: Ent     => e.toString 
-              case a: Attr[?] => a.toString
+            case l: Link    => s"Rel(${l.e.toString.entTag},${l.t.toString.relTag},".relTag.html
+            case e: Ent     => e.toString.entTag.html
+            case a: StrAttr => a.toString.strTag.html
+            case a: IntAttr => a.toString.intTag.html
+            case a: Undefined[?] => a.toString.html
 
-  
+  class ReqTreeCellRenderer() extends DefaultTreeCellRenderer:
+    override def getTreeCellRendererComponent(
+      tree: JTree, value: Object, sel: Boolean, expanded: Boolean, leaf: Boolean, row: Int, hasFocus: Boolean
+    ): java.awt.Component = 
+      val c = super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus).
+        asInstanceOf[JComponent]
+      value.asInstanceOf[DefaultMutableTreeNode].getUserObject() match
+        case r: TreeRoot => 
+        case tib: TreeItemBox => tib.item match
+          case Link(e, t) => 
+          case Ent(t, id) =>
+          case StrAttr(t, value) =>
+          case IntAttr(t, value) =>
+          case Undefined(t) =>
+        case _ => // do nothing 
+      //c.setOpaque(true) //Aaaargh opaque kills selection marking
+      c //return this component
 
 class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectionListener:
   EditorWindow.n += 1
@@ -593,6 +630,13 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
   textArea.setMatchedBracketBGColor(new java.awt.Color(247, 247, 247))
   textArea.setMatchedBracketBorderColor(new java.awt.Color(192, 192, 192))
   textArea.setAnimateBracketMatching(true)
+
+  // TODO: toggle Dark and Light Mode
+  // textArea.setBackground(java.awt.Color(30,35,45))
+  // textArea.setSelectionColor(java.awt.Color(130,35,45))
+  // textArea.setCurrentLineHighlightColor(java.awt.Color(230,35,45))
+  // textArea.setForeground(java.awt.Color(230,235,245))
+  textArea.setBackground(java.awt.Color(235,235,235))
   
   setTextAreaFont(textArea, defaultGlobalFontSize, Settings.gui.defaultEditorFont)
   val textPane = new org.fife.ui.rtextarea.RTextScrollPane(textArea) with SwingPlatform.AntiAliasing
@@ -685,10 +729,14 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
   val ThisTreeRoot = TreeRoot(fileName)
   var treeItemShow = TreeItemShow.Markdown
   val top = new DefaultMutableTreeNode(ThisTreeRoot)
+
+  /** The handle to the Tree View */
   val tree = new JTree(top)
-  val topPath = new TreePath(top)
+  tree.setCellRenderer(new EditorWindow.ReqTreeCellRenderer())
+
+  val topPath = new TreePath(top); 
   def treeModel: DefaultTreeModel = tree.getModel().asInstanceOf[DefaultTreeModel]
-  def rootPath: TreePath = new TreePath(top)
+  //def rootPath: TreePath = new TreePath(top)
   def mkNode(n: TreeItem) = new DefaultMutableTreeNode(TreeItemBox(n, this))
 
   def mkTreeFromModelAtNode(m: Model, node: DefaultMutableTreeNode): Unit = 
@@ -908,7 +956,7 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
 
   //tree.setEditable(true) ??? how much work is it to enable editing directly in the tree???
   tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
-  tree.setSelectionPath(new TreePath(top))
+  tree.setSelectionPath(topPath) // why does this not work in fresh window?
   tree.addTreeSelectionListener(this)
   //tree.setEditable(true)  ???
   //tree.setDropMode(DropMode.INSERT) ???
@@ -919,6 +967,7 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
   tree.setDropMode(DropMode.ON_OR_INSERT)
   tree.setTransferHandler(new drag.JTreeTransferHandler())
   tree.getSelectionModel().setSelectionMode(TreeSelectionModel.CONTIGUOUS_TREE_SELECTION)
+  tree.updateUI()
 
 
   //tree.addFocusListener(onFocusGained{ gui._lastFocused = Some(this) })  ??? from old reqT gui to allow repl to access current window in focus???
