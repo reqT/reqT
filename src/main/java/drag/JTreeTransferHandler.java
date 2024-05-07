@@ -51,9 +51,11 @@ public class JTreeTransferHandler extends TransferHandler {
               return false;
           }
           DefaultMutableTreeNode treeNode =
-                  (DefaultMutableTreeNode)tree.getPathForRow(selRows[i]).getLastPathComponent();
+                  (DefaultMutableTreeNode) tree.getPathForRow(selRows[i]).getLastPathComponent();
           for (TreeNode offspring: Collections.list(treeNode.depthFirstEnumeration())) {
-              if (tree.getRowForPath(new TreePath(((DefaultMutableTreeNode)offspring).getPath())) == dropRow) {
+              var dmt = (DefaultMutableTreeNode) dl.getPath().getLastPathComponent();
+              if (dmt.isLeaf()) { return false; } // do not allow to drop on Ent or Attr
+              if (tree.getRowForPath(new TreePath(((DefaultMutableTreeNode) offspring).getPath())) == dropRow) {
                   return false;
               }
           }
