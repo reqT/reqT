@@ -161,6 +161,9 @@ object EditorWindow:
           case Undefined(t) =>
         case _ => // do nothing 
       //c.setOpaque(true) //Aaaargh opaque kills selection marking
+      if !hasFocus then c.setOpaque(true)
+      else c.setOpaque(false)
+      //c.setBackground(java.awt.Color(100,100,100))
       c //return this component
 
 class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectionListener:
@@ -460,7 +463,7 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
         Item("Collapse All", VK_C, VK_LEFT, ALT){ runInSwingThread(setFoldingAll(topPath, isExpand = false))},
         Item("Expand All", VK_C, VK_RIGHT, ALT){ runInSwingThread(setFoldingAll(topPath, isExpand = true))},
         MenuSeparator,
-        Item("Delete selected node", VK_D, VK_DELETE, 0){ log("TODO delete node")},
+        Item("Delete selected node", VK_D, VK_DELETE, 0){ runInSwingThread(removeSelectedNode())},
         Item("Revert to Initial Tree Model...", VK_V, VK_R, CTRL+SHIFT){ log("TODO revert")},
         MenuSeparator,
         MenuRadioGroup("treeNodeShow", Map[String, () => Unit](
@@ -952,6 +955,33 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
     }
   }
 
+  def removeSelectedNode() = {
+    if SwingPlatform.isOK("Delet node and all its contents?") then 
+      val currentSelectionPath: TreePath = tree.getSelectionPath()
+      if (currentSelectionPath == null) log("WARNING: Nothing is selected so nothing is deleted.") else {
+        val currentNode =
+          currentSelectionPath.getLastPathComponent().asInstanceOf[DefaultMutableTreeNode]
+        val parent = currentNode.getParent().asInstanceOf[DefaultMutableTreeNode]
+        val sibbling = currentNode.getPreviousSibling().asInstanceOf[DefaultMutableTreeNode]
+        if (parent != null) {
+          treeModel.removeNodeFromParent(currentNode)
+          treeModel.nodeStructureChanged(parent)
+          if sibbling != null then tree.setSelectionPath(toTreePath(sibbling))
+          else tree.setSelectionPath(toTreePath(parent))
+          setFoldingAll(toTreePath(parent), isExpand = true)
+        } else {
+          top.removeAllChildren
+          treeModel.nodeStructureChanged(top)
+          if sibbling != null then 
+            tree.setSelectionPath(toTreePath(sibbling))
+            setFoldingAll(toTreePath(sibbling), isExpand = true)
+          else 
+            tree.setSelectionPath(topPath)
+            setFoldingAll(topPath, isExpand = true)
+        }
+        tree.requestFocus
+      }
+  }
 
 
   //tree.setEditable(true) ??? how much work is it to enable editing directly in the tree???
