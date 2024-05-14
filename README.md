@@ -1,4 +1,4 @@
-<img src="https://github.com/reqT/reqT/raw/4.x/logo/reqT.jpeg" width="100"> 
+<img src="https://github.com/reqT/reqT/blob/4.x/logo/reqT.jpg?raw=true" width="100"> 
 
 # `reqT` is a requirements engineering tool
 
