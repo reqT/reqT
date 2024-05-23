@@ -64,7 +64,7 @@ class ReqTTreeTransferHandler extends TransferHandler:
     var i = 0
     while i < node.getChildCount do
       // copy children recursively:
-      val n = copy(node.asInstanceOf[TreeNode].getChildAt(i).asInstanceOf[DefaultMutableTreeNode], doneItems, tree) 
+      val n = copy(node.getChildAt(i).asInstanceOf[DefaultMutableTreeNode], doneItems, tree) 
       cpy.add(n)
       i += 1
     end while
