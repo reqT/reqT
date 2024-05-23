@@ -53,16 +53,10 @@ class ReqTTreeTransferHandler extends TransferHandler:
               val offspring: TreeNode = dfe.nextElement()
               val dmt = dl.getPath.getLastPathComponent.asInstanceOf[DefaultMutableTreeNode]
               val isLegalLeaf: Boolean = dmt.getUserObject match
-                //case r: reqt.EditorWindow.TreeRoot => false
                 case tib: reqt.EditorWindow.TreeItemBox => tib.item match
                   case _: Link => true
-                  case Ent(t, id) => 
-                    println("TODO morf it to a Link(e,Has) (how to do that???)")
-                    true
+                  case Ent(t, id) => true
                   case _ => false
-                  // case StrAttr(t, value) => false
-                  // case IntAttr(t, value) => false
-                  // case Undefined(t) => false
                 case _ => false
               
               if dmt.isLeaf && !isLegalLeaf then 
