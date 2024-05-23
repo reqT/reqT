@@ -995,7 +995,9 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
   tree.setAutoscrolls(true)
   tree.setDragEnabled(true) 
   tree.setDropMode(DropMode.ON_OR_INSERT)
-  tree.setTransferHandler(new drag.JTreeTransferHandler())
+  //tree.setTransferHandler(new drag.JTreeTransferHandler())
+  // see java version here: https://github.com/bjornregnell/JTreeTransferHandler/blob/main/JTreeTransferHandler.java
+  tree.setTransferHandler(new gui.ReqTTreeTransferHandler())
   tree.getSelectionModel().setSelectionMode(TreeSelectionModel.CONTIGUOUS_TREE_SELECTION)
   tree.updateUI()
 
