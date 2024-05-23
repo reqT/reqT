@@ -312,7 +312,9 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
   def doReplaceNode() = runInSwingThread:
     val m = textArea.getText().toModel
     updateSelection(m, isReplace = true)
-    setFoldingAll(topPath, isExpand = true)
+    val p = tree.getSelectionPath()
+    if p != null then setFoldingAll(tree.getSelectionPath(), isExpand = true)
+    else setFoldingAll(topPath, isExpand = true)
     saveTreeNeeded()
   
   def doInsertNode() = runInSwingThread:
