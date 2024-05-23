@@ -123,7 +123,7 @@ object EditorWindow:
   enum TreeItemShow { case Markdown, Factory, Structure }
 
   type TreeItem = Link | Ent | Attr[?]
-  class TreeItemBox(val item: TreeItem, ew: EditorWindow):
+  class TreeItemBox(val item: TreeItem, val ew: EditorWindow):
     override def toString: String = 
         ew.treeItemShow match 
           case TreeItemShow.Markdown => item match
@@ -456,7 +456,7 @@ class EditorWindow private () extends JFrame with EditorWindow.ModelTreeSelectio
       ),
       Menu("Tree", mnemonic = VK_T, 
         Item("Edit Tree Node in Editor", VK_E, VK_E, CTRL){ doEditNode()},
-        Item("Update Tree Node from Editor", VK_U, VK_U, CTRL){ doReplaceNode()},
+        Item("Replace Tree Node from Editor", VK_R, VK_R, CTRL){ doReplaceNode()},
         Item("Insert After Node from Editor", VK_I, VK_I, CTRL){ doInsertNode()},
         MenuSeparator,
         Item("Toggle Focus Tree/Editor", VK_F,VK_T,CTRL) { doToggleFocus() },

@@ -12,6 +12,11 @@ import java.util.*
 
 import javax.swing.*
 import javax.swing.tree.*
+import reqt.Link
+import reqt.Ent
+import reqt.StrAttr
+import reqt.IntAttr
+import reqt.Undefined
 
 class ReqTTreeTransferHandler extends TransferHandler:
   val mimeType: String = 
@@ -47,7 +52,21 @@ class ReqTTreeTransferHandler extends TransferHandler:
             while dfe.hasMoreElements() && !isIllegalSelection do
               val offspring: TreeNode = dfe.nextElement()
               val dmt = dl.getPath.getLastPathComponent.asInstanceOf[DefaultMutableTreeNode]
-              if dmt.isLeaf then isIllegalSelection = true
+              val isLegalLeaf: Boolean = dmt.getUserObject match
+                //case r: reqt.EditorWindow.TreeRoot => false
+                case tib: reqt.EditorWindow.TreeItemBox => tib.item match
+                  case _: Link => true
+                  case Ent(t, id) => 
+                    println("TODO morf it to a Link(e,Has) (how to do that???)")
+                    true
+                  case _ => false
+                  // case StrAttr(t, value) => false
+                  // case IntAttr(t, value) => false
+                  // case Undefined(t) => false
+                case _ => false
+              
+              if dmt.isLeaf && !isLegalLeaf then 
+                isIllegalSelection = true
               else 
                 val tp = new TreePath(offspring.asInstanceOf[DefaultMutableTreeNode].getPath)
                 if tree.getRowForPath(tp) == dropRow then isIllegalSelection = true
@@ -159,6 +178,13 @@ class ReqTTreeTransferHandler extends TransferHandler:
       // Add data to model.
       var i = 0
       while i < nodes.length do
+        parent.getUserObject match
+          case tib: reqt.EditorWindow.TreeItemBox => tib.item match
+            case Ent(t, id) =>  // morf Ent into Link
+              parent.setUserObject(reqt.EditorWindow.TreeItemBox(reqt.Link(reqt.Ent(t, id), reqt.Has), tib.ew))
+            case _ => 
+          case _ =>  
+        
         model.insertNodeInto(nodes(i), parent, index)
         index += 1
         i += 1
