@@ -878,19 +878,20 @@ class EditorWindow private () extends JFrame, EditorWindow.ModelTreeSelectionLis
         val currentNode =
           currentSelectionPath.getLastPathComponent().asInstanceOf[DefaultMutableTreeNode]
         val parent = currentNode.getParent().asInstanceOf[DefaultMutableTreeNode]
-        val sibbling = currentNode.getPreviousSibling().asInstanceOf[DefaultMutableTreeNode]
+        var sibling = currentNode.getNextSibling().asInstanceOf[DefaultMutableTreeNode]
+        if sibling == null then sibling = currentNode.getPreviousSibling().asInstanceOf[DefaultMutableTreeNode]
         if (parent != null) {
           treeModel.removeNodeFromParent(currentNode)
           treeModel.nodeStructureChanged(parent)
-          if sibbling != null then tree.setSelectionPath(toTreePath(sibbling))
+          if sibling != null then tree.setSelectionPath(toTreePath(sibling))
           else tree.setSelectionPath(toTreePath(parent))
           setFoldingAll(toTreePath(parent), isExpand = true)
         } else {
           top.removeAllChildren
           treeModel.nodeStructureChanged(top)
-          if sibbling != null then 
-            tree.setSelectionPath(toTreePath(sibbling))
-            setFoldingAll(toTreePath(sibbling), isExpand = true)
+          if sibling != null then 
+            tree.setSelectionPath(toTreePath(sibling))
+            setFoldingAll(toTreePath(sibling), isExpand = true)
           else 
             tree.setSelectionPath(topPath)
             setFoldingAll(topPath, isExpand = true)
