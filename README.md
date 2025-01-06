@@ -40,7 +40,7 @@
       java -jar reqT.jar
 
 * If `java` is missing on your system then install Java JDK LTS from here: https://adoptium.net 
-  * Java JDK version 17 is recommended.
+  * Java JDK version 21 is recommended.
  
   * The reqT jar-file is built with Java 17 but later LTS versions may also work. If you experience problems then revert to Java JDK version 17.
 
