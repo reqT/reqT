@@ -98,13 +98,13 @@ This repo uses the following open source projects (with their own licenses):
 
 ## Build
 
-* Clone this repo locally. You may want to use `git clone --depth 1` (to avoid the history with some old binaries).
-* Make sure you have installed [`scala-cli`](https://scala-cli.virtuslab.org/) and [`sbt`](https://www.scala-sbt.org/)
+* Clone this repo locally. You may want to use `git clone --depth 1` to avoid large history.
+* Make sure you have installed latest [`scala`](https://www.scala-lang.org/) and [`sbt`](https://www.scala-sbt.org/)
 * Run `sbt assembly`
-* You will find the jar in `target`
+* You will find the jar in `target/scala-<version>/` called `reqT-<version>.jar`
 
 ## Publish
 For maintainers with github access to this repo:
-* Run `scala-cli run publish.sc` and follow instructions
+* Run `scala run publish.sc -S 3.3.4 ` and follow instructions
 
 
