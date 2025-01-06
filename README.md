@@ -20,7 +20,7 @@
 
 ### Download
 
-* Download the latest `reqT.jar` from https://github.com/reqT/reqT/releases by clicking on the jar file under "Assets" or by using these terminal commands
+* Download the latest `reqT.jar` from https://github.com/reqT/reqT/releases by clicking on the jar file under "Assets" or by using the terminal command below for your system (update to latest version):
   * Linux:
     ```
     wget https://github.com/reqT/reqT/releases/download/4.0.0-M3/reqT.jar
