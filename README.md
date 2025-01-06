@@ -20,7 +20,7 @@
 
 ### Download
 
-* Download the latest `reqT.jar` from https://github.com/reqT/reqT/releases like so:
+* Download the latest `reqT.jar` from https://github.com/reqT/reqT/releases by clicking on the jar file under "Assets" or by using these terminal commands
   * Linux:
     ```
     wget https://github.com/reqT/reqT/releases/download/4.0.0-M3/reqT.jar
@@ -35,7 +35,7 @@
     ```
 ### Run app
 
-* Run reqT with: 
+* Run reqT either by double-clicking on the downloaded jar or using this terminal command: 
     
       java -jar reqT.jar
 
