@@ -48,9 +48,11 @@
 
 * Run reqT in the Scala repl with:
     
-      scala-cli repl --jar reqT.jar
+      java --jar reqT.jar repl
 
-* If `scala-cli` is missing on your system then install it from here: https://scala-cli.virtuslab.org/
+  or use `scala repl --jar reqT.jar`
+
+* If `scala` is missing on your system then install it from here: https://www.scala-lang.org/
 
 * When the `scala>` prompt is shown type: `import reqt.*` and you are good to go coding.
 
