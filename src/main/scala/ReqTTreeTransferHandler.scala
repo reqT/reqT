@@ -53,7 +53,7 @@ class ReqTTreeTransferHandler extends TransferHandler:
               val offspring: TreeNode = dfe.nextElement()
               val dmt = dl.getPath.getLastPathComponent.asInstanceOf[DefaultMutableTreeNode]
               val isLegalLeaf: Boolean = dmt.getUserObject match
-                case tib: reqt.EditorWindow.TreeItemBox => tib.item match
+                case tib: reqt.MainWindow.TreeItemBox => tib.item match
                   case _: Link => true
                   case Ent(t, id) => true
                   case _ => false
@@ -173,9 +173,9 @@ class ReqTTreeTransferHandler extends TransferHandler:
       var i = 0
       while i < nodes.length do
         parent.getUserObject match
-          case tib: reqt.EditorWindow.TreeItemBox => tib.item match
+          case tib: reqt.MainWindow.TreeItemBox => tib.item match
             case Ent(t, id) =>  // morf Ent into Link
-              parent.setUserObject(reqt.EditorWindow.TreeItemBox(reqt.Link(reqt.Ent(t, id), reqt.Has), tib.ew))
+              parent.setUserObject(reqt.MainWindow.TreeItemBox(reqt.Link(reqt.Ent(t, id), reqt.Has), tib.ew))
             case _ => 
           case _ =>  
         

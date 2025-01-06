@@ -4,9 +4,9 @@ package reqt
 def edit: Unit = edit()
 
 def edit(args: String*): Unit = 
-    EditorWindow.newWindow()
+    MainWindow.newWindow()
     SwingPlatform.runInSwingThread:
-      println(s"New window started! EditorWindow.nbrWindows=${EditorWindow.nbrWindows}")
+      println(s"New window started! EditorWindow.nbrWindows=${MainWindow.nbrWindows}")
 
 
 def repl: Unit = repl()

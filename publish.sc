@@ -1,5 +1,5 @@
 // run with `scala-cli run publish.sc`
-//> using scala 3.3.3
+//> using scala 3.3.4
 //> using toolkit default
 
 println("*** Publish the reqT jar to github using sbt and gh ***\n")

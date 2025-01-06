@@ -5,8 +5,8 @@ import java.awt.event.ActionEvent.{CTRL_MASK => CTRL, ALT_MASK => ALT, SHIFT_MAS
 import java.awt.event.KeyEvent.*
 
 
-trait EditorWindowMenus:
-  self: EditorWindow =>
+trait MainWindowMenus:
+  self: MainWindow =>
   
   lazy val initMenus =
     import SwingPlatform.{AppMenus,Menu,Item,MenuSeparator,MenuRadioGroup}
@@ -35,9 +35,9 @@ trait EditorWindowMenus:
         Item("Revert to Initial Tree Model...", VK_V, VK_R, CTRL+SHIFT){ log("TODO revert")},
         MenuSeparator,
         MenuRadioGroup("treeNodeShow", Map[String, () => Unit](
-          "Markdown" -> ( () => { runInSwingThread{treeItemShow = EditorWindow.TreeItemShow.Markdown; tree.updateUI()} } ),
-          "Scala DSL"  -> ( () => { runInSwingThread{treeItemShow = EditorWindow.TreeItemShow.Factory; tree.updateUI()} } ),
-          "Metamodel"  -> ( () => { runInSwingThread{treeItemShow = EditorWindow.TreeItemShow.Structure; tree.updateUI()} } ),
+          "Markdown" -> ( () => { runInSwingThread{treeItemShow = MainWindow.TreeItemShow.Markdown; tree.updateUI()} } ),
+          "Scala DSL"  -> ( () => { runInSwingThread{treeItemShow = MainWindow.TreeItemShow.Factory; tree.updateUI()} } ),
+          "Metamodel"  -> ( () => { runInSwingThread{treeItemShow = MainWindow.TreeItemShow.Structure; tree.updateUI()} } ),
         ), default = "Markdown"),
       ),
       Menu("Editor", mnemonic = VK_E, 

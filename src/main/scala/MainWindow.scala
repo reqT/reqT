@@ -44,19 +44,19 @@ import javax.swing.tree.TreeNode
 import javax.swing.tree.DefaultTreeCellRenderer
 import java.awt
 
-object EditorWindow:
+object MainWindow:
   val initLookAndFell = javax.swing.UIManager.getLookAndFeel()
   SwingPlatform.swingInit(isPlatformSpecific = Settings.gui.isPlatformSpecificLookAndFeel)
 
-  private val started = collection.mutable.Buffer.empty[EditorWindow]
+  private val started = collection.mutable.Buffer.empty[MainWindow]
   
   @volatile private var n = 0
   
   def nbrWindows: Int = n
 
-  def get(i: Int): Option[EditorWindow] = started.lift(i)
+  def get(i: Int): Option[MainWindow] = started.lift(i)
 
-  def newWindow(): Unit = runInSwingThread(started.append(EditorWindow())) 
+  def newWindow(): Unit = runInSwingThread(started.append(MainWindow())) 
 
   def initFileName = s"untitled$n.md"
 
@@ -123,7 +123,7 @@ object EditorWindow:
   enum TreeItemShow { case Markdown, Factory, Structure }
 
   type TreeItem = Link | Ent | Attr[?]
-  class TreeItemBox(val item: TreeItem, val ew: EditorWindow):
+  class TreeItemBox(val item: TreeItem, val ew: MainWindow):
     override def toString: String = 
         ew.treeItemShow match 
           case TreeItemShow.Markdown => item match
@@ -166,8 +166,8 @@ object EditorWindow:
       //c.setBackground(java.awt.Color(100,100,100))
       c //return this component
 
-class EditorWindow private () extends JFrame, EditorWindow.ModelTreeSelectionListener, EditorWindowMenus:
-  EditorWindow.n += 1
+class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListener, MainWindowMenus:
+  MainWindow.n += 1
   @volatile private var isSavedTree = true
   @volatile private var isSavedEditor = true
 
@@ -180,7 +180,7 @@ class EditorWindow private () extends JFrame, EditorWindow.ModelTreeSelectionLis
   val initModel: Model = Model()  
     // TODO: make initModel a class param an implement menu item "revert to initModel"
   
-  val windowType = s"reqT Editor v${Main.reqTVersion}"
+  val windowType = s"reqT v${Main.reqTVersion}"
   val frame = this
 
   val initEditorWidth = 80
@@ -190,7 +190,7 @@ class EditorWindow private () extends JFrame, EditorWindow.ModelTreeSelectionLis
   val mediumFontSize = Settings.gui.fontSize
   val minFontSize = 6
   
-  private var _fileName = EditorWindow.initFileName
+  private var _fileName = MainWindow.initFileName
   private var _workDir = Sys.workDir
   def workDir = _workDir
   def fileName = _fileName 
@@ -259,7 +259,7 @@ class EditorWindow private () extends JFrame, EditorWindow.ModelTreeSelectionLis
 
   end SplitPaneState
 
-  def doFileNew(): Unit = new EditorWindow()
+  def doFileNew(): Unit = new MainWindow()
 
   def doOpen(): Unit = runInSwingThread:
     for f <- SwingPlatform.chooseFile() do
@@ -300,7 +300,7 @@ class EditorWindow private () extends JFrame, EditorWindow.ModelTreeSelectionLis
       dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING))
   
   def doQuit(): Unit = runInSwingThread:
-    val isAllSaved = EditorWindow.started.forall(e => e.isSavedTree && e.isSavedEditor)
+    val isAllSaved = MainWindow.started.forall(e => e.isSavedTree && e.isSavedEditor)
     if isAllSaved || !isAllSaved && !askKeepEditing("Quit") then 
       scala.sys.exit(0) // This is a brutal quit
     else ()
@@ -375,7 +375,7 @@ class EditorWindow private () extends JFrame, EditorWindow.ModelTreeSelectionLis
     ta.setLineWrap(isOn)
 
   def doClearMsg() = runInSwingThread(clearMessage())
-  def doHelpToLog() = runInSwingThread(addMessage(EditorWindow.initMessage))
+  def doHelpToLog() = runInSwingThread(addMessage(MainWindow.initMessage))
   def doConceptsToLog() = runInSwingThread(addMessage(meta.csv("\t")))
   def log(msg: String, logLevel: Int = 0) = runInSwingThread(addMessage(msg))
 
@@ -628,7 +628,7 @@ class EditorWindow private () extends JFrame, EditorWindow.ModelTreeSelectionLis
 
   def clearMessage(): Unit = messageArea.setText("")
 
-  addMessage(EditorWindow.initMessage)
+  addMessage(MainWindow.initMessage)
 
   //--- panes inside window
 
@@ -644,14 +644,14 @@ class EditorWindow private () extends JFrame, EditorWindow.ModelTreeSelectionLis
   splitPane.setPreferredSize(prefferedDim)
 
   // --- tree stuff
-  import EditorWindow.{TreeItem, TreeItemBox, TreeRoot, TreeItemShow}
+  import MainWindow.{TreeItem, TreeItemBox, TreeRoot, TreeItemShow}
   val ThisTreeRoot = TreeRoot(fileName)
   var treeItemShow = TreeItemShow.Markdown
   val top = new DefaultMutableTreeNode(ThisTreeRoot)
 
   /** The handle to the Tree View */
   val tree = new JTree(top)
-  tree.setCellRenderer(new EditorWindow.ReqTreeCellRenderer())
+  tree.setCellRenderer(new MainWindow.ReqTreeCellRenderer())
 
   val topPath = new TreePath(top); 
   def treeModel: DefaultTreeModel = tree.getModel().asInstanceOf[DefaultTreeModel]
@@ -962,4 +962,4 @@ class EditorWindow private () extends JFrame, EditorWindow.ModelTreeSelectionLis
   SwingPlatform.setAppIcon(this)
   setGlobalSwingFontSize(defaultGlobalFontSize)
   setTextAreaFont(textArea, defaultGlobalFontSize)
-end EditorWindow
+end MainWindow
