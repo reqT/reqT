@@ -1,27 +1,35 @@
 package reqt
 
 /** Settings for reqT **/
-@volatile
-object Settings {
-  var indentSpacing = 2
-  var lineLength = 72
-  var columnSeparator = ";"
-  var rowSeparator = "\n"
+object Settings:
+  @volatile var indentSpacing = 2
+  @volatile var lineLength = 72
+  @volatile var columnSeparator = ";"
+  @volatile var rowSeparator = "\n"
   // var defaultModelToString: export.StringExporter = export.toScalaCompact
   // var defaultModelToTable: export.StringExporter = export.toPathTable
   // var defaultModelToGraph: export.StringExporter = export.toGraphVizNested
-  var isGeneratingHtmlRawModel = false
-  var isMarkdownSymbolsInToText = false
-  var defaultTitle: String = "untitled"
-  var defaultModelFileName: String = defaultTitle+".reqt"
-  var warningPrinter: String => Unit = (msg) => println(s"WARNING: $msg")
-  object gui {
+  @volatile var isGeneratingHtmlRawModel = false
+  @volatile var isMarkdownSymbolsInToText = false
+  @volatile var defaultTitle: String = "untitled"
+  @volatile var defaultModelFileName: String = defaultTitle+".reqt"
+  @volatile var warningPrinter: String => Unit = (msg) => println(s"WARNING: $msg")
+
+  object gui: 
+    @volatile var isPlatformSpecificLookAndFeel = false //true
+ 
+    @volatile var fontSize = 16
+    @volatile var editorFonts = List("Fira Code Medium", "Source Code Pro Medium" , "DejaVu Sans Mono", "JetBrains Mono Medium" , "Consolas", "Liberation Mono", "Monospace")
+    val defaultEditorFont = editorFonts.head
+    
     val entRGB  = (0,30,200) //blueish
     val intAttrRGB = (0,120,50) //greenish
     val strAttrRGB = (180,100,40) //orange-like
     val relRGB = (160,0,30) //reddish
     val strRGB = (200,90,40) //orange-like
+    
     private def col(t: (Int, Int, Int)) = new java.awt.Color(t._1, t._2, t._3)
+
     val entityColor    = col(entRGB)
     val intAttributeColor = col(intAttrRGB)
     val strAttributeColor = col(strAttrRGB)
@@ -31,9 +39,5 @@ object Settings {
     val treeBackground = col(230,255,230)
     val logForeground = col(10,10,50)
     val logBackground = col(255,230,230)
-    var editorFonts    = List("Fira Code Medium", "Source Code Pro Medium" , "DejaVu Sans Mono", "JetBrains Mono Medium" , "Consolas", "Liberation Mono", "Monospace")
-    val defaultEditorFont = editorFonts.head
-    var fontSize       = 16
-    var isPlatformSpecificLookAndFeel = false //true
-  }
-}
+  end gui
+end Settings
