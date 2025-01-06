@@ -1,47 +1,66 @@
-package reqt
+export reqt.Main.edit
 
-/** start a new editor window */
-def edit: Unit = edit()
+package reqt:
+  object Main:
 
-def edit(args: String*): Unit = 
-    MainWindow.newWindow()
-    SwingPlatform.runInSwingThread:
-      println(s"New window started! EditorWindow.nbrWindows=${MainWindow.nbrWindows}")
+    /** start a new editor window */
+    def edit: Unit = edit()
 
+    def edit(args: String*): Unit = 
+        MainWindow.newWindow()
+        // SwingPlatform.runInSwingThread:
+        //   println(s"New window started! EditorWindow.nbrWindows=${MainWindow.nbrWindows}")
 
-def repl: Unit = repl()
+    def repl: Unit = repl()
 
-def repl(args: String*): Unit =
-  val result = scala.util.Try {
-    val wdJar   = os.pwd/"reqT.jar"
-    val homeJar = os.home/"reqT"/"reqT.jar"
-    val url = "https://github.com/reqT/reqT/releases"
+    def pathToMyJar: os.Path = os.Path(reqt.Main.getClass.getProtectionDomain().getCodeSource().getLocation().toURI)
 
-    val jar = if os.exists(wdJar) then wdJar else if os.exists(homeJar) then homeJar else
-      println(s"You need download reqT.jar from $url and place it in ${os.home/"reqT"}")
-      sys.exit(1)
+    def listReqTJars(p: os.Path): Seq[os.Path] = 
+      if os.exists(p) then
+        os.list(p)
+          .filter(f => f.last.endsWith(".jar") && f.last.toLowerCase.startsWith("reqt"))
+          .sorted.reverse
+      else Seq()
 
-    val cmd = Seq[String]("scala-cli", "repl", "-S", Main.scalaVersion, "--jar", jar.toString)
-    println(s"Running command: ${cmd.mkString(" ")}")
-    println(s"Type 'import reqt.*' for direct access to full api.")
-    println(s"Type 'edit' to open an editor window.")
-    println(s"Type 'help' for more information on how to use reqT.")
-    os.proc(cmd).call(stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit)
-  }
-  if result.isFailure then 
-    println(s"$result")
-    println(s"\nInstall scala-cli from here: https://scala-cli.virtuslab.org/install")
-    sys.exit(1)
+    def repl(args: String*): Unit =
+      val tryStartRepl = scala.util.Try: 
+        val url = "https://github.com/reqT/reqT/releases"
 
-object Main:
-  val scalaVersion = "3.4.1"
-  val reqTVersion  = "4.0.0-M5"
+        val jar = 
+          val selected = 
+            if os.exists(pathToMyJar) then pathToMyJar 
+            else 
+              (listReqTJars(os.pwd) ++ listReqTJars(os.home) ++ listReqTJars(os.home/"reqT"))
+                .headOption.getOrElse(os.pwd / "reqT.jar")
+          if os.exists(selected) then selected 
+          else
+            println(s"Cannot find $selected\n Download reqT.jar from $url and place it here ${os.pwd}")
+            sys.exit(1)
 
-  /** Main program */
-  def main(args: Array[String]): Unit = 
-    if args.isEmpty || args(0) == "edit" then edit(args.toSeq.drop(1)*) 
-    else if args.lift(0) == Some("repl") then repl(args.toSeq.drop(1)*)
-    else println(s"Unknown args: ${args.mkString(",")}")
+        val cmd = Seq[String]("scala", "repl", "-S", Main.scalaVersion, "--jar", jar.toString)
+        println(s"Running command: ${cmd.mkString(" ")}")
+        println(s"Type 'edit' to open a new reqT window.")
+        println(s"Type 'import reqt.*' for direct access to full api.")
+        println(s"See https://github.com/reqT/reqT for more information on how to use reqT.")
+        os.proc(cmd).call(stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit)
+      
+      if tryStartRepl.isFailure then 
+        println("ERROR: Failed to start scala repl with reqT on path")
+        println(s"$tryStartRepl")
+        println(s"\nYou may need to install Scala version ${Main.scalaVersion} or later from here: https://www.scala-lang.org/")
+        sys.exit(1)
+    end repl 
+
+    val scalaVersion = "3.6.3-RC2"
+    val reqTVersion  = "4.0.0-M5"
+
+    /** Main program */
+    def main(args: Array[String]): Unit = 
+      if args.isEmpty || args(0) == "edit" then edit(args.toSeq.drop(1)*) 
+      else args(0) match
+        case "version" | "-v" | "--version" => println(s"reqT version $reqTVersion https://github.com/reqT/reqT") 
+        case "repl" => repl(args.toSeq.drop(1)*)
+        case _ => println(s"Unknown args: ${args.mkString(",")}")
 
 
 
