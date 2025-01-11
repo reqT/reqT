@@ -1,16 +1,35 @@
+*TODO THIS IS THE OLD LAB FROM reqT 3.1 AND IT SHOULD BE UPDATED TO reqT 4*
+
 # Context, Features and Priorities
 
-This document provides instructions for a mandatory computer lab session in the course ETSN15 "Requirements Engineering" given at Lund University. The source code of this page in markdown is available [here](https://github.com/reqT/reqT/blob/3.1.x/doc/lab1/lab1-2020.md).
+This document provides instructions for a mandatory computer lab session in the course ETSN15 "Requirements Engineering" given at Lund University. The source code of this page in markdown is available [here](https://github.com/reqT/reqT/blob/4.x/docs/lab1.md).
 
 ## Goals
 
-To complete this lab you should develop a requirements model using [reqT](http://reqt.org/download.html). Your requirements model should be based on your course project and it should include the following sections:
+To complete this lab you should develop a requirements model using [reqT](https://github.com/reqT/reqT/blob/4.x/README.md). Your requirements model should be based on your course project and it should include the following sections:
 
-  * A **context** section including a draft product context of your course project with some relevant interfaces to some relevant actors. The model does not have to be complete.
+  * A **context** section including a draft product context of your course project with some relevant interfaces to some relevant users. The model does not have to be complete.
 
   * A **features** section with at least 5 high-level features from your course project, each with a descriptive id. Each feature should also have a Gist attribute with a short description of the feature.
 
   * A **priorities** section with priorities for each feature based on the criteria: *which feature is most important to spend more elicitation effort on*.
+
+Example of the shape of the reqT Model that you will develop during the lab to try out some of the reqT features:
+
+* Section: ctx has
+  * Title: The context of OurThing
+  * Product: OurThing has Gist: describe it
+  * Product: OurThing interactsWith
+    * Actor: User has Gist: describe it
+    * Actor: Admin has Gist: describe it
+    * System: OtherThing has Gist: describe it
+* Section: feats has
+  * Titel: High-level features of OurThing
+  * Feature: HelloWorld has 
+    * Gist: describe it
+* Section: prio has
+  * Title: Priorities of selected features
+    * Feature HelloWorld has Prio(1)
 
 
 ## Task 0: Mandatory Preparations
@@ -19,9 +38,9 @@ To complete this lab you should develop a requirements model using [reqT](http:/
 
 * Select around 5 to 10 high-level features from your project and for each feature create a short description of one line of text.
 
-* Name at least 2 stakeholders from your project.
+* Name at least 2 user roles (actors) from your project.
 
-* Make sure you can run reqT in terminal and launch the swing desktop gui using the `edit` command.
+* Make sure you can run reqT in terminal and launch the swing desktop gui.
 
     * How to start reqT on the student Linux computers in the E building at LTH: [http://cs.lth.se/krav/reqt](http://cs.lth.se/krav/reqt)
 
@@ -29,7 +48,7 @@ To complete this lab you should develop a requirements model using [reqT](http:/
 
 * Study the slides of lectures [L1-L4](http://cs.lth.se/krav/lectures/), and the [reqT tutorial](http://fileadmin.cs.lth.se/krav/reqT-tutorial.pdf).
 
-* Study the [reqT cheat sheet](https://github.com/reqT/reqT/blob/3.1.x/doc/cheat-sheet/reqT-cheat-sheet.pdf)
+* Study the [reqT cheat sheet](https://github.com/reqT/reqT/TODO)
 
 * At the beginning of the lab session be prepared to:
 
@@ -48,12 +67,12 @@ To complete this lab you should develop a requirements model using [reqT](http:/
 * Create a textual model of your project context diagram from your lab preparations in Task 0 above, using reqT. Use entities in a similar way as in the example below.
 
 ```
-Section context
-  Product hotelApp interactsWith
-    User receptionist
-    User guest
-    System accounting
-    System telephony  
+* Section: context has
+  * Product: hotelApp interactsWith
+    * Actor: receptionist
+    * Actor: guest
+    * System: accounting
+    * System: telephony  
 ```
 
 * Save your reqT model.
@@ -69,17 +88,13 @@ Section context
 * Add a `Section("features")` to your model and include your feature according to the following example. Each feature should have a short identifier (id) that use camel case capitalization. Place your feature description in a `Gist` attribute. If you type `Gist ?` in the reqT terminal you can see an explanation/definition of what a `Gist` attribute is.
 
 ```
-Section features
-  Feature checkIn
-    Gist Guests can be checked in upon arrival.
-  Feature checkOut
-    Gist Guests can be checked out after paying and leaving.
-  Feature groupCheckIn
-    Gist Many guest arriving simultaneously can be checked in as a group.
-  Feature roomSearch
-    Gist Receptionists can find available rooms based on search criteria.
-  Feature webBooking
-    Gist A guest can book a future stay via a web interface.
+* Section: features has
+  * Feature: checkIn has Gist: Guests can be checked in upon arrival.
+  * Feature: checkOut has Gist: Guests can be checked out after paying and leaving.
+  * Feature: roomSearch has Gist: Receptionists can find available rooms based on search criteria.
+  * Feature: webBooking has Gist: A guest can book a future stay via a web interface.
+  * Feature: groupCheckIn has 
+    * Gist: Many guest arriving simultaneously can be checked in as a group.
 ```
 
 ## Task 3: Prioritize your features

@@ -1,6 +1,8 @@
+*TODO THIS IS THE OLD LAB FROM reqT 3.1 AND IT SHOULD BE UPDATED TO reqT 4*
+
 # Quality Requirements and Release Planning
 
-This document provides instructions for a computer lab session in the courses ETSN15 "Software Requirements Engineering" and TFRG55 "Requirements Engineering for Digital Systems" given at Lund University. Task 1 is mandatory for both courses. Task 2, including corresponding preparations in Task 0, is optional for TFRG55.
+This document provides instructions for a computer lab session in the courses ETSN15 "Software Requirements Engineering" 
 
 ## Goals
 
