@@ -14,7 +14,7 @@ To complete this lab you should develop a requirements model using [reqT](https:
 
   * A **priorities** section with priorities for each feature based on the criteria: *which feature is most important to spend more elicitation effort on*.
 
-Example of the shape of the reqT Model that you will develop during the lab to try out some of the reqT features:
+Example shape of the reqT Model that you will develop during the lab to try out some of the reqT features:
 
 * Section: ctx has
   * Title: The context of OurThing
@@ -24,7 +24,7 @@ Example of the shape of the reqT Model that you will develop during the lab to t
     * Actor: Admin has Gist: describe it
     * System: OtherThing has Gist: describe it
 * Section: feats has
-  * Titel: High-level features of OurThing
+  * Title: High-level features of OurThing
   * Feature: HelloWorld has 
     * Gist: describe it
 * Section: prio has
