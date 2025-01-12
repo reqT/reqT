@@ -732,8 +732,8 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
       textArea.requestFocus
   }
 
-  def setFoldingAll(parent: TreePath, isExpand: Boolean): Unit = {
-    val node = parent.getLastPathComponent().asInstanceOf[TreeNode];
+  def setFoldingAll(parent: TreePath, isExpand: Boolean): Unit = if parent != null then {
+    val node = parent.getLastPathComponent().asInstanceOf[TreeNode]
     if (node.getChildCount() >= 0) {
       import scala.jdk.CollectionConverters.* 
       for (e <- node.children.asScala) {
