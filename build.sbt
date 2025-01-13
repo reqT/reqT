@@ -15,7 +15,10 @@ ThisBuild / organization  := "io.github.reqt"
 
 console / initialCommands := """import reqt.*"""
 Global / onChangedBuildSource := ReloadOnSourceChanges
-Compile / doc / scalacOptions ++= Seq("-siteroot", "docs")
+
+Compile / doc / scalacOptions ++= Seq("-siteroot", "https://fileadmin.cs.lth.se/reqt/")
+Compile / doc / target := file("target/api")
+Compile / doc / scalacOptions ++= Seq("-project", "reqT")
 
 fork := true
 outputStrategy := Some(StdoutOutput)
