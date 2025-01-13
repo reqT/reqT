@@ -1,7 +1,7 @@
 lazy val reqTVer      = "4.0.0-RC1"
 lazy val reqTJarName  = s"reqT-$reqTVer.jar"
 
-lazy val reqTLangVer  = "4.3.0" // https://github.com/reqT/reqT-lang/releases
+lazy val reqTLangVer  = "4.3.1" // https://github.com/reqT/reqT-lang/releases
 lazy val reqTJacopVer = "1.1.1" // https://github.com/reqT/reqT-jacop/releases
 lazy val jacopVer     = "4.10.0" // https://github.com/radsz/jacop/releases
 lazy val scalaVer     = "3.3.4" // Use LTS only! https://www.scala-lang.org/download/all.html
