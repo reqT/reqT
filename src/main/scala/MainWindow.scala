@@ -384,18 +384,23 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
     val formatted = txt.toModel.toMarkdown 
     textArea.setText(formatted)
 
-  def doFormatSelection() = runInSwingThread:
+  def doFormatSelection() = runInSwingThread:  // TODO: not used yet, not ready
     // TODO: this needs more work 
     //      to expand selection to rows
     //      to analyze indentation and keep it good etc 
+    // BUT perhaps it is dubious to format just a part of a model?
     val txt = textArea.getSelectedText()
     if txt != null then
       val formatted = txt.toModel.toMarkdown 
       textArea.replaceSelection(formatted)
 
-  def doModelRawToLog() = runInSwingThread:
+  def doModelClassesToLog() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")
     addMessage(txt.toModel.toString)
+
+  def doModelConstructorsToLog() = runInSwingThread:
+    val txt = Option(textArea.getText()).getOrElse("")
+    addMessage(txt.toModel.show.toString)
 
   def doAppendIdPairs() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")
@@ -403,18 +408,30 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
     if ids.length == 0 then log("WARNING: No entities in editor. No pairs appended.")
     else if ids.length == 1 then log("WARNING: Only one entity in editor. No pairs appended.")
     else
+      log("For all pairs (a, b) of entity ids in editor:\n  appending a > b in Constraints")
       val pairs = ids.combinations(2).map(xs => xs(0) + " > " + xs(1)).mkString("\n")
       if !txt.endsWith("\n") then textArea.append("\n")
       textArea.append(s"* Constraints:\n${pairs.trimIndent(2)}")
 
-  def doAppendRanking() = runInSwingThread:
+  def doAppendEntitiesInOrder() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")
-    val ids = txt.toModel.ids
-    if ids.length == 0 then log("WARNING: No entities in editor. No Ranking appended.")
+    val ents = txt.toModel.ents.distinct
+    if ents.length == 0 then log("WARNING: No entities in editor. No relations to Order added.")
     else
-      val rows = ids.mkString("\n")
+      log("For all distinct entities in editor:\n  appending Order relations in order of appearance")
+      val rows = ents.zipWithIndex.map((e, i) => e.has(Order(i + 1))).toModel.toMarkdown
       if !txt.endsWith("\n") then textArea.append("\n")
-      textArea.append(s"* Ranking:\n${rows.trimIndent(2)}")
+      textArea.append(s"* Section: ordering has\n${rows.trimIndent(2)}")
+
+  def doSolveConstraints() = runInSwingThread:
+    val txt = Option(textArea.getText()).getOrElse("")
+    val m = txt.toModel 
+    log("TODO doSolveConstraints")
+
+  def doNormalizedVotes() = runInSwingThread:
+    val txt = Option(textArea.getText()).getOrElse("")
+    val m = txt.toModel 
+    log("TODO doNormalizedVotes")
 
 
   enum ToEditorFromTree { case Replace, Append, Insert }
