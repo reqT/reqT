@@ -388,13 +388,13 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
       val formatted = txt.toModel.toMarkdown
       textArea.setText(formatted)
 
-  def doNormalizeAll() = runInSwingThread:
+  def doDistinctAll() = runInSwingThread:
     val txt = textArea.getText()
     if txt.trim.isEmpty then
       log("WARNING: Empty Model in Editor.")
     else 
-      log("Normalize Model in Editor using .toModel.normalize.toMarkdown on all text.")
-      val formatted = txt.toModel.normalize.toMarkdown
+      log("Normalize Model in Editor using .toModel.distinctElemsDeep.toMarkdown on all text.")
+      val formatted = txt.toModel.distinctElemsDeep.toMarkdown
       textArea.setText(formatted)
 
   def doFormatSelection() = runInSwingThread:  // TODO: not used yet, not ready
@@ -439,12 +439,35 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
   def doSolveConstraints() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")
     val m = txt.toModel 
-    log("TODO doSolveConstraints")
+    val cse = m.attrsOfType(Constraints).map(_.toConstr)
+    val parseErrors = cse.collect{case Left(value) => value}
+    parseErrors.foreach(msg => log(s"WARNING: Error parsing constraint: $msg"))
+    val css = cse.flatMap(_.toOption)
+    if css.length == 0 then log("WARNING: No Constraints attribute in editor.")
+    else 
+      val cs: Seq[Constr] = css.reduceLeft(_ ++ _)
+      log(s"TODO: Solve Constraint Problem: $cs")
+      log(s"TODO: If inconsistency found try with succesively increased deviation: $cs")
+      log(s"TODO: When implemented move generate problem with deviation to reqT-lang ???: $cs")
 
-  def doNormalizedVotes() = runInSwingThread:
+
+
+  def doNormalizedVotes() = runInSwingThread:  
+    // TODO consider move intelligent finding of ents to reqT-lang
     val txt = Option(textArea.getText()).getOrElse("")
     val m = txt.toModel 
-    log("TODO doNormalizedVotes")
+    def collectEntsWithAttr(a: IntAttrType): Vector[Ent] =
+      m.atoms.collect{case Rel(e,r,sm) if sm.attrsOfType(a).length > 0 => e}
+    val prioEnts: Vector[Ent] = collectEntsWithAttr(Prio)
+    val benefitEnts: Vector[Ent] = collectEntsWithAttr(Benefit)
+    if      prioEnts.isEmpty    then log("WARNING: No entities with Prio attribute.")
+    else if benefitEnts.isEmpty then log("WARNING: No entities with Benefit attribute.")
+    else
+      val p = prioEnts   .map(_.t).groupBy(x => x).maxBy((k,v) => v.size)._1
+      val b = benefitEnts.map(_.t).groupBy(x => x).maxBy((k,v) => v.size)._1
+      log(s"Calculating total votes based on Benefit of $b and Prio of $p.")
+      val votes = examples.Prioritization.normalizedVotes(m, p, Prio, b, Benefit)
+      textArea.append(votes.toMarkdown)
 
   def doModelClassesToLog() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")
