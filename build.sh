@@ -10,8 +10,11 @@ function error_check {
    fi
 }
 
-#SET SCALA VERSION
+#SET JAVA AND SCALA VERSION
+echo n | sdk install java 11.0.25-tem
+sdk use java 11.0.25-tem
 source ~/.sdkman/bin/sdkman-init.sh
+echo n | sdk install scala 2.12.17
 sdk use scala 2.12.17
 scala -version
 error_check
