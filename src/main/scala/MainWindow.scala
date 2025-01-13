@@ -427,7 +427,7 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
 
   def doAppendIdPairs() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")
-    val ids = txt.toModel.ids
+    val ids = txt.toModel.ids.distinct
     if ids.length == 0 then log("WARNING: No entities in editor. No pairs appended.")
     else if ids.length == 1 then log("WARNING: Only one entity in editor. No pairs appended.")
     else
