@@ -54,7 +54,7 @@ else if !os.exists(os.Path(file2)) then
   System.exit(1)
 else 
   val preRel = 
-    if reqTVer.contains("-M") || reqTVer.contains("_RC") then Seq("--prerelease") else Seq()
+    if reqTVer.contains("M") || reqTVer.contains("RC") then Seq("--prerelease") else Seq()
   val assemblyCmd = Seq()
   val createCmd = Seq("gh", "release", "create", "v" + reqTVer, "--generate-notes") ++ preRel
   val uploadCmd1 = Seq("gh", "release", "upload", "v" + reqTVer, file1)
