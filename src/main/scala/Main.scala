@@ -7,9 +7,16 @@ package reqt:
     def edit: Unit = edit()
 
     def edit(args: String*): Unit = 
-        MainWindow.newWindow()
-        // SwingPlatform.runInSwingThread:
-        //   println(s"New window started! EditorWindow.nbrWindows=${MainWindow.nbrWindows}")
+        try MainWindow.newWindow()
+        catch 
+          case e: Throwable => 
+            val msg = s"Exception in edit: $e\n\nStack Trace:${e.getStackTrace().mkString("\n")}"
+            println(msg)
+            SwingPlatform.runInSwingThread:
+              for i <- 0 until MainWindow.nbrWindows do
+                MainWindow.get(i).map(w => w.log(msg))
+        //SwingPlatform.runInSwingThread:
+        //  println(s"New window started! EditorWindow.nbrWindows=${MainWindow.nbrWindows}")
 
     def repl: Unit = repl()
 
