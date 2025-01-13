@@ -1,7 +1,7 @@
 package reqt
 
 /** Settings for reqT **/
-object Settings:
+object ReqTDesktopSettings:
   @volatile var indentSpacing = 2
   @volatile var lineLength = 72
   @volatile var columnSeparator = ";"
@@ -40,4 +40,4 @@ object Settings:
     val logForeground = col(10,10,50)
     val logBackground = col(255,230,230)
   end gui
-end Settings
+end ReqTDesktopSettings

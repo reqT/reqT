@@ -46,7 +46,7 @@ import java.awt
 
 object MainWindow:
   val initLookAndFell = javax.swing.UIManager.getLookAndFeel()
-  SwingPlatform.swingInit(isPlatformSpecific = Settings.gui.isPlatformSpecificLookAndFeel)
+  SwingPlatform.swingInit(isPlatformSpecific = ReqTDesktopSettings.gui.isPlatformSpecificLookAndFeel)
 
   private val started = collection.mutable.Buffer.empty[MainWindow]
   
@@ -111,10 +111,10 @@ object MainWindow:
     def italic = s"<i>$s</i>"
     def mono = s"<tt>$s</tt>"
     def under = s"<u>$s</u>"
-    def entTag = s"<font color=${Settings.gui.entityColor.toHex}>$s</font>"
-    def relTag = s"<font color=${Settings.gui.relationColor.toHex}>$s</font>"
-    def strTag = s"<font color=${Settings.gui.strAttributeColor.toHex}>$s</font>"
-    def intTag = s"<font color=${Settings.gui.intAttributeColor.toHex}>$s</font>"
+    def entTag = s"<font color=${ReqTDesktopSettings.gui.entityColor.toHex}>$s</font>"
+    def relTag = s"<font color=${ReqTDesktopSettings.gui.relationColor.toHex}>$s</font>"
+    def strTag = s"<font color=${ReqTDesktopSettings.gui.strAttributeColor.toHex}>$s</font>"
+    def intTag = s"<font color=${ReqTDesktopSettings.gui.intAttributeColor.toHex}>$s</font>"
 
   /** A handle to the root node of the tree pane */
   class TreeRoot(val title: String): 
@@ -187,7 +187,7 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
   val initEditorHeight = 30
   val maxFontSize = 80
   val bigFontSize = 48
-  val mediumFontSize = Settings.gui.fontSize
+  val mediumFontSize = ReqTDesktopSettings.gui.fontSize
   val minFontSize = 6
   
   private var _fileName = MainWindow.initFileName
@@ -508,7 +508,7 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
 
   def doMsg(msg: String): Unit = SwingPlatform.msgInfo(msg, parent = Some(frame))
   
-  val defaultGlobalFontSize = Settings.gui.fontSize + fontDeltaByScreenHeight
+  val defaultGlobalFontSize = ReqTDesktopSettings.gui.fontSize + fontDeltaByScreenHeight
 
   def fontDeltaByScreenHeight =
     java.awt.Toolkit.getDefaultToolkit.getScreenSize.getHeight match {
@@ -549,7 +549,7 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
   def setTextAreaFont(textArea: JTextArea, fontSize: Int, fontFamily: String = "") = SwingPlatform.runInSwingThread:
     val fn = if fontFamily == "" then textArea.getFont.getFamily else 
       val available = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment.getAvailableFontFamilyNames
-      val possible = (fontFamily :: Settings.gui.editorFonts).filter(available.contains(_))
+      val possible = (fontFamily :: ReqTDesktopSettings.gui.editorFonts).filter(available.contains(_))
       possible.headOption.getOrElse(Font.MONOSPACED)
     
     val fPlain = new Font(fn, Font.PLAIN, fontSize)
@@ -568,16 +568,16 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
     textArea match 
       case ta: RSyntaxTextArea => 
         ta.getSyntaxScheme.setStyle(ReqTTokenMaker.EntTokenType, 
-          new Style(Settings.gui.entityColor, Style.DEFAULT_BACKGROUND, fBold))
+          new Style(ReqTDesktopSettings.gui.entityColor, Style.DEFAULT_BACKGROUND, fBold))
 
         ta.getSyntaxScheme.setStyle(ReqTTokenMaker.StrAttrTokenType,   
-          new Style(Settings.gui.strAttributeColor, Style.DEFAULT_BACKGROUND, fBoldItalic))
+          new Style(ReqTDesktopSettings.gui.strAttributeColor, Style.DEFAULT_BACKGROUND, fBoldItalic))
 
         ta.getSyntaxScheme.setStyle(ReqTTokenMaker.IntAttrTokenType,   
-          new Style(Settings.gui.intAttributeColor, Style.DEFAULT_BACKGROUND, fBoldItalic))
+          new Style(ReqTDesktopSettings.gui.intAttributeColor, Style.DEFAULT_BACKGROUND, fBoldItalic))
 
         ta.getSyntaxScheme.setStyle(ReqTTokenMaker.RelTokenType,    
-          new Style(Settings.gui.relationColor, Style.DEFAULT_BACKGROUND, fBoldUL))
+          new Style(ReqTDesktopSettings.gui.relationColor, Style.DEFAULT_BACKGROUND, fBoldUL))
       case _ => // don't set syntax styles as this is not a syntax aware text area
     // textArea.getSyntaxScheme.setStyle(TokenTypes.LITERAL_STRING_DOUBLE_QUOTE, new Style(Settings.gui.stringColor))
     // textArea.getSyntaxScheme.setStyle(TokenTypes.RESERVED_WORD, new Style(Settings.gui.scalaReservedWordColor, Style.DEFAULT_BACKGROUND, fBold)) // more discrete coloring???
@@ -618,7 +618,7 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
   // textArea.setForeground(java.awt.Color(230,235,245))
   textArea.setBackground(java.awt.Color(235,235,235))
   
-  setTextAreaFont(textArea, defaultGlobalFontSize, Settings.gui.defaultEditorFont)
+  setTextAreaFont(textArea, defaultGlobalFontSize, ReqTDesktopSettings.gui.defaultEditorFont)
   val textPane = new org.fife.ui.rtextarea.RTextScrollPane(textArea) with SwingPlatform.AntiAliasing
   
   import org.fife.ui.autocomplete.*
@@ -666,10 +666,10 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
   
   val messageArea = new javax.swing.JTextArea(10, initEditorWidth)
   messageArea.setEditable(false)
-  setTextAreaFont(messageArea, defaultGlobalFontSize, Settings.gui.defaultEditorFont)
+  setTextAreaFont(messageArea, defaultGlobalFontSize, ReqTDesktopSettings.gui.defaultEditorFont)
 
-  messageArea.setBackground(Settings.gui.logBackground)
-  messageArea.setForeground(Settings.gui.logForeground)
+  messageArea.setBackground(ReqTDesktopSettings.gui.logBackground)
+  messageArea.setForeground(ReqTDesktopSettings.gui.logForeground)
 
   //messageArea.setLineWrap(true)
 
@@ -969,7 +969,7 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
   //tree.setEditable(true)  ???
   //tree.setDropMode(DropMode.INSERT) ???
   tree.setScrollsOnExpand(true)
-  tree.setBackground(Settings.gui.treeBackground)
+  tree.setBackground(ReqTDesktopSettings.gui.treeBackground)
   tree.setAutoscrolls(true)
   tree.setDragEnabled(true) 
   tree.setDropMode(DropMode.ON_OR_INSERT)
