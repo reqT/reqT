@@ -381,8 +381,21 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
 
   def doFormatAll() = runInSwingThread:
     val txt = textArea.getText()
-    val formatted = txt.toModel.toMarkdown 
-    textArea.setText(formatted)
+    if txt.trim.isEmpty then
+      log("WARNING: Empty Model in Editor.")
+    else 
+      log("Format Model in Editor using .toModel.toMarkdown on all text.")
+      val formatted = txt.toModel.toMarkdown
+      textArea.setText(formatted)
+
+  def doNormalizeAll() = runInSwingThread:
+    val txt = textArea.getText()
+    if txt.trim.isEmpty then
+      log("WARNING: Empty Model in Editor.")
+    else 
+      log("Normalize Model in Editor using .toModel.normalize.toMarkdown on all text.")
+      val formatted = txt.toModel.normalize.toMarkdown
+      textArea.setText(formatted)
 
   def doFormatSelection() = runInSwingThread:  // TODO: not used yet, not ready
     // TODO: this needs more work 
@@ -393,14 +406,24 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
     if txt != null then
       val formatted = txt.toModel.toMarkdown 
       textArea.replaceSelection(formatted)
-
-  def doModelClassesToLog() = runInSwingThread:
+  
+  def doKeepDistinctEntities() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")
-    addMessage(txt.toModel.toString)
-
-  def doModelConstructorsToLog() = runInSwingThread:
+    val ents = txt.toModel.ents.distinct
+    if ents.length == 0 then log("WARNING: No entities in editor. No entities added.")
+    else
+      log("Keep all distinct entities only in Editor.")
+      val rows = ents.toModel.toMarkdown
+      textArea.setText(rows)
+  
+  def doAppendEntitiesInOrder() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")
-    addMessage(txt.toModel.show.toString)
+    val ents = txt.toModel.ents.distinct
+    if ents.length == 0 then log("WARNING: No entities in editor. No relations to Order added.")
+    else
+      log("For all distinct entities in editor:\n  appending Order relations in order of appearance")
+      val rows = ents.zipWithIndex.map((e, i) => e.has(Order(i + 1))).toModel.toMarkdown
+      textArea.append(rows)
 
   def doAppendIdPairs() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")
@@ -413,16 +436,6 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
       if !txt.endsWith("\n") then textArea.append("\n")
       textArea.append(s"* Constraints:\n${pairs.trimIndent(2)}")
 
-  def doAppendEntitiesInOrder() = runInSwingThread:
-    val txt = Option(textArea.getText()).getOrElse("")
-    val ents = txt.toModel.ents.distinct
-    if ents.length == 0 then log("WARNING: No entities in editor. No relations to Order added.")
-    else
-      log("For all distinct entities in editor:\n  appending Order relations in order of appearance")
-      val rows = ents.zipWithIndex.map((e, i) => e.has(Order(i + 1))).toModel.toMarkdown
-      if !txt.endsWith("\n") then textArea.append("\n")
-      textArea.append(s"* Section: ordering has\n${rows.trimIndent(2)}")
-
   def doSolveConstraints() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")
     val m = txt.toModel 
@@ -433,7 +446,15 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
     val m = txt.toModel 
     log("TODO doNormalizedVotes")
 
+  def doModelClassesToLog() = runInSwingThread:
+    val txt = Option(textArea.getText()).getOrElse("")
+    addMessage(txt.toModel.toString)
 
+  def doModelConstructorsToLog() = runInSwingThread:
+    val txt = Option(textArea.getText()).getOrElse("")
+    addMessage(txt.toModel.show.toString)
+
+  
   enum ToEditorFromTree { case Replace, Append, Insert }
   var toEditorFromTree = ToEditorFromTree.Replace
 
