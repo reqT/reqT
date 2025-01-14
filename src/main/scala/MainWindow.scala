@@ -385,7 +385,7 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
       log("WARNING: Empty Model in Editor.")
     else 
       log("Format Model in Editor using .toModel.toMarkdown on all text.")
-      val formatted = txt.toModel.toMarkdown
+      val formatted = txt.toModel.toMarkdown //TODO: how to handle empty lines???
       textArea.setText(formatted)
 
   def doDistinctAll() = runInSwingThread:
@@ -431,43 +431,120 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
     if ids.length == 0 then log("WARNING: No entities in editor. No pairs appended.")
     else if ids.length == 1 then log("WARNING: Only one entity in editor. No pairs appended.")
     else
-      log("For all pairs (a, b) of entity ids in editor:\n  appending a > b in Constraints")
+      log("For all pairs (x, y) of entity ids in editor:\n  appending x > y in Constraints")
       val pairs = ids.combinations(2).map(xs => xs(0) + " > " + xs(1)).mkString("\n")
       if !txt.endsWith("\n") then textArea.append("\n")
       textArea.append(s"* Constraints:\n${pairs.trimIndent(2)}")
-
-  def doSolveConstraints() = runInSwingThread:
-    val txt = Option(textArea.getText()).getOrElse("")
-    val m = txt.toModel 
-    val cse = m.attrsOfType(Constraints).map(_.toConstr)
-    val parseErrors = cse.collect{case Left(value) => value}
-    parseErrors.foreach(msg => log(s"WARNING: Error parsing constraint: $msg"))
-    val css = cse.flatMap(_.toOption)
-    if css.length == 0 then log("WARNING: No Constraints attribute in editor.")
-    else 
-      val cs: Seq[Constr] = css.reduceLeft(_ ++ _)
-      log(s"TODO: Solve Constraint Problem: $cs")
-      log(s"TODO: If inconsistency found try with succesively increased deviation: $cs")
-      log(s"TODO: When implemented move generate problem with deviation to reqT-lang ???: $cs")
-
-
-
+  
   def doNormalizedVotes() = runInSwingThread:  
     // TODO consider move intelligent finding of ents to reqT-lang
+    log(s"For model m in editor with similar shape as Templates -> Prioritization: 100${'$'} test") 
     val txt = Option(textArea.getText()).getOrElse("")
     val m = txt.toModel 
     def collectEntsWithAttr(a: IntAttrType): Vector[Ent] =
       m.atoms.collect{case Rel(e,r,sm) if sm.attrsOfType(a).length > 0 => e}
     val prioEnts: Vector[Ent] = collectEntsWithAttr(Prio)
     val benefitEnts: Vector[Ent] = collectEntsWithAttr(Benefit)
-    if      prioEnts.isEmpty    then log("WARNING: No entities with Prio attribute.")
+    if prioEnts.isEmpty then log("WARNING: No entities with Prio attribute.")
     else if benefitEnts.isEmpty then log("WARNING: No entities with Benefit attribute.")
     else
       val p = prioEnts   .map(_.t).groupBy(x => x).maxBy((k,v) => v.size)._1
       val b = benefitEnts.map(_.t).groupBy(x => x).maxBy((k,v) => v.size)._1
-      log(s"Calculating total votes based on Benefit of $b and Prio of $p.")
+      log(s"  using examples.Prioritization.normalizedVotes(m, $p, Prio, $b, Benefit)")
       val votes = examples.Prioritization.normalizedVotes(m, p, Prio, b, Benefit)
       textArea.append(votes.toMarkdown)
+
+  def doSolveConstraints() = runInSwingThread:
+    val txt = Option(textArea.getText()).getOrElse("")
+    val m = txt.toModel 
+    val cse = m.attrsOfType(Constraints).map(_.toConstr)
+    val parseErrors = cse.collect{case Left(value) => value}
+    if parseErrors.nonEmpty then
+      parseErrors.foreach(msg => log(s"WARNING: Error parsing constraint: $msg"))
+    else 
+      val css = cse.flatMap(_.toOption)
+      if css.length == 0 then log("WARNING: No Constraints attribute in editor.")
+      else 
+        val cs: Seq[Constr] = css.reduceLeft(_ ++ _)
+        val vars: Seq[Var] = cs.flatMap(_.variables).distinct
+        val ids: Seq[String] = vars.map(_.id.toString).distinct
+        val allDiff = AllDifferent(vars)
+        val problem = cs :+ allDiff
+        val sc = solver.SearchConfig(warnUnsolved = solver.noWarn, defaultInterval = 1 to ids.length)
+        log(s"Solving Constraint Problem:\n  $problem")
+        log(s"    using distinct ids = $ids")
+        log(s"    using solver.SearchConfig = $sc")
+        val solution: solver.Result = problem.satisfy(using sc) 
+        log(s"solution: $solution")
+
+        val deviationPrefix = "~Error"
+
+        def appendSolutionToEditor(sectionId: String, s: solver.Result) = 
+          val values: Seq[(String, Int)] = 
+            s.lastSolution.toSeq.map((v, i) => v.id.toString -> i).sortBy(_._1)
+          val rels: Seq[Rel] = 
+            values.map: (id, i) => 
+              val value = if id.startsWith(deviationPrefix) then Value(i) else Order(i)
+              m.firstEntOfId(id).getOrElse(Req(id)).has(value)
+          val section = Rel(Section(sectionId), Has, rels.toModel)
+          if !txt.endsWith("\n") then textArea.append("\n")
+          textArea.append(Model(section).toMarkdown)
+        end appendSolutionToEditor
+        
+        import reqt.solver.Conclusion
+        solution.conclusion match 
+          case Conclusion.SearchFailed(msg) => log(s"WARNING: Search Failed")
+          
+          case Conclusion.SolutionNotFound => log(s"WARNING: SolutionNotFound")
+
+          case Conclusion.SolutionFound => 
+            log(s"Appending found solution to Editor.")
+            appendSolutionToEditor("ConsistentRanking", solution)
+
+          case Conclusion.InconsistencyFound => 
+            log(s"Inconsistency found! Reshaping problem by allowing deviations")
+
+            def allowDeviationsInComparisonConstraints(d: Int, cs: Seq[Constr]): Seq[Constr] = 
+              val devs: collection.mutable.Buffer[Var] = Seq[Var]().toBuffer
+              var i = 1
+
+              def devVar(a: String, b: String) = Var(s"${deviationPrefix}_${a}_$b")
+
+              def newDev(id1: String, id2: String): Var = 
+                val dv = devVar(id1, id2)
+                devs.append(dv)
+                i += 1
+                dv
+              end newDev
+
+              val convertedComparisons = cs.map: 
+                case XgtY(x, y) => XplusYeqZ(x, newDev(x.id.toString, y.id.toString), y)
+                case XltY(x, y) => XplusYeqZ(y, newDev(y.id.toString, x.id.toString), x)
+                case other => other
+              
+              convertedComparisons ++ devs.map(v => v.in((1 - d) to 1))
+            end allowDeviationsInComparisonConstraints
+
+            var d = 0
+            var newSolution = solution
+
+            while newSolution.conclusion != Conclusion.SolutionFound && d < vars.size + 1 do 
+              d += 1
+              log(s"  Trying with deviation = +-$d")
+              val newProblem = allowDeviationsInComparisonConstraints(d, problem)
+              log(s"    newProblem = $newProblem")
+              newSolution = newProblem.satisfy(using sc)
+              log(s"    newSolution = $newSolution")
+            end while 
+            newSolution.conclusion match
+              case Conclusion.SolutionFound => 
+                log(s"Appending found solution allowing max deviation +-$d to Editor.")
+                appendSolutionToEditor("InconsistentRanking", newSolution)
+              case _ =>
+                log(s"WARNING: Failed to find solution with deviations: $newSolution")
+
+    //log(s"\n   TODO: generalize comparison solving problem with deviation to reqT-lang")
+  end doSolveConstraints
 
   def doModelClassesToLog() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")
