@@ -45,6 +45,7 @@ import javax.swing.tree.DefaultTreeCellRenderer
 import java.awt
 import reqt.MainWindow.TreeRoot
 import reqt.SwingPlatform.isOK
+import reqt.Sys.newFileType
 
 object MainWindow:
   val initLookAndFell = javax.swing.UIManager.getLookAndFeel()
@@ -581,6 +582,25 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
   def doModelConstructorsToLog() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")
     addMessage(txt.toModel.show.toString)
+
+  def doExport(fileType: String, stringToExport: => String) = runInSwingThread:
+    for f <- SwingPlatform.chooseFile(preselected = filePath.newFileType(fileType), action = s"Export $fileType") do
+      log(s"Attempting to Export Editor to $f")
+      val jf = java.io.File(f)
+      val ok = if !jf.exists() then true else isOK(s"File $jf exist. Do you want to replace it?")
+      if ok then 
+        stringToExport.saveTo(f)
+        updateFileName(jf.getName)
+        log(s"Saved to ${jf.getAbsolutePath()}")
+        didSaveTree()
+        fileType match
+          case ".html" => log(s"TODO: open page in browser") 
+          case ".dot" => log(s"TODO: check if graphviz is installed and generate pdf") 
+          case ".tex" => log(s"TODO: check if pdflatex is installed and generate pdf") 
+          case _ => log("TODO: open file in desktop application if possible after asking")
+        
+      else  
+        log(s"Nothing saved.")
 
   
   enum ToEditorFromTree { case Replace, Append, Insert }
