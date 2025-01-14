@@ -43,6 +43,8 @@ import javax.swing.DropMode
 import javax.swing.tree.TreeNode
 import javax.swing.tree.DefaultTreeCellRenderer
 import java.awt
+import reqt.MainWindow.TreeRoot
+import reqt.SwingPlatform.isOK
 
 object MainWindow:
   val initLookAndFell = javax.swing.UIManager.getLookAndFeel()
@@ -117,7 +119,7 @@ object MainWindow:
     def intTag = s"<font color=${ReqTDesktopSettings.gui.intAttributeColor.toHex}>$s</font>"
 
   /** A handle to the root node of the tree pane */
-  class TreeRoot(val title: String): 
+  class TreeRoot(var title: String): 
     override def toString = s"<b>Model</b> ${title.italic}".html
 
   enum TreeItemShow { case Markdown, Factory, Structure }
@@ -208,7 +210,11 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
       else unsaved.toSeq.sorted.reverse.mkString(" unsaved:", ", ", "")
     frame.setTitle(windowTitle + unsavedText)
   
-  def updateFileName(fn: String) = { _fileName = fn; updateTitle() }
+  def updateFileName(fn: String) = 
+    _fileName = fn
+    top.getUserObject().asInstanceOf[TreeRoot].title = fn
+    updateTitle()
+    tree.updateUI()
 
   object SplitPaneState:
     // all this state mirroring is needed as split pane is set by fraction and not absolute
@@ -277,17 +283,39 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
       didSaveEditor()
   
   def doSaveTree(): Unit = runInSwingThread:
-    log(s"TODO: Save tree to $fileName")
+    val jf = java.io.File(fileName)
+    createModelFromTreeNode(top).toMarkdown.saveTo(fileName)
+    updateFileName(jf.getName)
+    if jf.exists 
+    then log(s"Saved to existing file: ${jf.getAbsolutePath()}") 
+    else log(s"Saved new file: ${jf.getAbsolutePath()}")
     didSaveTree()
 
   def doSaveTreeAs(): Unit = runInSwingThread:
-    log(s"TODO: Save tree As...  will update window title etc")
-    didSaveTree()
+    for f <- SwingPlatform.chooseFile(preselected = filePath, action = "Save Tree As") do
+      log(s"Attempting to Save Tree As $f")
+      val jf = java.io.File(f)
+      val ok = if !jf.exists() then true else isOK(s"File $jf exist. Do you want to replace it?")
+      if ok then 
+        createModelFromTreeNode(top).toMarkdown.saveTo(f)
+        updateFileName(jf.getName)
+        log(s"Saved in ${jf.getAbsolutePath()}")
+        didSaveTree()
+      else  
+        log(s"Nothing saved.")
 
   def doSaveEditorAs(): Unit = runInSwingThread:
-    log(s"TODO: Save Editor as")
-    didSaveEditor()
-    //textArea.getText().saveTo(???)
+    for f <- SwingPlatform.chooseFile(preselected = filePath, action = "Save Editor Text As") do
+      log(s"Attempting to Save Tree As $f")
+      val jf = java.io.File(f)
+      val ok = if !jf.exists() then true else isOK(s"File $jf exist. Do you want to replace it?")
+      if ok then 
+        textArea.getText().saveTo(f)
+        updateFileName(jf.getName)
+        log(s"Saved in ${jf.getAbsolutePath()}")
+        didSaveTree()
+      else  
+        log(s"Nothing saved.")
 
   def askKeepEditing(action: String): Boolean = 
     SwingPlatform.isOK(s"""WARNING! You have unsaved changes! 
@@ -490,7 +518,7 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
           if !txt.endsWith("\n") then textArea.append("\n")
           textArea.append(Model(section).toMarkdown)
         end appendSolutionToEditor
-        
+
         import reqt.solver.Conclusion
         solution.conclusion match 
           case Conclusion.SearchFailed(msg) => log(s"WARNING: Search Failed")
@@ -791,7 +819,7 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
   val tree = new JTree(top)
   tree.setCellRenderer(new MainWindow.ReqTreeCellRenderer())
 
-  val topPath = new TreePath(top); 
+  val topPath = new TreePath(top) 
   def treeModel: DefaultTreeModel = tree.getModel().asInstanceOf[DefaultTreeModel]
   //def rootPath: TreePath = new TreePath(top)
   def mkNode(n: TreeItem) = new DefaultMutableTreeNode(TreeItemBox(n, this))
