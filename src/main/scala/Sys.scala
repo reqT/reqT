@@ -80,9 +80,11 @@ object Sys:
 
   def runCmd(cmd: Seq[String]): Int = cmd.! 
 
+  def desktopOpen(f: java.io.File) = java.awt.Desktop.getDesktop().open(f)
   def desktopOpen(f: String) = java.awt.Desktop.getDesktop().open(java.io.File(f))
 
   def isDotInstalled: Boolean = runCmd(fixCmd(Seq("dot","-V"))) == 0
+  def isPdfLatexInstalled: Boolean = runCmd(fixCmd(Seq("pdflatex","-v"))) == 0
   
   def dotCmd(fileName: String, format: String = "pdf", layout: String = "dot", moreArgs: Seq[String] = Seq()): Seq[String] = 
     val q = if (isWindows) '"'.toString else "" 
