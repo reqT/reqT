@@ -91,11 +91,11 @@ trait MainWindowMenus:
           "Export Tree"  -> ( () => { exportSource = ExportSource.Tree} )
         ), default = "Export Editor"),
         MenuSeparator,
-        Item("Web page in .html from Editor", VK_1, VK_1, ALT) { doExport(ExportType.Html, getExportModel().toHtml) },
-        Item("Nested Graph in .dot from Editor", VK_2, VK_2, ALT) { doExport(ExportType.NestedGraph, getExportModel().toGraph) },
-        Item("Latex in .tex from Editor", VK_3, VK_3, ALT) { log("TODO Export -> Latex") },
-        Item("Path Table in .csv from Editor", VK_4, VK_4, ALT) { log("TODO Export -> Path Table") },
-        Item("Scala from Editor", VK_5, VK_5, ALT) { log("TODO Export -> As Scala") },
+        Item("Web Page in .html", VK_1, VK_1, ALT) { doExport(ExportType.Html, getExportModel().toHtml) },
+        Item("Nested Graph in .dot", VK_2, VK_2, ALT) { doExport(ExportType.NestedGraph, getExportModel().toGraph) },
+        Item("Document in .tex", VK_3, VK_3, ALT) { log("TODO Export -> Latex") },
+        Item("Path Table in .csv", VK_4, VK_4, ALT) { log("TODO Export -> Path Table") },
+        Item("Scala Model in .scala", VK_5, VK_5, ALT) { log("TODO Export -> As Scala") },
       ),
       Menu("Templates", mnemonic = VK_M, (Seq(
         MenuRadioGroup("modelToEditorToggle", Map[String, () => Unit](
