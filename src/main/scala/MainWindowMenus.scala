@@ -87,9 +87,9 @@ trait MainWindowMenus:
       ),
       Menu("Export", mnemonic = VK_X,
         MenuRadioGroup("exportSourceToggle", Map[String, () => Unit](
-          "Export From Editor" -> ( () => { exportSource = ExportSource.Editor} ),
-          "Export From Model"  -> ( () => { exportSource = ExportSource.Tree} )
-        ), default = "Export From Editor"),
+          "Export Editor" -> ( () => { exportSource = ExportSource.Editor} ),
+          "Export Tree"  -> ( () => { exportSource = ExportSource.Tree} )
+        ), default = "Export Editor"),
         MenuSeparator,
         Item("Web page in .html from Editor", VK_1, VK_1, ALT) { doExport(ExportType.Html, getExportModel().toHtml) },
         Item("Nested Graph in .dot from Editor", VK_2, VK_2, ALT) { doExport(ExportType.NestedGraph, getExportModel().toGraph) },
