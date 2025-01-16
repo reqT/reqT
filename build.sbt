@@ -1,4 +1,4 @@
-lazy val reqTVer      = "4.0.0-RC1"
+lazy val reqTVer      = "4.0.0-RC2"
 lazy val reqTJarName  = s"reqT-$reqTVer.jar"
 
 lazy val reqTLangVer  = "4.3.2" // https://github.com/reqT/reqT-lang/releases
