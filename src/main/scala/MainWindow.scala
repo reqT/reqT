@@ -583,24 +583,51 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
     val txt = Option(textArea.getText()).getOrElse("")
     addMessage(txt.toModel.show.toString)
 
-  def doExport(fileType: String, stringToExport: => String) = runInSwingThread:
-    for f <- SwingPlatform.chooseFile(preselected = filePath.newFileType(fileType), action = s"Export $fileType") do
-      log(s"Attempting to Export Editor to $f")
+  enum ExportType(val fileType: String): 
+    case Html extends ExportType(".html")
+    case NestedGraph extends ExportType(".dot")
+    case Latex extends ExportType(".tex")
+  
+  enum ExportSource { case Editor, Tree }
+  var exportSource = ExportSource.Editor
+  def getExportModel(): Model = exportSource match
+    case ExportSource.Editor => textArea.getText().toModel
+    case ExportSource.Tree => createModelFromTreeNode(top)
+  
+  
+  def doExport(et: ExportType, sourceCode: => String) = runInSwingThread:
+    for f <- SwingPlatform.chooseFile(preselected = filePath.newFileType(et.fileType), action = s"Export $et") do
+      log(s"Attempting to Export from $exportSource as $et to $f")
       val jf = java.io.File(f)
       val ok = if !jf.exists() then true else isOK(s"File $jf exist. Do you want to replace it?")
-      if ok then 
-        stringToExport.saveTo(f)
+      if !ok then log(s"Nothing saved.") else
+        sourceCode.saveTo(f)
         updateFileName(jf.getName)
-        log(s"Saved to ${jf.getAbsolutePath()}")
-        didSaveTree()
-        fileType match
-          case ".html" => log(s"TODO: open page in browser") 
-          case ".dot" => log(s"TODO: check if graphviz is installed and generate pdf") 
-          case ".tex" => log(s"TODO: check if pdflatex is installed and generate pdf") 
-          case _ => log("TODO: open file in desktop application if possible after asking")
+        val p = jf.getAbsolutePath()
+        log(s"Exported to $p")
+
+        //Post-processing + Desktop Open:
+        et match
+          case ExportType.Html => 
+            log(s"""reqT.Sys.desktopOpen("$jf")""") 
+            Sys.desktopOpen(jf)
+
+          case ExportType.NestedGraph => 
+            if !Sys.isDotInstalled then 
+              log(s"WARNING: Cannot find dot on your path.")
+              log(s"Install Graphviz from here: https://graphviz.org/")
+              log(s"""reqT.Sys.desktopOpen("$jf")""") 
+              Sys.desktopOpen(jf)
+            else
+              val cmd = Sys.dotCmd(p, format = "pdf")
+              log(s"reqT.Sys.runCmd($cmd)")
+              Sys.runCmd(cmd)
+              log(s"""reqT.Sys.desktopOpen(p.newFileType(".pdf"))""")
+              Sys.desktopOpen(p.newFileType(".pdf"))
+          
+          case ExportType.Latex => 
+            log(s"TODO: check if pdflatex is installed and generate pdf") 
         
-      else  
-        log(s"Nothing saved.")
 
   
   enum ToEditorFromTree { case Replace, Append, Insert }

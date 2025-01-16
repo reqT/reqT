@@ -86,8 +86,13 @@ trait MainWindowMenus:
         // Item("Tool11", VK_1, VK_1, CTRL+SHIFT) { log("TODO TOOL 11") },
       ),
       Menu("Export", mnemonic = VK_X,
-        Item("Web page in .html from Editor", VK_1, VK_1, ALT) { doExport(".html", textArea.getText().toModel.toHtml) },
-        Item("Graphviz in .dot from Editor", VK_2, VK_2, ALT) { doExport(".dot", textArea.getText().toModel.toGraph) },
+        MenuRadioGroup("exportSourceToggle", Map[String, () => Unit](
+          "Export From Editor" -> ( () => { exportSource = ExportSource.Editor} ),
+          "Export From Model"  -> ( () => { exportSource = ExportSource.Tree} )
+        ), default = "Export From Editor"),
+        MenuSeparator,
+        Item("Web page in .html from Editor", VK_1, VK_1, ALT) { doExport(ExportType.Html, getExportModel().toHtml) },
+        Item("Nested Graph in .dot from Editor", VK_2, VK_2, ALT) { doExport(ExportType.NestedGraph, getExportModel().toGraph) },
         Item("Latex in .tex from Editor", VK_3, VK_3, ALT) { log("TODO Export -> Latex") },
         Item("Path Table in .csv from Editor", VK_4, VK_4, ALT) { log("TODO Export -> Path Table") },
         Item("Scala from Editor", VK_5, VK_5, ALT) { log("TODO Export -> As Scala") },
