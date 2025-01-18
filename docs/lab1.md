@@ -26,7 +26,7 @@ To complete this lab you should develop a requirements model using [reqT](https:
 
 * Make sure you have [Java 21](https://adoptium.net/temurin/releases/?package=jdk&version=21) and [Scala 3](https://www.scala-lang.org/download/) installed for your system. Check this in terminal using:</br>`java -version`</br>`scala -version`
 
-* Make sure you can launch the [reqT Desktop app](https://github.com/reqT/reqT/releases/latest/download/reqT.jar) in terminal using: `java -jar reqT.jar`
+* Make sure you can launch the reqT Desktop app in terminal using: `java -jar reqT.jar`
 
 * Study the slides of lectures [L1-L4](http://cs.lth.se/krav/lectures/), and the [reqT tutorial](http://fileadmin.cs.lth.se/krav/reqT-tutorial.pdf).
 
@@ -38,9 +38,19 @@ To complete this lab you should develop a requirements model using [reqT](https:
         * What are the differences between an entity and an attribute?
         * What can be connected with a relation?
 
-## Task 1: Create a `context` section
+## Task 1: Investigate the reqT Desktop app GUI
 
 * Launch the reqT Desktop app.
+
+* Study the help text in the **Log** pane.
+
+* Check out the items of each menu and their keyboard shortcuts. You can open the **File** menu with `Alt+F` and then navigate through the menus using the arrow keys. You can see the `Alt`-key shortcut of each menu by its underscored letter.
+  * The left pane is connected to the **File** menu. 
+  * The middle pane is connected to the **Editor** menu. 
+  * The right pane is connected to the **Log** menu.
+
+
+## Task 2: Create a `context` section
 
 * In the **Editor** pane: create a reqT Model of your project context diagram from your lab preparations in Task 0 above, using reqT. Use entities in a similar way as in the example below.
 
@@ -63,9 +73,9 @@ To complete this lab you should develop a requirements model using [reqT](https:
 
 * *Optional*. Study the template *"Context diagram with interfaces"* in the **Templates** menu and make a more detailed context diagram of your project including a model of interfaces with input/output data.
 
-## Task 2: Create a `features` section  
+## Task 3: Create a `features` section  
 
-* Add a `Section: features` to your model and include your feature according to the following example. Each feature should have a short identifier (id) that use camel case capitalization. Place your feature description in a `Gist` attribute. If you type `Gist ?` in the reqT terminal you can see an explanation/definition of what a `Gist` attribute is.
+* Add a `Section: features` to your model and include your features according to the following example. Each feature should have a short id that use camel case capitalization. Place your feature description in a `Gist` attribute. 
 
 ```
 * Section: features has
@@ -77,7 +87,9 @@ To complete this lab you should develop a requirements model using [reqT](https:
     * Gist: Many guest arriving simultaneously can be checked in as a group.
 ```
 
-## Task 3: Prioritize your features
+* Make sure that you understand how to transfer Model parts back and forth between the independent **Tree** and **Editor** panes using keyboard shortcuts.
+
+## Task 4: Prioritize your features
 
 * Ordinal-scale prioritization: par-wise comparison
 
@@ -107,7 +119,7 @@ To complete this lab you should develop a requirements model using [reqT](https:
 
     * Adapt the script from the previous step to include fake estimations of benefits of features from your project from the viewpoint of two different stakeholders. Then insert a section with weighted benefits into your tree.
 
-## Task 4 (Optional): Create a web page from your model
+## Task 5 (Optional): Create a web page from your model
 
 Do this optional task if you still have time left at the lab session.
 
@@ -122,7 +134,7 @@ Do this optional task if you still have time left at the lab session.
 * Now include an `Image` attribute in your reqt model similar to `Image("file:ctx.jpg")` with a link to your context diagram drawing from Task 1, and reqT will then insert that link  in your html code when you export to html. Re-load `index.html` in your browser and see the image inserted into you model.
 
 
-## Task 5 (Optional): Dig deeper into reqT
+## Task 6 (Optional): Dig deeper into reqT
 
 Do this optional task if you still have time left at the lab session.
 

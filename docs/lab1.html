@@ -18,7 +18,7 @@
 <li><p>Select around 5 to 10 high-level features from your project and for each feature create a short description of one line of text.</p></li>
 <li><p>Name at least 2 user roles (actors) from your project.</p></li>
 <li><p>Make sure you have <a href="https://adoptium.net/temurin/releases/?package=jdk&amp;version=21">Java 21</a> and <a href="https://www.scala-lang.org/download/">Scala 3</a> installed for your system. Check this in terminal using:</br><code>java -version</code></br><code>scala -version</code></p></li>
-<li><p>Make sure you can launch the <a href="https://github.com/reqT/reqT/releases/latest/download/reqT.jar">reqT Desktop app</a> in terminal using: <code>java -jar reqT.jar</code></p></li>
+<li><p>Make sure you can launch the reqT Desktop app in terminal using: <code>java -jar reqT.jar</code></p></li>
 <li><p>Study the slides of lectures <a href="http://cs.lth.se/krav/lectures/">L1-L4</a>, and the <a href="http://fileadmin.cs.lth.se/krav/reqT-tutorial.pdf">reqT tutorial</a>.</p></li>
 <li><p>Study the <a href="https://github.com/reqT/reqT-lang/releases/latest/download/reqT-quickref-GENERATED.pdf">reqT cheat sheet</a></p></li>
 <li>At the beginning of the lab session be prepared to:
@@ -31,10 +31,18 @@
 </ul></li>
 </ul></li>
 </ul>
-<h2 id="task-1-create-a-context-section">Task 1: Create a <code>context</code> section</h2>
+<h2 id="task-1-investigate-the-reqt-desktop-app-gui">Task 1: Investigate the reqT Desktop app GUI</h2>
 <ul>
 <li><p>Launch the reqT Desktop app.</p></li>
-<li><p>In the <strong>Editor</strong> pane: create a reqT Model of your project context diagram from your lab preparations in Task 0 above, using reqT. Use entities in a similar way as in the example below.</p></li>
+<li><p>Study the help text in the <strong>Log</strong> pane.</p></li>
+<li>Check out the items of each menu and their keyboard shortcuts. You can open the <strong>File</strong> menu with <code>Alt+F</code> and then navigate through the menus using the arrow keys. You can see the <code>Alt</code>-key shortcut of each menu by its underscored letter.</li>
+<li>The left pane is connected to the <strong>File</strong> menu.</li>
+<li>The middle pane is connected to the <strong>Editor</strong> menu.</li>
+<li><p>The right pane is connected to the <strong>Log</strong> menu.</p></li>
+</ul>
+<h2 id="task-2-create-a-context-section">Task 2: Create a <code>context</code> section</h2>
+<ul>
+<li>In the <strong>Editor</strong> pane: create a reqT Model of your project context diagram from your lab preparations in Task 0 above, using reqT. Use entities in a similar way as in the example below.</li>
 </ul>
 <pre><code>* Section: context has
   * Product: hotelApp interactsWith
@@ -49,9 +57,9 @@
 <li><p><em>Optional</em>. If you are on a machine with <a href="https://graphviz.org/">Graphviz</a> installed (LTH student computers in the E-building have Graphviz installed), then generate a GraphViz diagram from the <strong>Export</strong> menu.</p></li>
 <li><p><em>Optional</em>. Study the template <em>&quot;Context diagram with interfaces&quot;</em> in the <strong>Templates</strong> menu and make a more detailed context diagram of your project including a model of interfaces with input/output data.</p></li>
 </ul>
-<h2 id="task-2-create-a-features-section">Task 2: Create a <code>features</code> section</h2>
+<h2 id="task-3-create-a-features-section">Task 3: Create a <code>features</code> section</h2>
 <ul>
-<li>Add a <code>Section: features</code> to your model and include your feature according to the following example. Each feature should have a short identifier (id) that use camel case capitalization. Place your feature description in a <code>Gist</code> attribute. If you type <code>Gist ?</code> in the reqT terminal you can see an explanation/definition of what a <code>Gist</code> attribute is.</li>
+<li>Add a <code>Section: features</code> to your model and include your features according to the following example. Each feature should have a short id that use camel case capitalization. Place your feature description in a <code>Gist</code> attribute.</li>
 </ul>
 <pre><code>* Section: features has
   * Feature: checkIn has Gist: Guests can be checked in upon arrival.
@@ -60,7 +68,10 @@
   * Feature: webBooking has Gist: A guest can book a future stay via a web interface.
   * Feature: groupCheckIn has 
     * Gist: Many guest arriving simultaneously can be checked in as a group.</code></pre>
-<h2 id="task-3-prioritize-your-features">Task 3: Prioritize your features</h2>
+<ul>
+<li>Make sure that you understand how to transfer Model parts back and forth between the independent <strong>Tree</strong> and <strong>Editor</strong> panes using keyboard shortcuts.</li>
+</ul>
+<h2 id="task-4-prioritize-your-features">Task 4: Prioritize your features</h2>
 <ul>
 <li><p>Ordinal-scale prioritization: par-wise comparison</p>
 <ul>
@@ -85,7 +96,7 @@
 <li><p>Adapt the script from the previous step to include fake estimations of benefits of features from your project from the viewpoint of two different stakeholders. Then insert a section with weighted benefits into your tree.</p></li>
 </ul></li>
 </ul>
-<h2 id="task-4-optional-create-a-web-page-from-your-model">Task 4 (Optional): Create a web page from your model</h2>
+<h2 id="task-5-optional-create-a-web-page-from-your-model">Task 5 (Optional): Create a web page from your model</h2>
 <p>Do this optional task if you still have time left at the lab session.</p>
 <ul>
 <li><p>If a model has an <strong>Image</strong> attribute with a URL to a jpg-file, you can generate a web page of your model with that image included.</p></li>
@@ -96,7 +107,7 @@
 <li><p>Open the <code>index.html</code> file from within your browser using the <code>File -&gt; Open</code> menu.</p></li>
 <li><p>Now include an <code>Image</code> attribute in your reqt model similar to <code>Image(&quot;file:ctx.jpg&quot;)</code> with a link to your context diagram drawing from Task 1, and reqT will then insert that link in your html code when you export to html. Re-load <code>index.html</code> in your browser and see the image inserted into you model.</p></li>
 </ul>
-<h2 id="task-5-optional-dig-deeper-into-reqt">Task 5 (Optional): Dig deeper into reqT</h2>
+<h2 id="task-6-optional-dig-deeper-into-reqt">Task 6 (Optional): Dig deeper into reqT</h2>
 <p>Do this optional task if you still have time left at the lab session.</p>
 <ul>
 <li>TODO: instructions and pointer to the reqT-lang api and example reqT Scala programs</li>
