@@ -1,36 +1,20 @@
-*TODO THIS IS THE OLD LAB FROM reqT 3.1 AND IT SHOULD BE UPDATED TO reqT 4*
+*UNDER CONSTRUCTION: Updating instructions for the coming release of reqT 4.x*
 
-# Context, Features and Priorities
+# reqT Lab 1: Context, Features and Priorities
 
-This document provides instructions for a mandatory computer lab session in the course ETSN15 "Requirements Engineering" given at Lund University. The source code of this page in markdown is available [here](https://github.com/reqT/reqT/blob/4.x/docs/lab1.md).
+* This page contains instructions for lab1 in the course [ETSN15 "Requirements Engineering"](https://cs.lth.se/krav/) at Lund University. 
+* Before you start: visit https://reqt.github.io/ to download reqT and get started.
+* The source code of this page in markdown is available [here](https://github.com/reqT/reqT/blob/4.x/docs/lab1.md).
 
 ## Goals
 
-To complete this lab you should develop a requirements model using [reqT](https://github.com/reqT/reqT/blob/4.x/README.md). Your requirements model should be based on your course project and it should include the following sections:
+To complete this lab you should develop a requirements model using [reqT](https://reqt.github.io/). Your requirements model should be based on your course project and it should include the following sections:
 
   * A **context** section including a draft product context of your course project with some relevant interfaces to some relevant users. The model does not have to be complete.
 
   * A **features** section with at least 5 high-level features from your course project, each with a descriptive id. Each feature should also have a Gist attribute with a short description of the feature.
 
   * A **priorities** section with priorities for each feature based on the criteria: *which feature is most important to spend more elicitation effort on*.
-
-Example shape of the reqT Model that you will develop during the lab to try out some of the reqT features:
-
-* Section: ctx has
-  * Title: The context of OurThing
-  * Product: OurThing has Gist: describe it
-  * Product: OurThing interactsWith
-    * Actor: User has Gist: describe it
-    * Actor: Admin has Gist: describe it
-    * System: OtherThing has Gist: describe it
-* Section: feats has
-  * Title: High-level features of OurThing
-  * Feature: HelloWorld has 
-    * Gist: describe it
-* Section: prio has
-  * Title: Priorities of selected features
-    * Feature HelloWorld has Prio(1)
-
 
 ## Task 0: Mandatory Preparations
 
@@ -40,24 +24,18 @@ Example shape of the reqT Model that you will develop during the lab to try out 
 
 * Name at least 2 user roles (actors) from your project.
 
-* Make sure you can run reqT in terminal and launch the swing desktop gui.
+* Make sure you have [Java 21](https://adoptium.net/temurin/releases/?package=jdk&version=21) and [Scala 3](https://www.scala-lang.org/download/) installed for your system. Check this in terminal using:</br>`java -version`</br>`scala -version`
 
-    * How to start reqT on the student Linux computers in the E building at LTH: [http://cs.lth.se/krav/reqt](http://cs.lth.se/krav/reqt)
-
-    * How to download and run reqT on your own machine: [http://reqt.org/download.html](http://reqt.org/download.html)
+* Make sure you can launch the [reqT Desktop app](https://github.com/reqT/reqT/releases/latest/download/reqT.jar) in terminal using: `java -jar reqT.jar`
 
 * Study the slides of lectures [L1-L4](http://cs.lth.se/krav/lectures/), and the [reqT tutorial](http://fileadmin.cs.lth.se/krav/reqT-tutorial.pdf).
 
-* Study the [reqT cheat sheet](https://github.com/reqT/reqT/TODO)
+* Study the [reqT cheat sheet](https://github.com/reqT/reqT-lang/releases/latest/download/reqT-quickref-GENERATED.pdf)
 
 * At the beginning of the lab session be prepared to:
-
-    * Show your context diagram and a list of your feature with one-line descriptions and stakeholders.
-
+    * Show your context diagram, list of features with one-line descriptions, and stakeholders.
     * Answer these questions:
-
         * What are the differences between an entity and an attribute?
-
         * What can be connected with a relation?
 
 ## Task 1: Create a `context` section
