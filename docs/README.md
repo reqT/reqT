@@ -6,3 +6,10 @@
 
 * reqT-lang api: TODO
 
+## How to build
+
+In a bash shell on linux with [pandoc](https://pandoc.org/) on path:
+```
+source build-labs-from-md-to-html-using-pandoc.sh
+```
+
