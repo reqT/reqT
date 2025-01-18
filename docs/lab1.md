@@ -3,7 +3,7 @@
 # Context, Features and Priorities
 
 * This page contains instructions for lab1 in the course [ETSN15 "Requirements Engineering"](https://cs.lth.se/krav/) at Lund University. 
-* Before you start: visit https://reqt.github.io/ to download reqT and get started.
+* Before you start: visit [reqt.github.io](https://reqt.github.io/) to download reqT and get started.
 * The source code of this page in markdown is available [here](https://github.com/reqT/reqT/blob/4.x/docs/lab1.md).
 
 ## Lab Goals
