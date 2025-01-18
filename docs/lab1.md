@@ -40,9 +40,9 @@ To complete this lab you should develop a requirements model using [reqT](https:
 
 ## Task 1: Create a `context` section
 
-* Launch reqT and open the swing desktop gui editor with the `edit` command in terminal.
+* Launch the reqT Desktop app.
 
-* Create a textual model of your project context diagram from your lab preparations in Task 0 above, using reqT. Use entities in a similar way as in the example below.
+* In the **Editor** pane: create a reqT Model of your project context diagram from your lab preparations in Task 0 above, using reqT. Use entities in a similar way as in the example below.
 
 ```
 * Section: context has
@@ -53,17 +53,19 @@ To complete this lab you should develop a requirements model using [reqT](https:
     * System: telephony  
 ```
 
+* Replace the top node in the **Tree** with your model from the **Editor**.
+
 * Save your reqT model.
 
 * Export your reqT model as html.
 
-* (Optional.) If you are on a machine with Graphviz installed (LTH computers in the E building has Graphviz installed), then generate a GraphViz diagram by choosing *"To Graphviz .dot nested"* in the **Export** menu. Or else you can draw your context diagram by hand in a drawing program of your choice.
+* *Optional*. If you are on a machine with [Graphviz](https://graphviz.org/) installed (LTH student computers in the E-building have Graphviz installed), then generate a GraphViz diagram from the **Export** menu. 
 
-* (Optional.) Study the template *"Context diagram with interfaces"* in the **Templates** menu and make a more detailed context diagram of your project including a model of interfaces with input/output data.
+* *Optional*. Study the template *"Context diagram with interfaces"* in the **Templates** menu and make a more detailed context diagram of your project including a model of interfaces with input/output data.
 
 ## Task 2: Create a `features` section  
 
-* Add a `Section("features")` to your model and include your feature according to the following example. Each feature should have a short identifier (id) that use camel case capitalization. Place your feature description in a `Gist` attribute. If you type `Gist ?` in the reqT terminal you can see an explanation/definition of what a `Gist` attribute is.
+* Add a `Section: features` to your model and include your feature according to the following example. Each feature should have a short identifier (id) that use camel case capitalization. Place your feature description in a `Gist` attribute. If you type `Gist ?` in the reqT terminal you can see an explanation/definition of what a `Gist` attribute is.
 
 ```
 * Section: features has
@@ -115,8 +117,6 @@ Do this optional task if you still have time left at the lab session.
 
     * You can generate html from your model in the **Tree** pane using the menu **Export** and choosing *"To Html"*.
 
-    * Or you can generate a web page from your current model in the three editor using this command: `currentTree.toHtml.save("index.html")`
-
 * Open the `index.html` file from within your browser using the `File -> Open` menu. 
 
 * Now include an `Image` attribute in your reqt model similar to `Image("file:ctx.jpg")` with a link to your context diagram drawing from Task 1, and reqT will then insert that link  in your html code when you export to html. Re-load `index.html` in your browser and see the image inserted into you model.
@@ -126,5 +126,4 @@ Do this optional task if you still have time left at the lab session.
 
 Do this optional task if you still have time left at the lab session.
 
-* Follow the old, more technically focused, lab instructions from 2017 and learn more about how you can manipulate and analyze reqT models using scripts in Scala. The old lab instructions are available here:
-   [https://github.com/reqT/reqT/blob/3.0.x/doc/lab1/lab1.pdf](https://github.com/reqT/reqT/blob/3.0.x/doc/lab1/lab1.pdf)
+* TODO: instructions and pointer to the reqT-lang api and example reqT Scala programs
