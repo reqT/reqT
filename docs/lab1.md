@@ -52,15 +52,16 @@ To complete this lab you should develop a requirements model using [reqT](https:
 
 ## Task 2: Create a `context` section
 
-* In the **Editor** pane: create a reqT Model of your project context diagram from your lab preparations in Task 0 above, using reqT. Use entities in a similar way as in the example below.
+* In the **Editor** pane: create a reqT Model of your project context diagram from your lab preparations in Task 0 above, using reqT. Use entities in a similar way as in the example in the **Templates** menu item *Context diagram: simple*, also shown below.
 
 ```
+* Title: Context Diagram, simple
 * Section: context has
   * Product: hotelApp interactsWith
-    * Actor: receptionist
-    * Actor: guest
+    * User: receptionist
+    * User: guest
     * System: accounting
-    * System: telephony  
+    * System: telephony 
 ```
 
 * Replace the top node in the **Tree** with your model from the **Editor**.
@@ -69,9 +70,11 @@ To complete this lab you should develop a requirements model using [reqT](https:
 
 * Export your reqT model as html.
 
+* Make sure that you understand how to transfer Model parts back and forth between the independent **Tree** and **Editor** panes.
+
 * *Optional*. If you are on a machine with [Graphviz](https://graphviz.org/) installed (LTH student computers in the E-building have Graphviz installed), then generate a GraphViz diagram from the **Export** menu. 
 
-* *Optional*. Study the template *"Context diagram with interfaces"* in the **Templates** menu and make a more detailed context diagram of your project including a model of interfaces with input/output data.
+* *Optional*. Study the template *"Context diagram: interfaces"* in the **Templates** menu and make a more detailed context diagram of your project including a model of interfaces with input/output data.
 
 ## Task 3: Create a `features` section  
 
@@ -87,25 +90,32 @@ To complete this lab you should develop a requirements model using [reqT](https:
     * Gist: Many guest arriving simultaneously can be checked in as a group.
 ```
 
-* Make sure that you understand how to transfer Model parts back and forth between the independent **Tree** and **Editor** panes using keyboard shortcuts.
+* Append the Section to your Tree.
+
+* Use the menu item *Keep Distinct Entities* in the **Tools** menu. Note that the tools in the Tool menu operate on the contents of the Editor pane.
+
+* Remove the entities that you don't want to include in the prioritization of next step, e.g. you can remove the Section entity.
 
 ## Task 4: Prioritize your features
 
-* Ordinal-scale prioritization: par-wise comparison
+* **Ordinal-scale prioritization using par-wise comparison**:
+    * Make sure you have relevant entities in the Editor pane from the previous step.
 
-    * Select your features section in the Tree pane and choose *Prioritize: compare entities* in the **Tools** menu. You should get a list of id pairs for all combinations of sub-entities of the features section loaded into the editor.
+    * Use the menu item *Id Pairs as Comparison Constraints* in the **Tools** menu to add all pair-wise comparisons on separate lines in a Constraint attribute. 
 
-    * Change all diamonds `<>` to either `<` or `>` depending on your prioritization of the features according to this criteria for each pair of features A and B:
+    * Use the menu item *Solve Comparison Constraint Problem* in the **Tools** menu to find a solution that satisfy all constraints in a consistent ranking in Order attributes.
+
+    * Revisit and change all comparisons to either `<` or `>` depending on your actual prioritization according to this criteria of each pair of entities A and B:
 
         * *A is more/less important to spend more elicitation effort on than B*.
 
-    * Choose *"Prioritize: analyse comparisons"* in the **Tools** menu. You should get a model with priorities calculated as a solution to a constraint problem based on your comparisons. A higher priority value means *more important*. Write down reflections on the result:
+    * Use the menu item *Solve Comparison Constraint Problem* in the **Tools** menu to find a new solution to the updated constraint problem. 
+
+    * Write down reflections on the result:
 
         * Are the priorities reflecting your gut feeling of "importance" according to the prioritization criteria?
 
-        * Were there any circular contradictions among your comparisons? This is shown as a warning in the reqT terminal.
-
-        * Circular contradictions make the constraint problem inconsistent and thus unsolvable, but the constraint solver in reqT does not give up! Instead a *relaxed deviation* `d` is allowed starting with `d = 1` and then retrying with `d += 1` until a solution can be found. This means that each priority rank `r` is representing any value within an error margin `[r - d, r + d]`.
+        * Circular contradictions make the constraint problem inconsistent and thus unsolvable, but the constraint solver in reqT does not give up! Instead a *relaxed deviation error* `d` is allowed starting with `d = 1` and then retrying with `d += 1` until a solution can be found. This means that each priority rank `r` is representing any value within an error margin `[r - d, r + d]`.
 
         * If you had no inconsistencies when solving the constraint problem, then introduce some circular consistency among 3 features just to test what happens.
 
@@ -113,11 +123,21 @@ To complete this lab you should develop a requirements model using [reqT](https:
 
         * Is it easy to be consistent? Discuss the difficulty of making consistent pairwise comparisons as the number of compared objects increase. Discuss if or how the risk of being consistent might depend on the prioritization criteria. Could/should the level of deviation be used as an indicator of the quality of the human judgment?
 
-* Ratio-scale prioritization: the 100-dollar method
+        * *Optional*. Study the source code for ordinal-scale prioritization here: [ `doSolveConstraints()` in the file `MainWindow.scala`](https://github.com/reqT/reqT/blob/4.x/src/main/scala/MainWindow.scala#L486) and try to figure out what happens step-by-step.
 
-    * Choose the template *"Prioritization 100$ method"* from the **Templates** menu. Study the code and try to figure out what it does. Explain how the benefits values of each stakeholder are weighted together to normalized total benefit values. See what happens when you select the Tree root and press `Ctrl+Shift-I` or choose  *"Insert Scala model from Editor after node"* from the **Tree** menu.   
+* **Ratio-scale prioritization using the 100-dollar method**:
 
-    * Adapt the script from the previous step to include fake estimations of benefits of features from your project from the viewpoint of two different stakeholders. Then insert a section with weighted benefits into your tree.
+    * Choose the template *"Prioritization: 100$ test"* from the **Templates** menu. Study the model and explain what it means.
+
+    * Choose menu item *"100$-test Normalized Votes"* from the **Tools** menu to append a calculation of normalized resulting votes. Explain how the calculation is done.
+
+    * Do a similar 100$-test for you own features.
+
+    * Write down reflections on the result:
+      * Was it easy to assign ratio scale priorities?
+      * What are the pros and cons of 100$-test versus ration-scale prioritization?
+    
+    * *Optional*. Study the source code for ratio-scale prioritization [in the `normalizedVotes` method here](https://github.com/reqT/reqT-lang/blob/main/src/main/scala/06-examples.scala#L304) called from [here](https://github.com/reqT/reqT/blob/4.x/src/main/scala/MainWindow.scala#L468) and try to figure out what happens step-by-step. Explain how the benefits values of each stakeholder are weighted together to normalized total benefit values. 
 
 ## Task 5 (Optional): Create a web page from your model
 
