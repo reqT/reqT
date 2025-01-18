@@ -1,6 +1,8 @@
 # reqT Documentation
 
-* reqT api doc: https://fileadmin.cs.lth.se/reqt/api/
+* Documentation: https://reqt.github.io/  
 
-* reqT-lang api doc: TODO
+* reqT api: https://fileadmin.cs.lth.se/reqt/api/
+
+* reqT-lang api: TODO
 
