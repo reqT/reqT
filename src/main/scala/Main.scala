@@ -59,7 +59,7 @@ package reqt:
     end repl 
 
     val scalaVersion = "3.6.3-RC2"
-    val reqTVersion  = "4.0.0-M5"
+    val reqTVersion  = "4.4.0"
 
     /** Main program */
     def main(args: Array[String]): Unit = 

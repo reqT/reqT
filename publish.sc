@@ -25,7 +25,7 @@ println("from build.sbt:")
 println(s"""val reqTVer  = "$reqTVer"""")
 println(s"""val scalaVer = "$scalaVer"""")
 
-println("TODO: Bump versions in Main.scala")
+println(Console.RED_B + "TODO: Bump versions in Main.scala" + Console.RESET)
 
 println("\n*** Step 1: sbt clean; assembly")
 
@@ -39,8 +39,7 @@ val file1 = s"$dir/reqT-$reqTVer.jar"
 val file2 = s"$dir/reqT.jar"
 val copyCmd = Seq("cp", file1, file2)
 printSeq(copyCmd)
-if yes("Do you want to run above cp? (Y/n) ") then
-  os.proc(copyCmd).call(cwd = wd)
+os.proc(copyCmd).call(cwd = wd)
 
 println("\n*** Step 3: publish to github using gh")
 if reqTVer.isEmpty then 
