@@ -65,13 +65,25 @@ To complete this lab you should develop a requirements model using [reqT](https:
     * System: telephony 
 ```
 
-* Replace the top node in the **Tree** with your model from the **Editor**.
+* Replace the top node in the **Tree** with your model from the **Editor**. 
+
+* Make sure that you understand how to transfer Model parts back and forth between the independent **Tree** and **Editor** panes.
 
 * Save your reqT model.
 
 * Export your reqT model as html.
 
-* Make sure that you understand how to transfer Model parts back and forth between the independent **Tree** and **Editor** panes.
+* If a model contains an **Image** entity that has a **Location** attribute with a file name or URL to a file, a link will be included in the generated html code. Include something similar to the below **Image** entity and generate a html page that links to your context diagram figure in png or jpg.
+  ```
+  * Title: Context Diagram, simple
+  * Section: context has
+    * Image: ctxFig has Location: my-file.png
+    * Product: hotelApp interactsWith
+      * User: receptionist
+      * User: guest
+      * System: accounting
+      * System: telephony 
+  ```
 
 * *Optional*. If you are on a machine with [Graphviz](https://graphviz.org/) installed (LTH student computers in the E-building have Graphviz installed), then generate a GraphViz diagram from the **Export** menu. 
 
@@ -144,23 +156,19 @@ To complete this lab you should develop a requirements model using [reqT](https:
     
     * *Optional*. Study the source code for ratio-scale prioritization [in the `normalizedVotes` method here](https://github.com/reqT/reqT-lang/blob/main/src/main/scala/06-examples.scala#L304) called from [here](https://github.com/reqT/reqT/blob/4.x/src/main/scala/MainWindow.scala#L468) and try to figure out what happens step-by-step. Explain how the benefits values of each stakeholder are weighted together to normalized total benefit values. 
 
-## Task 5 (Optional): Create a web page from your model
-
-Do this optional task if you still have time left at the lab session.
-
-* If a model has an **Image** attribute with a URL to a jpg-file, you can generate a web page of your model with that image included.
-
-* Save your model as a web page in a file called `index.html`.
-
-    * You can generate html from your model in the **Tree** pane using the menu **Export** and choosing *"To Html"*.
-
-* Open the `index.html` file from within your browser using the `File -> Open` menu. 
-
-* Now include an `Image` attribute in your reqt model similar to `Image("file:ctx.jpg")` with a link to your context diagram drawing from Task 1, and reqT will then insert that link  in your html code when you export to html. Re-load `index.html` in your browser and see the image inserted into you model.
-
 
 ## Task 6 (Optional): Dig deeper into reqT
 
 Do this optional task if you still have time left at the lab session.
 
-* TODO: instructions and pointer to the reqT-lang api and example reqT Scala programs
+* Download [hello-reqt.scala](https://github.com/reqT/reqT.github.io/blob/master/src/hello-reqt.scala) and place it in a suitable folder.
+
+* Open a terminal and navigate to the folder with the scala program and run it with: `scala run .`
+
+* Open the program in [vscode](https://code.visualstudio.com/) with the [Scala Metals extension](https://marketplace.visualstudio.com/items?itemName=scalameta.metals)
+
+* Run the `hello-reqt.scala` program from within vscode.
+
+* Study the code of `reqt.Model` companion and members here: https://github.com/reqT/reqT-lang/blob/main/src/main/scala/
+
+* Try out some methods on Model by editing your scala program. 

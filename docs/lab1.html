@@ -2,11 +2,11 @@
 <h1 id="context-features-and-priorities">Context, Features and Priorities</h1>
 <ul>
 <li>This page contains instructions for lab1 in the course <a href="https://cs.lth.se/krav/">ETSN15 &quot;Requirements Engineering&quot;</a> at Lund University.</li>
-<li>Before you start: visit <a href="https://reqt.github.io/">reqt.github.io</a> to download reqT and get started.</li>
-<li>The source code of this page in markdown is available <a href="https://github.com/reqT/reqT/blob/4.x/docs/lab1.md">here</a>.</li>
+<li>Before you start, visit <a href="https://reqt.github.io/">reqt.github.io</a> to download reqT and get started.</li>
+<li>The source code of this page is available <a href="https://github.com/reqT/reqT/blob/4.x/docs/lab1.md">here</a>.</li>
 </ul>
 <h2 id="lab-goals">Lab Goals</h2>
-<p>To complete this lab you should develop a requirements model using <a href="https://reqt.github.io/">reqT</a>. Your requirements model should be based on your course project and it should include the following sections:</p>
+<p>To complete this lab you should develop a requirements model using <a href="https://reqt.github.io/">reqT</a>. Your model should be based on your course project and should include the following sections:</p>
 <ul>
 <li><p>A <strong>context</strong> section including a draft product context of your course project with some relevant interfaces to some relevant users. The model does not have to be complete.</p></li>
 <li><p>A <strong>features</strong> section with at least 5 high-level features from your course project, each with a descriptive id. Each feature should also have a Gist attribute with a short description of the feature.</p></li>
@@ -21,14 +21,13 @@
 <li><p>Make sure you can launch the reqT Desktop app in terminal using: <code>java -jar reqT.jar</code></p></li>
 <li><p>Study the slides of lectures <a href="http://cs.lth.se/krav/lectures/">L1-L4</a>, and the <a href="http://fileadmin.cs.lth.se/krav/reqT-tutorial.pdf">reqT tutorial</a>.</p></li>
 <li><p>Study the <a href="https://github.com/reqT/reqT-lang/releases/latest/download/reqT-quickref-GENERATED.pdf">reqT cheat sheet</a></p></li>
-<li>At the beginning of the lab session be prepared to:
-<ul>
+<li>At the beginning of the lab session be prepared to:</li>
 <li>Show your context diagram, list of features with one-line descriptions, and stakeholders.</li>
 <li>Answer these questions:
 <ul>
-<li>What are the differences between an entity and an attribute?</li>
-<li>What can be connected with a relation?</li>
-</ul></li>
+<li>What are the differences between an entity <code>Ent</code> and an attribute <code>Attr</code>?</li>
+<li>What types of instances be connected with a <code>Rel</code> instance?</li>
+<li>What makes <code>Model</code> a recursive data structure?</li>
 </ul></li>
 </ul>
 <h2 id="task-1-investigate-the-reqt-desktop-app-gui">Task 1: Investigate the reqT Desktop app GUI</h2>
@@ -53,9 +52,20 @@
     * System: telephony </code></pre>
 <ul>
 <li><p>Replace the top node in the <strong>Tree</strong> with your model from the <strong>Editor</strong>.</p></li>
+<li><p>Make sure that you understand how to transfer Model parts back and forth between the independent <strong>Tree</strong> and <strong>Editor</strong> panes.</p></li>
 <li><p>Save your reqT model.</p></li>
 <li><p>Export your reqT model as html.</p></li>
-<li><p>Make sure that you understand how to transfer Model parts back and forth between the independent <strong>Tree</strong> and <strong>Editor</strong> panes.</p></li>
+<li>If a model contains an <strong>Image</strong> entity that has a <strong>Location</strong> attribute with a file name or URL to a file, a link will be included in the generated html code. Include something similar to the below <strong>Image</strong> entity and generate a html page that links to your context diagram figure in png or jpg. ```</li>
+<li>Title: Context Diagram, simple</li>
+<li>Section: context has
+<ul>
+<li>Image: ctxFig has Location: my-file.png</li>
+<li>Product: hotelApp interactsWith</li>
+<li>User: receptionist</li>
+<li>User: guest</li>
+<li>System: accounting</li>
+<li>System: telephony ```</li>
+</ul></li>
 <li><p><em>Optional</em>. If you are on a machine with <a href="https://graphviz.org/">Graphviz</a> installed (LTH student computers in the E-building have Graphviz installed), then generate a GraphViz diagram from the <strong>Export</strong> menu.</p></li>
 <li><p><em>Optional</em>. Study the template <em>&quot;Context diagram: interfaces&quot;</em> in the <strong>Templates</strong> menu and make a more detailed context diagram of your project including a model of interfaces with input/output data.</p></li>
 </ul>
@@ -64,14 +74,18 @@
 <li>Add a <code>Section: features</code> to your model and include your features according to the following example. Each feature should have a short id that use camel case capitalization. Place your feature description in a <code>Gist</code> attribute.</li>
 </ul>
 <pre><code>* Section: features has
-  * Feature: checkIn has Gist: Guests can be checked in upon arrival.
-  * Feature: checkOut has Gist: Guests can be checked out after paying and leaving.
-  * Feature: roomSearch has Gist: Receptionists can find available rooms based on search criteria.
-  * Feature: webBooking has Gist: A guest can book a future stay via a web interface.
+  * Feature: checkIn has 
+    * Gist: Guests can be checked in upon arrival.
+  * Feature: checkOut has 
+    * Gist: Guests can be checked out after paying and leaving.
+  * Feature: roomSearch has 
+    * Gist: Receptionists can find available rooms based on search criteria.
+  * Feature: webBooking has 
+    * Gist: A guest can book a future stay via a web interface.
   * Feature: groupCheckIn has 
     * Gist: Many guest arriving simultaneously can be checked in as a group.</code></pre>
 <ul>
-<li><p>Append the Section to your Tree.</p></li>
+<li><p>Append the Section to your Tree. Select different Model unparsing using the</p></li>
 <li><p>Use the menu item <em>Keep Distinct Entities</em> in the <strong>Tools</strong> menu. Note that the tools in the Tool menu operate on the contents of the Editor pane.</p></li>
 <li><p>Remove the entities that you don't want to include in the prioritization of next step, e.g. you can remove the Section entity.</p></li>
 </ul>
@@ -108,19 +122,13 @@
 <li><p><em>Optional</em>. Study the source code for ratio-scale prioritization <a href="https://github.com/reqT/reqT-lang/blob/main/src/main/scala/06-examples.scala#L304">in the <code>normalizedVotes</code> method here</a> called from <a href="https://github.com/reqT/reqT/blob/4.x/src/main/scala/MainWindow.scala#L468">here</a> and try to figure out what happens step-by-step. Explain how the benefits values of each stakeholder are weighted together to normalized total benefit values.</p></li>
 </ul></li>
 </ul>
-<h2 id="task-5-optional-create-a-web-page-from-your-model">Task 5 (Optional): Create a web page from your model</h2>
-<p>Do this optional task if you still have time left at the lab session.</p>
-<ul>
-<li><p>If a model has an <strong>Image</strong> attribute with a URL to a jpg-file, you can generate a web page of your model with that image included.</p></li>
-<li><p>Save your model as a web page in a file called <code>index.html</code>.</p>
-<ul>
-<li>You can generate html from your model in the <strong>Tree</strong> pane using the menu <strong>Export</strong> and choosing <em>&quot;To Html&quot;</em>.</li>
-</ul></li>
-<li><p>Open the <code>index.html</code> file from within your browser using the <code>File -&gt; Open</code> menu.</p></li>
-<li><p>Now include an <code>Image</code> attribute in your reqt model similar to <code>Image(&quot;file:ctx.jpg&quot;)</code> with a link to your context diagram drawing from Task 1, and reqT will then insert that link in your html code when you export to html. Re-load <code>index.html</code> in your browser and see the image inserted into you model.</p></li>
-</ul>
 <h2 id="task-6-optional-dig-deeper-into-reqt">Task 6 (Optional): Dig deeper into reqT</h2>
 <p>Do this optional task if you still have time left at the lab session.</p>
 <ul>
-<li>TODO: instructions and pointer to the reqT-lang api and example reqT Scala programs</li>
+<li><p>Download <a href="https://github.com/reqT/reqT.github.io/blob/master/src/hello-reqt.scala">hello-reqt.scala</a> and place it in a suitable folder.</p></li>
+<li><p>Open a terminal and navigate to the folder with the scala program and run it with: <code>scala run .</code></p></li>
+<li><p>Open the program in <a href="https://code.visualstudio.com/">vscode</a> with the <a href="https://marketplace.visualstudio.com/items?itemName=scalameta.metals">Scala Metals extension</a></p></li>
+<li><p>Run the <code>hello-reqt.scala</code> program from within vscode.</p></li>
+<li><p>Study the code of <code>reqt.Model</code> companion and members here: https://github.com/reqT/reqT-lang/blob/main/src/main/scala/</p></li>
+<li><p>Try out some methods on Model by editing your scala program.</p></li>
 </ul>
