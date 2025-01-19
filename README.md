@@ -20,14 +20,14 @@
 
 ### Download
 
-* Download the latest `reqT.jar` from https://github.com/reqT/reqT/releases by clicking on the jar file under "Assets" or by using the terminal command below for your system (update to latest version):
+* Download the latest `reqT.jar` from https://github.com/reqT/reqT/releases by clicking on the jar file under "Assets". or by using the terminal command below for your system (update to latest version):
   * Linux:
     ```
-    wget https://github.com/reqT/reqT/releases/download/4.0.0-M3/reqT.jar
+    wget https://github.com/reqT/reqT/releases/latest/download/reqT.jar
     ```
   * Windows Powershell:
     ```
-    curl -Uri "https://github.com/reqT/reqT/releases/download/4.0.0-M3/reqT.jar" -OutFile reqT.jar
+    curl -Uri "https://github.com/reqT/reqT/releases/latest/download/reqT.jar" -OutFile reqT.jar
     ```
   * MacOS:
     ```
@@ -39,18 +39,9 @@
     
       java -jar reqT.jar
 
-* If `java` is missing on your system then install Java JDK LTS from here: https://adoptium.net 
-  * Java JDK version 21 is recommended.
- 
-  * The reqT jar-file is built with Java 17 but later LTS versions may also work. If you experience problems then revert to Java JDK version 17.
-
 ### Run shell
 
-* Run reqT in the Scala repl with:
-    
-      java --jar reqT.jar repl
-
-  or use `scala repl --jar reqT.jar`
+* Run reqT in the Scala repl with `scala repl --jar reqT.jar`
 
 * If `scala` is missing on your system then install it from here: https://www.scala-lang.org/
 
