@@ -89,7 +89,7 @@ object MainWindow:
         |CTRL+PAGE UP/DOWN Scroll focused pane top/bottom.
         |CTRL+DEL Delete from cursor to end of line.
         |
-        |The syntax is based om bullet lists,
+        |The syntax is based on bullet lists,
         |with asterisk followed by entity or attribute.
         |Indent when relations connect sub-elements.
         |Colons are optional.
