@@ -3,12 +3,12 @@
 # Context, Features and Priorities
 
 * This page contains instructions for lab1 in the course [ETSN15 "Requirements Engineering"](https://cs.lth.se/krav/) at Lund University. 
-* Before you start: visit [reqt.github.io](https://reqt.github.io/) to download reqT and get started.
-* The source code of this page in markdown is available [here](https://github.com/reqT/reqT/blob/4.x/docs/lab1.md).
+* Before you start, visit [reqt.github.io](https://reqt.github.io/) to download reqT and get started.
+* The source code of this page is available [here](https://github.com/reqT/reqT/blob/4.x/docs/lab1.md).
 
 ## Lab Goals
 
-To complete this lab you should develop a requirements model using [reqT](https://reqt.github.io/). Your requirements model should be based on your course project and it should include the following sections:
+To complete this lab you should develop a requirements model using [reqT](https://reqt.github.io/). Your model should be based on your course project and should include the following sections:
 
   * A **context** section including a draft product context of your course project with some relevant interfaces to some relevant users. The model does not have to be complete.
 
@@ -33,10 +33,11 @@ To complete this lab you should develop a requirements model using [reqT](https:
 * Study the [reqT cheat sheet](https://github.com/reqT/reqT-lang/releases/latest/download/reqT-quickref-GENERATED.pdf)
 
 * At the beginning of the lab session be prepared to:
-    * Show your context diagram, list of features with one-line descriptions, and stakeholders.
-    * Answer these questions:
-        * What are the differences between an entity and an attribute?
-        * What can be connected with a relation?
+  * Show your context diagram, list of features with one-line descriptions, and stakeholders.
+  * Answer these questions:
+      * What are the differences between an entity `Ent` and an attribute `Attr`?
+      * What types of instances be connected with a `Rel` instance?
+      * What makes `Model` a recursive data structure?
 
 ## Task 1: Investigate the reqT Desktop app GUI
 
@@ -82,15 +83,19 @@ To complete this lab you should develop a requirements model using [reqT](https:
 
 ```
 * Section: features has
-  * Feature: checkIn has Gist: Guests can be checked in upon arrival.
-  * Feature: checkOut has Gist: Guests can be checked out after paying and leaving.
-  * Feature: roomSearch has Gist: Receptionists can find available rooms based on search criteria.
-  * Feature: webBooking has Gist: A guest can book a future stay via a web interface.
+  * Feature: checkIn has 
+    * Gist: Guests can be checked in upon arrival.
+  * Feature: checkOut has 
+    * Gist: Guests can be checked out after paying and leaving.
+  * Feature: roomSearch has 
+    * Gist: Receptionists can find available rooms based on search criteria.
+  * Feature: webBooking has 
+    * Gist: A guest can book a future stay via a web interface.
   * Feature: groupCheckIn has 
     * Gist: Many guest arriving simultaneously can be checked in as a group.
 ```
 
-* Append the Section to your Tree.
+* Append the Section to your Tree. Select different Model unparsing using the
 
 * Use the menu item *Keep Distinct Entities* in the **Tools** menu. Note that the tools in the Tool menu operate on the contents of the Editor pane.
 
