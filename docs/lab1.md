@@ -1,5 +1,3 @@
-*UNDER CONSTRUCTION: Updating instructions for the coming release of reqT 4.x*
-
 # Context, Features and Priorities
 
 * This page contains instructions for lab1 in the course [ETSN15 "Requirements Engineering"](https://cs.lth.se/krav/) at Lund University. 
