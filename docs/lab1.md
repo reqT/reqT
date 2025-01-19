@@ -155,7 +155,7 @@ To complete this lab you should develop a requirements model using [reqT](https:
     * *Optional*. Study the source code for ratio-scale prioritization [in the `normalizedVotes` method here](https://github.com/reqT/reqT-lang/blob/main/src/main/scala/06-examples.scala#L304) called from [here](https://github.com/reqT/reqT/blob/4.x/src/main/scala/MainWindow.scala#L468) and try to figure out what happens step-by-step. Explain how the benefits values of each stakeholder are weighted together to normalized total benefit values. 
 
 
-## Task 6 (Optional): Dig deeper into reqT
+## Task 5 (Optional): Dig deeper into reqT
 
 Do this optional task if you still have time left at the lab session.
 
