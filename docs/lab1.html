@@ -115,10 +115,20 @@
 <li><p>Choose the template <em>&quot;Prioritization: 100$ test&quot;</em> from the <strong>Templates</strong> menu. Study the model and explain what it means.</p></li>
 <li><p>Choose menu item <em>&quot;100$-test Normalized Votes&quot;</em> from the <strong>Tools</strong> menu to append a calculation of normalized resulting votes. Explain how the calculation is done.</p></li>
 <li><p>Do a similar 100$-test for you own features.</p></li>
-<li>Write down reflections on the result:</li>
+<li>Write down reflections on the result:
+<ul>
 <li>Was it easy to assign ratio scale priorities?</li>
-<li><p>What are the pros and cons of 100$-test versus ration-scale prioritization?</p></li>
+</ul></li>
 <li><p><em>Optional</em>. Study the source code for ratio-scale prioritization <a href="https://github.com/reqT/reqT-lang/blob/main/src/main/scala/06-examples.scala#L304">in the <code>normalizedVotes</code> method here</a> called from <a href="https://github.com/reqT/reqT/blob/4.x/src/main/scala/MainWindow.scala#L468">here</a> and try to figure out what happens step-by-step. Explain how the benefits values of each stakeholder are weighted together to normalized total benefit values.</p></li>
+</ul></li>
+<li><p><strong>Ordinal-scale prioritization using sorting</strong>:</p>
+<ul>
+<li><p>Use <em>Tools -&gt; Keep Distinct Entities</em> and keep the entities you want to prioritize.</p></li>
+<li><p>Use the ALT+ARROW_UP and ALT+ARROW_DOWN keys to sort your entities in priority order by moving each up and down to reflect what you think is most important according to a specific criteria.</p></li>
+<li><p>Use <em>Tool -&gt; Entity order i Ordering</em> to append your priorities.</p></li>
+<li>Write down reflections on the result:</li>
+<li>Was it easy to assign ordinal scale priorities?</li>
+<li><p>What are the pros and cons of ratio-scale 100$-test versus ordinal-scale prioritization with pairwise comparison versus ordinal scale prioritization with sorting?</p></li>
 </ul></li>
 </ul>
 <h2 id="task-5-optional-dig-deeper-into-reqt">Task 5 (Optional): Dig deeper into reqT</h2>
@@ -128,6 +138,6 @@
 <li><p>Open a terminal and navigate to the folder with the scala program and run it with: <code>scala run .</code></p></li>
 <li><p>Open the program in <a href="https://code.visualstudio.com/">vscode</a> with the <a href="https://marketplace.visualstudio.com/items?itemName=scalameta.metals">Scala Metals extension</a></p></li>
 <li><p>Run the <code>hello-reqt.scala</code> program from within vscode.</p></li>
-<li><p>Study the code of <code>reqt.Model</code> companion and members here: https://github.com/reqT/reqT-lang/blob/main/src/main/scala/</p></li>
-<li><p>Try out some methods on Model by editing your scala program.</p></li>
+<li><p>Study the code of <code>reqt.Model</code> companion and members <a href="https://github.com/reqT/reqT-lang/blob/main/src/main/scala/">here</a></p></li>
+<li><p>Try out some methods on Model by developing and running your scala program in vscode.</p></li>
 </ul>

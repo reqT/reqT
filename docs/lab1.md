@@ -149,10 +149,21 @@ To complete this lab you should develop a requirements model using [reqT](https:
     * Do a similar 100$-test for you own features.
 
     * Write down reflections on the result:
-      * Was it easy to assign ratio scale priorities?
-      * What are the pros and cons of 100$-test versus ration-scale prioritization?
+        * Was it easy to assign ratio scale priorities?
     
     * *Optional*. Study the source code for ratio-scale prioritization [in the `normalizedVotes` method here](https://github.com/reqT/reqT-lang/blob/main/src/main/scala/06-examples.scala#L304) called from [here](https://github.com/reqT/reqT/blob/4.x/src/main/scala/MainWindow.scala#L468) and try to figure out what happens step-by-step. Explain how the benefits values of each stakeholder are weighted together to normalized total benefit values. 
+
+* **Ordinal-scale prioritization using sorting**:
+
+    * Use *Tools -> Keep Distinct Entities* and keep the entities you want to prioritize.
+
+    * Use the ALT+ARROW_UP and ALT+ARROW_DOWN keys to sort your entities in priority order by moving each up and down to reflect what you think is most important according to a specific criteria.
+
+    * Use *Tool -> Entity order i Ordering* to append your priorities.
+
+    * Write down reflections on the result:
+      * Was it easy to assign ordinal scale priorities?
+      * What are the pros and cons of ratio-scale 100$-test versus ordinal-scale prioritization with pairwise comparison versus ordinal scale prioritization with sorting?
 
 
 ## Task 5 (Optional): Dig deeper into reqT
@@ -167,6 +178,6 @@ Do this optional task if you still have time left at the lab session.
 
 * Run the `hello-reqt.scala` program from within vscode.
 
-* Study the code of `reqt.Model` companion and members here: https://github.com/reqT/reqT-lang/blob/main/src/main/scala/
+* Study the code of `reqt.Model` companion and members [here](https://github.com/reqT/reqT-lang/blob/main/src/main/scala/)
 
-* Try out some methods on Model by editing your scala program. 
+* Try out some methods on Model by developing and running your scala program in vscode. 
