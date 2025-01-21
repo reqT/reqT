@@ -70,32 +70,15 @@ package reqt:
         case "quiz" => quizGame()
         case _ => println(s"Unknown args: ${args.mkString(",")}")
 
-    object quiz:    //TODO: move non-interactive part of quiz to reqT-lang and make a double release
+    object quizGame:    //TODO: move non-interactive part of quiz to reqT-lang and make a double release
       val n = 5
 
       var N = 0
 
-      def selectRandom(pairs: Seq[(String, String)]) = util.Random.shuffle(pairs).take(n).zipWithIndex.toVector
-
       def ask() = 
         N += 1
 
-        val selected: Seq[((String, String), Int)] = selectRandom(meta.entityConcepts)
-
-        val secondShuffle: Seq[(String, Int, String)] = 
-          val xs = util.Random.shuffle: 
-            selected.map((p, i) => p._1 -> i)
-          (0 until xs.length).map(i => (xs(i)._1, xs(i)._2, selected(i)._1._2))
-
-        extension (i: Int) def toChoice: Char = ('a' + i).toChar
-
-        val correct = secondShuffle.map(_._2.toChoice)
-
-        val pad = secondShuffle.map(_._1.length).max 
-
-        val questLines = secondShuffle.zipWithIndex.map: 
-          case ((concept, correctOrder, defInWrongPlace), i) =>
-            s"${concept.padTo(pad, ' ')}  ${i.toChoice}: ${defInWrongPlace.takeWhile(_ != '.')}."
+        val (questLines, correct) = quiz.generateQuestion(n)
         
         println(s"\n--- Quiz number $N \n \n")
         println(questLines.mkString("\n"))
@@ -103,7 +86,7 @@ package reqt:
         val allowed = correct.sorted.mkString
         val input = util.Try(
           io.StdIn.readLine(
-            s"\nAnswer letters ${correct.sorted.mkString} in correct order or just Enter to quit\n> "
+            s"\nAnswer letters ${correct.sorted.mkString} in correct order or just Enter or Ctrl+D to quit\n> "
           ).distinct
         ).getOrElse("")
         
