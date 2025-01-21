@@ -58,8 +58,8 @@ package reqt:
         sys.exit(1)
     end repl 
 
-    val scalaVersion = "3.6.3-RC2"
-    val reqTVersion  = "4.4.0"
+    val scalaVersion = "3.6.3"
+    val reqTVersion  = "4.4.1"
 
     /** Main program */
     def main(args: Array[String]): Unit = 
