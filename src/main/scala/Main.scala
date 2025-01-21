@@ -95,7 +95,7 @@ package reqt:
 
         val questLines = secondShuffle.zipWithIndex.map: 
           case ((concept, correctOrder, defInWrongPlace), i) =>
-            s"${concept.padTo(pad, ' ')}  ${i.toChoice}: ${defInWrongPlace.takeWhile(_ != '.')}. cheat: ${correctOrder.toChoice}"
+            s"${concept.padTo(pad, ' ')}  ${i.toChoice}: ${defInWrongPlace.takeWhile(_ != '.')}."
         
         println(s"\n--- Quiz number $N \n \n")
         println(questLines.mkString("\n"))
