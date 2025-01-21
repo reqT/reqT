@@ -70,7 +70,7 @@ package reqt:
         case "quiz" => quiz()
         case _ => println(s"Unknown args: ${args.mkString(",")}")
 
-    object quiz:    
+    object quiz:    //TODO: move non-interactive part of quiz to reqT-lang and make a double release
       val n = 5
 
       var N = 0
