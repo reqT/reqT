@@ -67,7 +67,7 @@ package reqt:
       else args(0) match
         case "version" | "-v" | "--version" => println(s"reqT version $reqTVersion https://github.com/reqT/reqT") 
         case "repl" => repl(args.toSeq.drop(1)*)
-        case "quiz" => quiz()
+        case "quiz" => quizGame()
         case _ => println(s"Unknown args: ${args.mkString(",")}")
 
     object quiz:    //TODO: move non-interactive part of quiz to reqT-lang and make a double release
