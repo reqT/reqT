@@ -67,7 +67,74 @@ package reqt:
       else args(0) match
         case "version" | "-v" | "--version" => println(s"reqT version $reqTVersion https://github.com/reqT/reqT") 
         case "repl" => repl(args.toSeq.drop(1)*)
+        case "quiz" => quiz()
         case _ => println(s"Unknown args: ${args.mkString(",")}")
+
+    object quiz:    
+      val n = 5
+
+      var N = 0
+
+      def selectRandom(pairs: Seq[(String, String)]) = util.Random.shuffle(pairs).take(n).zipWithIndex.toVector
+
+      def ask() = 
+        N += 1
+
+        val selected: Seq[((String, String), Int)] = selectRandom(meta.entityConcepts)
+
+        val secondShuffle: Seq[(String, Int, String)] = 
+          val xs = util.Random.shuffle: 
+            selected.map((p, i) => p._1 -> i)
+          (0 until xs.length).map(i => (xs(i)._1, xs(i)._2, selected(i)._1._2))
+
+        extension (i: Int) def toChoice: Char = ('a' + i).toChar
+
+        val correct = secondShuffle.map(_._2.toChoice)
+
+        val pad = secondShuffle.map(_._1.length).max 
+
+        val questLines = secondShuffle.zipWithIndex.map: 
+          case ((concept, correctOrder, defInWrongPlace), i) =>
+            s"${concept.padTo(pad, ' ')}  ${i.toChoice}: ${defInWrongPlace.takeWhile(_ != '.')}. cheat: ${correctOrder.toChoice}"
+        
+        println(s"\n--- Quiz number $N \n \n")
+        println(questLines.mkString("\n"))
+        
+        val allowed = correct.sorted.mkString
+        val input = util.Try(
+          io.StdIn.readLine(
+            s"\nAnswer letters ${correct.sorted.mkString} in correct order or just Enter to quit\n> "
+          ).distinct
+        ).getOrElse("")
+        
+        if input.isEmpty then -1 else
+          val points = correct.zipWithIndex.map((c, i) => if Some(c) == input.lift(i) then 1 else 0).sum
+          println:
+            s"""|  Filtered distinct: ${input.filter(c => correct.contains(c))}
+                |  Correct answer:    ${correct.mkString}
+                |  You got $points of $n points!
+                |""".stripMargin.stripTrailing
+
+          points
+        end if
+      end ask
+
+      def apply() = 
+        println("\n*** Welcome to the reqT entity quiz!\n")
+        var tot = 0 
+        var max = 0 
+        var continue = true
+        while continue do 
+          val p = ask()
+          if p == -1 then 
+            continue = false 
+          else
+            tot += p
+            max += n
+            println(s"Your current total is $tot out of $max")
+        end while
+        println(s"Goodbye champion!\nYour score is $tot out of $max")
+
 
 
 
