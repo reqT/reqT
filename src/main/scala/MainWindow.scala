@@ -59,9 +59,21 @@ object MainWindow:
 
   def get(i: Int): Option[MainWindow] = started.lift(i)
 
-  def newWindow(): Unit = runInSwingThread(started.append(MainWindow())) 
+  def newWindow(file: String): Unit = 
+    val f = if file.isEmpty then initFileName() else 
+      if file.contains(".") then file else file.newFileType(".md") 
+    var logMsg = s"Tree Model $f"
+    val m: Model = if file.isEmpty then Model() else
+      util.Try(loadLines(f).mkString("\n").toModel)
+        .getOrElse:
+          logMsg = s"New file: $f"
+          Model()
+    
+    runInSwingThread: 
+      started.append(MainWindow(initFile = f, initModel = m))
+      started.last.log(logMsg)
 
-  def initFileName = s"untitled$n.md"
+  def initFileName() = if n == 0 then "untitled.md" else s"untitled$n.md"
 
   val reqTGist = 
     s"""|* System: reqT has
@@ -169,7 +181,7 @@ object MainWindow:
       //c.setBackground(java.awt.Color(100,100,100))
       c //return this component
 
-class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListener, MainWindowMenus:
+class MainWindow private (val initFile: String, val initModel: Model = Model()) extends JFrame, MainWindow.ModelTreeSelectionListener, MainWindowMenus:
   MainWindow.n += 1
   @volatile private var isSavedTree = true
   @volatile private var isSavedEditor = true
@@ -180,9 +192,6 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
   def saveEditorNeeded(): Unit = { isSavedEditor = false; updateTitle() }
   def didSaveEditor(): Unit = { isSavedEditor = true; updateTitle() }
 
-  val initModel: Model = Model()  
-    // TODO: make initModel a class param an implement menu item "revert to initModel"
-  
   val windowType = s"reqT v${Main.reqTVersion}"
   val frame = this
 
@@ -193,7 +202,7 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
   val mediumFontSize = ReqTDesktopSettings.gui.fontSize
   val minFontSize = 6
   
-  private var _fileName = MainWindow.initFileName
+  private var _fileName = initFile
   private var _workDir = Sys.workDir
   def workDir = _workDir
   def fileName = _fileName 
@@ -266,7 +275,7 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
 
   end SplitPaneState
 
-  def doFileNew(): Unit = new MainWindow()
+  def doFileNew(): Unit = MainWindow.newWindow(MainWindow.initFileName())
 
   def doOpen(): Unit = runInSwingThread:
     for f <- SwingPlatform.chooseFile() do
@@ -1175,4 +1184,5 @@ class MainWindow private () extends JFrame, MainWindow.ModelTreeSelectionListene
   SwingPlatform.setAppIcon(this)
   setGlobalSwingFontSize(defaultGlobalFontSize)
   setTextAreaFont(textArea, defaultGlobalFontSize)
+  setTopTo(initModel)
 end MainWindow

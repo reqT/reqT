@@ -1,3 +1,4 @@
+import reqt.MainWindow.initFileName
 export reqt.Main.edit
 
 package reqt:
@@ -26,11 +27,12 @@ package reqt:
           |
           |  Main program args:
           |
-          |    <none>     start the reqT Swing GUI
-          |    version    print version, also -v --version 
-          |    repl       start reqT in the scala repl
-          |    quiz       start a quiz game in terminal
-          |    help       print this message, also -h, --help
+          |    <none>       open a reqT window with empty model
+          |    edit f1 f2   for each file open a window with model from file
+          |    repl         start the scala repl and do 'import reqt.*'
+          |    quiz         start a quiz game in terminal
+          |    version      print version, also -v --version 
+          |    help         print this message, also -h, --help
           |
           |""".stripMargin
 
@@ -46,11 +48,13 @@ package reqt:
     /** start a new editor window */
     def edit: Unit = edit()
 
-    /** start a new editor window with args */
+    /** start a new editor window for each file in args */
     def edit(args: String*): Unit = 
-      try 
-        MainWindow.newWindow()
-        SwingPlatform.runInSwingThread(println(editMessage))
+      if args.isEmpty then MainWindow.newWindow(initFileName())
+      else try 
+        for f <- args do
+          MainWindow.newWindow(f)
+          SwingPlatform.runInSwingThread(println(editMessage))
       catch 
         case e: Throwable => 
           val msg = s"Exception on edit: $e\n\nStack Trace:${e.getStackTrace().mkString("\n")}"
@@ -58,7 +62,6 @@ package reqt:
           SwingPlatform.runInSwingThread: // log exception in all open windows 
             for i <- 0 until MainWindow.nbrWindows do 
               MainWindow.get(i).map(w => w.log(msg))
-      end try
     end edit
 
     /** start repl in terminal **/
@@ -128,6 +131,7 @@ package reqt:
           if isOk then 
             val msg = if os.exists(pathToMyJar) then "Replacing" else "New file"
             println(s"Downloading reqT.jar from $reqTDownload\n$msg: $pathToMyJar")
+            println(s"  ... ... ...")
             val online = java.net.URL(reqTDownload).openStream()
             try
               java.nio.file.Files
@@ -149,9 +153,9 @@ package reqt:
     def main(args: Array[String]): Unit = 
       if args.isEmpty || args(0) == "edit" then edit(args.toSeq.drop(1)*) 
       else args(0) match
-        case "version" | "-v" | "--version" => println(s"reqT version: $reqTVersion $reqTHome") 
         case "repl" => repl(replInitScript, args.toSeq.drop(1)*)
         case "quiz" => quizGame()
+        case "version" | "-v" | "--version" => println(s"reqT version: $reqTVersion $reqTHome") 
         case "update" => update()
         case "help" | "-h" | "--help"=> println(helpMessage)
         case _ => println(s"Unknown args: ${args.mkString(",")}\n  use arg 'help' for help")
@@ -161,19 +165,15 @@ package reqt:
 
       def ask(n: Int) = 
         N += 1
-
         val (questLines, correct) = quiz.generateQuestion(n)
-        
         println(s"\n--- Quiz number $N \n \n")
         println(questLines.mkString("\n"))
-        
         val allowed = correct.sorted.mkString
         val input = util.Try(
           io.StdIn.readLine(
             s"\nAnswer letters ${correct.sorted.mkString} in correct order or just Enter or Ctrl+D to quit\n> "
           ).distinct
         ).getOrElse("")
-        
         if input.isEmpty then -1 else
           val points = correct.zipWithIndex.map((c, i) => if Some(c) == input.lift(i) then 1 else 0).sum
           println:
@@ -181,7 +181,6 @@ package reqt:
                 |  Correct answer:    ${correct.mkString}
                 |  You got $points of $n points!
                 |""".stripMargin.stripTrailing
-
           points
         end if
       end ask
@@ -200,6 +199,10 @@ package reqt:
             println(s"--- Your current total is $tot out of $max")
         end while
         println(s"Goodbye champion!\nYour score is $tot out of $max")
+    end quizGame
+  end Main
+  
+end reqt
 
 
 
