@@ -26,6 +26,7 @@ println(s"""val reqTVer  = "$reqTVer"""")
 println(s"""val scalaVer = "$scalaVer"""")
 
 println(Console.RED_B + "TODO: Bump versions in Main.scala" + Console.RESET)
+println(Console.RED_B + "TODO: Bump latest-versions at reqT.github.io" + Console.RESET)
 
 println("\n*** Step 1: sbt clean; assembly")
 
