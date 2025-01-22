@@ -7,7 +7,16 @@ package reqt:
 
     val reqTVersion  = "4.4.2"
 
+    val latestVersionURL = "https://reqT.github.io/latest-version/index.html"
+
+    def getLatestVersion(): String = 
+      util.Try:
+        val s = scala.io.Source.fromURL(latestVersionURL)
+        try s.mkString finally s.close()
+      .toOption.getOrElse(s"Error: cannot connect to $latestVersionURL")
+
     val reqTHome = "https://reqT.github.io"
+
     val reqTDownload = "https://github.com/reqT/reqT/releases/latest/download/reqT.jar"
     
     val replInitScript = """ import reqt.* """.trim
@@ -102,15 +111,31 @@ package reqt:
     end repl 
 
     def update(): Unit = 
-      val isOk = if !os.exists(pathToMyJar) then true else
-        val input = Option(io.StdIn.readLine(s"File exists: $pathToMyJar\nOverwrite Y/n? ")).getOrElse("Y")
-        input.toLowerCase.startsWith("y")
-      if isOk then 
-        val msg = if os.exists(pathToMyJar) then "Replacing" else "New file"
-        println(s"Downloading reqT.jar from $reqTDownload\n$msg: $pathToMyJar")
-        val online = java.net.URL(reqTDownload).openStream()
-        java.nio.file.Files.copy(online, pathToMyJar.toNIO, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
-      else println(s"Aborting.")
+      println(s"You are running reqT $reqTVersion from $pathToMyJar")
+      val latest = getLatestVersion()
+      if reqTVersion == latest 
+      then println(Console.GREEN + "You have latest version :)" + Console.RESET) 
+      else
+        val wantUpdate = 
+          val input = Option(io.StdIn.readLine(s"Update to reqT $latest\nY/n? ")).getOrElse("Y")
+          input.toLowerCase.startsWith("y")
+        
+        if wantUpdate then 
+          val isOk = if !os.exists(pathToMyJar) then true else
+            val input = Option(io.StdIn.readLine(s"File exists: $pathToMyJar\nOverwrite Y/n? ")).getOrElse("Y")
+            input.toLowerCase.startsWith("y")
+          
+          if isOk then 
+            val msg = if os.exists(pathToMyJar) then "Replacing" else "New file"
+            println(s"Downloading reqT.jar from $reqTDownload\n$msg: $pathToMyJar")
+            val online = java.net.URL(reqTDownload).openStream()
+            try
+              java.nio.file.Files
+                .copy(online, pathToMyJar.toNIO, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+            finally online.close()
+          else println(s"Aborting.")
+        else println(s"Aborting.")
+    end update
 
     /** Main program of reqT
      * Accepts these command line args: 
@@ -124,7 +149,7 @@ package reqt:
     def main(args: Array[String]): Unit = 
       if args.isEmpty || args(0) == "edit" then edit(args.toSeq.drop(1)*) 
       else args(0) match
-        case "version" | "-v" | "--version" => println(s"reqT version: $reqTVersion Download latest at $reqTHome") 
+        case "version" | "-v" | "--version" => println(s"reqT version: $reqTVersion $reqTHome") 
         case "repl" => repl(replInitScript, args.toSeq.drop(1)*)
         case "quiz" => quizGame()
         case "update" => update()
