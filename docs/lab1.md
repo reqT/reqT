@@ -34,7 +34,7 @@ To complete this lab you should develop a requirements model using [reqT](https:
   * Show your context diagram, list of features with one-line descriptions, and stakeholders.
   * Answer these questions:
       * What are the differences between an entity `Ent` and an attribute `Attr`?
-      * What types of instances be connected with a `Rel` instance?
+      * What types of instances can be connected with a `Rel` instance?
       * What makes `Model` a recursive data structure?
 
 ## Task 1: Investigate the reqT Desktop app GUI
@@ -105,7 +105,7 @@ To complete this lab you should develop a requirements model using [reqT](https:
     * Gist: Many guest arriving simultaneously can be checked in as a group.
 ```
 
-* Append the Section to your Tree. Select different Model unparsing using the
+* Append the Section to your Tree. Select different Model unparsing methods using the **Tree** menu toggle items *Markdown*, *Scala constructors*, *Scala classes*.  
 
 * Use the menu item *Keep Distinct Entities* in the **Tools** menu. Note that the tools in the Tool menu operate on the contents of the Editor pane.
 
@@ -124,7 +124,7 @@ To complete this lab you should develop a requirements model using [reqT](https:
 
         * *A is more/less important to spend more elicitation effort on than B*.
 
-    * Use the menu item *Solve Comparison Constraint Problem* in the **Tools** menu to find a new solution to the updated constraint problem. 
+    * Use the menu item *Solve Comparison Constraint Problem* in the **Tools** menu to find a new solution to the updated constraint problem. You should get a model with priorities calculated in **Order** attributes as a solution to a constraint problem based on your comparisons. A higher Order value means more important.
 
     * Write down reflections on the result:
 
