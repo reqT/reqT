@@ -3,79 +3,138 @@ export reqt.Main.edit
 package reqt:
   object Main:
 
+    val scalaVersion = "3.6.4-RC1"
+
+    val reqTVersion  = "4.4.2"
+
+    val reqTHome = "https://reqT.github.io"
+    val reqTDownload = "https://github.com/reqT/reqT/releases/latest/download/reqT.jar"
+    
+    val replInitScript = """ import reqt.* """.trim
+
+    val helpMessage = 
+      s"""|Welcome to reqT $reqTVersion $reqTHome
+          |
+          |  Main program args:
+          |
+          |    <none>     start the reqT Swing GUI
+          |    version    print version, also -v --version 
+          |    repl       start reqT in the scala repl
+          |    quiz       start a quiz game in terminal
+          |    help       print this message, also -h, --help
+          |
+          |""".stripMargin
+
+    val welcomeMessage = 
+      s"""|Welcome to reqT $reqTVersion $reqTHome
+          |Type 'edit' to open a new reqT window.
+          |Type ':quit' or press Ctrl+D to exit.
+          |Re-run with -h for help on main program args""".stripMargin
+
+    def editMessage = 
+      s"Opening new reqT window... MainWindow.nbrWindows=${MainWindow.nbrWindows}"
+
     /** start a new editor window */
     def edit: Unit = edit()
 
+    /** start a new editor window with args */
     def edit(args: String*): Unit = 
-        try MainWindow.newWindow()
-        catch 
-          case e: Throwable => 
-            val msg = s"Exception in edit: $e\n\nStack Trace:${e.getStackTrace().mkString("\n")}"
-            println(msg)
-            SwingPlatform.runInSwingThread:
-              for i <- 0 until MainWindow.nbrWindows do
-                MainWindow.get(i).map(w => w.log(msg))
-        //SwingPlatform.runInSwingThread:
-        //  println(s"New window started! EditorWindow.nbrWindows=${MainWindow.nbrWindows}")
+      try 
+        MainWindow.newWindow()
+        SwingPlatform.runInSwingThread(println(editMessage))
+      catch 
+        case e: Throwable => 
+          val msg = s"Exception on edit: $e\n\nStack Trace:${e.getStackTrace().mkString("\n")}"
+          println(msg)
+          SwingPlatform.runInSwingThread: // log exception in all open windows 
+            for i <- 0 until MainWindow.nbrWindows do 
+              MainWindow.get(i).map(w => w.log(msg))
+      end try
+    end edit
 
+    /** start repl in terminal **/
     def repl: Unit = repl()
 
     def pathToMyJar: os.Path = os.Path(reqt.Main.getClass.getProtectionDomain().getCodeSource().getLocation().toURI)
 
+    def findJarOrExit: os.Path = 
+      val selected = 
+        if os.exists(pathToMyJar) then pathToMyJar 
+        else 
+          (listReqTJars(os.pwd) ++ listReqTJars(os.home) ++ listReqTJars(os.home/"reqT"))
+            .headOption.getOrElse(os.pwd / "reqT.jar")
+
+      if os.exists(selected) then selected 
+      else
+        println(s"Cannot find $selected\n Download reqT.jar from $reqTHome and place it here ${os.pwd}")
+        sys.exit(1)  // bail out with error
+        selected
+    end findJarOrExit
+
+    def replCmd(initScript: String, quote: Boolean = false) = 
+      val tweakedInitScript = if quote then s"\"$initScript\"" else initScript
+      Seq("scala", "repl", "-S", Main.scalaVersion, "--jar", findJarOrExit.toString, "--","--repl-init-script", s"$tweakedInitScript")
+
+    /** List .jar files starting with reqt (case-insensitive) in p.*/
     def listReqTJars(p: os.Path): Seq[os.Path] = 
       if os.exists(p) then
         os.list(p)
           .filter(f => f.last.endsWith(".jar") && f.last.toLowerCase.startsWith("reqt"))
           .sorted.reverse
       else Seq()
+    end listReqTJars
 
-    def repl(args: String*): Unit =
+    /** start repl in terminal with initScript and args **/
+    def repl(initScript: String = replInitScript, args: String*): Unit =
+
       val tryStartRepl = scala.util.Try: 
-        val url = "https://github.com/reqT/reqT/releases"
-
-        val jar = 
-          val selected = 
-            if os.exists(pathToMyJar) then pathToMyJar 
-            else 
-              (listReqTJars(os.pwd) ++ listReqTJars(os.home) ++ listReqTJars(os.home/"reqT"))
-                .headOption.getOrElse(os.pwd / "reqT.jar")
-          if os.exists(selected) then selected 
-          else
-            println(s"Cannot find $selected\n Download reqT.jar from $url and place it here ${os.pwd}")
-            sys.exit(1)
-
-        val cmd = Seq[String]("scala", "repl", "-S", Main.scalaVersion, "--jar", jar.toString)
-        println(s"Running command: ${cmd.mkString(" ")}")
-        println(s"Type 'edit' to open a new reqT window.")
-        println(s"Type 'import reqt.*' for direct access to full api.")
-        println(s"See https://github.com/reqT/reqT for more information on how to use reqT.")
-        os.proc(cmd).call(stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit)
+        println(s"\n$welcomeMessage\n")
+        println(replCmd(initScript, quote = true).mkString(" "))
+        os.proc(replCmd(initScript))
+          .call(stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit)
       
       if tryStartRepl.isFailure then 
-        println("ERROR: Failed to start scala repl with reqT on path")
+        println(s"ERROR: Failed to start reqT $reqTVersion repl with Scala $scalaVersion")
+        println(s"More information here: $reqTHome")
         println(s"$tryStartRepl")
-        println(s"\nYou may need to install Scala version ${Main.scalaVersion} or later from here: https://www.scala-lang.org/")
-        sys.exit(1)
+        sys.exit(1) // bail out with error
+
     end repl 
 
-    val scalaVersion = "3.6.3"
-    val reqTVersion  = "4.4.1"
+    def update(): Unit = 
+      val isOk = if !os.exists(pathToMyJar) then true else
+        val input = Option(io.StdIn.readLine(s"File exists: $pathToMyJar\nOverwrite Y/n? ")).getOrElse("Y")
+        input.toLowerCase.startsWith("y")
+      if isOk then 
+        val msg = if os.exists(pathToMyJar) then "Replacing" else "New file"
+        println(s"Downloading reqT.jar from $reqTDownload\n$msg: $pathToMyJar")
+        val online = java.net.URL(reqTDownload).openStream()
+        java.nio.file.Files.copy(online, pathToMyJar.toNIO, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+      else println(s"Aborting.")
 
-    /** Main program */
+    /** Main program of reqT
+     * Accepts these command line args: 
+     *   <none>  start the reqT Swing QUI
+     *   help    print help on main program args
+     *   version print version message in terminal 
+     *   repl    start reqT in the scala repl in terminal
+     *   quiz    start a quiz game in terminal
+     *   update  download reqT.jar to working dir
+    */
     def main(args: Array[String]): Unit = 
       if args.isEmpty || args(0) == "edit" then edit(args.toSeq.drop(1)*) 
       else args(0) match
-        case "version" | "-v" | "--version" => println(s"reqT version $reqTVersion https://github.com/reqT/reqT") 
-        case "repl" => repl(args.toSeq.drop(1)*)
+        case "version" | "-v" | "--version" => println(s"reqT version: $reqTVersion Download latest at $reqTHome") 
+        case "repl" => repl(replInitScript, args.toSeq.drop(1)*)
         case "quiz" => quizGame()
-        case _ => println(s"Unknown args: ${args.mkString(",")}")
+        case "update" => update()
+        case "help" | "-h" | "--help"=> println(helpMessage)
+        case _ => println(s"Unknown args: ${args.mkString(",")}\n  use arg 'help' for help")
 
-    object quizGame:    //TODO: move non-interactive part of quiz to reqT-lang and make a double release
-      val n = 5
-
+    object quizGame:
       var N = 0
 
-      def ask() = 
+      def ask(n: Int) = 
         N += 1
 
         val (questLines, correct) = quiz.generateQuestion(n)
@@ -102,19 +161,18 @@ package reqt:
         end if
       end ask
 
-      def apply() = 
+      def apply(nbrConceptsPerQuestion: Int = 5) = 
         println("\n*** Welcome to the reqT entity quiz!\n")
         var tot = 0 
         var max = 0 
         var continue = true
         while continue do 
-          val p = ask()
-          if p == -1 then 
-            continue = false 
+          val points = ask(nbrConceptsPerQuestion)
+          if points == -1 then continue = false 
           else
-            tot += p
-            max += n
-            println(s"Your current total is $tot out of $max")
+            tot += points
+            max += nbrConceptsPerQuestion
+            println(s"--- Your current total is $tot out of $max")
         end while
         println(s"Goodbye champion!\nYour score is $tot out of $max")
 
