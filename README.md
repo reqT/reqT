@@ -17,7 +17,6 @@
 
 ## Getting started
 
-
 ### Download
 
 * Download the latest `reqT.jar` from https://github.com/reqT/reqT/releases by clicking on the jar file under "Assets". or by using the terminal command below for your system (update to latest version):
@@ -31,7 +30,7 @@
     ```
   * MacOS:
     ```
-    curl -O https://github.com/reqT/reqT/releases/download/4.0.0-M3/reqT.jar
+    curl -O https://github.com/reqT/reqT/releases/latest/download/reqT.jar
     ```
 ### Run app
 
@@ -47,7 +46,7 @@
 
 * When the `scala>` prompt is shown type: `import reqt.*` and you are good to go coding.
 
-### Install 
+### Manual install 
 
 It is optional but convenient to install the `reqt` command on your path like so:
 
