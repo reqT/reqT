@@ -18,16 +18,47 @@ object MainWindowMenus:
     case File, Tree, Editor, Log, View, Tools, Export, Templates, Help
   export Parent.*
 
-  enum Child(val parent: Parent, val name: String, val help: String)(val extendedHelp: String = ""):
-    case NewWindow extends Child(File, "New Window", "Open a new reqT Window with empty Model.")()
-    case OpenTree  extends Child(File, "Open Tree...", "Open an existing Model file and load it into the Tree pane.")()
-    case LoadEditor  extends Child(File, "Load Editor...", "TODO HELP TEXT")()
-    case SaveTree  extends Child(File, "Save Tree", "TODO HELP TEXT")()
-    case SaveTreeAs  extends Child(File, "Save Tree As...", "TODO HELP TEXT")()
-    case SaveEditorAs  extends Child(File, "Save Editor As...", "TODO HELP TEXT")()
-    case CloseWindow  extends Child(File, "Close Window", "TODO HELP TEXT")()
-    case Quit  extends Child(File, "Quit", "TODO HELP TEXT")()
+  enum Child(val parent: Parent, val name: String, val help: String, val extendedHelp: String = ""):
+    case NewWindow extends Child(File, "New Window", "Open a new reqT Window with empty Model.")
+    case OpenTree  extends Child(File, "Open Tree...", "Open an existing Model file and load it into the Tree pane.")
+    case LoadEditor  extends Child(File, "Load Editor...", "TODO")
+    case SaveTree  extends Child(File, "Save Tree", "TODO")
+    case SaveTreeAs  extends Child(File, "Save Tree As...", "TODO")
+    case SaveEditorAs  extends Child(File, "Save Editor As...", "TODO")
+    case CloseWindow  extends Child(File, "Close Window", "TODO")
+    case Quit  extends Child(File, "Quit", "Quit application and close all windows.",
+      "If you have any unsaved changes then you will get an alert dialog asking if you want to continue editing.")
   export Child.*
+
+  lazy val menuHelpModel: Model = 
+    val childrenOfParent = Child.values.groupBy(_.parent) 
+    val elems = for 
+      p <- Parent.values 
+      cs <- childrenOfParent.get(p)
+      items = cs.map(c => Item(c.toString).has( 
+        (Seq(Gist(c.help)) ++ (if c.extendedHelp.nonEmpty then Seq(Comment(c.extendedHelp)) else Seq()))*
+      ))
+    yield Section(s"${p}Menu").has(((Seq(
+        Gist(parentMenuHelp(p)),
+        Comment(s"Shortcut is Alt+${(mnemonics(p)).toChar}.")
+      ) ++ items))*)
+    Model(elems*)
+  
+  lazy val mnemonics = Map(
+    File -> VK_F, Tree -> VK_T, Editor -> VK_E, Log -> VK_L, View -> VK_V, Tools -> VK_O, Export -> VK_X, Templates -> VK_M, Help -> VK_H,
+  )
+
+  lazy val parentMenuHelp = Map(
+    File -> "Manage files and windows.", 
+    Tree -> "Manage the Tree pane", 
+    Editor -> "Manage the Editor pane.", 
+    Log -> "Manage the Log pane", 
+    View -> "Configure appearance of windows.", 
+    Tools -> "Execute modelling tools.", 
+    Export -> "Generate special formats from models.", 
+    Templates -> "Example markdown models.", 
+    Help -> "Instructions on how to use reqT.",
+  )
 
 trait MainWindowMenus:
   self: MainWindow =>
@@ -37,19 +68,19 @@ trait MainWindowMenus:
     import MainWindowMenus.{*, given} 
 
     AppMenus(
-      Menu(File, mnemonic = VK_F,
+      Menu(File, mnemonic = mnemonics(File),
         Item(NewWindow, VK_N, VK_N, CTRL){ doFileNew() },
         Item(OpenTree, VK_O, VK_O, CTRL){ doOpen() },
         Item(LoadEditor, VK_L, VK_L, CTRL){ doLoadToEditor() },
-        Item("Save Tree", VK_S, VK_S, CTRL){ doSaveTree() },
-        Item("Save Tree As...", VK_S, VK_S, CTRL+SHIFT){ doSaveTreeAs() },
-        Item("Save Editor As...", VK_S, VK_S, ALT){ doSaveEditorAs() },
+        Item(SaveTree, VK_S, VK_S, CTRL){ doSaveTree() },
+        Item(SaveTreeAs, VK_S, VK_S, CTRL+SHIFT){ doSaveTreeAs() },
+        Item(SaveEditorAs, VK_S, VK_S, ALT){ doSaveEditorAs() },
         MenuSeparator,
-        Item("Close Window", VK_W, VK_W, CTRL){ doClose() },
-        Item("Quit",VK_Q, VK_Q, CTRL){doQuit()},
+        Item(CloseWindow, VK_W, VK_W, CTRL){ doClose() },
+        Item(Quit,VK_Q, VK_Q, CTRL){doQuit()},
       ),
 
-      Menu(Tree, mnemonic = VK_T, 
+      Menu(Tree, mnemonic = mnemonics(Tree), 
         Item("Edit Tree Node in Editor", VK_E, VK_E, CTRL){ doEditNode()},
         Item("Replace Tree Node from Editor", VK_R, VK_R, CTRL){ doReplaceNode()},
         Item("Insert After Node from Editor", VK_I, VK_I, CTRL){ doInsertNode()},
@@ -68,17 +99,17 @@ trait MainWindowMenus:
         ), default = "Markdown"),
       ),
 
-      Menu(Editor, mnemonic = VK_E, 
+      Menu(Editor, mnemonic = mnemonics(Editor), 
         MenuRadioGroup("editorWrapToggle", Map[String, () => Unit](
           "Editor Line Wrap On" -> ( () => { doLineWrap(textArea, isOn = true)} ),
           "Editor Line Wrap Off"  -> ( () => { doLineWrap(textArea, isOn = false)} )
         ), default = "Editor Line Wrap Off"),
         MenuSeparator,
-        Item("Increase Editor Font Size", VK_T, VK_PLUS, CTRL)  { doIncrFontSize(textArea) },
-        Item("Decrease Editor Font Size", VK_S, VK_MINUS, CTRL) { doDecrFontSize(textArea) },
+        Item("Increase Editor Font Size", VK_I, VK_PLUS, CTRL)  { doIncrFontSize(textArea) },
+        Item("Decrease Editor Font Size", VK_D, VK_MINUS, CTRL) { doDecrFontSize(textArea) },
       ),
 
-      Menu(Log, mnemonic = VK_L,
+      Menu(Log, mnemonic = mnemonics(Log),
         MenuRadioGroup("logWrapToggle", Map[String, () => Unit](
           "Log Line Wrap On" -> ( () => { doLineWrap(messageArea, isOn = true) } ),
           "Log Line Wrap Off"  -> ( () => { doLineWrap(messageArea, isOn = false) } )
@@ -90,17 +121,17 @@ trait MainWindowMenus:
         Item("Clear Log", VK_C, VK_DELETE, ALT) { doClearMsg() },
       ),
 
-      Menu(View, mnemonic = VK_V,
-        Item("Toggle Orientation", VK_O, VK_F9, 0) { doToggleOrientation() },
-        Item("Toggle Full Screen", VK_F, VK_F11, 0) { doToggleFullScreen()},
+      Menu(View, mnemonic = mnemonics(View),
+        Item("Toggle Orientation", VK_G, VK_F9, 0) { doToggleOrientation() },
+        Item("Toggle Full Screen", VK_U, VK_F11, 0) { doToggleFullScreen()},
         Item("Toggle Window Title", VK_P, VK_F12, 0) { doTogglePostIt() },
-        Item("Exit Full Screen", VK_E, VK_ESCAPE, 0) { doExitFullScreen() },
+        Item("Exit Full Screen", VK_R, VK_ESCAPE, 0) { doExitFullScreen() },
         MenuSeparator,
         Item("Increase Menu Size", VK_I, VK_PLUS, ALT+SHIFT) { doIncrGlobalFontSize() },
         Item("Decrease Menu Size", VK_D, VK_MINUS, ALT+SHIFT) { doDecrGlobalFontSize() },
       ),
 
-      Menu(Tools, mnemonic = VK_O,
+      Menu(Tools, mnemonic = mnemonics(Tools),
         Item("Format Model", VK_F, VK_F, CTRL) { doFormatAll() },
         Item("Distinct Model", VK_D, VK_D, CTRL+SHIFT) { doDistinctAll() },
         Item("Keep Distinct Entities", VK_K, VK_K, ALT) { doKeepDistinctEntities() },
@@ -114,7 +145,7 @@ trait MainWindowMenus:
         Item("Scala Classes to Log", VK_2, VK_2, CTRL+SHIFT) { doModelClassesToLog() },
       ),
       
-      Menu(Export, mnemonic = VK_X,
+      Menu(Export, mnemonic = mnemonics(Export),
         MenuRadioGroup("exportSourceToggle", Map[String, () => Unit](
           "Export Editor" -> ( () => { exportSource = ExportSource.Editor} ),
           "Export Tree"  -> ( () => { exportSource = ExportSource.Tree} )
@@ -127,7 +158,7 @@ trait MainWindowMenus:
         Item("Scala Model in .scala", VK_5, VK_5, ALT) { log("TODO Export -> As Scala") },
       ),
       
-      Menu(Templates, mnemonic = VK_M, (Seq(
+      Menu(Templates, mnemonic = mnemonics(Templates), (Seq(
         MenuRadioGroup("modelToEditorToggle", Map[String, () => Unit](
           "Replace in Editor" -> ( () => { toEditorFromTree = ToEditorFromTree.Replace } ),
           "Append to Editor" -> ( () => { toEditorFromTree = ToEditorFromTree.Append } ),
@@ -136,8 +167,9 @@ trait MainWindowMenus:
         MenuSeparator,
       ) ++ exampleMenuItems)*),
 
-      Menu(Help, mnemonic = VK_H,
+      Menu(Help, mnemonic = mnemonics(Help),
         Item("Help Text to Log", VK_H, VK_F1, 0) { doHelpToLog() },
+        Item("Menu Help to Log", VK_M, VK_F1, CTRL) {log("Menu Help:\n" + MainWindowMenus.menuHelpModel.toMarkdown)},
         Item("Concepts to Log", VK_C, VK_C, ALT) { doConceptsToLog()},
         MenuSeparator,
         Item("About", VK_A, VK_F1, ALT){log(s"reqT version $reqTVersion, more information: https://reqT.github.io")},
