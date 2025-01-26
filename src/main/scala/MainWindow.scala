@@ -46,6 +46,9 @@ import java.awt
 import reqt.MainWindow.TreeRoot
 import reqt.SwingPlatform.isOK
 import reqt.Sys.newFileType
+import java.awt.event.AdjustmentListener
+import java.awt.ScrollPane
+import javax.swing.JScrollBar
 
 object MainWindow:
   val initLookAndFell = javax.swing.UIManager.getLookAndFeel()
@@ -420,8 +423,11 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
     ta.setLineWrap(isOn)
 
   def doClearMsg() = runInSwingThread(clearMessage())
+  
   def doHelpToLog() = runInSwingThread(addMessage(MainWindow.initMessage))
+  
   def doConceptsToLog() = runInSwingThread(addMessage(meta.csv("\t")))
+
   def log(msg: String, logLevel: Int = 0) = runInSwingThread(addMessage(msg))
 
   def doFormatAll() = runInSwingThread:
@@ -844,12 +850,21 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
 
   val messagePane = new javax.swing.JScrollPane(messageArea)
 
+  def mkScrollListener(toBottom: Boolean, scrollBar: javax.swing.JScrollBar) = 
+    new AdjustmentListener():
+      override def adjustmentValueChanged(e: java.awt.event.AdjustmentEvent) = 
+        val a = e.getAdjustable()
+        a.setValue(if toBottom then a.getMaximum() else a.getMinimum())
+        scrollBar.removeAdjustmentListener(this) 
+
   def scrollMsgToEnd(): Unit = 
     val sb = messagePane.getVerticalScrollBar()
-    sb.setValue(sb.getMaximum())
+    val listener = mkScrollListener(toBottom = true, scrollBar = sb)
+    sb.addAdjustmentListener(listener)
 
   def scrollMsgToTop(): Unit = 
     val sb = messagePane.getVerticalScrollBar()
+    val listener = mkScrollListener(toBottom = false, scrollBar = sb)
     sb.setValue(sb.getMinimum())
 
   def addMessage(msg: String): Unit =
