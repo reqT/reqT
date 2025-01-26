@@ -33,7 +33,7 @@ def githubDep(lib: String, org: String, repo: String, ver: String): ModuleID = {
 lazy val `reqT` = (project in file("."))
   .settings(
     name := "reqT",
-    scalacOptions := Seq("-encoding", "utf8", "-deprecation", "-unchecked", "-Werror"),
+    scalacOptions := Seq("-encoding", "utf8", "-deprecation", "-unchecked", "-Werror", "-feature"),
 
     assembly / assemblyJarName := reqTJarName,
     assembly / mainClass := Some("reqt.Main"),
