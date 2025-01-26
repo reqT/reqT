@@ -1,20 +1,46 @@
 package reqt
 
-import SwingPlatform.runInSwingThread
+import scala.language.implicitConversions
+
+
+import SwingPlatform.{runInSwingThread as gui}
 import java.awt.event.ActionEvent.{CTRL_MASK => CTRL, ALT_MASK => ALT, SHIFT_MASK => SHIFT}
 import java.awt.event.KeyEvent.*
+import reqt.Main.reqTVersion
+import reqt.Main.scalaVersion
 
+object MainWindowMenus:
+  // Todo: remove implicit conversion by making the type in Item and Menu conform to below enums
+  given Conversion[Parent, String] with { def apply(m: Parent): String = m.toString }
+  given Conversion[Child, String] with { def apply(c: Child): String = c.name }
+
+  enum Parent: 
+    case File, Tree, Editor, Log, View, Tools, Export, Templates, Help
+  export Parent.*
+
+  enum Child(val parent: Parent, val name: String, val help: String)(val extendedHelp: String = ""):
+    case NewWindow extends Child(File, "New Window", "Open a new reqT Window with empty Model.")()
+    case OpenTree  extends Child(File, "Open Tree...", "Open an existing Model file and load it into the Tree pane.")()
+    case LoadEditor  extends Child(File, "Load Editor...", "TODO HELP TEXT")()
+    case SaveTree  extends Child(File, "Save Tree", "TODO HELP TEXT")()
+    case SaveTreeAs  extends Child(File, "Save Tree As...", "TODO HELP TEXT")()
+    case SaveEditorAs  extends Child(File, "Save Editor As...", "TODO HELP TEXT")()
+    case CloseWindow  extends Child(File, "Close Window", "TODO HELP TEXT")()
+    case Quit  extends Child(File, "Quit", "TODO HELP TEXT")()
+  export Child.*
 
 trait MainWindowMenus:
   self: MainWindow =>
-  
-  lazy val initMenus =
-    import SwingPlatform.{AppMenus,Menu,Item,MenuSeparator,MenuRadioGroup}
+
+  lazy val initMenus =  
+    import SwingPlatform.{AppMenus, Menu, Item, MenuSeparator, MenuRadioGroup}
+    import MainWindowMenus.{*, given} 
+
     AppMenus(
-      Menu("File", mnemonic = VK_F,
-        Item("New Window", VK_N, VK_N, CTRL){ doFileNew() },
-        Item("Open Tree...", VK_O, VK_O, CTRL){ doOpen() },
-        Item("Load Editor...", VK_L, VK_L, CTRL){ doLoadToEditor() },
+      Menu(File, mnemonic = VK_F,
+        Item(NewWindow, VK_N, VK_N, CTRL){ doFileNew() },
+        Item(OpenTree, VK_O, VK_O, CTRL){ doOpen() },
+        Item(LoadEditor, VK_L, VK_L, CTRL){ doLoadToEditor() },
         Item("Save Tree", VK_S, VK_S, CTRL){ doSaveTree() },
         Item("Save Tree As...", VK_S, VK_S, CTRL+SHIFT){ doSaveTreeAs() },
         Item("Save Editor As...", VK_S, VK_S, ALT){ doSaveEditorAs() },
@@ -22,25 +48,27 @@ trait MainWindowMenus:
         Item("Close Window", VK_W, VK_W, CTRL){ doClose() },
         Item("Quit",VK_Q, VK_Q, CTRL){doQuit()},
       ),
-      Menu("Tree", mnemonic = VK_T, 
+
+      Menu(Tree, mnemonic = VK_T, 
         Item("Edit Tree Node in Editor", VK_E, VK_E, CTRL){ doEditNode()},
         Item("Replace Tree Node from Editor", VK_R, VK_R, CTRL){ doReplaceNode()},
         Item("Insert After Node from Editor", VK_I, VK_I, CTRL){ doInsertNode()},
         MenuSeparator,
         Item("Toggle Focus Tree/Editor", VK_F,VK_T,CTRL) { doToggleFocus() },
-        Item("Collapse All", VK_C, VK_LEFT, ALT){ runInSwingThread(setFoldingAll(topPath, isExpand = false))},
-        Item("Expand All", VK_C, VK_RIGHT, ALT){ runInSwingThread(setFoldingAll(topPath, isExpand = true))},
+        Item("Collapse All", VK_C, VK_LEFT, ALT){ gui(setFoldingAll(topPath, isExpand = false))},
+        Item("Expand All", VK_C, VK_RIGHT, ALT){ gui(setFoldingAll(topPath, isExpand = true))},
         MenuSeparator,
-        Item("Delete selected node", VK_D, VK_DELETE, 0){ runInSwingThread(removeSelectedNode())},
+        Item("Delete selected node", VK_D, VK_DELETE, 0){ gui(removeSelectedNode())},
         Item("Revert to Initial Tree Model...", VK_V, VK_R, CTRL+SHIFT){ log("TODO revert")},
         MenuSeparator,
         MenuRadioGroup("treeNodeShow", Map[String, () => Unit](
-          "Markdown" -> ( () => { runInSwingThread{treeItemShow = MainWindow.TreeItemShow.Markdown; tree.updateUI()} } ),
-          "Scala Constructors"  -> ( () => { runInSwingThread{treeItemShow = MainWindow.TreeItemShow.Factory; tree.updateUI()} } ),
-          "Scala Classes"  -> ( () => { runInSwingThread{treeItemShow = MainWindow.TreeItemShow.Structure; tree.updateUI()} } ),
+          "Markdown" -> ( () => { gui{treeItemShow = MainWindow.TreeItemShow.Markdown; tree.updateUI()} } ),
+          "Scala Constructors"  -> ( () => { gui{treeItemShow = MainWindow.TreeItemShow.Factory; tree.updateUI()} } ),
+          "Scala Classes"  -> ( () => { gui{treeItemShow = MainWindow.TreeItemShow.Structure; tree.updateUI()} } ),
         ), default = "Markdown"),
       ),
-      Menu("Editor", mnemonic = VK_E, 
+
+      Menu(Editor, mnemonic = VK_E, 
         MenuRadioGroup("editorWrapToggle", Map[String, () => Unit](
           "Editor Line Wrap On" -> ( () => { doLineWrap(textArea, isOn = true)} ),
           "Editor Line Wrap Off"  -> ( () => { doLineWrap(textArea, isOn = false)} )
@@ -49,7 +77,8 @@ trait MainWindowMenus:
         Item("Increase Editor Font Size", VK_T, VK_PLUS, CTRL)  { doIncrFontSize(textArea) },
         Item("Decrease Editor Font Size", VK_S, VK_MINUS, CTRL) { doDecrFontSize(textArea) },
       ),
-      Menu("Log", mnemonic = VK_L,
+
+      Menu(Log, mnemonic = VK_L,
         MenuRadioGroup("logWrapToggle", Map[String, () => Unit](
           "Log Line Wrap On" -> ( () => { doLineWrap(messageArea, isOn = true) } ),
           "Log Line Wrap Off"  -> ( () => { doLineWrap(messageArea, isOn = false) } )
@@ -60,7 +89,8 @@ trait MainWindowMenus:
         MenuSeparator,
         Item("Clear Log", VK_C, VK_DELETE, ALT) { doClearMsg() },
       ),
-      Menu("View", mnemonic = VK_V,
+
+      Menu(View, mnemonic = VK_V,
         Item("Toggle Orientation", VK_O, VK_F9, 0) { doToggleOrientation() },
         Item("Toggle Full Screen", VK_F, VK_F11, 0) { doToggleFullScreen()},
         Item("Toggle Window Title", VK_P, VK_F12, 0) { doTogglePostIt() },
@@ -69,7 +99,8 @@ trait MainWindowMenus:
         Item("Increase Menu Size", VK_I, VK_PLUS, ALT+SHIFT) { doIncrGlobalFontSize() },
         Item("Decrease Menu Size", VK_D, VK_MINUS, ALT+SHIFT) { doDecrGlobalFontSize() },
       ),
-      Menu("Tools", mnemonic = VK_O,
+
+      Menu(Tools, mnemonic = VK_O,
         Item("Format Model", VK_F, VK_F, CTRL) { doFormatAll() },
         Item("Distinct Model", VK_D, VK_D, CTRL+SHIFT) { doDistinctAll() },
         Item("Keep Distinct Entities", VK_K, VK_K, ALT) { doKeepDistinctEntities() },
@@ -82,7 +113,8 @@ trait MainWindowMenus:
         Item("Scala Constructors to Log", VK_1, VK_1, CTRL+SHIFT) { doModelConstructorsToLog() },
         Item("Scala Classes to Log", VK_2, VK_2, CTRL+SHIFT) { doModelClassesToLog() },
       ),
-      Menu("Export", mnemonic = VK_X,
+      
+      Menu(Export, mnemonic = VK_X,
         MenuRadioGroup("exportSourceToggle", Map[String, () => Unit](
           "Export Editor" -> ( () => { exportSource = ExportSource.Editor} ),
           "Export Tree"  -> ( () => { exportSource = ExportSource.Tree} )
@@ -94,7 +126,8 @@ trait MainWindowMenus:
         Item("Path Table in .csv", VK_4, VK_4, ALT) { log("TODO Export -> Path Table") },
         Item("Scala Model in .scala", VK_5, VK_5, ALT) { log("TODO Export -> As Scala") },
       ),
-      Menu("Templates", mnemonic = VK_M, (Seq(
+      
+      Menu(Templates, mnemonic = VK_M, (Seq(
         MenuRadioGroup("modelToEditorToggle", Map[String, () => Unit](
           "Replace in Editor" -> ( () => { toEditorFromTree = ToEditorFromTree.Replace } ),
           "Append to Editor" -> ( () => { toEditorFromTree = ToEditorFromTree.Append } ),
@@ -102,8 +135,11 @@ trait MainWindowMenus:
         ), default = "Replace in Editor"),
         MenuSeparator,
       ) ++ exampleMenuItems)*),
-      Menu("Help", mnemonic = VK_H,
+
+      Menu(Help, mnemonic = VK_H,
         Item("Help Text to Log", VK_H, VK_F1, 0) { doHelpToLog() },
         Item("Concepts to Log", VK_C, VK_C, ALT) { doConceptsToLog()},
+        MenuSeparator,
+        Item("About", VK_A, VK_F1, ALT){log(s"reqT version $reqTVersion, more information: https://reqT.github.io")},
       ),
     )
