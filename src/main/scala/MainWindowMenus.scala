@@ -18,16 +18,21 @@ object MainWindowMenus:
     case File, Tree, Editor, Log, View, Tools, Export, Templates, Help
   export Parent.*
 
+  val unsavedExtendedHelp = 
+    "If you have any unsaved changes then you will get an alert dialog asking if you want to continue editing."
+
+  val windowBarExtendedHelp = 
+    "The window bar shows the full file path and indicates if you have unsaved changes."
+
   enum Child(val parent: Parent, val name: String, val help: String, val extendedHelp: String = ""):
-    case NewWindow extends Child(File, "New Window", "Open a new reqT Window with empty Model.")
+    case NewWindow extends Child(File, "New Window", "Open a new reqT Window with empty Model.", windowBarExtendedHelp)
     case OpenTree  extends Child(File, "Open Tree...", "Open an existing Model file and load it into the Tree pane.")
-    case LoadEditor  extends Child(File, "Load Editor...", "TODO")
-    case SaveTree  extends Child(File, "Save Tree", "TODO")
-    case SaveTreeAs  extends Child(File, "Save Tree As...", "TODO")
-    case SaveEditorAs  extends Child(File, "Save Editor As...", "TODO")
-    case CloseWindow  extends Child(File, "Close Window", "TODO")
-    case Quit  extends Child(File, "Quit", "Quit application and close all windows.",
-      "If you have any unsaved changes then you will get an alert dialog asking if you want to continue editing.")
+    case LoadEditor  extends Child(File, "Load Editor...", "Open an existing Model file and load it into the Editor pane.")
+    case SaveTree  extends Child(File, "Save Tree", "Save the Tree pane in markdown format.")
+    case SaveTreeAs  extends Child(File, "Save Tree As...", "Save the Tree pane to a new file in markdown format.")
+    case SaveEditorAs  extends Child(File, "Save Editor As...", "Save the Editor pane to a new file in markdown format.")
+    case CloseWindow  extends Child(File, "Close Window", "Close this window", unsavedExtendedHelp)
+    case Quit  extends Child(File, "Quit", "Quit application and close all windows.", unsavedExtendedHelp)
   export Child.*
 
   lazy val menuHelpModel: Model = 
