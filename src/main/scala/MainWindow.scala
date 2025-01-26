@@ -87,9 +87,16 @@ object MainWindow:
   val initMessage = 
     s"""|WELCOME to reqT - a requirements modeling tool! 
         |
-        |Read the docs: https//github.com/reqT/reqT
+        |Read the docs: https://reqT.github.io
+        |Contribute: https://github.com/reqT
         |
         |Three independent panes: Tree, Editor, Log
+        |
+        |Example workflow: 
+        |  1. open model in Tree, Ctrl+O
+        |  2. select node in tree and edit node, Ctrl+E
+        |  3. transfer back to selected tree node tree, Ctrl+R or Ctrl+I 
+        |  4. save updated model, Ctrl+S
         |
         |F1 for help text to Log.
         |F9 to Toggle Orientation.
@@ -828,6 +835,7 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
   val messageArea = new javax.swing.JTextArea(10, initEditorWidth)
   messageArea.setEditable(false)
   setTextAreaFont(messageArea, defaultGlobalFontSize, ReqTDesktopSettings.gui.defaultEditorFont)
+  doDecrFontSize(messageArea)
 
   messageArea.setBackground(ReqTDesktopSettings.gui.logBackground)
   messageArea.setForeground(ReqTDesktopSettings.gui.logForeground)
