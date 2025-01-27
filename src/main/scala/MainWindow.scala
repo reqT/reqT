@@ -461,12 +461,22 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
   def doKeepDistinctEntities() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")
     val ents = txt.toModel.ents.distinct
-    if ents.length == 0 then log("WARNING: No entities in editor. No entities added.")
+    if ents.length == 0 then log("WARNING: No entities in editor. No action.")
     else
       log("Keep all distinct entities only in Editor.")
       val rows = ents.toModel.toMarkdown
       textArea.setText(rows)
-  
+
+  def doAtoms() = runInSwingThread:
+    val txt = Option(textArea.getText()).getOrElse("")
+    val atoms = txt.toModel.atoms
+    if atoms.length == 0 then log("WARNING: No atoms in editor model. No action.")
+    else
+      log("Model Atoms in Editor.")
+      val rows = atoms.toModel.toMarkdown
+      textArea.setText(rows)
+
+
   def doAppendEntitiesInOrder() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")
     val ents = txt.toModel.ents.distinct
