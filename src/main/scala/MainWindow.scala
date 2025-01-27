@@ -626,6 +626,7 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
   enum ExportType(val fileType: String): 
     case Html extends ExportType(".html")
     case NestedGraph extends ExportType(".dot")
+    case FlatGraph extends ExportType(".dot")
     case Latex extends ExportType(".tex")
   
   enum ExportSource { case Editor, Tree }
@@ -652,7 +653,7 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
             log(s"""reqT.Sys.desktopOpen("$jf")""") 
             Sys.desktopOpen(jf)
 
-          case ExportType.NestedGraph => 
+          case ExportType.NestedGraph | ExportType.FlatGraph => 
             if !Sys.isDotInstalled then 
               log(s"WARNING: Cannot find dot on your path.")
               log(s"Install Graphviz from here: https://graphviz.org/")
