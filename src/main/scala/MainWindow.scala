@@ -461,21 +461,29 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
   def doKeepDistinctEntities() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")
     val ents = txt.toModel.ents.distinct
-    if ents.length == 0 then log("WARNING: No entities in editor. No action.")
+    if ents.length == 0 then log("WARNING: Found no entities in Editor.")
     else
       log("Keep all distinct entities only in Editor.")
       val rows = ents.toModel.toMarkdown
       textArea.setText(rows)
 
   def doAtoms() = runInSwingThread:
-    val txt = Option(textArea.getText()).getOrElse("")
-    val atoms = txt.toModel.atoms
-    if atoms.length == 0 then log("WARNING: No atoms in editor model. No action.")
+    val txt = Option(textArea.getText()).getOrElse("").trim
+    if txt.trim.isEmpty then log("WARNING: Empty Model in Editor.")
     else
+      val atoms = txt.toModel.atoms
       log("Model Atoms in Editor.")
       val rows = atoms.toModel.toMarkdown
       textArea.setText(rows)
 
+  def doAppendEqualRel() = runInSwingThread:
+    val txt = Option(textArea.getText()).getOrElse("")
+    val m = txt.toModel.appendEqualRel
+    if m.rels.length == 0 then log("WARNING: Found no relations in Editor.")
+    else 
+      log("Group by relations, merge all submodels.")
+      val rows = m.toMarkdown
+      textArea.setText(rows)
 
   def doAppendEntitiesInOrder() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")

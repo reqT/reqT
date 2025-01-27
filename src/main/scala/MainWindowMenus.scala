@@ -150,6 +150,7 @@ trait MainWindowMenus:
         Item("Distinct Model", VK_D, VK_D, CTRL+SHIFT) { doDistinctAll() },
         Item("Keep Distinct Entities", VK_K, VK_K, CTRL+SHIFT) { doKeepDistinctEntities() },
         Item("Atoms", VK_A, VK_A, CTRL+SHIFT) { doAtoms() },
+        Item("Merge Submodels by Link", VK_M, VK_M, CTRL+SHIFT) { doAppendEqualRel() },
         MenuSeparator,
         Item("Entity Ordering in Order", VK_1, VK_1, CTRL) { doAppendEntitiesInOrder() },
         Item("100$-test Normalized Votes", VK_2, VK_2, CTRL) { doNormalizedVotes() },
