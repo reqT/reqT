@@ -25,30 +25,27 @@ object MainWindowMenus:
     "The window bar shows the full file path and indicates if you have unsaved changes."
 
   enum Child(val parent: Parent, val name: String, val help: String, val extendedHelp: String = ""):
-    case NewWindow extends Child(File, "New Window", "Open a new reqT Window with empty Model.", windowBarExtendedHelp)
-    case OpenTree  extends Child(File, "Open Tree...", "Open an existing Model file and load it into the Tree pane.")
-    case LoadEditor  extends Child(File, "Load Editor...", "Open an existing Model file and load it into the Editor pane.")
-    case SaveTree  extends Child(File, "Save Tree", "Save the Tree pane in markdown format.")
-    case SaveTreeAs  extends Child(File, "Save Tree As...", "Save the Tree pane to a new file in markdown format.")
-    case SaveEditorAs  extends Child(File, "Save Editor As...", "Save the Editor pane to a new file in markdown format.")
+    case NewWindow    extends Child(File, "New Window", "Open a new reqT Window with empty Model.", windowBarExtendedHelp)
+    case OpenTree     extends Child(File, "Open Tree...", "Open an existing Model file and load it into the Tree pane.")
+    case LoadEditor   extends Child(File, "Load Editor...", "Open an existing Model file and load it into the Editor pane.")
+    case SaveTree     extends Child(File, "Save Tree", "Save the Tree pane in markdown format.")
+    case SaveTreeAs   extends Child(File, "Save Tree As...", "Save the Tree pane to a new file in markdown format.")
+    case SaveEditorAs extends Child(File, "Save Editor As...", "Save the Editor pane to a new file in markdown format.")
     case CloseWindow  extends Child(File, "Close Window", "Close this window", unsavedExtendedHelp)
-    case Quit  extends Child(File, "Quit", "Quit application and close all windows.", unsavedExtendedHelp)
+    case Quit         extends Child(File, "Quit", "Quit application and close all windows.", unsavedExtendedHelp)
+
+    case EditNode    extends Child(Tree, "Edit Selected Node in Editor", "Edit selected Tree node in Editor pane." )
+    case ReplaceNode extends Child(Tree, "Replace Selected Node from Editor", "Replace selected Tree node by model in Editor pane.")
+    case InsertAfter extends Child(Tree, "Insert Editor After Selected Node", "Insert model in Editor pane after Tree node.")
+    case DeleteNode  extends Child(Tree, "Delete Selected Node...", "Delete selected Tree node.")
+    case ToggleFocus extends Child(Tree, "Toggle Focus Tree/Editor", "Switch between focus on Tree pane or Editor pane.")
+    case CollapseAll extends Child(Tree, "Collapse All", "Collapse all nodes in Tree pane.")
+    case ExpandAll   extends Child(Tree, "Expand All", "Expand all nodes in Tree pane.")
+    case ToggleTreeSyntax extends Child(Tree, "Toggle Tree Syntax", "Choose Markdown, Scala Constructors, or Scala Classes")
+
+    //TODO more help
   export Child.*
 
-  lazy val menuHelpModel: Model = 
-    val childrenOfParent = Child.values.groupBy(_.parent) 
-    val elems = for 
-      p <- Parent.values 
-      cs <- childrenOfParent.get(p)
-      items = cs.map(c => Item(c.toString).has( 
-        (Seq(Gist(c.help)) ++ (if c.extendedHelp.nonEmpty then Seq(Comment(c.extendedHelp)) else Seq()))*
-      ))
-    yield Section(s"${p}Menu").has(((Seq(
-        Gist(parentMenuHelp(p)),
-        Comment(s"Shortcut is Alt+${(mnemonics(p)).toChar}.")
-      ) ++ items))*)
-    Model(elems*)
-  
   lazy val mnemonics = Map(
     File -> VK_F, Tree -> VK_T, Editor -> VK_E, Log -> VK_L, View -> VK_V, Tools -> VK_O, Export -> VK_X, Templates -> VK_M, Help -> VK_H,
   )
@@ -65,6 +62,20 @@ object MainWindowMenus:
     Help -> "Instructions on how to use reqT.",
   )
 
+  lazy val menuHelpModel: Model = 
+    val childrenOfParent = Child.values.groupBy(_.parent) 
+    val elems = for 
+      p <- Parent.values 
+      cs <- childrenOfParent.get(p)
+      items = cs.map(c => Item(c.toString).has( 
+        (Seq(Title(c.name), Gist(c.help)) ++ (if c.extendedHelp.nonEmpty then Seq(Comment(c.extendedHelp)) else Seq()))*
+      ))
+    yield Section(s"${p}Menu").has(((Seq(
+        Gist(parentMenuHelp(p)),
+        Comment(s"Shortcut is Alt+${(mnemonics(p)).toChar}.")
+      ) ++ items))*)
+    Model(elems*)
+
 trait MainWindowMenus:
   self: MainWindow =>
 
@@ -74,30 +85,28 @@ trait MainWindowMenus:
 
     AppMenus(
       Menu(File, mnemonic = mnemonics(File),
-        Item(NewWindow, VK_N, VK_N, CTRL){ doFileNew() },
-        Item(OpenTree, VK_O, VK_O, CTRL){ doOpen() },
-        Item(LoadEditor, VK_L, VK_L, CTRL){ doLoadToEditor() },
-        Item(SaveTree, VK_S, VK_S, CTRL){ doSaveTree() },
-        Item(SaveTreeAs, VK_S, VK_S, CTRL+SHIFT){ doSaveTreeAs() },
+        Item(NewWindow,    VK_N, VK_N, CTRL){ doFileNew() },
+        Item(OpenTree,     VK_O, VK_O, CTRL){ doOpen() },
+        Item(LoadEditor,   VK_L, VK_L, CTRL){ doLoadToEditor() },
+        Item(SaveTree,     VK_S, VK_S, CTRL){ doSaveTree() },
+        Item(SaveTreeAs,   VK_S, VK_S, CTRL+SHIFT){ doSaveTreeAs() },
         Item(SaveEditorAs, VK_S, VK_S, ALT){ doSaveEditorAs() },
         MenuSeparator,
         Item(CloseWindow, VK_W, VK_W, CTRL){ doClose() },
-        Item(Quit,VK_Q, VK_Q, CTRL){doQuit()},
+        Item(Quit,        VK_Q, VK_Q, CTRL){doQuit()},
       ),
 
       Menu(Tree, mnemonic = mnemonics(Tree), 
-        Item("Edit Tree Node in Editor", VK_E, VK_E, CTRL){ doEditNode()},
-        Item("Replace Tree Node from Editor", VK_R, VK_R, CTRL){ doReplaceNode()},
-        Item("Insert After Node from Editor", VK_I, VK_I, CTRL){ doInsertNode()},
+        Item(EditNode,    VK_E, VK_E, CTRL){ doEditNode()},
+        Item(ReplaceNode, VK_R, VK_R, CTRL){ doReplaceNode()},
+        Item(InsertAfter, VK_I, VK_I, CTRL){ doInsertNode()},
+        Item(DeleteNode, VK_D, VK_DELETE, 0){ gui(removeSelectedNode())},
         MenuSeparator,
-        Item("Toggle Focus Tree/Editor", VK_F,VK_T,CTRL) { doToggleFocus() },
-        Item("Collapse All", VK_C, VK_LEFT, ALT){ gui(setFoldingAll(topPath, isExpand = false))},
-        Item("Expand All", VK_C, VK_RIGHT, ALT){ gui(setFoldingAll(topPath, isExpand = true))},
+        Item(ToggleFocus, VK_F,VK_T,CTRL) { doToggleFocus() },
+        Item(CollapseAll, VK_C, VK_LEFT, ALT){ gui(setFoldingAll(topPath, isExpand = false))},
+        Item(ExpandAll,   VK_C, VK_RIGHT, ALT){ gui(setFoldingAll(topPath, isExpand = true))},
         MenuSeparator,
-        Item("Delete selected node", VK_D, VK_DELETE, 0){ gui(removeSelectedNode())},
-        Item("Revert to Initial Tree Model...", VK_V, VK_R, CTRL+SHIFT){ log("TODO revert")},
-        MenuSeparator,
-        MenuRadioGroup("treeNodeShow", Map[String, () => Unit](
+        MenuRadioGroup(ToggleTreeSyntax, Map[String, () => Unit](
           "Markdown" -> ( () => { gui{treeItemShow = MainWindow.TreeItemShow.Markdown; tree.updateUI()} } ),
           "Scala Constructors"  -> ( () => { gui{treeItemShow = MainWindow.TreeItemShow.Factory; tree.updateUI()} } ),
           "Scala Classes"  -> ( () => { gui{treeItemShow = MainWindow.TreeItemShow.Structure; tree.updateUI()} } ),
@@ -137,9 +146,9 @@ trait MainWindowMenus:
       ),
 
       Menu(Tools, mnemonic = mnemonics(Tools),
-        Item("Format Model", VK_F, VK_F, CTRL) { doFormatAll() },
+        Item("Format Model", VK_F, VK_F, CTRL+SHIFT) { doFormatAll() },
         Item("Distinct Model", VK_D, VK_D, CTRL+SHIFT) { doDistinctAll() },
-        Item("Keep Distinct Entities", VK_K, VK_K, ALT) { doKeepDistinctEntities() },
+        Item("Keep Distinct Entities", VK_K, VK_K, CTRL+SHIFT) { doKeepDistinctEntities() },
         MenuSeparator,
         Item("Entity Ordering in Order", VK_1, VK_1, CTRL) { doAppendEntitiesInOrder() },
         Item("100$-test Normalized Votes", VK_2, VK_2, CTRL) { doNormalizedVotes() },
