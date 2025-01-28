@@ -95,6 +95,6 @@ This repo uses the following open source projects (with their own licenses):
 
 ## Publish
 For maintainers with github access to this repo:
-* Run `scala run publish.sc -S 3.3.4 ` and follow instructions
+* Run `scala run publish.sc -S 3.3.4` and follow instructions
 
 
