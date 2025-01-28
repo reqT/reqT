@@ -6,7 +6,7 @@ package reqt:
 
     val scalaVersion = "3.6.4-RC1"
 
-    val reqTVersion  = "4.4.2"
+    val reqTVersion  = "4.5.0"
 
     val latestVersionURL = "https://reqT.github.io/latest-version/index.html"
 
@@ -122,20 +122,21 @@ package reqt:
         val wantUpdate = 
           val input = Option(io.StdIn.readLine(s"Update to reqT $latest\nY/n? ")).getOrElse("Y")
           input.toLowerCase.startsWith("y")
-        
+
         if wantUpdate then 
-          val isOk = if !os.exists(pathToMyJar) then true else
-            val input = Option(io.StdIn.readLine(s"File exists: $pathToMyJar\nOverwrite Y/n? ")).getOrElse("Y")
+          val pathToNewJar = os.Path(pathToMyJar.segments.toSeq.dropRight(1).appended(s"reqT.jar").mkString("/", "/", ""))
+          val isOk = if !os.exists(pathToNewJar) then true else
+            val input = Option(io.StdIn.readLine(s"File exists: $pathToNewJar\nOverwrite Y/n? ")).getOrElse("Y")
             input.toLowerCase.startsWith("y")
           
           if isOk then 
-            val msg = if os.exists(pathToMyJar) then "Replacing" else "New file"
-            println(s"Downloading reqT.jar from $reqTDownload\n$msg: $pathToMyJar")
+            val msg = if os.exists(pathToNewJar) then "Replacing" else "New file"
+            println(s"Downloading reqT.jar from $reqTDownload\n$msg: $pathToNewJar")
             println(s"  ... ... ...")
             val online = java.net.URI(reqTDownload).toURL().openStream() //java.net.URL(reqTDownload).openStream()
             try
               java.nio.file.Files
-                .copy(online, pathToMyJar.toNIO, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                .copy(online, pathToNewJar.toNIO, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
             finally online.close()
           else println(s"Aborting.")
         else println(s"Aborting.")
