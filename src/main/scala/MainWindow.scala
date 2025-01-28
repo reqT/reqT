@@ -340,7 +340,7 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
   def askKeepEditing(action: String): Boolean = 
     SwingPlatform.isOK(s"""WARNING! You have unsaved changes! 
                           |Do you want to continue editing?
-                          |Yes: Continue editing.
+                          |Yes: Continue editing. Don't $action.
                           |No: $action without saving!""".stripMargin
                           , Some(this))
 
