@@ -117,7 +117,7 @@ class ReqTTokenMaker extends AbstractTokenMaker:
         c match 
         case ' ' | '\t' => currentTokenType = TokenTypes.WHITESPACE
         case '"' => currentTokenType = TokenTypes.LITERAL_STRING_DOUBLE_QUOTE
-        case '#' => currentTokenType = TokenTypes.COMMENT_EOL
+        //case '#' => currentTokenType = TokenTypes.COMMENT_EOL
         case _ =>
           if RSyntaxUtilities.isDigit(c) then currentTokenType = TokenTypes.LITERAL_NUMBER_DECIMAL_INT
           else if RSyntaxUtilities.isLetter(c) || c == '/' || c=='_' then 
@@ -133,10 +133,10 @@ class ReqTTokenMaker extends AbstractTokenMaker:
           addToken(text, currentTokenStart,i-1, TokenTypes.WHITESPACE, newStartOffset+currentTokenStart)
           currentTokenStart = i
           currentTokenType = TokenTypes.LITERAL_STRING_DOUBLE_QUOTE
-        case '#' => 
-          addToken(text, currentTokenStart,i-1, TokenTypes.WHITESPACE, newStartOffset+currentTokenStart)
-          currentTokenStart = i
-          currentTokenType = TokenTypes.COMMENT_EOL
+        // case '#' => 
+        //   addToken(text, currentTokenStart,i-1, TokenTypes.WHITESPACE, newStartOffset+currentTokenStart)
+        //   currentTokenStart = i
+        //   currentTokenType = TokenTypes.COMMENT_EOL
         case _ =>   // Else add the whitespace token and start anew.
           addToken(text, currentTokenStart,i-1, TokenTypes.WHITESPACE, newStartOffset+currentTokenStart)
           currentTokenStart = i
