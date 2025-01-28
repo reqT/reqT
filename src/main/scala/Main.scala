@@ -132,7 +132,7 @@ package reqt:
             val msg = if os.exists(pathToMyJar) then "Replacing" else "New file"
             println(s"Downloading reqT.jar from $reqTDownload\n$msg: $pathToMyJar")
             println(s"  ... ... ...")
-            val online = java.net.URL(reqTDownload).openStream()
+            val online = java.net.URI(reqTDownload).toURL().openStream() //java.net.URL(reqTDownload).openStream()
             try
               java.nio.file.Files
                 .copy(online, pathToMyJar.toNIO, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
