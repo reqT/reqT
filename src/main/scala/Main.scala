@@ -133,6 +133,7 @@ package reqt:
             val msg = if os.exists(pathToNewJar) then "Replacing" else "New file"
             println(s"Downloading reqT.jar from $reqTDownload\n$msg: $pathToNewJar")
             println(s"  ... ... ...")
+            println(s"New reqT jar with version $latest downloaded successfully here: $pathToNewJar")
             val online = java.net.URI(reqTDownload).toURL().openStream() //java.net.URL(reqTDownload).openStream()
             try
               java.nio.file.Files
