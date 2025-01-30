@@ -1,13 +1,14 @@
-lazy val reqTVer      = "4.5.1"  // stay in sync with reqT-lang
+lazy val reqTVer      = reqTLangVer  // stay in sync with reqT-lang
 lazy val reqTJarName  = s"reqT-$reqTVer.jar"
 
-lazy val reqTLangVer  = "4.5.1" // https://github.com/reqT/reqT-lang/releases
+lazy val reqTLangVer  = "4.5.3" // https://github.com/reqT/reqT-lang/releases
 lazy val reqTJacopVer = "1.1.1" // https://github.com/reqT/reqT-jacop/releases
 lazy val jacopVer     = "4.10.0" // https://github.com/radsz/jacop/releases
 lazy val scalaVer     = "3.3.4" // Use LTS only! https://www.scala-lang.org/download/all.html
 lazy val RSTAVer      = "3.5.3" // https://github.com/bobbylight/RSyntaxTextArea/releases
 lazy val AutoCompVer  = "3.3.1" // https://github.com/bobbylight/AutoComplete/releases
 lazy val OSLibVer     = "0.11.3" // https://github.com/com-lihaoyi/os-lib/releases
+lazy val scalaXmlVer = "2.2.0"   // deprecated; migration needed eventually...
 
 ThisBuild / version       := reqTVer
 ThisBuild / scalaVersion  := scalaVer
@@ -45,4 +46,5 @@ lazy val `reqT` = (project in file("."))
     libraryDependencies += "com.fifesoft" % "rsyntaxtextarea" % RSTAVer,
     libraryDependencies += "com.fifesoft" % "autocomplete"    % AutoCompVer,
     libraryDependencies += "com.lihaoyi" %% "os-lib"          % OSLibVer,
+    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % scalaXmlVer,
   )
