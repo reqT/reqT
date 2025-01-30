@@ -2,11 +2,13 @@
 
 # Quality Requirements and Release Planning
 
-This document provides instructions for a computer lab session in the courses ETSN15 "Software Requirements Engineering" 
+* This page contains instructions for lab1 in the course [ETSN15 "Requirements Engineering"](https://cs.lth.se/krav/) at Lund University. 
+* Before you start, visit [reqt.github.io](https://reqt.github.io/) to download reqT and get started.
+* The source code of this page is available [here](https://github.com/reqT/reqT/blob/4.x/docs/lab2.md).
 
 ## Goals
 
-To complete this lab you should develop a requirements model using [reqT](http://reqt.org/download.html), based on your course project. Your model should include the following sections:
+To complete this lab you should develop a requirements model using [reqT](http://reqt.github.io), based on your course project. Your model should include the following sections:
 
   * A **Quality** section including at least one quality requirement using open target, one quality requirement using open metric and at least one Quper model.
 
@@ -19,17 +21,17 @@ To complete this lab you should develop a requirements model using [reqT](http:/
 
   * *Preparation for task 1.* Quality Requirements:
 
-    * Read Chapter 6 on Quality Requirements in the course text book [Lauesen2001].
+    * Read Chapter 6 on Quality Requirements in the course text book [Lau](https://cs.lth.se/krav/literature/).
 
-    * Look at the video lecture on [Quper from Öredev here.](http://cs.lth.se/krav/quality-requirements/)
+    * Look at the video lecture on [Quper from Öredev here](http://cs.lth.se/krav/quality-requirements/).
 
-    * Read the paper on quality requriements [**QUPER**] (download pdf on internal Canvas page) Regnell, Björn, Richard Berntsson Svensson, and Thomas Olsson. "Supporting roadmapping of quality requirements." IEEE software 25.2 (2008). doi: 10.1109/MS.2008.48
+    * Read the paper on quality requirements [QUPER](https://cs.lth.se/krav/literature/).
 
     *  **Select and write down** at least three quality requirements relevant to your course project. They should cover at least two different types of quality aspects (e.g. capacity, accuracy, performance, security, usability, ...).
 
   * *Preparation for task 2.* Release Planning:
     
-    * Read the paper on release planning [**RP**] (download pdf on internal Canvas page) Ruhe, Gunther, and Moshood Omolade Saliu. "The art and science of software release planning." IEEE software 22.6 (2005): 47-53.  doi: 10.1109/MS.2005.164
+    * Read the paper on release planning [RP](https://cs.lth.se/krav/literature/).
    
     * **Select and write down** 3 features and 2 stakeholders from your project and make estimates of relative *benefit* for each feature from the viewpoint of each stakeholder, and estimates of relative *cost* for each feature from development and test perspectives, e.g. using e.g. the 100$-method from [lab1](http://cs.lth.se/krav/labs/lab1). Use fictitious estimates if necessary but aim to be realistic if possible.  Create a tables with your estimates for each feature id similar to the following:
 
