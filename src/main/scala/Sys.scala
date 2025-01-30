@@ -109,3 +109,16 @@ object Sys:
       val tail = ss.lastOption.map(_.stripAnySuffix).getOrElse("")
       (head ++ Seq(tail)).mkString("/") 
 
+  class PeriodicallyUntilDone(val periodMillis: Int)(periodicAction: => Unit) 
+  extends Thread:
+    private val isReady = java.util.concurrent.atomic.AtomicBoolean(false)
+    def done(): Unit = isReady.set(true)
+    override def run = 
+      while 
+        periodicAction
+        Thread.sleep(periodMillis)
+        !isReady.get()
+      do () 
+
+
+

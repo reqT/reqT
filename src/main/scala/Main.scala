@@ -6,7 +6,7 @@ package reqt:
 
     val scalaVersion = "3.6.4-RC1"
 
-    val reqTVersion  = "4.5.1"
+    val reqTVersion  = "4.5.2"
 
     val latestVersionURL = "https://reqT.github.io/latest-version/index.html"
 
@@ -120,7 +120,7 @@ package reqt:
       then println(Console.GREEN + "You have latest version :)" + Console.RESET) 
       else
         val wantUpdate = 
-          val input = Option(io.StdIn.readLine(s"Update to reqT $latest\nY/n? ")).getOrElse("Y")
+          val input = Option(io.StdIn.readLine(s"Download reqT $latest\nY/n? ")).getOrElse("Y")
           input.toLowerCase.startsWith("y")
 
         if wantUpdate then 
@@ -132,13 +132,29 @@ package reqt:
           if isOk then 
             val msg = if os.exists(pathToNewJar) then "Replacing" else "New file"
             println(s"Downloading reqT.jar from $reqTDownload\n$msg: $pathToNewJar")
-            println(s"  ... ... ...")
-            println(s"New reqT jar with version $latest downloaded successfully here: $pathToNewJar")
-            val online = java.net.URI(reqTDownload).toURL().openStream() //java.net.URL(reqTDownload).openStream()
-            try
-              java.nio.file.Files
-                .copy(online, pathToNewJar.toNIO, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
-            finally online.close()
+            val progress = Sys.PeriodicallyUntilDone(periodMillis = 200)(periodicAction = print("."))
+            progress.start()
+            var online: java.io.InputStream = null
+            val isDownloaded: Boolean =  
+              try
+                online = java.net.URI(reqTDownload).toURL().openStream()
+                java.nio.file.Files
+                  .copy(online, pathToNewJar.toNIO, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                true
+              catch
+                case e: Throwable =>
+                  print(s"\nException: $e")
+                  false
+              finally 
+                progress.done()
+                if online != null then online.close()
+              end try
+            if isDownloaded 
+            then 
+              print("\n" + Console.GREEN + "Success!" + Console.RESET)
+              println(s" reqT.jar version $latest downloaded here:\n$pathToNewJar")
+            else 
+              println("\n" + Console.RED_B + "Download failed :(" + Console.RESET)
           else println(s"Aborting.")
         else println(s"Aborting.")
     end update
