@@ -18,6 +18,7 @@ import javax.swing.ButtonGroup
 import javax.swing.JRadioButtonMenuItem
 import javax.swing.JSeparator
 import javax.swing.KeyStroke
+import scala.util.Success
 
 //import javax.swing.plaf.FontUIResource
 //import java.awt.{Component => AWTComponent, List => AWTList}
@@ -226,11 +227,16 @@ object SwingPlatform:
         super.paintComponent(g2)
   end AntiAliasing
 
-  def setAppIcon(frame: JFrame): Unit =
-    val kit = java.awt.Toolkit.getDefaultToolkit()
-    val url = getClass().getResource("/camera.png")
-    val img = kit.createImage(url)
-    frame.setIconImage(img)
+  def setAppIcon(frame: JFrame): Unit = 
+    util.Try:
+      val kit = java.awt.Toolkit.getDefaultToolkit()
+      val url = getClass().getResource("/camera.png")
+      val img = kit.createImage(url)
+      frame.setIconImage(img)
+    match
+      case scala.util.Failure(e) => println("Failure in setAppIcon: $e")
+      case Success(value) => 
+      
   
   
 
