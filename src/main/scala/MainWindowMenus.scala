@@ -170,9 +170,11 @@ trait MainWindowMenus:
         Item("Web Page in .html", VK_1, VK_1, ALT) { doExport(ExportType.Html, getExportModel().toHtml) },
         Item("Nested Graph in .dot", VK_2, VK_2, ALT) { doExport(ExportType.NestedGraph, getExportModel().toGraph) },
         Item("Flat Graph in .dot", VK_3, VK_3, ALT) { doExport(ExportType.FlatGraph, GraphvizGen.modelToGraphFlat(getExportModel())) },
-        Item("Document in .tex", VK_4, VK_4, ALT) { log("TODO Export -> Latex") },
-        Item("Path Table in .csv", VK_5, VK_5, ALT) { log("TODO Export -> Path Table") },
-        Item("Scala Model in .scala", VK_6, VK_6, ALT) { log("TODO Export -> As Scala") },
+        Item("Quper Diagram in .svg", VK_3, VK_3, ALT) { doExport(ExportType.QuperDiagram, quper.toQuperSpec(getExportModel()).toSvgDoc) },
+        MenuSeparator,
+        Item("Document in .tex", VK_7, VK_7, ALT) { log("TODO Export -> Latex") },
+        Item("Path Table in .csv", VK_8, VK_8, ALT) { log("TODO Export -> Path Table") },
+        Item("Scala Model in .scala", VK_9, VK_9, ALT) { log("TODO Export -> As Scala") },
       ),
       
       Menu(Templates, mnemonic = mnemonics(Templates), (Seq(

@@ -627,6 +627,7 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
     case Html extends ExportType(".html")
     case NestedGraph extends ExportType(".dot")
     case FlatGraph extends ExportType(".dot")
+    case QuperDiagram extends ExportType(".svg")
     case Latex extends ExportType(".tex")
   
   enum ExportSource { case Editor, Tree }
@@ -649,7 +650,7 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
 
         //Post-processing + Desktop Open:
         et match
-          case ExportType.Html => 
+          case ExportType.Html | ExportType.QuperDiagram=> 
             log(s"""reqT.Sys.desktopOpen("$jf")""") 
             Sys.desktopOpen(jf)
 
