@@ -1,4 +1,4 @@
-*TODO THIS IS THE OLD LAB FROM reqT 3.1 AND IT SHOULD BE UPDATED TO reqT 4*
+**THIS PAGE CONTAINS *OLD INFORMATION* AND IS UNDER UPDATE TO reqT 4**
 
 # Quality Requirements and Release Planning
 
@@ -57,24 +57,22 @@ To complete this lab you should develop a requirements model using [reqT](http:/
 
 ## Task 1: Create Quality Requirements
 
-* Create a model in the reqT tree including a `Section("quality")`.
+* Create a model in the reqT tree including a `Section: quality`.
 
-* Add a quality requirements `Quality("someId1") has Spec("blabla")` relevant for your project with a specification using the *open target* style [Lau, Chapter 6]. What type of quality aspect are you specifying?
+* Add at least one quality requirements with the shape `Quality: someId1 has Spec: some good spec` that is relevant for your project with a specification using the *open target* style (see Lauesen, Chapter 6). What type of quality aspect are you specifying?
 
-* Add a quality requirements `Quality("someId2") has Spec("blabla")` relevant for your project with a specification using the *open metric* style [Lau, Chapter 6]. What type of quality aspect are you specifying?
+* Add at least one quality requirement with the shape `Quality: someId2 has Spec: some good spec` relevant for your project with a specification using the *open metric* style (see Lauesen, Chapter 6). What type of quality aspect are you specifying?
 
-* Select the Quper model from the `Templates -> Quper` menu and then transfer the model to the tree (Ctrl+Shift+R).
+* Select an example Quper model from the `Templates -> Quper Model` menu and then transfer the model to the tree.
 
 * Generate a Quper SVG image by `Export -> To Quper .svg`. Open the file from a web browser, e.g. Firefox. What is the direction of the scale used in the template example; is better quality to the left or to the right?
 
-* Based on the template in the `Templates -> Quper`, create a Quper model relevant to your project with at least two different targets. Use fictitious estimates if necessary but aim to be realistic if possible. How can you use Quper in your project?
-
-* (Optional) Publish your Quper model on the web as described in Lab 1 Task 4.
+* Based on the template in the `Templates -> Quper Model`, create a Quper model relevant to your project with at least two different targets. Use fictitious estimates if necessary but aim to be realistic if possible. How can you use Quper in your project?
 
 
 ## Task 2: Create a Release Plan
 
-* Create a node in your tree called `Section("ReleasePlan1")` and select the node.
+* Create a node in your tree called `Section: ReleasePlan1` and select the node.
 
 * Load into the editor the script from menu `Templates -> Release plan - simple` and study the code. What is maximized? Discuss how easy it would be for you to manually find an optimal release plan. How would you go about solving this constraint problem if you were using pen and paper?
 
