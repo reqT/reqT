@@ -49,6 +49,7 @@ import reqt.Sys.newFileType
 import java.awt.event.AdjustmentListener
 import java.awt.ScrollPane
 import javax.swing.JScrollBar
+import reqt.solver.Result
 
 object MainWindow:
   val initLookAndFell = javax.swing.UIManager.getLookAndFeel()
@@ -523,7 +524,7 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
       val votes = examples.Prioritization.normalizedVotes(m, p, Prio, b, Benefit)
       textArea.append(votes.toMarkdown)
 
-  def doSolveConstraints() = runInSwingThread:
+  def doSolveComparisonConstraints() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")
     val m = txt.toModel 
     val cse = m.attrsOfType(Constraints).map(_.toConstr)
@@ -613,7 +614,43 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
                 log(s"WARNING: Failed to find solution with deviations: $newSolution")
 
     //log(s"\n   TODO: generalize comparison solving problem with deviation to reqT-lang")
-  end doSolveConstraints
+  end doSolveComparisonConstraints
+
+  def doSolveReleasePlanningConstraints(): Unit = runInSwingThread:
+    log("Attempting to solve release planning constraint problem.")
+    val txt = Option(textArea.getText()).getOrElse("")
+    val m = txt.toModel 
+    val constr = csp.releasePlanningProblem(m) 
+    if constr.isEmpty then 
+      log("WARNING: the model does not conform to the shape of a release plan.")
+      log("  See expected shape in Templates -> Release Plan")
+    else 
+      log(s"Constraints from model:\n${constr.mkString("\n")}")
+
+      val releases = m.entsOfType(Release).distinct.sortBy(_.id)
+
+      log(s"Releases: $releases")
+      
+      val releasePrecedence = m.rels.distinct.collect: 
+        case Rel(e, t, sub) if e.t == Release && t == Precedes => e -> sub.entsOfType(Release).distinct
+      
+      log(s"Release precedence: $releasePrecedence")
+
+      val precedenceConstr = releasePrecedence.flatMap((r1, rs) => rs.map(r2 => XltY(Var(r1.id), Var(r2.id))))
+      val releaseVars = precedenceConstr.flatMap(_.variables).distinct.sortBy(_.id.toString)
+      val releaseOrderingProblem = precedenceConstr :+ AllDifferent(releaseVars)
+      log(s"Release variables: $releaseVars \n ordering problem: $releaseOrderingProblem")
+
+      val sc = solver.SearchConfig(warnUnsolved = solver.noWarn, defaultInterval = 1 to releaseVars.length)
+      val orderSolution: solver.Result = releaseOrderingProblem.satisfy(using sc)
+      
+      log(s"orderSolution: ${orderSolution}")
+      if orderSolution.conclusion != solver.Conclusion.SolutionFound then 
+        log(s"Found no first release, picking release in id sort order: ${releaseVars.headOption}")
+      else
+        log("TODO: find first release and construct maximizing constraint")
+      //  log(s"Maximizing ")
+      // val solution = constr.maximize(Var(Release("A").has/Benefit))
 
   def doModelClassesToLog() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")
