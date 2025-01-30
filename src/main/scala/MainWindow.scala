@@ -50,6 +50,7 @@ import java.awt.event.AdjustmentListener
 import java.awt.ScrollPane
 import javax.swing.JScrollBar
 import reqt.solver.Result
+import reqt.solver.Conclusion
 
 object MainWindow:
   val initLookAndFell = javax.swing.UIManager.getLookAndFeel()
@@ -645,12 +646,42 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
       val orderSolution: solver.Result = releaseOrderingProblem.satisfy(using sc)
       
       log(s"orderSolution: ${orderSolution}")
-      if orderSolution.conclusion != solver.Conclusion.SolutionFound then 
-        log(s"Found no first release, picking release in id sort order: ${releaseVars.headOption}")
-      else
-        log("TODO: find first release and construct maximizing constraint")
-      //  log(s"Maximizing ")
-      // val solution = constr.maximize(Var(Release("A").has/Benefit))
+      val firstRelease: Ent = 
+        if orderSolution.conclusion != solver.Conclusion.SolutionFound then 
+          log(s"Found no first release, picking release in id sort order: ${releaseVars.headOption}")
+          releases.headOption.getOrElse(Release("Unknown"))
+        else
+          orderSolution.lastSolution
+            .minByOption((v, i) => i)
+            .map((v, i) => Release(v.id.toString))
+            .getOrElse(releases.headOption.getOrElse(Release("Unknown")))
+      val varToMaximize: IntVar[AttrTypePath[Int]] = Var(firstRelease.has/Benefit)
+      log(s"Maximizing $varToMaximize... (This may take some time for big problems, TODO: progress alert)")
+      val solution = constr.maximize(varToMaximize)
+      log(s"  solution.conclusion = ${solution.conclusion}")
+      solution.conclusion match
+        case Conclusion.SolutionFound => 
+          val pathValuePairs = solution.lastSolution.map((v,i) => v.id -> i).collect:
+              case (a@AttrTypePath(links, iat: IntAttrType), i) => AttrPath(links, iat.apply(i))
+            .toSeq
+          val solutionModel: Model = 
+            pathValuePairs.map(_.toModel).reduceLeft((m1, m2) => m1 :++ m2).sorted
+          log(s"Solution Model: $solutionModel")
+          val keepReleasePart =  solutionModel.appendEqualRel.elems.collect:
+              case Rel(e, t, sub) if e.t == Release => 
+                val selectedSub = sub.elems.collect:
+                  case ia@IntAttr(t, i) if t == Benefit || t == Order || t == Cost => ia
+                  case Rel(e, t, subSub) if e.t == Feature && (subSub/Cost).headOption.getOrElse(0) > 0 => 
+                    Rel(e, t, subSub.appendEqualRel.sorted)
+                Rel(e, t, selectedSub.toModel.appendEqualRel.sorted) 
+            .toModel.rels.sortBy(_.e.id).toModel
+
+          log(s"Interesting parts of solution Model: $keepReleasePart")
+          textArea.append(Model(Rel(Section("releasePlan"), Has, keepReleasePart)).toMarkdown)
+        case _ => 
+          log(s"WARNING: Failed to find solution.")
+          textArea.append(Model(Section("conclusion").has(Failure(solution.conclusion.toString))).toMarkdown)
+      
 
   def doModelClassesToLog() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")
