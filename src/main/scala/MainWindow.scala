@@ -626,26 +626,26 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
       log("WARNING: the model does not conform to the shape of a release plan.")
       log("  See expected shape in Templates -> Release Plan")
     else 
-      log(s"Constraints from model:\n${constr.mkString("\n")}")
+      log(s"  Constraints from model:\n${constr.mkString("\n")}")
 
       val releases = m.entsOfType(Release).distinct.sortBy(_.id)
 
-      log(s"Releases: $releases")
+      log(s"  Releases: $releases")
       
       val releasePrecedence = m.rels.distinct.collect: 
         case Rel(e, t, sub) if e.t == Release && t == Precedes => e -> sub.entsOfType(Release).distinct
       
-      log(s"Release precedence: $releasePrecedence")
+      log(s"  Release precedence: $releasePrecedence")
 
       val precedenceConstr = releasePrecedence.flatMap((r1, rs) => rs.map(r2 => XltY(Var(r1.id), Var(r2.id))))
       val releaseVars = precedenceConstr.flatMap(_.variables).distinct.sortBy(_.id.toString)
       val releaseOrderingProblem = precedenceConstr :+ AllDifferent(releaseVars)
-      log(s"Release variables: $releaseVars \n ordering problem: $releaseOrderingProblem")
+      log(s"  Release variables: $releaseVars \n  ordering problem: $releaseOrderingProblem")
 
       val sc = solver.SearchConfig(warnUnsolved = solver.noWarn, defaultInterval = 1 to releaseVars.length)
       val orderSolution: solver.Result = releaseOrderingProblem.satisfy(using sc)
       
-      log(s"orderSolution: ${orderSolution}")
+      log(s"  orderSolution: ${orderSolution}")
       val firstRelease: Ent = 
         if orderSolution.conclusion != solver.Conclusion.SolutionFound then 
           log(s"Found no first release, picking release in id sort order: ${releaseVars.headOption}")
@@ -656,28 +656,28 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
             .map((v, i) => Release(v.id.toString))
             .getOrElse(releases.headOption.getOrElse(Release("Unknown")))
       val varToMaximize: IntVar[AttrTypePath[Int]] = Var(firstRelease.has/Benefit)
-      log(s"Maximizing $varToMaximize... (This may take some time for big problems, TODO: progress alert)")
+      log(s"\nMaximizing $varToMaximize... (This may take some time for big problems, TODO: progress alert)")
       val solution = constr.maximize(varToMaximize)
       log(s"  solution.conclusion = ${solution.conclusion}")
       solution.conclusion match
         case Conclusion.SolutionFound => 
-          val pathValuePairs = solution.lastSolution.map((v,i) => v.id -> i).collect:
+          val pathValuePairs: Seq[AttrPath[Int]] = solution.lastSolution.map((v,i) => v.id -> i).collect:
               case (a@AttrTypePath(links, iat: IntAttrType), i) => AttrPath(links, iat.apply(i))
             .toSeq
-          val solutionModel: Model = 
-            pathValuePairs.map(_.toModel).reduceLeft((m1, m2) => m1 :++ m2).sorted
-          log(s"Solution Model: $solutionModel")
-          val keepReleasePart =  solutionModel.appendEqualRel.elems.collect:
-              case Rel(e, t, sub) if e.t == Release => 
-                val selectedSub = sub.elems.collect:
-                  case ia@IntAttr(t, i) if t == Benefit || t == Order || t == Cost => ia
-                  case Rel(e, t, subSub) if e.t == Feature && (subSub/Cost).headOption.getOrElse(0) > 0 => 
-                    Rel(e, t, subSub.appendEqualRel.sorted)
-                Rel(e, t, selectedSub.toModel.appendEqualRel.sorted) 
-            .toModel.rels.sortBy(_.e.id).toModel
 
-          log(s"Interesting parts of solution Model: $keepReleasePart")
-          textArea.append(Model(Rel(Section("releasePlan"), Has, keepReleasePart)).toMarkdown)
+          log(s"\n  Collected solution variables as Seq[AttrPath[Int]]:\n${pathValuePairs.map(_.show).mkString("\n")}")
+
+          val releasesWithFeatures: Seq[AttrPath[Int]] = pathValuePairs.collect:
+              case ap@AttrPath(links, dest) 
+                if links.lift(0).exists(_.e.t == Release) 
+                  && (links.lift(1).exists(_.e.t == Feature) || (links.length == 1 && dest.isIntAttr)) 
+                  && dest.value != 0
+                    => ap
+          
+          val result: Model = releasesWithFeatures.toModel.appendEqualRel.sorted
+
+          log(s"Appending solution model with feature allocation to Editor:\n${result.show}")
+          textArea.append(Model(Rel(Section("releasePlan"), Has, result)).toMarkdown)
         case _ => 
           log(s"WARNING: Failed to find solution.")
           textArea.append(Model(Section("conclusion").has(Failure(solution.conclusion.toString))).toMarkdown)
