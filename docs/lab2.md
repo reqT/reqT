@@ -10,9 +10,9 @@
 
 To complete this lab you should develop a requirements model using [reqT](http://reqt.github.io), based on your course project. Your model should include the following sections:
 
-  * A **Quality** section including at least one quality requirement using open target, one quality requirement using open metric and at least one Quper model.
+  * A **quality** section including at least one quality requirement using open target, one quality requirement using open metric and at least one Quper model.
 
-  * A **Plan** section with a release plan of least three high-level features allocated to at least 2 releases.
+  * A **releasePlan** section with a release plan of least three high-level features allocated to at least 2 releases.
 
 
 ## Task 0: Mandatory Preparations
@@ -72,9 +72,9 @@ To complete this lab you should develop a requirements model using [reqT](http:/
 
 ## Task 2: Create a Release Plan
 
-* Create a node in your tree called `Section: ReleasePlan1` and select the node.
+* Create a placeholder node in your tree with this entity: `* Section: ReleasePlanSimple`
 
-* Load into the editor the script from menu `Templates -> Release plan - simple` and study the code. What is maximized? Discuss how easy it would be for you to manually find an optimal release plan. How would you go about solving this constraint problem if you were using pen and paper?
+* Load into the editor the script from menu `Templates -> Release planning 1: small problem` and study the model. Assume that we want to maximize the benefit of the next release. Discuss how easy it would be for you to manually find an optimal release plan. How would you go about solving this constraint problem if you were using just pen and paper?
 
 * Run the script and store the result in your tree by choosing the menu `Tree -> Replace node with Scala model in editor` *Ctrl+Shift+R*
 
@@ -84,7 +84,7 @@ To complete this lab you should develop a requirements model using [reqT](http:/
 
 * What does it mean in practice that the release planning problem is **NP-complete**? See e.g. [wikipedia Knapsack_problem](https://en.wikipedia.org/wiki/Knapsack_problem)
 
-* Load into the editor the reqT script in menu `Templates -> Release plan - advanced` and study the code.
+* Load into the editor the reqT script in menu `Templates -> Release planning 2: large problem` and study the model.
 
 * Run the script and store the result in your tree by choosing the menu `Tree -> Replace node with Scala model in editor` *Ctrl+Shift+R*. Which features are allocated to the March Release?
 
