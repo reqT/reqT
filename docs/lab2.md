@@ -57,45 +57,44 @@ To complete this lab you should develop a requirements model using [reqT](http:/
 
 ## Task 1: Create Quality Requirements
 
-* Create a model in the reqT tree including a `Section: quality`.
+* Create a placeholder node in the Tree pane with this entity `* Section: quality`.
 
 * Add at least one quality requirements with the shape `Quality: someId1 has Spec: some good spec` that is relevant for your project with a specification using the *open target* style (see Lauesen, Chapter 6). What type of quality aspect are you specifying?
 
 * Add at least one quality requirement with the shape `Quality: someId2 has Spec: some good spec` relevant for your project with a specification using the *open metric* style (see Lauesen, Chapter 6). What type of quality aspect are you specifying?
 
-* Select an example Quper model from the `Templates -> Quper Model` menu and then transfer the model to the tree.
+* Load the model from `Templates -> Quality 2: Quper Model` and study the model.
 
-* Generate a Quper SVG image by `Export -> To Quper .svg`. Open the file from a web browser, e.g. Firefox. What is the direction of the scale used in the template example; is better quality to the left or to the right?
+* Generate a Quper SVG image by `Export -> Quper Diagram in .svg`. Open the file from a web browser. Investigate the the scale used in the template example: is better quality to the left or to the right in the Quper diagram?
 
-* Based on the template in the `Templates -> Quper Model`, create a Quper model relevant to your project with at least two different targets. Use fictitious estimates if necessary but aim to be realistic if possible. How can you use Quper in your project?
+* Based on the template in the `Templates -> Quality 2: Quper Model`, create a Quper model that is relevant to your project with at least two different targets. Use fictitious estimates if necessary but aim to be realistic if possible. Discuss how you could use Quper models in your project during elicitation, specification, validation and selection.
 
+* Save the quality model for your project in the Tree pane.
 
 ## Task 2: Create a Release Plan
 
-* Create a placeholder node in your tree with this entity: `* Section: ReleasePlanSimple`
+* Create a placeholder node in the Tree pane with this entity: `* Section: ReleasePlanSimple`
 
-* Load into the editor the script from menu `Templates -> Release planning 1: small problem` and study the model. Assume that we want to maximize the benefit of the next release. Discuss how easy it would be for you to manually find an optimal release plan. How would you go about solving this constraint problem if you were using just pen and paper?
+* Load into the editor the model from menu `Templates -> Release planning 1: small problem` and study the problem specification. Assume that we want to maximize the benefit of the next release. Discuss how easy it would be for you to manually find an optimal release plan. How would you go about solving this constraint problem if you were using just pen and paper?
 
-* Run the script and store the result in your tree by choosing the menu `Tree -> Replace node with Scala model in editor` *Ctrl+Shift+R*
+* Solve the release planning problem by using `Tools -> Solve Release Planning Constraint Problem`. Investigate the underlying constraints `XeqC`, `XmulYeqZ`, `IfThenElse` etc. that are printed to the log and try to relate some constraints to attributes in the release planning problem specification.
 
-* Study the solution. The features with zero cost in a certain release are de-allocated from that release. Which feature(s) are chosen by the constraint solver for the first release? Why?
+* Study the solution in `* Section: releasePlan`. Which feature(s) are chosen by the constraint solver for the first release? Why?
 
-* Change the capacity of the first release for dev and test and re-evaluate the script until the order of features in the solution is changed. If you want to try solutions directly in terminal you can choose `Editor -> Run Script => Console` *Ctrl+Enter* and then type `sortedSolution.pp` to pretty-print the solution in terminal. Experiment with different priorities of stakeholders.
+* Change the capacity of the first release for dev and test and re-evaluate the script until the order of features in the solution is changed. Experiment with different priorities of stakeholders. Experiment with removing or adding precedence constraints between features. Can you increase the benefit of the first release by relaxing the constraints somehow?
 
 * What does it mean in practice that the release planning problem is **NP-complete**? See e.g. [wikipedia Knapsack_problem](https://en.wikipedia.org/wiki/Knapsack_problem)
 
-* Load into the editor the reqT script in menu `Templates -> Release planning 2: large problem` and study the model.
+* Load into the editor the model from menu `Templates -> Release planning 2: large problem` and study the model.
 
-* Run the script and store the result in your tree by choosing the menu `Tree -> Replace node with Scala model in editor` *Ctrl+Shift+R*. Which features are allocated to the March Release?
+* Solve the large release planning problem by using `Tools -> Solve Release Planning Constraint Problem`. It can take a while before the solver is ready, depending on the speed of your computer. Which features are allocated to the March Release?
 
-* Add a constraint `Feature("exportHtml") precedes Feature("exportGraphViz")` by by removing the comment markers `/*` and `*/` from the Scala code. How does this constraint affect the solution found.
+* Reverse the precedence constraint by changing `* Feature: exportHtml precedes Feature: exportGraphViz` to `* Feature: exportGraphViz precedes Feature: exportHtml`. How does this affect the solution found.
 
-* Add `Stakeholder("Ben")` by removing the comment markers `/*` and `*/` from the Scala code. Choose `Editor -> Run Script => Console` *Ctrl+Enter* and then type `solution.pp` to pretty-print the solution in terminal. Experiment with different capacities of `Release("later")`. How low capacity can you allocate and still finding a solution?
+* Experiment with different capacities of the last release. How low capacity can you allocate to the last release and still find a solution?
 
-* Find a solution that minimize the cost of the March release by replacing the optimization method with `minimize(Release("March")/Cost)` and compare with the previous solution.
+* Create a release plan for your project with at least three features, two stakeholders and two releases.
 
-* Create a release plan for at least three features, two stakeholders and two releases for your project.
-
-* Add constraints using one or more `precedes`, `excludes`, `requires` and investigate how the constraints impact the solution if found.
+* Add constraints using one or more `precedes`, `excludes`, `requires` and investigate how the constraints impact the solution that may be found.
 
 * Discuss how you will work with release planning in your project.
