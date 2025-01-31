@@ -1,7 +1,7 @@
 # Quality Requirements and Release Planning
 
 * This page contains instructions for lab1 in the course [ETSN15 "Requirements Engineering"](https://cs.lth.se/krav/) at Lund University. 
-* Before you start, visit [reqt.github.io](https://reqt.github.io/) to download reqT and get started.
+* Before you start, visit [reqt.github.io](https://reqt.github.io/) to download the latest version of the reqT desktop app and study the "Getting started" section.
 * The source code of this page is available [here](https://github.com/reqT/reqT/blob/4.x/docs/lab2.md).
 
 ## Goals
