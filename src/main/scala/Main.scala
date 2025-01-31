@@ -6,7 +6,7 @@ package reqt:
 
     val scalaVersion = "3.6.4-RC1"
 
-    val reqTVersion  = "4.5.6"
+    val reqTVersion  = "4.5.7"
 
     val latestVersionURL = "https://reqT.github.io/latest-version/index.html"
 
@@ -101,8 +101,13 @@ package reqt:
 
       val tryStartRepl = scala.util.Try: 
         println(s"\n$welcomeMessage\n")
-        val cmd = Sys.fixCmd(replCmd(initScript, quote = false)) // will wrap in cmd /C if windows
-        println(cmd.mkString(" "))
+        val cmd = 
+          if Sys.isWindows 
+          then Sys.fixCmd(replCmd(initScript, quote = true)) // will wrap in cmd /C if window and then needs quotes ???
+          else replCmd(initScript, quote = false) 
+
+        println(Sys.fixCmd(replCmd(initScript, quote = true)).mkString(" "))  // must always be quoted if copy-pasted in terminal
+        
         os.proc(cmd)   //TODO: TODO CHECK that this now works on windows...
           .call(stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit)
       
@@ -125,7 +130,7 @@ package reqt:
           input.toLowerCase.startsWith("y")
 
         if wantUpdate then 
-          val pathToNewJar = os.Path(pathToMyJar.segments.toSeq.dropRight(1).appended(s"reqT.jar").mkString("/", "/", ""))
+          val pathToNewJar = os.Path(pathToMyJar.segments.toSeq.dropRight(1).appended(s"reqT-$latest.jar").mkString("/", "/", ""))
           val isOk = if !os.exists(pathToNewJar) then true else
             val input = Option(io.StdIn.readLine(s"File exists: $pathToNewJar\nOverwrite Y/n? ")).getOrElse("Y")
             input.toLowerCase.startsWith("y")
