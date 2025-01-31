@@ -6,7 +6,7 @@ package reqt:
 
     val scalaVersion = "3.6.4-RC1"
 
-    val reqTVersion  = "4.5.2"
+    val reqTVersion  = "4.5.6"
 
     val latestVersionURL = "https://reqT.github.io/latest-version/index.html"
 
@@ -101,8 +101,9 @@ package reqt:
 
       val tryStartRepl = scala.util.Try: 
         println(s"\n$welcomeMessage\n")
-        println(replCmd(initScript, quote = true).mkString(" "))
-        os.proc(replCmd(initScript))
+        val cmd = Sys.fixCmd(replCmd(initScript, quote = false)) // will wrap in cmd /C if windows
+        println(cmd.mkString(" "))
+        os.proc(cmd)   //TODO: TODO CHECK that this now works on windows...
           .call(stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit)
       
       if tryStartRepl.isFailure then 
