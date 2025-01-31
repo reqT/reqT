@@ -96,3 +96,6 @@ To complete this lab you should develop a requirements model using [reqT](http:/
 * Add constraints using one or more `precedes`, `excludes`, `requires` and investigate how the constraints impact the solution that may be found.
 
 * Discuss how you will work with release planning in your project.
+
+* Save the release plan specification and solution for your project in the Tree pane.
+
