@@ -1,5 +1,3 @@
-**THIS PAGE CONTAINS *OLD INFORMATION* AND IS UNDER UPDATE TO reqT 4**
-
 # Quality Requirements and Release Planning
 
 * This page contains instructions for lab1 in the course [ETSN15 "Requirements Engineering"](https://cs.lth.se/krav/) at Lund University. 
@@ -57,7 +55,7 @@ To complete this lab you should develop a requirements model using [reqT](http:/
 
 ## Task 1: Create Quality Requirements
 
-* Create a placeholder node in the Tree pane with this entity `* Section: quality`.
+* Create a placeholder node in the Tree pane with this entity: `* Section: quality`
 
 * Add at least one quality requirements with the shape `Quality: someId1 has Spec: some good spec` that is relevant for your project with a specification using the *open target* style (see Lauesen, Chapter 6). What type of quality aspect are you specifying?
 
