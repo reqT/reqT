@@ -6,7 +6,7 @@ package reqt:
 
     val scalaVersion = "3.6.4-RC1"
 
-    val reqTVersion  = "4.5.10"
+    val reqTVersion  = "4.6.0"
 
     val latestVersionURL = "https://reqT.github.io/latest-version/index.html"
 
