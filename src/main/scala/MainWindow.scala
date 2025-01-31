@@ -90,8 +90,13 @@ object MainWindow:
         |""".stripMargin.toModel.toMarkdown
 
   val initMessage = 
-    s"""|WELCOME to reqT - a requirements modeling tool! 
-        |
+    s"""|WELCOME to reqT ${Main.reqTVersion} - a requirements modeling tool! 
+        |${
+          Main.getLatestVersion().map(v => 
+            if Main.reqTVersion != v then s"Version $v available here: ${Main.reqTDownload}\n"
+            else ""
+          ).getOrElse("")
+        }
         |Read the docs: https://reqT.github.io
         |Contribute: https://github.com/reqT
         |
@@ -300,7 +305,6 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
     for f <- SwingPlatform.chooseFile() do 
       val t = loadLines(f).mkString("\n")
       textArea.setText(t)
-      updateFileName(f)
       log(s"Loaded $f to Editor.")
       didSaveEditor()
   
@@ -333,7 +337,6 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
       val ok = if !jf.exists() then true else isOK(s"File $jf exist. Do you want to replace it?")
       if ok then 
         textArea.getText().saveTo(f)
-        updateFileName(jf.getName)
         log(s"Saved in ${jf.getAbsolutePath()}")
         didSaveTree()
       else  
@@ -712,7 +715,6 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
       val ok = if !jf.exists() then true else isOK(s"File $jf exist. Do you want to replace it?")
       if !ok then log(s"Nothing saved.") else
         sourceCode.saveTo(f)
-        updateFileName(jf.getName)
         val p = jf.getAbsolutePath()
         log(s"Exported to $p")
 
