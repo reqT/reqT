@@ -74,17 +74,21 @@ After a restart of your terminal you should be able to run reqT by typing `reqt`
 
 ## Dependencies 
 
-The reqT app primarily depends on [**reqT-lang**](https://github.com/reqT/reqT-lang/), a zero-dependency, cross-platform, permissive-licensed library containing the underlying reqT language and api.
+The reqT app primarily depends on [**reqT-lang**](https://github.com/reqT/reqT-lang/), a zero-dependency, cross-platform, permissive-licensed library containing the underlying reqT language and api. 
 
-This repo uses the following open source projects (with their own licenses):
-* [**reqT-lang**](https://github.com/reqT/reqT-lang) the reqT language as a platform-independent, zero-dependency scala library with a permissive license 
-* [**reqT-jacop**](https://github.com/reqT/reqT-jacop) an interface to the JaCoP constraint solver
-* [**JaCoP**](https://github.com/radsz/jacop) used for constraint solving
-* [**RSyntaxTextArea**](http://fifesoft.com/rsyntaxtextarea/) used for syntax coloring in the reqT swing editor
-* [**Autocomplete**](http://fifesoft.com/autocomplete/) used for autocompletion in the reqT swing editor
-* [**Scala**](http://www.scala-lang.org/) the lean and powerful programming language
-* [**sbt**](https://www.scala-sbt.org/) the scala build tool
-* [**os-lib**](https://github.com/com-lihaoyi/os-lib) for using files and processes
+This repo uses the following open source projects, each with its own license:
+* [**reqT-lang**](https://github.com/reqT/reqT-lang): the reqT language (external and embedded DSL for requirements) is provided as a zero-dependency platform-independent Scala library with a permissive license: [Apache v2](https://github.com/reqT/reqT-lang/blob/main/LICENSE).
+* [**reqT-jacop**](https://github.com/reqT/reqT-jacop): an abstraction layer for integer constraint solving and interface to the JaCoP constraint solver (license: [AGPLv3](https://github.com/reqT/reqT-jacop/blob/main/LICENSE)).
+* [**JaCoP**](https://github.com/radsz/jacop) used by reqT-jacop under the hood for constraint solving (license: [AGPLv3](https://github.com/radsz/jacop/blob/develop/LICENSE.md)).
+* [**RSyntaxTextArea**](https://github.com/bobbylight/RSyntaxTextArea): used for syntax coloring in the reqT swing editor (license: [BSD3](https://github.com/bobbylight/RSyntaxTextArea/blob/master/LICENSE.md))
+* [**Autocomplete**](https://github.com/bobbylight/AutoComplete): used for autocompletion in the reqT swing editor (license: [BSD3](https://github.com/bobbylight/AutoComplete/blob/master/LICENSE.md))
+* [**Scala**](http://www.scala-lang.org/): the leanest, most scalable and expressive programming language of planet Earth (license: [Apache v2](https://github.com/scala/scala3/blob/main/LICENSE)).
+* [**sbt**](https://www.scala-sbt.org/): the scala build tool (license: [Apache v2](https://github.com/sbt/sbt/blob/1.10.x/LICENSE)).
+* [**os-lib**](https://github.com/com-lihaoyi/os-lib): used for IO and spawning OS processes (license: [MIT](https://github.com/com-lihaoyi/os-lib)).
+* [**scala-xml**](https://github.com/scala/scala-xml): used for svg graphics generation (license: [Apache v2](https://github.com/scala/scala-xml/blob/main/LICENSE)). 
+* [**Open JDK**](https://github.com/openjdk/jdk): the underlying JVM platform and graphical user interface Swing (license: [GPLv2](https://github.com/openjdk/jdk/blob/master/LICENSE))
+
+The reqT desktop app is transitively, due to the JaCoP constraint solver, licensed as AGPLv3, but the aim is to eventually transfer to [Choco](https://github.com/chocoteam/choco-solver) to enable re-licensing of reqT as permissive Appache v2.
 
 ## Build
 

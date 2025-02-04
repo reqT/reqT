@@ -6,15 +6,15 @@ package reqt:
 
     val scalaVersion = "3.6.4-RC1"
 
-    val reqTVersion  = "4.5.2"
+    val reqTVersion  = "4.6.0"
 
     val latestVersionURL = "https://reqT.github.io/latest-version/index.html"
 
-    def getLatestVersion(): String = 
+    def getLatestVersion(): Option[String] = 
       util.Try:
         val s = scala.io.Source.fromURL(latestVersionURL)
-        try s.mkString finally s.close()
-      .toOption.getOrElse(s"Error: cannot connect to $latestVersionURL")
+        try s.mkString.trim finally s.close()
+      .toOption
 
     val reqTHome = "https://reqT.github.io"
 
@@ -101,8 +101,14 @@ package reqt:
 
       val tryStartRepl = scala.util.Try: 
         println(s"\n$welcomeMessage\n")
-        println(replCmd(initScript, quote = true).mkString(" "))
-        os.proc(replCmd(initScript))
+        val cmd = 
+          if Sys.isWindows 
+          then Sys.fixCmd(replCmd(initScript, quote = true)) // will wrap in cmd /C if window and then needs quotes ???
+          else replCmd(initScript, quote = false) 
+
+        println(Sys.fixCmd(replCmd(initScript, quote = true)).mkString(" "))  // must always be quoted if copy-pasted in terminal
+        
+        os.proc(cmd)   //TODO: TODO CHECK that this now works on windows...
           .call(stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit)
       
       if tryStartRepl.isFailure then 
@@ -115,48 +121,51 @@ package reqt:
 
     def update(): Unit = 
       println(s"You are running reqT $reqTVersion from $pathToMyJar")
-      val latest = getLatestVersion()
-      if reqTVersion == latest 
-      then println(Console.GREEN + "You have latest version :)" + Console.RESET) 
-      else
-        val wantUpdate = 
-          val input = Option(io.StdIn.readLine(s"Download reqT $latest\nY/n? ")).getOrElse("Y")
-          input.toLowerCase.startsWith("y")
-
-        if wantUpdate then 
-          val pathToNewJar = os.Path(pathToMyJar.segments.toSeq.dropRight(1).appended(s"reqT.jar").mkString("/", "/", ""))
-          val isOk = if !os.exists(pathToNewJar) then true else
-            val input = Option(io.StdIn.readLine(s"File exists: $pathToNewJar\nOverwrite Y/n? ")).getOrElse("Y")
+      val latestOpt = getLatestVersion()
+      if latestOpt.isEmpty then println(s"Cannot connect to $latestVersionURL - the published latest version is thus unknown.") 
+      else 
+        val latest = latestOpt.get
+        println(s"Latest published version: '$latest'")
+        if reqTVersion == latest then println(Console.GREEN + "You have latest published version :)" + Console.RESET) 
+        else
+          val wantUpdate = 
+            val input = Option(io.StdIn.readLine(s"Download reqT $latest from $reqTDownload\nY/n? ")).getOrElse("Y")
             input.toLowerCase.startsWith("y")
-          
-          if isOk then 
-            val msg = if os.exists(pathToNewJar) then "Replacing" else "New file"
-            println(s"Downloading reqT.jar from $reqTDownload\n$msg: $pathToNewJar")
-            val progress = Sys.PeriodicallyUntilDone(periodMillis = 200)(periodicAction = print("."))
-            progress.start()
-            var online: java.io.InputStream = null
-            val isDownloaded: Boolean =  
-              try
-                online = java.net.URI(reqTDownload).toURL().openStream()
-                java.nio.file.Files
-                  .copy(online, pathToNewJar.toNIO, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
-                true
-              catch
-                case e: Throwable =>
-                  print(s"\nException: $e")
-                  false
-              finally 
-                progress.done()
-                if online != null then online.close()
-              end try
-            if isDownloaded 
-            then 
-              print("\n" + Console.GREEN + "Success!" + Console.RESET)
-              println(s" reqT.jar version $latest downloaded here:\n$pathToNewJar")
-            else 
-              println("\n" + Console.RED_B + "Download failed :(" + Console.RESET)
+
+          if wantUpdate then 
+            val pathToNewJar = os.Path(pathToMyJar.segments.toSeq.dropRight(1).appended(s"reqT-$latest.jar").mkString("/", "/", ""))
+            val isOk = if !os.exists(pathToNewJar) then true else
+              val input = Option(io.StdIn.readLine(s"File exists: $pathToNewJar\nOverwrite Y/n? ")).getOrElse("Y")
+              input.toLowerCase.startsWith("y")
+            
+            if isOk then 
+              val msg = if os.exists(pathToNewJar) then "Replaced file" else "New file"
+              print(s"Downloading")
+              val progress = Sys.PeriodicallyUntilDone(periodMillis = 500)(periodicAction = print("."))
+              progress.start()
+              var online: java.io.InputStream = null
+              val isDownloaded: Boolean =  
+                try
+                  online = java.net.URI(reqTDownload).toURL().openStream()
+                  java.nio.file.Files
+                    .copy(online, pathToNewJar.toNIO, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                  true
+                catch
+                  case e: Throwable =>
+                    print(s"\nException: $e")
+                    false
+                finally 
+                  progress.done()
+                  if online != null then online.close()
+                end try
+              if isDownloaded 
+              then 
+                println(Console.GREEN_B + "READY!" + Console.RESET)
+                println(s"$msg with reqT version $latest here:\n$pathToNewJar")
+              else 
+                println("\n" + Console.RED_B + "Download failed :(" + Console.RESET)
+            else println(s"Aborting.")
           else println(s"Aborting.")
-        else println(s"Aborting.")
     end update
 
     /** Main program of reqT
