@@ -19,7 +19,8 @@ object ReqTDesktopSettings:
     @volatile var isPlatformSpecificLookAndFeel = false //true
  
     @volatile var fontSize = 16
-    @volatile var editorFonts = List("Fira Code Medium", "Source Code Pro Medium" , "DejaVu Sans Mono", "JetBrains Mono Medium" , "Consolas", "Liberation Mono", "Monospace")
+    @volatile var editorFonts =  //Mono space fonts in priority order
+      List("Liberation Mono", "Fira Code Medium", "JetBrains Mono Medium" , "Cascadia Mono", "Courier New", "Noto Mono", "Consolas", "Droid Sans Mono", "DejaVu Sans Mono", "Source Code Pro Medium", "Monospaced", "Monospace")
     val defaultEditorFont = editorFonts.head
     
     val entRGB  = (0,30,200) //blueish

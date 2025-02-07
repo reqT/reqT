@@ -178,6 +178,7 @@ object MainWindow:
             case a: Undefined[?] => a.toString.html
 
   class ReqTreeCellRenderer() extends DefaultTreeCellRenderer:
+    setBackgroundSelectionColor(java.awt.Color(250,225,190))  // TODO make configurable?
     override def getTreeCellRendererComponent(
       tree: JTree, value: Object, sel: Boolean, expanded: Boolean, leaf: Boolean, row: Int, hasFocus: Boolean
     ): java.awt.Component = 
@@ -192,10 +193,13 @@ object MainWindow:
           case IntAttr(t, value) =>
           case Undefined(t) =>
         case _ => // do nothing 
-      //c.setOpaque(true) //Aaaargh opaque kills selection marking
-      if !hasFocus then c.setOpaque(true)
-      else c.setOpaque(false)
-      //c.setBackground(java.awt.Color(100,100,100))
+
+      if !hasFocus then c.setOpaque(true) else c.setOpaque(false)
+      
+      if sel 
+      then c.setForeground(java.awt.Color(0,0,0))
+      else c.setForeground(getForeground)
+
       c //return this component
 
 class MainWindow private (val initFile: String, val initModel: Model = Model()) extends JFrame, MainWindow.ModelTreeSelectionListener, MainWindowMenus:
@@ -344,8 +348,8 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
 
   def askKeepEditing(action: String): Boolean = 
     SwingPlatform.isOK(s"""WARNING! You have unsaved changes! 
-                          |Do you want to continue editing?
-                          |Yes: Continue editing. Don't $action.
+                          |Do you want to keep on editing?
+                          |Yes: Keep editing. Don't $action.
                           |No: $action without saving!""".stripMargin
                           , Some(this))
 
@@ -820,10 +824,15 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
   import org.fife.ui.rsyntaxtextarea.*
 
   def setTextAreaFont(textArea: JTextArea, fontSize: Int, fontFamily: String = "") = SwingPlatform.runInSwingThread:
-    val fn = if fontFamily == "" then textArea.getFont.getFamily else 
-      val available = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment.getAvailableFontFamilyNames
-      val possible = (fontFamily :: ReqTDesktopSettings.gui.editorFonts).filter(available.contains(_))
-      possible.headOption.getOrElse(Font.MONOSPACED)
+    val fn = 
+      if fontFamily == "" then 
+        println(s"*** DEBUG: textArea.getFont.getFamily ${textArea.getFont.getFamily}")
+        textArea.getFont.getFamily 
+      else 
+        val available = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment.getAvailableFontFamilyNames
+        val possible = (fontFamily :: ReqTDesktopSettings.gui.editorFonts).filter(available.contains(_))
+        println(s"*** DEBUG: possible ${possible}")
+        possible.headOption.getOrElse(Font.MONOSPACED)
     
     val fPlain = new Font(fn, Font.PLAIN, fontSize)
     val fBold = new Font(fn, Font.BOLD, fontSize)

@@ -8,7 +8,8 @@ lazy val scalaVer     = "3.3.5" // Use LTS only! https://www.scala-lang.org/down
 lazy val RSTAVer      = "3.5.3" // https://github.com/bobbylight/RSyntaxTextArea/releases
 lazy val AutoCompVer  = "3.3.1" // https://github.com/bobbylight/AutoComplete/releases
 lazy val OSLibVer     = "0.11.3" // https://github.com/com-lihaoyi/os-lib/releases
-lazy val scalaXmlVer = "2.2.0"   // deprecated; migration needed eventually...
+lazy val scalaXmlVer  = "2.2.0"   // deprecated; migration needed eventually...
+lazy val FlatLafVer   = "3.5.4"  // https://github.com/JFormDesigner/FlatLaf
 
 ThisBuild / version       := reqTVer
 ThisBuild / scalaVersion  := scalaVer
@@ -47,4 +48,5 @@ lazy val `reqT` = (project in file("."))
     libraryDependencies += "com.fifesoft" % "autocomplete"    % AutoCompVer,
     libraryDependencies += "com.lihaoyi" %% "os-lib"          % OSLibVer,
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % scalaXmlVer,
+    libraryDependencies += "com.formdev" % "flatlaf" % "3.5.4",
   )

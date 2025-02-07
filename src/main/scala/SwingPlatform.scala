@@ -30,6 +30,12 @@ object SwingPlatform:
   /** Init the Swing GUI toolkit and set platform-specific look and feel.*/
   def swingInit(isPlatformSpecific: Boolean): Unit = if !_isSwingInit then
     if isPlatformSpecific then setPlatformSpecificLookAndFeel()
+    else
+      try javax.swing.UIManager.setLookAndFeel(com.formdev.flatlaf.FlatLightLaf())
+      catch 
+        case e: Exception => 
+          java.lang.System.err.println("Failed to initialize Look And Feel: com.formdev.flatlaf" )
+
     _isSwingInit = true
     ReqTTokenMaker.init()
 
@@ -61,7 +67,14 @@ object SwingPlatform:
     JOptionPane.showConfirmDialog(parent.getOrElse(null), msg, 
       "Confirm", JOptionPane.YES_NO_OPTION) == 0
 
-  val fileChooser = JFileChooser(java.io.File(Sys.workDir))
+  val fileChooser = new JFileChooser(java.io.File(Sys.workDir)):
+    override def updateUI(): Unit = 
+      try 
+        javax.swing.UIManager.setLookAndFeel(com.formdev.flatlaf.FlatLightLaf())
+      catch 
+        case e: Exception => 
+          java.lang.System.err.println("Failed to initialize Look And Feel: com.formdev.flatlaf" )
+      super.updateUI()
   
   def chooseFile(
     preselected: String = "", 
