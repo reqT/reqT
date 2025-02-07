@@ -826,12 +826,12 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
   def setTextAreaFont(textArea: JTextArea, fontSize: Int, fontFamily: String = "") = SwingPlatform.runInSwingThread:
     val fn = 
       if fontFamily == "" then 
-        println(s"*** DEBUG: textArea.getFont.getFamily ${textArea.getFont.getFamily}")
+        //println(s"*** DEBUG: textArea.getFont.getFamily ${textArea.getFont.getFamily}")
         textArea.getFont.getFamily 
       else 
         val available = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment.getAvailableFontFamilyNames
         val possible = (fontFamily :: ReqTDesktopSettings.gui.editorFonts).filter(available.contains(_))
-        println(s"*** DEBUG: possible ${possible}")
+        //println(s"*** DEBUG: possible ${possible}")
         possible.headOption.getOrElse(Font.MONOSPACED)
     
     val fPlain = new Font(fn, Font.PLAIN, fontSize)
