@@ -34,6 +34,8 @@ import javax.swing.plaf.FontUIResource
 import javax.swing.JTextArea
 import javax.swing.event.TreeSelectionListener
 import javax.swing.event.TreeSelectionEvent
+import javax.swing.event.TreeExpansionListener
+import javax.swing.event.TreeExpansionEvent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.JTree
 import javax.swing.tree.TreeSelectionModel
@@ -51,6 +53,7 @@ import java.awt.ScrollPane
 import javax.swing.JScrollBar
 import reqt.solver.Result
 import reqt.solver.Conclusion
+import reqt.Sys.dotCmd
 
 object MainWindow:
   val initLookAndFell = javax.swing.UIManager.getLookAndFeel()
@@ -130,9 +133,25 @@ object MainWindow:
         |""".stripMargin
 
   trait ModelTreeSelectionListener extends TreeSelectionListener:
+    self: MainWindow =>
     override def valueChanged(e: TreeSelectionEvent): Unit = 
       //println(s"ModelTreeSelectionListener event valueChanged: $e")
       //println("TODO: push to Undo-stack for Tree")
+      ()
+
+  trait ModelTreeExpansionListener extends TreeExpansionListener:
+
+    self: MainWindow =>
+    override def treeExpanded(e: TreeExpansionEvent): Unit = 
+      //println(s"ModelTreeExpansionListener event treeExpanded: $e")
+      ()
+
+    override def treeCollapsed(e: TreeExpansionEvent): Unit = 
+      //println(s"ModelTreeExpansionListener event treeCollapsed: $e")
+      if selectedOpt.map(_.eq(top)).getOrElse(false) then //runInSwingThread: 
+        val p = tree.getSelectionPath()
+        if p != null then setFoldingAll(p, isExpand = false)
+        tree.setSelectionPath(topPath)
       ()
 
   extension (c: java.awt.Color) def toHex = "#" + Integer.toHexString(c.getRGB).substring(2)
@@ -202,7 +221,8 @@ object MainWindow:
 
       c //return this component
 
-class MainWindow private (val initFile: String, val initModel: Model = Model()) extends JFrame, MainWindow.ModelTreeSelectionListener, MainWindowMenus:
+class MainWindow private (val initFile: String, val initModel: Model = Model()) 
+extends JFrame, MainWindow.ModelTreeSelectionListener, MainWindow.ModelTreeExpansionListener, MainWindowMenus:
   MainWindow.n += 1
   @volatile private var isSavedTree = true
   @volatile private var isSavedEditor = true
@@ -1085,22 +1105,25 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
       textArea.requestFocus
   }
 
-  def setFoldingAll(parent: TreePath, isExpand: Boolean): Unit = if parent != null then {
-    val node = parent.getLastPathComponent().asInstanceOf[TreeNode]
-    if (node.getChildCount() >= 0) {
-      import scala.jdk.CollectionConverters.* 
-      for (e <- node.children.asScala) {
-        val n = e.asInstanceOf[TreeNode]
-        val path = parent.pathByAddingChild(n).asInstanceOf[TreePath]
-        setFoldingAll(path, isExpand);
-      }
-    }
-    if (isExpand) tree.expandPath(parent)
-    else {
-      tree.collapsePath(parent)
-      treeModel.reload
-    }
-  }
+  def setFoldingAll(parent: TreePath, isExpand: Boolean): Unit = 
+    //if parent != null then {
+      // val node = parent.getLastPathComponent().asInstanceOf[TreeNode]
+      // if (node.getChildCount() >= 0) {
+      //   import scala.jdk.CollectionConverters.* 
+      //   for (e <- node.children.asScala) {
+      //     val n = e.asInstanceOf[TreeNode]
+      //     val path = parent.pathByAddingChild(n).asInstanceOf[TreePath]
+      //     setFoldingAll(path, isExpand);  //THIS TAKES TIME...
+      //   }
+      // }
+      // if (isExpand) tree.expandPath(parent)
+      // else {
+      //   tree.collapsePath(parent)
+      //   treeModel.reload
+      // }
+      //}
+    for i <- 0 until tree.getRowCount() do 
+      if isExpand then tree.expandRow(i) else tree.collapseRow(i)
 
   def toTreePath(node: DefaultMutableTreeNode): TreePath = {
     val pathArray = treeModel.getPathToRoot(node)
@@ -1225,7 +1248,7 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
   }
 
   def removeSelectedNode() = {
-    if SwingPlatform.isOK("Delet node and all its contents?") then 
+    if SwingPlatform.isOK("Delete node and all its contents?") then 
       val currentSelectionPath: TreePath = tree.getSelectionPath()
       if (currentSelectionPath == null) log("WARNING: Nothing is selected so nothing is deleted.") else {
         val currentNode =
@@ -1238,17 +1261,19 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
           treeModel.nodeStructureChanged(parent)
           if sibling != null then tree.setSelectionPath(toTreePath(sibling))
           else tree.setSelectionPath(toTreePath(parent))
-          setFoldingAll(toTreePath(parent), isExpand = true)
+          //setFoldingAll(toTreePath(parent), isExpand = true)
         } else {
           top.removeAllChildren
           treeModel.nodeStructureChanged(top)
           if sibling != null then 
             tree.setSelectionPath(toTreePath(sibling))
-            setFoldingAll(toTreePath(sibling), isExpand = true)
+            //setFoldingAll(toTreePath(sibling), isExpand = true)
           else 
             tree.setSelectionPath(topPath)
-            setFoldingAll(topPath, isExpand = true)
+            //setFoldingAll(topPath, isExpand = true)
         }
+        treeModel.reload
+        tree.updateUI()
         tree.requestFocus
       }
   }
@@ -1256,8 +1281,10 @@ class MainWindow private (val initFile: String, val initModel: Model = Model()) 
 
   //tree.setEditable(true) ??? how much work is it to enable editing directly in the tree???
   tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
-  tree.setSelectionPath(topPath) // why does this not work in fresh window?
+  //tree.setSelectionPath(topPath) // why does this not work in fresh window?
+  if tree.getRowCount() > 0 then tree.setSelectionRow(1)
   tree.addTreeSelectionListener(this)
+  tree.addTreeExpansionListener(this)
   //tree.setEditable(true)  ???
   //tree.setDropMode(DropMode.INSERT) ???
   tree.setScrollsOnExpand(true)

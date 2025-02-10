@@ -100,10 +100,14 @@ trait MainWindowMenus:
         Item(EditNode,    VK_E, VK_E, CTRL){ doEditNode()},
         Item(ReplaceNode, VK_R, VK_R, CTRL){ doReplaceNode()},
         Item(InsertAfter, VK_I, VK_I, CTRL){ doInsertNode()},
-        Item(DeleteNode, VK_D, VK_DELETE, 0){ gui(removeSelectedNode())},
+        Item(DeleteNode, VK_D, VK_DELETE, 0){ gui{removeSelectedNode()}},
         MenuSeparator,
         Item(ToggleFocus, VK_F,VK_T,CTRL) { doToggleFocus() },
-        Item(CollapseAll, VK_C, VK_LEFT, ALT){ gui(setFoldingAll(topPath, isExpand = false))},
+        Item(CollapseAll, VK_C, VK_LEFT, ALT){ gui {
+           setFoldingAll(topPath, isExpand = false)
+           tree.setSelectionPath(topPath)
+         }
+        },
         Item(ExpandAll,   VK_C, VK_RIGHT, ALT){ gui(setFoldingAll(topPath, isExpand = true))},
         MenuSeparator,
         MenuRadioGroup(ToggleTreeSyntax, Map[String, () => Unit](
