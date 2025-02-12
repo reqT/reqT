@@ -79,7 +79,7 @@ class ReqTTokenMaker extends AbstractTokenMaker:
           actualTokenType = tt
         case _ => 
           () // no special token found; do nothing
-      else // found no special word to highlight
+      else // found no keyword to highlight, check if entity id
         if previousToken != null && previousToken.getType() == ReqTTokenMaker.EntTokenType then 
           actualTokenType = ReqTTokenMaker.EntIdTokenType
 
