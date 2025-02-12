@@ -16,6 +16,7 @@ object ReqTTokenMaker:
   val IntAttrTokenType = TokenTypes.RESERVED_WORD
   val StrAttrTokenType = TokenTypes.RESERVED_WORD_2
   val RelTokenType = TokenTypes.FUNCTION
+  val EntIdTokenType = TokenTypes.MARKUP_ENTITY_REFERENCE
   val nbrOfTokens = meta.concepts.size
   val tokenMap = TokenMap(nbrOfTokens)
   for c <- meta.entityNames   do tokenMap.put(c, ReqTTokenMaker.EntTokenType)
@@ -76,7 +77,11 @@ class ReqTTokenMaker extends AbstractTokenMaker:
         case StrAttrTokenType if !hasStrAttr() => actualTokenType = tt
         case RelTokenType if firstType == EntTokenType && !hasStrAttr() && !hasRelAttr() => 
           actualTokenType = tt
-        case _ => () // no special token found; do nothing
+        case _ => 
+          () // no special token found; do nothing
+      else // found no special word to highlight
+        if previousToken != null && previousToken.getType() == ReqTTokenMaker.EntTokenType then 
+          actualTokenType = ReqTTokenMaker.EntIdTokenType
 
     super.addToken(segment, start, end, actualTokenType, startOffset)
   end addToken
