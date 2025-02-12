@@ -40,7 +40,7 @@ object MainWindowMenus:
     case DeleteNode  extends Child(Tree, "Delete Selected Node...", "Delete selected Tree node.")
     case ToggleFocus extends Child(Tree, "Toggle Focus Tree/Editor", "Switch between focus on Tree pane or Editor pane.")
     case CollapseAll extends Child(Tree, "Collapse All", "Collapse all nodes in Tree pane.")
-    case ExpandAll   extends Child(Tree, "Expand All", "Expand all nodes in Tree pane.")
+    case ExpandNext   extends Child(Tree, "Expand Next", "Expand next node in Tree pane.")
     case ToggleTreeSyntax extends Child(Tree, "Toggle Tree Syntax", "Choose Markdown, Scala Constructors, or Scala Classes")
 
     //TODO more help
@@ -103,12 +103,8 @@ trait MainWindowMenus:
         Item(DeleteNode, VK_D, VK_DELETE, 0){ gui{removeSelectedNode()}},
         MenuSeparator,
         Item(ToggleFocus, VK_F,VK_T,CTRL) { doToggleFocus() },
-        Item(CollapseAll, VK_C, VK_LEFT, ALT){ gui {
-           setFoldingAll(topPath, isExpand = false)
-           tree.setSelectionPath(topPath)
-         }
-        },
-        Item(ExpandAll,   VK_C, VK_RIGHT, ALT){ gui(setFoldingAll(topPath, isExpand = true))},
+        Item(CollapseAll, VK_C, VK_LEFT, ALT){ gui(setFoldingAll(topPath, isExpand = false)) },
+        Item(ExpandNext,   VK_C, VK_RIGHT, ALT){ gui(setFoldingAll(topPath, isExpand = true)) },
         MenuSeparator,
         MenuRadioGroup(ToggleTreeSyntax, Map[String, () => Unit](
           "Markdown" -> ( () => { gui{treeItemShow = MainWindow.TreeItemShow.Markdown; tree.updateUI()} } ),

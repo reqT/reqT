@@ -178,20 +178,20 @@ object MainWindow:
     override def toString: String = 
         ew.treeItemShow match 
           case TreeItemShow.Markdown => item match
-            case l: Link    => s"${l.e.t.toString.entTag.bold}: ${l.e.id} ${l.t.toString.toLowerCase.relTag.bold.under}".html
-            case e: Ent     => s"${e.t.toString.entTag.bold}: ${e.id}".html 
+            case l: Link    => s"${l.e.t.toString.entTag.bold}: ${l.e.id.entTag} ${l.t.toString.toLowerCase.relTag.bold.under}".html
+            case e: Ent     => s"${e.t.toString.entTag.bold}: ${e.id.entTag}".html 
             case a: StrAttr => s"${a.t.toString.strTag.bold.italic}: ${a.value}".html
             case a: IntAttr => s"${a.t.toString.intTag.bold.italic}: ${a.value}".html
             case a: Undefined[?] => s"${a.t.toString.intTag.bold.italic}".html
           case TreeItemShow.Factory => item match
-            case l: Link    => s"${l.e.t.toString.entTag.bold}(\"${l.e.id}\").${l.t.toString.toLowerCase.relTag.bold.under}".html
-            case e: Ent     => s"${e.t.toString.entTag.bold}(\"${e.id}\")".html 
+            case l: Link    => s"${l.e.t.toString.entTag.bold}(\"${l.e.id.entTag}\").${l.t.toString.toLowerCase.relTag.bold.under}".html
+            case e: Ent     => s"${e.t.toString.entTag.bold}(\"${e.id.entTag}\")".html 
             case a: StrAttr => s"${a.t.toString.strTag.bold.italic}(\"${a.value}\")".html
             case a: IntAttr => s"${a.t.toString.intTag.bold.italic}(${a.value})".html
             case a: Undefined[?] => s"Undefined(${a.t.toString.intTag.bold.italic})".html
           case TreeItemShow.Structure => item match
-            case l: Link    => s"Rel(${l.e.toString.entTag},${l.t.toString.relTag},".relTag.html
-            case e: Ent     => e.toString.entTag.html
+            case l: Link    => s"Rel(${("Ent(" + l.e.t.toString + "," + l.e.id + ")").entTag},${l.t.toString.relTag},".relTag.html
+            case e: Ent     => s"Ent(${e.t},${e.id})".entTag.html
             case a: StrAttr => a.toString.strTag.html
             case a: IntAttr => a.toString.intTag.html
             case a: Undefined[?] => a.toString.html
@@ -865,6 +865,8 @@ extends JFrame, MainWindow.ModelTreeSelectionListener, MainWindow.ModelTreeExpan
 
     val fBoldItalic = new Font(fn, Font.BOLD | Font.ITALIC, fontSize)
 
+    val fItalic = new Font(fn, Font.ITALIC, fontSize)
+
     textArea.setFont(fPlain)
     
     textArea match 
@@ -880,6 +882,10 @@ extends JFrame, MainWindow.ModelTreeSelectionListener, MainWindow.ModelTreeExpan
 
         ta.getSyntaxScheme.setStyle(ReqTTokenMaker.RelTokenType,    
           new Style(ReqTDesktopSettings.gui.relationColor, Style.DEFAULT_BACKGROUND, fBoldUL))
+
+        ta.getSyntaxScheme.setStyle(ReqTTokenMaker.EntIdTokenType,    
+          new Style(ReqTDesktopSettings.gui.entityColor, Style.DEFAULT_BACKGROUND, fPlain))
+
       case _ => // don't set syntax styles as this is not a syntax aware text area
     // textArea.getSyntaxScheme.setStyle(TokenTypes.LITERAL_STRING_DOUBLE_QUOTE, new Style(Settings.gui.stringColor))
     // textArea.getSyntaxScheme.setStyle(TokenTypes.RESERVED_WORD, new Style(Settings.gui.scalaReservedWordColor, Style.DEFAULT_BACKGROUND, fBold)) // more discrete coloring???
@@ -1106,24 +1112,15 @@ extends JFrame, MainWindow.ModelTreeSelectionListener, MainWindow.ModelTreeExpan
   }
 
   def setFoldingAll(parent: TreePath, isExpand: Boolean): Unit = 
-    //if parent != null then {
-      // val node = parent.getLastPathComponent().asInstanceOf[TreeNode]
-      // if (node.getChildCount() >= 0) {
-      //   import scala.jdk.CollectionConverters.* 
-      //   for (e <- node.children.asScala) {
-      //     val n = e.asInstanceOf[TreeNode]
-      //     val path = parent.pathByAddingChild(n).asInstanceOf[TreePath]
-      //     setFoldingAll(path, isExpand);  //THIS TAKES TIME...
-      //   }
-      // }
-      // if (isExpand) tree.expandPath(parent)
-      // else {
-      //   tree.collapsePath(parent)
-      //   treeModel.reload
-      // }
-      //}
-    for i <- 0 until tree.getRowCount() do 
+    val r = tree.getRowForPath(parent)
+
+    if parent == topPath then tree.expandRow(r)
+    else if isExpand then tree.expandRow(r)
+    else tree.collapseRow(r)
+
+    for i <- 1 until tree.getRowCount() do 
       if isExpand then tree.expandRow(i) else tree.collapseRow(i)
+
 
   def toTreePath(node: DefaultMutableTreeNode): TreePath = {
     val pathArray = treeModel.getPathToRoot(node)
@@ -1255,24 +1252,37 @@ extends JFrame, MainWindow.ModelTreeSelectionListener, MainWindow.ModelTreeExpan
           currentSelectionPath.getLastPathComponent().asInstanceOf[DefaultMutableTreeNode]
         val parent = currentNode.getParent().asInstanceOf[DefaultMutableTreeNode]
         var sibling = currentNode.getNextSibling().asInstanceOf[DefaultMutableTreeNode]
-        if sibling == null then sibling = currentNode.getPreviousSibling().asInstanceOf[DefaultMutableTreeNode]
-        if (parent != null) {
+
+        if sibling == null then 
+          sibling = currentNode.getPreviousSibling().asInstanceOf[DefaultMutableTreeNode]
+
+        if parent != null then {
           treeModel.removeNodeFromParent(currentNode)
           treeModel.nodeStructureChanged(parent)
-          if sibling != null then tree.setSelectionPath(toTreePath(sibling))
-          else tree.setSelectionPath(toTreePath(parent))
-          //setFoldingAll(toTreePath(parent), isExpand = true)
+          if sibling != null then 
+            val sp = toTreePath(sibling)
+            val sr = tree.getRowForPath(sp)
+            tree.setSelectionRow(sr)
+            tree.expandRow(sr)
+          else 
+            val pp = toTreePath(parent)
+            val pr = tree.getRowForPath(pp)
+            tree.setSelectionRow(pr)
+            //tree.expandRow(pr)
         } else {
           top.removeAllChildren
           treeModel.nodeStructureChanged(top)
           if sibling != null then 
-            tree.setSelectionPath(toTreePath(sibling))
-            //setFoldingAll(toTreePath(sibling), isExpand = true)
-          else 
-            tree.setSelectionPath(topPath)
-            //setFoldingAll(topPath, isExpand = true)
+            val sp = toTreePath(sibling)
+            val sr = tree.getRowForPath(sp)
+            tree.setSelectionRow(sr)
+            //tree.expandRow(sr)
+          else
+            val tr = tree.getRowForPath(topPath)
+            tree.setSelectionRow(tr)
+            //tree.expandRow(tr)
         }
-        treeModel.reload
+        //treeModel.reload
         tree.updateUI()
         tree.requestFocus
       }
