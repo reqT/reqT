@@ -1,14 +1,14 @@
-lazy val reqTVer      = "4.6.2"  // stay in sync with reqT-lang
+lazy val reqTVer      = "4.6.3"  // stay in sync with reqT-lang
 lazy val reqTJarName  = s"reqT-$reqTVer.jar"
 
-lazy val reqTLangVer  = "4.6.0" // https://github.com/reqT/reqT-lang/releases
-lazy val reqTJacopVer = "1.1.1" // https://github.com/reqT/reqT-jacop/releases
+lazy val reqTLangVer  = "4.6.1" // https://github.com/reqT/reqT-lang/releases
+lazy val reqTJacopVer = "1.1.2" // https://github.com/reqT/reqT-jacop/releases
 lazy val jacopVer     = "4.10.0" // https://github.com/radsz/jacop/releases
-lazy val scalaVer     = "3.3.5" // Use LTS only! https://www.scala-lang.org/download/all.html
+lazy val scalaVer     = "3.3.7" // Use LTS only! https://www.scala-lang.org/download/all.html
 lazy val RSTAVer      = "3.5.3" // https://github.com/bobbylight/RSyntaxTextArea/releases
 lazy val AutoCompVer  = "3.3.1" // https://github.com/bobbylight/AutoComplete/releases
-lazy val OSLibVer     = "0.11.3" // https://github.com/com-lihaoyi/os-lib/releases
-lazy val scalaXmlVer  = "2.2.0"   // deprecated; migration needed eventually...
+lazy val OSLibVer     = "0.11.6" // https://github.com/com-lihaoyi/os-lib/releases
+lazy val scalaXmlVer  = "2.4.0"   // deprecated; migration needed eventually...
 lazy val FlatLafVer   = "3.5.4"  // https://github.com/JFormDesigner/FlatLaf
 
 ThisBuild / version       := reqTVer
@@ -48,5 +48,5 @@ lazy val `reqT` = (project in file("."))
     libraryDependencies += "com.fifesoft" % "autocomplete"    % AutoCompVer,
     libraryDependencies += "com.lihaoyi" %% "os-lib"          % OSLibVer,
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % scalaXmlVer,
-    libraryDependencies += "com.formdev" % "flatlaf" % "3.5.4",
+    libraryDependencies += "com.formdev" % "flatlaf" % FlatLafVer,
   )
