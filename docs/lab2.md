@@ -1,6 +1,6 @@
 # Quality Requirements and Release Planning
 
-* This page contains instructions for lab2 in the course [ETSN15 "Requirements Engineering"](https://cs.lth.se/krav/) at Lund University. 
+* This page contains instructions for lab2 in the course [ETSN15 "Requirements Engineering"](https://lunduniversity.github.io/krav/) at Lund University. 
 * Before you start, visit [reqt.github.io](https://reqt.github.io/) to download the latest version of the reqT desktop app and study the "Getting started" section.
 * The source code of this page is available [here](https://github.com/reqT/reqT/blob/4.x/docs/lab2.md).
 
@@ -15,23 +15,23 @@ To complete this lab you should develop a requirements model using [reqT](http:/
 
 ## Task 0: Mandatory Preparations
 
-  * [Lab1](http://cs.lth.se/krav/labs/lab1) is a *pre-requisite* for this lab. You need to have knowledge of how reqT works and skills in using the most important shortcuts to work efficiently.
+  * [Lab1](https://github.com/reqT/reqT/blob/4.x/docs/lab1.md) is a *pre-requisite* for this lab. You need to have knowledge of how reqT works and skills in using the most important shortcuts to work efficiently.
 
   * *Preparation for task 1.* Quality Requirements:
 
-    * Read Chapter 6 on Quality Requirements in the course text book [Lau](https://cs.lth.se/krav/literature/).
+    * Read Chapter 6 on Quality Requirements in the course text book [Lau](https://lunduniversity.github.io/krav/#literature).
 
-    * Look at the video lecture on [Quper from Öredev here](http://cs.lth.se/krav/quality-requirements/).
+    * Look at the video lecture on [Quper from Öredev here](https://fileadmin.cs.lth.se/krav/quper-oredev-2009.mp4).
 
-    * Read the paper on quality requirements [QUPER](https://cs.lth.se/krav/literature/).
+    * Read the paper on quality requirements [QUPER](https://lunduniversity.github.io/krav/#literature).
 
     *  **Select and write down** at least three quality requirements relevant to your course project. They should cover at least two different types of quality aspects (e.g. capacity, accuracy, performance, security, usability, ...).
 
   * *Preparation for task 2.* Release Planning:
     
-    * Read the paper on release planning [RP](https://cs.lth.se/krav/literature/).
+    * Read the paper on release planning [RP](https://lunduniversity.github.io/krav/#literature).
    
-    * **Select and write down** 3 features and 2 stakeholders from your project and make estimates of relative *benefit* for each feature from the viewpoint of each stakeholder, and estimates of relative *cost* for each feature from development and test perspectives, e.g. using e.g. the 100$-method from [lab1](http://cs.lth.se/krav/labs/lab1). Use fictitious estimates if necessary but aim to be realistic if possible.  Create a tables with your estimates for each feature id similar to the following:
+    * **Select and write down** 3 features and 2 stakeholders from your project and make estimates of relative *benefit* for each feature from the viewpoint of each stakeholder, and estimates of relative *cost* for each feature from development and test perspectives, e.g. using e.g. the 100$-method from [lab1](https://github.com/reqT/reqT/blob/4.x/docs/lab1.md). Use fictitious estimates if necessary but aim to be realistic if possible.  Create a tables with your estimates for each feature id similar to the following:
 
     | Stakeholder | Feature | Benefit |
     |-------------|---------|---------|
