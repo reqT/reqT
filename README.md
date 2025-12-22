@@ -17,9 +17,14 @@
 
 ## Getting started
 
+### Prerequisites
+
+* You need Java JDK 21, install from [here](https://adoptium.net/temurin/releases/?version=21&os=any&arch=any).
+* Other Java versions may also work, but if you get strange errors make sure you have Java JDK 21.
+
 ### Download
 
-* Download the latest `reqT.jar` from https://github.com/reqT/reqT/releases by clicking on the jar file under "Assets". or by using the terminal command below for your system (update to latest version):
+* Download the latest `reqT.jar` from https://github.com/reqT/reqT/releases by clicking on the jar file under "Assets". or by using the terminal command below for your system:
   * Linux:
     ```
     wget https://github.com/reqT/reqT/releases/latest/download/reqT.jar
@@ -32,21 +37,27 @@
     ```
     curl -O https://github.com/reqT/reqT/releases/latest/download/reqT.jar
     ```
-### Run app
+### Run desktop app
 
 * Run reqT either by double-clicking on the downloaded jar or using this terminal command: 
     
       java -jar reqT.jar
 
-### Run shell
-
-* Run reqT in the Scala repl with `scala repl --jar reqT.jar`
+### Run shell in terminal
 
 * If `scala` is missing on your system then install it from here: https://www.scala-lang.org/
 
-* When the `scala>` prompt is shown type: `import reqt.*` and you are good to go coding.
+* Download reqT.jar (see above) and run reqT in the Scala repl with 
+```
+java -jar reqT.jar repl`
+```
 
-### Manual install 
+* You can also start the Scala repl with reqT using this command, which does *not* require downloading reqT.jar:
+```
+scala repl -S 3.6.4 --dep reqT:reqT:4.6.2,url=https://github.com/reqT/reqT/releases/download/v4.6.2/reqT-4.6.2.jar
+```
+
+### Manually install reqt on your path
 
 It is optional but convenient to install the `reqt` command on your path like so:
 
@@ -59,6 +70,7 @@ It is optional but convenient to install the `reqt` command on your path like so
       ```
     * Make `reqt` executable by `chmod +x ~/bin/reqt`
     * This requires that `~/bin` is on your `$PATH` which is [the default in e.g. Ubuntu](https://askubuntu.com/a/402410). On MacOS you need to `sudo nano /etc/paths` and add `/Users/YOURUSERNAME/bin` at the bottom of the file.
+    * Restart your computer and then the command `reqt` should work in terminal.
 
   * Windows:
     * Create a dir called `reqT` in your home directory and put the `reqT.jar` (see Download above) in that dir.
@@ -69,8 +81,8 @@ It is optional but convenient to install the `reqt` command on your path like so
       call java -jar %_jarfile% %*
       ```
     * Add the `reqT` dir to your Windows Path by [following these instructions](https://stackoverflow.com/questions/44272416).
+    * Restart your computer and then the command `reqt` should work in terminal.
 
-After a restart of your terminal you should be able to run reqT by typing `reqt` in any work dir. 
 
 ## Dependencies 
 
@@ -98,7 +110,8 @@ The reqT desktop app is transitively, due to the JaCoP constraint solver, licens
 * You will find the jar in `target/scala-<version>/` called `reqT-<version>.jar`
 
 ## Publish
+
 For maintainers with github access to this repo:
-* Run `scala run publish.sc -S 3.3.4` and follow instructions
+* Run `scala run publish.sc -S 3.3.7` and follow instructions
 
 
