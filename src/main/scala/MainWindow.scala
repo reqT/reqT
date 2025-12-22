@@ -507,7 +507,7 @@ extends JFrame, MainWindow.ModelTreeSelectionListener, MainWindow.ModelTreeExpan
 
   def doAppendEqualRel() = runInSwingThread:
     val txt = Option(textArea.getText()).getOrElse("")
-    val m = txt.toModel.appendEqualRel
+    val m = txt.toModel.appendEqualLinks
     if m.rels.length == 0 then log("WARNING: Found no relations in Editor.")
     else 
       log("Group by relations, merge all submodels.")
@@ -710,7 +710,7 @@ extends JFrame, MainWindow.ModelTreeSelectionListener, MainWindow.ModelTreeExpan
                     && dest.value != 0
                       => ap
             
-            val result: Model = releasesWithFeatures.toModel.appendEqualRel.sorted
+            val result: Model = releasesWithFeatures.toModel.appendEqualLinks.sorted
 
             log(s"Appending solution model with feature allocation to Editor:\n${result.show}")
             textArea.append(Model(Rel(Section("releasePlan"), Has, result)).toMarkdown)
