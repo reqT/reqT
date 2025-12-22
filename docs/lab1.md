@@ -26,9 +26,9 @@ To complete this lab you should develop a requirements model using [reqT](https:
 
 * Make sure you can launch the reqT Desktop app in terminal using: `java -jar reqT.jar`
 
-* Study the slides of lectures [L1-L4](http://cs.lth.se/krav/lectures/), and the [reqT tutorial](http://fileadmin.cs.lth.se/krav/reqT-tutorial.pdf).
+* Study the slides of lectures [L1-L4]https://lunduniversity.github.io/krav/#lectures), and the [reqT homepage](https://reqt.github.io/).
 
-* Study the [reqT cheat sheet](https://github.com/reqT/reqT-lang/releases/latest/download/reqT-quickref-GENERATED.pdf)
+* Study the [reqT Quickref](https://github.com/reqT/reqT-lang/releases/latest/download/reqT-quickref-GENERATED.pdf)
 
 * At the beginning of the lab session be prepared to:
   * Show your context diagram, list of features with one-line descriptions, and stakeholders.
@@ -138,7 +138,7 @@ To complete this lab you should develop a requirements model using [reqT](https:
 
         * Is it easy to be consistent? Discuss the difficulty of making consistent pairwise comparisons as the number of compared objects increase. Discuss if or how the risk of being consistent might depend on the prioritization criteria. Could/should the level of deviation be used as an indicator of the quality of the human judgment?
 
-        * *Optional*. Study the source code for ordinal-scale prioritization here: [ `doSolveConstraints()` in the file `MainWindow.scala`](https://github.com/reqT/reqT/blob/4.x/src/main/scala/MainWindow.scala#L486) and try to figure out what happens step-by-step.
+        * *Optional*. Study the source code for ordinal-scale prioritization here: [ `doSolveComparisonConstraints()` in the file `MainWindow.scala`](https://github.com/reqT/reqT/blob/4.x/src/main/scala/MainWindow.scala#L555) and try to figure out roughly what happens step-by-step.
 
 * **Ratio-scale prioritization using the 100-dollar method**:
 
@@ -151,7 +151,7 @@ To complete this lab you should develop a requirements model using [reqT](https:
     * Write down reflections on the result:
         * Was it easy to assign ratio scale priorities?
     
-    * *Optional*. Study the source code for ratio-scale prioritization [in the `normalizedVotes` method here](https://github.com/reqT/reqT-lang/blob/main/src/main/scala/06-examples.scala#L304) called from [here](https://github.com/reqT/reqT/blob/4.x/src/main/scala/MainWindow.scala#L468) and try to figure out what happens step-by-step. Explain how the benefits values of each stakeholder are weighted together to normalized total benefit values. 
+    * *Optional*. Study the source code for ratio-scale prioritization [in the `normalizedVotes` method here](https://github.com/reqT/reqT-lang/blob/main/src/main/scala/06-examples.scala#L368) called from [here](https://github.com/reqT/reqT/blob/4.x/src/main/scala/MainWindow.scala#L552) and try to figure out roughly what happens step-by-step. Explain how the benefits values of each stakeholder are weighted together to normalized total benefit values. 
 
 * **Ordinal-scale prioritization using sorting**:
 
@@ -171,13 +171,51 @@ To complete this lab you should develop a requirements model using [reqT](https:
 Do this optional task if you still have time left at the lab session.
 
 * Download [hello-reqt.scala](https://github.com/reqT/reqT.github.io/blob/master/src/hello-reqt.scala) and place it in a suitable folder.
+```
+curl https://raw.githubusercontent.com/reqT/reqT.github.io/refs/heads/master/src/hello-reqt.scala -O hello-reqt.scala
+```
 
-* Open a terminal and navigate to the folder with the scala program and run it with: `scala run .`
+* Open a terminal and navigate to the folder with the scala program and run it with: 
+```
+scala run hello-reqt.scala
+```
 
 * Open the program in [vscode](https://code.visualstudio.com/) with the [Scala Metals extension](https://marketplace.visualstudio.com/items?itemName=scalameta.metals)
 
 * Run the `hello-reqt.scala` program from within vscode.
 
-* Study the code of `reqt.Model` companion and members [here](https://github.com/reqT/reqT-lang/blob/main/src/main/scala/)
-
 * Try out some methods on Model by developing and running your scala program in vscode. 
+```scala
+$ scala repl -S 3.6.4 hello-reqt.scala -- --repl-init-script "import reqt.*"
+
+Welcome to Scala 3.6.4 (21.0.6, Java OpenJDK 64-Bit Server VM).
+Type in expressions for evaluation. Or try :help.
+
+scala> val f = Feature("x")
+val f: reqt.Ent = Ent(Feature,x)
+
+scala> val f = Feature("greeting")
+val f: reqt.Ent = Ent(Feature,greeting)
+
+scala> val s = Spec("say hello")
+val s: reqt.StrAttr = StrAttr(Spec,say hello)
+
+scala> val r = f.has(s)
+val r: reqt.Rel = Rel(Ent(Feature,greeting),Has,Model(StrAttr(Spec,say hello)))
+
+scala> r.show
+val res0: String = Feature("greeting").has(Spec("say hello"))
+
+scala> val m = Model(r)
+val m: reqt.Model = Model(Rel(Ent(Feature,greeting),Has,Model(StrAttr(Spec,say hello))))
+
+scala> println(m.show)
+Model(
+  Feature("greeting") has Spec("say hello"),
+)
+
+scala> val ns = m.nodes
+val ns: Vector[reqt.Node] = Vector(Ent(Feature,greeting), StrAttr(Spec,say hello))
+
+scala> m.<TAB>   // see methods on Model m
+```
