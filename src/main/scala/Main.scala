@@ -4,9 +4,9 @@ export reqt.Main.edit
 package reqt:
   object Main:
 
-    val scalaVersion = "3.6.4-RC1"
+    val scalaVersion = "3.6.4"
 
-    val reqTVersion  = "4.6.2"
+    val reqTVersion  = "4.6.3"
 
     val latestVersionURL = "https://reqT.github.io/latest-version/index.html"
 
